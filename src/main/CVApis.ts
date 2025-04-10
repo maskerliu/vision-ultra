@@ -1,0 +1,82 @@
+import cv, { CascadeClassifier, FacemarkLBF, Mat, Rect } from '@u4/opencv4nodejs'
+import path from 'path'
+import { IOpencvAPI } from '../common/ipc.api'
+
+let originFrame: Mat
+let sharedData: Uint8ClampedArray
+let bgrFrame: Mat
+let classifierEye: CascadeClassifier
+let classifierDef: CascadeClassifier
+let classifierAlt: CascadeClassifier
+// create the facemark object with the landmarks model
+let facemark: FacemarkLBF
+
+let cvApis: IOpencvAPI = {
+  async init() {
+    try {
+      classifierEye = new cv.CascadeClassifier(cv.HAAR_EYE_TREE_EYEGLASSES)
+      classifierDef = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_DEFAULT)
+      classifierAlt = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2)
+      facemark = new cv.FacemarkLBF()
+
+      const modelFile = path.join(__dirname, '../../resources/cv/lbfmodel.yaml')
+      await facemark.loadModelAsync(modelFile)
+      // give the facemark object it's face detection callback
+      // facemark.setFaceDetector((frame: Mat) => {
+      //   const { objects } = classifierAlt.detectMultiScale(frame, 1.12)
+      //   return objects
+      // })
+
+    } catch (e) {
+      console.error(e)
+    }
+  },
+  destroy() {
+    if (originFrame) originFrame.release()
+    if (sharedData) sharedData = null
+  },
+  faceRecognize: function (frame: ImageData, width: number, height: number) {
+    try {
+      if (originFrame == null) {
+        originFrame = new cv.Mat(height, width, cv.CV_8UC4)
+      }
+      if (sharedData == null) {
+        sharedData = new Uint8ClampedArray(height * width * cv.CV_8UC4)
+      }
+
+      originFrame.setData(Buffer.from(frame.data.buffer))
+      const bgrFrame = originFrame.cvtColor(cv.COLOR_RGBA2BGR)
+      let grayImage = bgrFrame.cvtColor(cv.COLOR_BGR2GRAY)
+      let faceResult = classifierDef.detectMultiScale(grayImage)
+
+      const sortByNumDetections = (result: { objects: Rect[], numDetections: number[] }) => result.numDetections
+        .map((num, idx) => ({ num, idx }))
+        .sort(((n0, n1) => n1.num - n0.num))
+        .map(({ idx }) => idx)
+
+      // get best result
+      const faceRect = faceResult.objects[sortByNumDetections(faceResult)[0]]
+      if (faceRect == null) return null
+      // detect eyes
+      const faceRegion = grayImage.getRegion(faceRect)
+      const eyeResult = classifierEye.detectMultiScale(faceRegion)
+      const eyeRects = sortByNumDetections(eyeResult)
+        .slice(0, 2)
+        .map(idx => eyeResult.objects[idx])
+
+      const faceLandmarks = facemark.fit(grayImage, [faceRect])
+
+      // grayImage = grayImage.cvtColor(cv.COLOR_GRAY2RGBA)
+      // const data = Uint8ClampedArray.from(grayImage.getData())
+      // let cols = grayImage.cols, rows = grayImage.rows
+      grayImage.release()
+      bgrFrame.release()
+      return { face: faceRect, eyes: eyeRects, landmarks: faceLandmarks[0] }
+    } catch (e) {
+      console.error(e)
+      return null
+    }
+  }
+}
+
+export default cvApis
