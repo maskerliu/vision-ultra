@@ -99,6 +99,6 @@ export namespace ProxyMock {
   }
 
   export function broadcast(uid: string) {
-    return get<string>(`/appmock/sse/broadcast/${uid}`)
+    return get<string>(`/_/sse/broadcast/${uid}`)
   }
 }

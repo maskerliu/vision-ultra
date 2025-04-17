@@ -31,15 +31,8 @@ export default class MainApp {
     console.log('home', app.getPath('temp'))
   }
 
-  private testCV() {
-    let imgPath = path.join(__dirname, IS_DEV ? '../../images/opencv-logo.png' : './static/opencv-logo.png')
-    cv.imreadAsync(imgPath).then((img) => {
-      cv.imshow('image', img)
-    }).catch(error => console.error(error))
-  }
-
   public async startApp() {
-    app.setName('AppApiProxy')
+    app.setName('VisionUltra')
     app.disableHardwareAcceleration()
     app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors')
     app.commandLine.appendSwitch('ignore-certificate-errors')
@@ -93,6 +86,8 @@ export default class MainApp {
 
     app.on('before-quit', () => {
       app.releaseSingleInstanceLock()
+
+      clearInterval(this.progressInterval)
     })
 
     app.on('window-all-closed', () => {
@@ -120,7 +115,7 @@ export default class MainApp {
 
     let winOpt: BrowserWindowConstructorOptions = {
       icon: this.trayIconFile,
-      title: "AppApiProxy",
+      title: "VisionUltra",
       width: 1100,
       height: 670,
       minHeight: 640,
@@ -167,6 +162,8 @@ export default class MainApp {
       this.mainWindow.focus()
       this.mainWindow.webContents.send(MainAPICMD.GetSysSettings, this.mainServer.getSysSettings())
     })
+
+    this.dockerProgress()
   }
 
   private createTrayMenu() {
@@ -209,9 +206,10 @@ export default class MainApp {
       if (this.mainWindow == null) {
         this.createMainWindow()
       }
+      this.mainWindow.focus()
     })
 
-    tray.setToolTip('AppApiProxy')
+    tray.setToolTip('VisionUltra')
     tray.setContextMenu(contextMenu)
   }
 
@@ -284,4 +282,35 @@ export default class MainApp {
       // console.log('send sse')
     })
   }
+
+  private testCV() {
+    let imgPath = path.join(__dirname, IS_DEV ? '../../images/opencv-logo.png' : './static/opencv-logo.png')
+    cv.imreadAsync(imgPath).then((img) => {
+      cv.imshow('image', img)
+    }).catch(error => console.error(error))
+  }
+
+  progressInterval: any
+
+  private dockerProgress() {
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval)
+    }
+    let c = 0
+    this.progressInterval = setInterval(() => {
+      // update progress bar to next value
+      // values between 0 and 1 will show progress, >1 will show indeterminate or stick at 100%
+      this.mainWindow?.setProgressBar(c)
+
+      // increment or reset progress bar
+      if (c < 2) {
+        c += INCREMENT
+      } else {
+        c = (-INCREMENT * 5) // reset to a bit less than 0 to show reset state
+      }
+    }, INTERVAL_DELAY)
+  }
 }
+
+const INCREMENT = 0.03
+const INTERVAL_DELAY = 100 // ms

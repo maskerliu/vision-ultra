@@ -32,7 +32,16 @@ export default {
     resources: {
       title: '静态资源管理',
       upload: '上传文件',
-      manage: '远程资源管理'
+      manage: '远程资源管理',
+      cv: {
+        title: '人脸识别模型',
+        upload: '上传模型文件',
+        manage: '远程模型管理',
+        uploadSuccess: '模型文件上传成功',
+        uploadError: '模型文件上传失败',
+        deleteSuccess: '删除成功',
+        deleteError: '删除失败'
+      }
     }
   },
   debug: {

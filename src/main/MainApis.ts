@@ -6,9 +6,18 @@ let mainApis: IMainAPI = {
   relaunch() {
     ipcRenderer.invoke(MainAPICMD.Relaunch)
   },
-  openFile: function (...args: any): Promise<void> {
-    ipcRenderer.invoke('dialog:openFile')
-    return null
+  openFile(): Promise<any> {
+    let promise = new Promise<any>((resolve, reject) => {
+      ipcRenderer.invoke(MainAPICMD.OpenFile).then((filePath) => {
+        console.info('filePath', filePath)
+        resolve(filePath)
+      }).catch((err) => {
+        console.error('Error opening file:', err)
+        reject(err)
+      })
+    })
+
+    return promise
   },
   openDevTools(...args: any) {
     ipcRenderer.invoke(MainAPICMD.OpenDevTools, args)
@@ -20,7 +29,7 @@ let mainApis: IMainAPI = {
     ipcRenderer.invoke(MainAPICMD.DownloadUpdate, newVersion)
   },
 
-  sendServerEvent: function (): void {
+  sendServerEvent(): void {
     ipcRenderer.invoke(MainAPICMD.SendServerEvent)
   },
 

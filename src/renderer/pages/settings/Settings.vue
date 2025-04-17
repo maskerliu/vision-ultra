@@ -2,14 +2,14 @@
   <van-form class="settings" label-align="right" colon>
     <sys-info />
     <version-theme />
-    <local-resource-mgr />
+    <local-res-mgr />
     <client-mgr />
   </van-form>
 </template>
 
 <script lang="ts" setup>
 import ClientMgr from './ClientMgr.vue'
-import LocalResourceMgr from './LocalResourceMgr.vue'
+import LocalResMgr from './LocalResMgr.vue'
 import SysInfo from './SysInfo.vue'
 import VersionTheme from './VersionTheme.vue'
 

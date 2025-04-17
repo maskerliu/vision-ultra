@@ -6,7 +6,7 @@ declare global {
 
   interface Window {
     isWeb: boolean
-    electronAPI: IMainAPI
+    mainApis: IMainAPI
     cv: IOpencvAPI
     // ipcRenderer: IpcRenderer
   }

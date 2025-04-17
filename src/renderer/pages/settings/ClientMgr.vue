@@ -38,19 +38,19 @@
 <script lang="ts" setup>
 import { showNotify } from 'vant'
 import { onMounted, ref } from 'vue'
-import { ProxyMock } from '../../../common'
+import { CommonApi } from '../../../common'
 import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()
 const dialogVisible = ref(false)
-const selectClient = ref<ProxyMock.ClientInfo>()
+const selectClient = ref<CommonApi.ClientInfo>()
 const broadcastMsg = ref('')
-const clients = ref<ProxyMock.ClientInfo[]>([])
+const clients = ref<CommonApi.ClientInfo[]>([])
 const imMsg = ref('')
 
 onMounted(async () => {
   try {
-    clients.value = await ProxyMock.getAllPushClients()
+    clients.value = await CommonApi.getAllPushClients()
   } catch (error) {
     showNotify(error)
   }
@@ -58,10 +58,10 @@ onMounted(async () => {
 
 function sendBroadcastMsg(): void {
   commonStore.publishMessage(broadcastMsg.value)
-  let msg: ProxyMock.PushMsg<any> = {
-    type: ProxyMock.PushMsgType.TXT,
+  let msg: CommonApi.PushMsg<any> = {
+    type: CommonApi.PushMsgType.TXT,
     payload: {
-      type: ProxyMock.BizType.IM,
+      type: CommonApi.BizType.IM,
       content: broadcastMsg.value
     }
   }
@@ -70,11 +70,11 @@ function sendBroadcastMsg(): void {
 }
 
 function sendMsg(): void {
-  let msg: ProxyMock.PushMsg<any> = {
+  let msg: CommonApi.PushMsg<any> = {
     to: selectClient.value.uid,
-    type: ProxyMock.PushMsgType.TXT,
+    type: CommonApi.PushMsgType.TXT,
     payload: {
-      type: ProxyMock.BizType.IM,
+      type: CommonApi.BizType.IM,
       content: imMsg.value,
     },
   }
@@ -82,7 +82,7 @@ function sendMsg(): void {
   imMsg.value = null
 }
 
-function showOpMenu(client: ProxyMock.ClientInfo): void {
+function showOpMenu(client: CommonApi.ClientInfo): void {
   dialogVisible.value = true
   selectClient.value = client
 }

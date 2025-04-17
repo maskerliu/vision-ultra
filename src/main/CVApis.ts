@@ -20,7 +20,7 @@ let cvApis: IOpencvAPI = {
       facemark = new cv.FacemarkLBF()
 
       const modelFile = path.join(__dirname, '../../resources/cv/lbfmodel.yaml')
-      await facemark.loadModelAsync(modelFile)
+      facemark.loadModel(modelFile)
       // give the facemark object it's face detection callback
       // facemark.setFaceDetector((frame: Mat) => {
       //   const { objects } = classifierAlt.detectMultiScale(frame, 1.12)

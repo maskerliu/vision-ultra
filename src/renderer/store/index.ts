@@ -31,7 +31,21 @@ export const CommonStore = defineStore('Common', {
 
       try {
         this.bizConfig = await CommonApi.getBizConfig()
-        this.updateBizConfig()
+        this.uid = window.localStorage.getItem('uid')
+        if (this.uid == null) {
+          this.uid = generateUid()
+          window.localStorage.setItem('uid', this.uid)
+        }
+
+        this.bizConfig = config ? config : this.bizConfig
+        updateClientUID(this.uid)
+
+        this.registerUrl = `${this.bizConfig.protocol}://${this.bizConfig.ip}:${this.bizConfig.port}/appmock/register/${this.uid}`
+        if (__IS_WEB__) {
+          pushClient.start(`${this.bizConfig.protocol}://${this.bizConfig.ip}:${this.bizConfig.port}`, this.uid)
+        } else {
+          pushClient.start(`${this.bizConfig.protocol}://localhost:${this.bizConfig.port}`, this.uid)
+        }
       } catch (err) {
         showNotify(err)
       }
@@ -42,23 +56,6 @@ export const CommonStore = defineStore('Common', {
     publishMessage(message: string) {
       // here just mock a device to send a fake monitor data for test
 
-    },
-    updateBizConfig(config?: BizConfig) {
-      this.uid = window.localStorage.getItem('uid')
-      if (this.uid == null) {
-        this.uid = generateUid()
-        window.localStorage.setItem('uid', this.uid)
-      }
-
-      this.bizConfig = config ? config : this.bizConfig
-      updateClientUID(this.uid)
-
-      this.registerUrl = `${this.bizConfig.protocol}://${this.bizConfig.ip}:${this.bizConfig.port}/appmock/register/${this.uid}`
-      if (__IS_WEB__) {
-        pushClient.start(`${this.bizConfig.protocol}://${this.bizConfig.ip}:${this.bizConfig.port}`, this.uid)
-      } else {
-        pushClient.start(`${this.bizConfig.protocol}://localhost:${this.bizConfig.port}`, this.uid)
-      }
     },
     updateClientInfos(clientInfos: Array<CommonApi.ClientInfo>) {
       this.clientInfos = [...clientInfos]

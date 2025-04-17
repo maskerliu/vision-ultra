@@ -1,5 +1,5 @@
 import { spawn } from "child_process"
-import { app, BrowserWindow, ipcMain, nativeTheme } from "electron"
+import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from "electron"
 import fs from 'fs'
 import fse from 'fs-extra'
 import os from 'os'
@@ -35,12 +35,30 @@ ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   app.quit()
 })
 
-ipcMain.handle(MainAPICMD.OpenDevTools, (_, args?: any) => {
+ipcMain.handle(MainAPICMD.OpenFile, async () => {
+  let result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+    properties: ['openFile',],
+    filters: [
+      {
+        name: 'Image',
+        extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp']
+      }
+    ]
+  })
+
+  if (result.canceled) return
+  console.info(result.filePaths)
   BrowserWindow.getAllWindows()
-    .find((it, idx, _) => { return it.title == 'AppApiProxy' })
-    .webContents.openDevTools({ mode: 'detach', activate: false })
+    .find((it, idx, _) => { return it.title == 'VisionUltra' })
+    .webContents.send(MainAPICMD.OpenFile, result.filePaths[0])
 })
 
+
+ipcMain.handle(MainAPICMD.OpenDevTools, (_, args?: any) => {
+  BrowserWindow.getAllWindows()
+    .find((it, idx, _) => { return it.title == 'VisionUtra' })
+    .webContents.openDevTools({ mode: 'detach', activate: false })
+})
 
 
 ipcMain.handle(MainAPICMD.SetAppTheme, (_, theme: ('system' | 'light' | 'dark')) => {
@@ -49,7 +67,7 @@ ipcMain.handle(MainAPICMD.SetAppTheme, (_, theme: ('system' | 'light' | 'dark'))
     // console.log(this.mainWindow.setTitleBarOverlay)
   } else {
     BrowserWindow.getAllWindows()
-      .find((it, idx, _) => { return it.title == 'AppApiProxy' })
+      .find((it, idx, _) => { return it.title == 'VisionUltra' })
       .setTitleBarOverlay({
         color: '#f8f8f800',
         symbolColor: nativeTheme.shouldUseDarkColors ? 'white' : 'black'

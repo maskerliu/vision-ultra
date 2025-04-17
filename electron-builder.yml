@@ -1,5 +1,5 @@
-productName: AppApiProxy
-appId: com.github.maskerliu.AppApiProxy
+productName: VisionUltra
+appId: com.github.maskerliu.VisionUltra
 directories:
   output: build/${version}
 

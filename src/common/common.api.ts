@@ -47,15 +47,15 @@ export namespace CommonApi {
   }
 
   export function getBizConfig() {
-    return get<BizConfig>('/appmock/getBizConfig')
+    return get<BizConfig>('/_/getBizConfig')
   }
 
 
   export function getAllPushClients() {
-    return get<Array<MsgPushClient>>('/appmock/getAllPushClients')
+    return get<Array<MsgPushClient>>('/_/getAllPushClients')
   }
 
   export function mockRegister(uid: string) {
-    return get<string>(`/appmock/register/${uid}`)
+    return get<string>(`/_/register/${uid}`)
   }
 }

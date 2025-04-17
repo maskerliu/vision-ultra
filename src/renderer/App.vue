@@ -53,15 +53,15 @@ onMounted(async () => {
   i18n.locale.value = lang.value
 
   if (!__IS_WEB__) {
-    window.electronAPI.getSysSettings(async (result) => {
+    window.mainApis.getSysSettings(async (result) => {
+
       await CommonStore().init(result)
     })
 
-    window.electronAPI.setAppTheme(theme.value)
+    window.mainApis.setAppTheme(theme.value)
   } else {
     await CommonStore().init()
   }
-
   canRender.value = true
 })
 
@@ -132,7 +132,7 @@ function onOpenDebugPanel() {
 .full-row {
   width: 100%;
   height: 100%;
-  background: var(--van-background);
+  /* background: var(--van-background); */
   overflow: hidden;
 }
 

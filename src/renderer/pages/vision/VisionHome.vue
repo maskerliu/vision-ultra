@@ -1,6 +1,6 @@
 <template>
   <van-row>
-    <van-col class="bg-border left-panel">
+    <van-col class="border-bg left-panel">
       <van-row justify="space-between">
         <van-checkbox-group size="mini" direction="horizontal" style="width: 235px;">
           <van-checkbox shape="square" name="5010" style="padding: 5px 10px">
@@ -15,42 +15,80 @@
         </van-checkbox-group>
         <div style="padding: 1px 0;">
           <van-icon class="iconfont icon-qrcode left-panel-icon" @click="commonStore.showQrCode = true" />
-          <van-icon class="iconfont icon-rule left-panel-icon" @click="openRuleMgr" />
+          <van-icon class="iconfont icon-rule left-panel-icon" @click="" />
           <van-icon class="iconfont icon-setting left-panel-icon" @click="openSettings">
             <span class="badge-dot"></span>
           </van-icon>
         </div>
       </van-row>
-      <van-field v-model="proxyDelay" type="number">
-        <template #label>
-          <van-icon class="iconfont icon-delay" style="font-size: 16px; margin-top: 8px;" />
-        </template>
-        <template #button>
-          <van-button plain size="mini" type="primary" @click="saveProxyDelay">
-            <van-icon class="iconfont icon-cloud-sync" style="font-size: 1rem;" />
-          </van-button>
-        </template>
-      </van-field>
-      <van-field :placeholder="$t('common.searchPlaceholder')" clearable center left-icon="filter-o"
-        style="margin-top: 5px">
-        <template #button>
-          <van-button plain size="mini" type="primary" @click="onMockRecordStart">
-            <van-icon class="iconfont icon-remove" style="font-size: 1rem;" />
-          </van-button>
-        </template>
-      </van-field>
+      <OverlayScrollbarsComponent class="snap-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}` } }"
+        defer>
 
-      <OverlayScrollbarsComponent class="snap-panel border-bg"
-        :options="{ scrollbars: { theme: `os-theme-${reverseTheme}` } }" defer>
-        <van-list ref="snaplist">
+        <van-cell-group title="图像处理" inset :border="false">
+          <van-cell title="灰度" center>
+            <template #value>
+              <van-switch @change="onEnhanceChange">
+              </van-switch>
+            </template>
+          </van-cell>
+          <van-cell>
+            <template #title>
+              <span>亮度</span>
+              <span class="param-desc">Gamma校正</span>
+            </template>
+            <template #label>
+              <van-slider v-model="enhance" bar-height="4px" @change="onEnhanceChange" class="param-value">
+                <template #button>
+                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
+                </template>
+              </van-slider>
+            </template>
+          </van-cell>
+          <van-cell>
+            <template #title>
+              <span>对比度</span>
+              <span class="param-desc">直方图均衡</span>
+            </template>
+            <template #label>
+              <van-slider v-model="enhance" bar-height="4px" @change="onEnhanceChange" class="param-value">
+                <template #button>
+                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
+                </template>
+              </van-slider>
+            </template>
+          </van-cell>
+          <van-cell>
+            <template #title>
+              <span>边缘增强</span>
+              <span class="param-desc">拉普拉斯增强</span>
+            </template>
+            <template #label>
+              <van-slider v-model="enhance" bar-height="4px" @change="onEnhanceChange" class="param-value">
+                <template #button>
+                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
+                </template>
+              </van-slider>
+            </template>
+          </van-cell>
+        </van-cell-group>
 
-        </van-list>
+        <van-cell-group title=" " inset :border="false">
+          <van-cell title="图片增强">
+            <template #label>
+              <van-slider v-model="enhance" bar-height="4px" @change="onEnhanceChange" class="param-value">
+                <template #button>
+                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
+                </template>
+              </van-slider>
+            </template>
+          </van-cell>
+        </van-cell-group>
       </OverlayScrollbarsComponent>
     </van-col>
     <OverlayScrollbarsComponent class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }"
-      defer>
+      defer style="text-align: center;">
       <div class="drag-bar" v-if="!isWeb"></div>
-
+      <face-rec />
     </OverlayScrollbarsComponent>
 
     <van-popup v-model:show="showPopup" position="right" :closeable="isWeb" close-icon="close">
@@ -61,34 +99,35 @@
 
 <script lang="ts" setup>
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import { ConfigProviderTheme, List, showNotify } from 'vant'
-import { inject, onMounted, provide, Ref, ref, watch } from 'vue'
+import { ConfigProviderTheme, List, showNotify, Loading } from 'vant'
+import { inject, onMounted, provide, Ref, ref, watch, defineAsyncComponent } from 'vue'
 import { CommonStore } from '../../store'
 import Settings from '../settings/Settings.vue'
-
+// import FaceRec from './FaceRec.vue'
+const FaceRec = defineAsyncComponent({
+  loader: () => import('./FaceRec.vue'),
+  loadingComponent: Loading,
+  hydrate: () => {
+    console.info('loaded')
+  }
+})
 const isWeb = __IS_WEB__
 const theme = inject<Ref<ConfigProviderTheme>>('theme')
 
-const proxyDelay = ref('0')
+const enhance = ref(0)
 const showPopup = ref(false)
-const snaplist = ref<typeof List>()
 
-const showMockRuleMgr = ref<boolean>(false)
-const withCurRecord = ref<boolean>(false)
 const showSettings = ref<boolean>(false)
 const reverseTheme = ref<string>(theme.value == 'dark' ? 'light' : 'dark')
 
-provide('showMockRuleMgr', showMockRuleMgr)
-provide('withCurRecord', withCurRecord)
 provide('showSettings', showSettings)
 
 const commonStore = CommonStore()
-let mockRecordId = -1
+const show = ref<boolean>(false)
 
 onMounted(() => {
   if (!__IS_WEB__) {
-    window.electronAPI.onOpenMockRuleMgr(() => { openRuleMgr() })
-    window.electronAPI.onOpenSettings(() => { openSettings() })
+    window.mainApis.onOpenSettings(() => { openSettings() })
   }
 })
 
@@ -96,16 +135,11 @@ watch(() => theme.value, () => {
   reverseTheme.value = theme.value == 'dark' ? 'light' : 'dark'
 })
 
-function openRuleMgr() {
-  showPopup.value = true
-  showMockRuleMgr.value = true
-  withCurRecord.value = false
-  showSettings.value = false
+function onEnhanceChange() {
 }
 
 function openSettings() {
   showPopup.value = true
-  showMockRuleMgr.value = false
   showSettings.value = true
 }
 
@@ -167,6 +201,17 @@ function onMockRecordStart() {
   margin: 5px 0 0 0;
 }
 
+.param-desc {
+  color: var(--van-gray-6);
+  margin-left: 5px;
+  font-size: 0.6rem;
+}
+
+.param-value {
+  margin: 10px;
+  width: calc(100% - 20px);
+}
+
 .register-url {
   text-decoration: underline;
   width: 300px;
@@ -185,5 +230,30 @@ function onMockRecordStart() {
 a {
   color: rgb(31, 187, 166);
   text-decoration: underline;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.4s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+
+.v-enter-to,
+.v-leave-from {
+  opacity: 1;
 }
 </style>

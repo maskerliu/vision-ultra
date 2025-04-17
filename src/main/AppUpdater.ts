@@ -27,7 +27,7 @@ export async function incrementUpdate(version: Version) {
     url: version.updateUrl, method: 'GET', responseType: 'stream',
     onDownloadProgress: (event) => {
       BrowserWindow.getAllWindows()
-        .find((it, idx, _) => { return it.title == 'AppApiProxy' })
+        .find((it, idx, _) => { return it.title == 'VisionUltra' })
         .webContents.send(MainAPICMD.DownloadUpdate,
           { progress: Math.round((event.loaded / event.total) * 100) })
     }
@@ -72,7 +72,7 @@ export async function fullUpdate(version: Version) {
     url: version.updateUrl, method: 'GET', responseType: 'stream',
     onDownloadProgress: (event) => {
       let window = BrowserWindow.getAllWindows()
-        .find((it, idx, _) => { return it.title == 'AppApiProxy' })
+        .find((it, idx, _) => { return it.title == 'VisionUltra' })
       if (window) {
         window.webContents.send(MainAPICMD.DownloadUpdate,
           { progress: Math.round((event.loaded / event.total) * 100) })

@@ -103,7 +103,7 @@ export class MainServer {
     this.httpApp.use(express.text({ type: 'application/json', limit: '50mb' }))
     this.httpApp.use(express.json())
 
-    this.httpApp.use('/appmock', this.commonRouter.router)
+    this.httpApp.use('/_', this.commonRouter.router)
     this.httpApp.use('/mapi', this.mapiRouter.router)
     this.httpApp.use('/mediaproxy', this.proxyCorsMedia)
     // this.httpApp.use('/burying-point', this.buryPointRouter.router)
@@ -134,12 +134,12 @@ export class MainServer {
     this.pushService.bindServer(this.httpServer)
 
     this.httpServer.addListener('close', () => {
-      console.log('close http server')
+      console.warn('close http server')
     })
 
     this.httpServer.addListener('error', (e: any) => {
       if (e.code === 'EADDRINUSE') {
-        console.log(`port[${this.commonService.allConfig.port}] ${e.code}`)
+        console.error(`port[${this.commonService.allConfig.port}] ${e.code}`)
 
         let config = this.commonService.allConfig
         config.portValid = false
@@ -151,7 +151,7 @@ export class MainServer {
     this.httpServer.listen(
       this.commonService.allConfig.port,
       () => {
-        console.log(`    http server bootstrap[${this.commonService.allConfig.port}]`)
+        console.info(`http server bootstrap[${this.commonService.allConfig.port}]`)
         let config = this.commonService.allConfig
         config.portValid = true
         this.commonService.saveAllConfig(config)

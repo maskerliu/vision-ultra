@@ -27,7 +27,7 @@ onMounted(async () => {
 })
 
 async function registerSSE() {
-  await fetchEventSource(`${baseDomain()}/appmock/sse/${commonStore.uid}`, {
+  await fetchEventSource(`${baseDomain()}/_/sse/${commonStore.uid}`, {
     headers: {
       'x-mock-uid': commonStore.uid
     },
