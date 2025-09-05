@@ -6,18 +6,9 @@ let mainApis: IMainAPI = {
   relaunch() {
     ipcRenderer.invoke(MainAPICMD.Relaunch)
   },
-  openFile(): Promise<any> {
-    let promise = new Promise<any>((resolve, reject) => {
-      ipcRenderer.invoke(MainAPICMD.OpenFile).then((filePath) => {
-        console.info('filePath', filePath)
-        resolve(filePath)
-      }).catch((err) => {
-        console.error('Error opening file:', err)
-        reject(err)
-      })
-    })
-
-    return promise
+  openFile(callback: Function): void {
+    ipcRenderer.invoke(MainAPICMD.OpenFile)
+    ipcRenderer.on(MainAPICMD.OpenFile, (_event, result: string) => callback(result))
   },
   openDevTools(...args: any) {
     ipcRenderer.invoke(MainAPICMD.OpenDevTools, args)

@@ -35,6 +35,51 @@ let cvApis: IOpencvAPI = {
     if (originFrame) originFrame.release()
     if (sharedData) sharedData = null
   },
+  imgProcess: function (frame: ImageData, width: number, height: number,
+    params: Partial<{
+      isGray: boolean,
+      isFaceDetect: boolean,
+      isFaceRecognize: boolean,
+      isFaceLandmark: boolean,
+      isFaceEyes: boolean,
+      contrast: number,
+      brightness: number,
+      laplace: number,
+      enhance: number,
+      sharpness: number,
+      gaussian: number,
+    }>) {
+    try {
+      if (originFrame == null) {
+        originFrame = new cv.Mat(height, width, cv.CV_8UC4)
+      } else {
+        if (originFrame.cols !== width || originFrame.rows !== height) {
+          originFrame.release()
+          originFrame = new cv.Mat(height, width, cv.CV_8UC4)
+        }
+      }
+      if (sharedData == null) {
+        sharedData = new Uint8ClampedArray(height * width * cv.CV_8UC4)
+      }
+
+      originFrame.setData(Buffer.from(frame.data.buffer))
+      const bgrFrame = originFrame.cvtColor(cv.COLOR_RGBA2BGR)
+
+      let grayImage = bgrFrame.cvtColor(cv.COLOR_BGR2GRAY)
+      grayImage = grayImage.equalizeHist()
+      grayImage = cv.gaussianBlur(grayImage, new cv.Size(3, 3), params.gaussian, params.gaussian, cv.BORDER_DEFAULT)
+
+      grayImage = grayImage.cvtColor(cv.COLOR_GRAY2RGBA)
+      const data = Uint8ClampedArray.from(grayImage.getData())
+      let cols = grayImage.cols, rows = grayImage.rows
+      grayImage.release()
+      bgrFrame.release()
+      return { data, width: cols, height: rows }
+    } catch (e) {
+      console.error(e)
+      return { data: null, width, height }
+    }
+  },
   faceRecognize: function (frame: ImageData, width: number, height: number) {
     try {
       if (originFrame == null) {

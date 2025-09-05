@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
-import { inject, onMounted, Ref, ref } from 'vue'
+import { inject, onMounted, onUnmounted, Ref, ref } from 'vue'
 import { baseDomain, ProxyMock } from '../../../common'
 import { CommonStore } from '../../store'
 
@@ -24,6 +24,10 @@ const sseData = ref<string>('hello world')
 onMounted(async () => {
 
   await registerSSE()
+})
+
+onUnmounted(() => {
+  console.log('unmounted')
 })
 
 async function registerSSE() {
@@ -59,14 +63,14 @@ function toNew() {
 
 function openDevTools() {
   if (!__IS_WEB__) {
-    window.electronAPI.openDevTools()
+    window.mainApis.openDevTools()
     showDebugPanel.value = false
   }
 }
 
 async function onSSE() {
   if (!__IS_WEB__) {
-    window.electronAPI.sendServerEvent()
+    window.mainApis.sendServerEvent()
   }
 
   await ProxyMock.broadcast(commonStore.uid)

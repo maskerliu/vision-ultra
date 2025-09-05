@@ -27,8 +27,7 @@
         <van-cell-group title="图像处理" inset :border="false">
           <van-cell title="灰度" center>
             <template #value>
-              <van-switch @change="onEnhanceChange">
-              </van-switch>
+              <van-switch v-model="visionStore.isGray"></van-switch>
             </template>
           </van-cell>
           <van-cell>
@@ -37,9 +36,10 @@
               <span class="param-desc">Gamma校正</span>
             </template>
             <template #label>
-              <van-slider v-model="enhance" bar-height="4px" @change="onEnhanceChange" class="param-value">
+              <van-slider v-model="visionStore.brightness" bar-height="4px" class="param-value"
+                @change="onBrightnessChange">
                 <template #button>
-                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
+                  <van-button round type="primary" size="mini">{{ visionStore.brightness }}</van-button>
                 </template>
               </van-slider>
             </template>
@@ -50,9 +50,10 @@
               <span class="param-desc">直方图均衡</span>
             </template>
             <template #label>
-              <van-slider v-model="enhance" bar-height="4px" @change="onEnhanceChange" class="param-value">
+              <van-slider v-model="visionStore.contrastRatio" bar-height="4px" class="param-value"
+                @change="onContrastChange">
                 <template #button>
-                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
+                  <van-button round type="primary" size="mini">{{ visionStore.contrastRatio }}</van-button>
                 </template>
               </van-slider>
             </template>
@@ -63,19 +64,37 @@
               <span class="param-desc">拉普拉斯增强</span>
             </template>
             <template #label>
-              <van-slider v-model="enhance" bar-height="4px" @change="onEnhanceChange" class="param-value">
+              <van-slider v-model="visionStore.laplace" bar-height="4px" class="param-value">
                 <template #button>
-                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
+                  <van-button round type="primary" size="mini">{{ visionStore.laplace }}</van-button>
                 </template>
               </van-slider>
             </template>
           </van-cell>
         </van-cell-group>
 
-        <van-cell-group title=" " inset :border="false">
-          <van-cell title="图片增强">
+        <van-cell-group title="噪声滤波" inset :border="false">
+          <van-cell title="均值滤波">
             <template #label>
-              <van-slider v-model="enhance" bar-height="4px" @change="onEnhanceChange" class="param-value">
+              <van-slider v-model="visionStore.enhance" bar-height="4px" class="param-value">
+                <template #button>
+                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
+                </template>
+              </van-slider>
+            </template>
+          </van-cell>
+          <van-cell title="中值滤波">
+            <template #label>
+              <van-slider v-model="visionStore.enhance" bar-height="4px" class="param-value">
+                <template #button>
+                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
+                </template>
+              </van-slider>
+            </template>
+          </van-cell>
+          <van-cell title="高斯滤波">
+            <template #label>
+              <van-slider v-model="visionStore.enhance" bar-height="4px" class="param-value">
                 <template #button>
                   <van-button round type="primary" size="mini">{{ enhance }}</van-button>
                 </template>
@@ -101,9 +120,9 @@
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 import { ConfigProviderTheme, List, showNotify, Loading } from 'vant'
 import { inject, onMounted, provide, Ref, ref, watch, defineAsyncComponent } from 'vue'
-import { CommonStore } from '../../store'
 import Settings from '../settings/Settings.vue'
-// import FaceRec from './FaceRec.vue'
+import { VisionStore, CommonStore } from '../../store'
+
 const FaceRec = defineAsyncComponent({
   loader: () => import('./FaceRec.vue'),
   loadingComponent: Loading,
@@ -123,6 +142,7 @@ const reverseTheme = ref<string>(theme.value == 'dark' ? 'light' : 'dark')
 provide('showSettings', showSettings)
 
 const commonStore = CommonStore()
+const visionStore = VisionStore()
 const show = ref<boolean>(false)
 
 onMounted(() => {
@@ -134,6 +154,18 @@ onMounted(() => {
 watch(() => theme.value, () => {
   reverseTheme.value = theme.value == 'dark' ? 'light' : 'dark'
 })
+
+watch(() => visionStore.brightness, () => {
+  console.info('brightness', visionStore.brightness)
+})
+
+function onBrightnessChange() {
+
+}
+
+function onContrastChange() {
+
+}
 
 function onEnhanceChange() {
 }
@@ -195,7 +227,7 @@ function onMockRecordStart() {
 
 .snap-panel {
   width: 100%;
-  height: calc(100vh - 154px);
+  height: calc(100vh - 54px);
   overflow-y: auto;
   overflow-x: hidden;
   margin: 5px 0 0 0;

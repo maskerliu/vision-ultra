@@ -3,6 +3,7 @@ import { showNotify } from 'vant'
 import { BizConfig, CommonApi, updateBaseDomain, updateClientUID } from '../../common'
 import { generateUid, PushClient } from '../common'
 
+
 let pushClient: PushClient = null
 
 export const CommonStore = defineStore('Common', {
@@ -62,3 +63,6 @@ export const CommonStore = defineStore('Common', {
     },
   }
 })
+
+
+export * from './Vision'

@@ -1,17 +1,17 @@
 <template>
   <van-row class="full-row">
-    <van-cell-group inset style="width: 100%; text-align: center; margin: 30px 0 15px 0;">
+    <van-cell-group ref="previewParent" inset style="width: 100%; text-align: center; margin: 30px 0 15px 0;">
       <van-cell>
         <template #title>
           <van-row justify="space-between">
             <van-checkbox-group size="mini" direction="horizontal">
-              <van-checkbox shape="square" name="5010" icon-size="1rem" v-model="faceRecStore.isGray">
+              <van-checkbox shape="square" name="5010" icon-size="1rem" v-model="visionStore.isGray">
                 <van-icon class="iconfont icon-gray" style="font-size: 1.1rem; font-weight: blod;" />
               </van-checkbox>
-              <van-checkbox shape="square" name="5020" icon-size="1rem" v-model="faceRecStore.imgEnhance">
+              <van-checkbox shape="square" name="5020" icon-size="1rem" v-model="visionStore.imgEnhance">
                 <van-icon class="iconfont icon-image-enhance" style="font-size: 1.rem; font-weight: blod" />
               </van-checkbox>
-              <van-checkbox shape="square" name="5030" icon-size="1rem" v-model="faceRecStore.faceRec">
+              <van-checkbox shape="square" name="5030" icon-size="1rem" v-model="visionStore.faceRec">
                 <van-icon class="iconfont icon-face-rec" style="font-size: 1.rem; font-weight: blod" />
               </van-checkbox>
             </van-checkbox-group>
@@ -37,11 +37,11 @@
 <script lang="ts" setup>
 
 import { Point2, Rect } from '@u4/opencv4nodejs'
-import { onMounted, useTemplateRef } from 'vue'
-import { FaceRecStore } from '../../store/FaceRec'
+import { onMounted, useTemplateRef, watch } from 'vue'
+import { VisionStore } from '../../store'
 
-const faceRecStore = FaceRecStore()
-
+const visionStore = VisionStore()
+const previewParent = useTemplateRef<any>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
 const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
@@ -67,8 +67,8 @@ onMounted(async () => {
     window.cv.init()
   }
 
+  console.log('preivew parent height', previewParent.value.$el.offsetHeight)
 })
-
 
 function processFrame() {
   if (preVideo.value.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) return
@@ -163,10 +163,61 @@ function drawMutliLine(context: CanvasRenderingContext2D, points: Array<Point2>,
 
 async function openFolder() {
   if (!__IS_WEB__) {
-    let file = await window.mainApis.openFile()
-    console.log(file)
+    window.mainApis.openFile((file: string) => {
+      console.log('open file', file)
+
+      var img = new Image()
+      img.onload = function () {
+        console.info('img', img.width, img.height)
+        previewParent.value.$el.offsetHeight
+        let w = img.width, h = img.height
+        if (w > previewParent.value.$el.offsetWidth || h > previewParent.value.$el.offsetHeight) {
+          const ratio = Math.min(previewParent.value.$el.offsetWidth / w, previewParent.value.$el.offsetHeight / h)
+          w = img.width * ratio
+          h = img.height * ratio
+        }
+
+        offscreen.value.width = preview.value.width = w
+        offscreen.value.height = preview.value.height = h
+        previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
+        offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
+        offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
+        drawImage()
+      }
+      img.src = file
+    })
+
   }
 }
+
+function drawImage() {
+  const imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+  let { data, width, height } = window.cv.imgProcess(imageData, imageData.width, imageData.height, {
+    isGray: visionStore.isGray,
+    contrast: visionStore.contrast,
+    brightness: visionStore.brightness,
+    laplace: visionStore.laplace,
+    enhance: visionStore.enhance
+  })
+  var grayImg = new ImageData(data, width, height)
+  previewCtx.putImageData(grayImg, 0, 0)
+}
+
+watch(() => visionStore.isGray, (val) => {
+  drawImage()
+})
+
+watch(() => visionStore.enhance, (val) => {
+  drawImage()
+})
+
+watch(() => visionStore.contrast, (val) => {
+  drawImage()
+})
+
+watch(() => visionStore.laplace, (val) => {
+  drawImage()
+})
 
 async function openCamera() {
   if (__IS_WEB__) return

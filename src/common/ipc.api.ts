@@ -21,7 +21,7 @@ export interface IMainAPI {
 
   relaunch(): void
 
-  openFile(): Promise<any>
+  openFile(callback: Function): void
 
   openDevTools(...args: any): void
 
@@ -49,5 +49,17 @@ export interface IMainAPI {
 export interface IOpencvAPI {
   init(): Promise<void>
   destroy(): void
+  imgProcess(image: ImageData, width: number, height: number, params: Partial<{
+    isGray: boolean,
+    isFaceDetect: boolean,
+    isFaceRecognize: boolean,
+    isFaceLandmark: boolean,
+    isFaceEyes: boolean,
+    contrast: number,
+    brightness: number,
+    laplace: number,
+    enhance: number,
+    sharpness: number,
+  }>): { data: Uint8ClampedArray, width: number, height: number } | null
   faceRecognize(frame: ImageData, width: number, height: number): { face: Rect, eyes: Array<Rect>, landmarks: Array<Point2> } | null
 }
