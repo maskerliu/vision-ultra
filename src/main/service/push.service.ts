@@ -1,22 +1,12 @@
 import { Server } from 'http'
 import { injectable } from 'inversify'
-import "reflect-metadata"
 import { Connection, createServer, Server as SockServer } from 'sockjs'
 import { CommonApi, ProxyMock } from '../../common'
 
 type PushClient = { conn: Connection, uid: string, username: string, connId: string }
 
-export interface IPushService {
-  bindServer(httpServer: Server): void
-  closeWebSocketServer(callback: any): void
-  sendMessage(clientUid: String, data: CommonApi.PushMsg<any>): void
-  sendProxyMessage(clientUid: String, data: ProxyMock.ProxyRequestRecord | ProxyMock.ProxyStatRecord): void
-  hasProxy(uid: string): boolean
-  getAllPushClients(): CommonApi.MsgPushClient[]
-}
-
 @injectable()
-export class PushService implements IPushService {
+export class PushService  {
   pushClients: Map<String, PushClient>
   private sockjsServer: SockServer
 

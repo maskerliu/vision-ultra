@@ -1,5 +1,5 @@
 import { spawn } from "child_process"
-import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from "electron"
+import { app, BrowserWindow, dialog, ipcMain, ipcRenderer, nativeTheme } from "electron"
 import fs from 'fs'
 import fse from 'fs-extra'
 import os from 'os'
@@ -35,7 +35,7 @@ ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   app.quit()
 })
 
-ipcMain.handle(MainAPICMD.OpenFile, async () => {
+ipcMain.handle(MainAPICMD.OpenFile, async (_, target: string) => {
   let result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
     properties: ['openFile',],
     filters: [
@@ -47,7 +47,7 @@ ipcMain.handle(MainAPICMD.OpenFile, async () => {
   })
 
   if (result.canceled) return
-  console.info(result.filePaths)
+  // ipcRenderer.send(MainAPICMD.OpenFile, result.filePaths[0])
   BrowserWindow.getAllWindows()
     .find((it, idx, _) => { return it.title == 'VisionUltra' })
     .webContents.send(MainAPICMD.OpenFile, result.filePaths[0])

@@ -1,7 +1,6 @@
-import cv from '@u4/opencv4nodejs'
 import {
-  app, BrowserWindow, BrowserWindowConstructorOptions,
-  globalShortcut, ipcMain, Menu, session, Tray
+  app, BrowserWindow, BrowserWindowConstructorOptions, crashReporter,
+  globalShortcut, ipcMain, Menu, nativeImage, session, screen, Tray
 } from 'electron'
 import fs from 'original-fs'
 import os from 'os'
@@ -18,26 +17,29 @@ const VUE_PLUGIN = os.platform() == 'darwin' ? '~/Downloads/vue-devtools/7.6.8_0
 export default class MainApp {
   private mainWindow: BrowserWindow = null
   private winURL: string = IS_DEV ? `${BUILD_CONFIG.protocol}://localhost:9080` : `file://${__dirname}/index.html`
-  private iconDir: string
-  private trayIconFile: string
+  private staticDir: string
+  private dockerIconFile: string
   private mainServer: MainServer = new MainServer()
 
   constructor() {
-    this.iconDir = path.join(__dirname, IS_DEV ? '../../icons' : './static')
+    this.staticDir = path.join(__dirname, IS_DEV ? '../../icons' : './static')
     let ext = os.platform() == 'win32' ? 'ico' : 'png'
-    this.trayIconFile = path.join(this.iconDir, `icon.${ext}`)
+    this.dockerIconFile = path.join(this.staticDir, `icon.${ext}`)
     this.mainServer.bootstrap()
 
     console.log('home', app.getPath('temp'))
   }
 
   public async startApp() {
-    app.setName('VisionUltra')
-    app.disableHardwareAcceleration()
+    app.setName('AppApiProxy')
+    app.setPath('crashDumps', path.join(USER_DATA_DIR, 'crashDumps'))
+    // app.disableHardwareAcceleration()
     app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors')
     app.commandLine.appendSwitch('ignore-certificate-errors')
     app.commandLine.appendSwitch('disable-gpu')
     app.commandLine.appendSwitch('disable-software-rasterizer')
+
+    crashReporter.start({ submitURL: 'https://your-domain.com/url-to-submit' })
 
     if (process.env.NODE_ENV == 'development') {
       app.commandLine.appendSwitch('trace-deprecation')
@@ -46,12 +48,14 @@ export default class MainApp {
       app.commandLine.appendSwitch('experimental-wasm-threads')
       app.commandLine.appendSwitch('unhandled-rejections', 'strict')
       app.commandLine.appendSwitch('inspect', '5858')
+      app.commandLine.appendSwitch('enable-feature', 'AutofillFeature')
     }
 
     if (os.platform() == 'linux' && os.userInfo().username == 'root') {
       app.commandLine.appendSwitch('disable-chromium-sandbox')
       app.commandLine.appendSwitch('disable-gpu-sandbox')
       app.commandLine.appendSwitch('no-sandbox')
+      app.commandLine.appendSwitch('force-device-scale-factor', '2')
     }
 
     app.on('activate', () => {
@@ -61,7 +65,13 @@ export default class MainApp {
     })
 
     app.on('ready', () => {
-      // this.testCV()
+      console.log(`screen info: ${screen.getPrimaryDisplay().scaleFactor}`)
+      let display = screen.getPrimaryDisplay()
+      console.log(`screen width: ${display.workAreaSize.width} \t height: ${display.workAreaSize.height}`)
+
+
+      let icon = nativeImage.createFromPath(path.join(this.staticDir, 'icon.png'))
+      console.log(`\t\t ${icon.getScaleFactors().length}\t ${icon.getScaleFactors()}`)
 
       globalShortcut.register('CommandOrControl+q', () => {
         app.quit()
@@ -86,8 +96,6 @@ export default class MainApp {
 
     app.on('before-quit', () => {
       app.releaseSingleInstanceLock()
-
-      clearInterval(this.progressInterval)
     })
 
     app.on('window-all-closed', () => {
@@ -114,7 +122,7 @@ export default class MainApp {
     }
 
     let winOpt: BrowserWindowConstructorOptions = {
-      icon: this.trayIconFile,
+      icon: this.dockerIconFile,
       title: "VisionUltra",
       width: 1100,
       height: 670,
@@ -141,6 +149,7 @@ export default class MainApp {
     this.mainWindow = new BrowserWindow(winOpt)
     this.mainWindow.loadURL(this.winURL)
     this.mainWindow.setVibrancy('window')
+    this.mainWindow.webContents.session.setSpellCheckerEnabled(false)
 
     this.mainWindow.on('resize', () => {
 
@@ -162,15 +171,15 @@ export default class MainApp {
       this.mainWindow.focus()
       this.mainWindow.webContents.send(MainAPICMD.GetSysSettings, this.mainServer.getSysSettings())
     })
-
-    this.dockerProgress()
   }
 
   private createTrayMenu() {
-    let tray = new Tray(path.join(this.iconDir, 'icon-tray.png'))
+
+    let iconDir = IS_DEV ? path.join(this.staticDir, 'common') : this.staticDir
+    let tray = new Tray(path.join(iconDir, 'icon-tray.png'))
     const contextMenu = Menu.buildFromTemplate([
       {
-        icon: path.join(this.iconDir, 'ic-rule.png'),
+        icon: path.join(iconDir, 'ic-rule.png'),
         label: '用例管理',
         click: () => {
           this.mainWindow?.show()
@@ -178,7 +187,7 @@ export default class MainApp {
         }
       },
       {
-        icon: path.join(this.iconDir, 'ic-setting.png'),
+        icon: path.join(iconDir, 'ic-setting.png'),
         label: '设置',
         click: () => {
           this.mainWindow?.show()
@@ -186,7 +195,7 @@ export default class MainApp {
         }
       },
       {
-        icon: path.join(this.iconDir, 'ic-setting.png'),
+        icon: path.join(iconDir, 'ic-debug.png'),
         label: '开发者面板',
         click: () => {
           this.mainWindow?.show()
@@ -194,7 +203,7 @@ export default class MainApp {
         }
       },
       {
-        icon: path.join(this.iconDir, 'ic-exit.png'),
+        icon: path.join(iconDir, 'ic-exit.png'),
         label: '退出', click: () => {
           this.mainServer.stop()
           app.quit()
@@ -206,10 +215,9 @@ export default class MainApp {
       if (this.mainWindow == null) {
         this.createMainWindow()
       }
-      this.mainWindow.focus()
     })
 
-    tray.setToolTip('VisionUltra')
+    tray.setToolTip('AppApiProxy')
     tray.setContextMenu(contextMenu)
   }
 
@@ -236,7 +244,8 @@ export default class MainApp {
   }
 
   private initSessionConfig() {
-    if (IS_DEV && os.platform() != 'linux') session.defaultSession.loadExtension(VUE_PLUGIN)
+
+    if (IS_DEV && os.platform() != 'linux') session.defaultSession.extensions.loadExtension(VUE_PLUGIN)
 
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
       if (details.url.indexOf('.amap.com') !== -1
@@ -282,35 +291,4 @@ export default class MainApp {
       // console.log('send sse')
     })
   }
-
-  private testCV() {
-    let imgPath = path.join(__dirname, IS_DEV ? '../../images/opencv-logo.png' : './static/opencv-logo.png')
-    cv.imreadAsync(imgPath).then((img) => {
-      cv.imshow('image', img)
-    }).catch(error => console.error(error))
-  }
-
-  progressInterval: any
-
-  private dockerProgress() {
-    if (this.progressInterval) {
-      clearInterval(this.progressInterval)
-    }
-    let c = 0
-    this.progressInterval = setInterval(() => {
-      // update progress bar to next value
-      // values between 0 and 1 will show progress, >1 will show indeterminate or stick at 100%
-      this.mainWindow?.setProgressBar(c)
-
-      // increment or reset progress bar
-      if (c < 2) {
-        c += INCREMENT
-      } else {
-        c = (-INCREMENT * 5) // reset to a bit less than 0 to show reset state
-      }
-    }, INTERVAL_DELAY)
-  }
 }
-
-const INCREMENT = 0.03
-const INTERVAL_DELAY = 100 // ms

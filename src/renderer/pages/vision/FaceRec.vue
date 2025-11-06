@@ -39,6 +39,7 @@
 import { Point2, Rect } from '@u4/opencv4nodejs'
 import { onMounted, useTemplateRef, watch } from 'vue'
 import { VisionStore } from '../../store'
+import { off } from 'process'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -75,7 +76,8 @@ function processFrame() {
 
   offscreen.value.width = preview.value.width = preVideo.value.videoWidth
   offscreen.value.height = preview.value.height = preVideo.value.videoHeight
-
+  offscreenCtx.scale(-1, 1)
+  offscreenCtx.translate(-offscreen.value.width, 0)
   offscreenCtx.drawImage(preVideo.value, 0, 0, offscreen.value.width, offscreen.value.height)
 
   const imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
@@ -161,15 +163,21 @@ function drawMutliLine(context: CanvasRenderingContext2D, points: Array<Point2>,
   context.closePath()
 }
 
+function onOpenFileResult(data:string) {
+
+  console.log(data)
+}
+
 async function openFolder() {
   if (!__IS_WEB__) {
-    window.mainApis.openFile((file: string) => {
-      console.log('open file', file)
+
+    let timestamp = new Date().getMilliseconds()
+
+    window.mainApi.openFile((file: string) => {
+      console.log(`[${new Date().getMilliseconds()}]open file ${file} `)
 
       var img = new Image()
       img.onload = function () {
-        console.info('img', img.width, img.height)
-        previewParent.value.$el.offsetHeight
         let w = img.width, h = img.height
         if (w > previewParent.value.$el.offsetWidth || h > previewParent.value.$el.offsetHeight) {
           const ratio = Math.min(previewParent.value.$el.offsetWidth / w, previewParent.value.$el.offsetHeight / h)
@@ -199,7 +207,7 @@ function drawImage() {
     laplace: visionStore.laplace,
     enhance: visionStore.enhance
   })
-  var grayImg = new ImageData(data, width, height)
+  var grayImg = new ImageData(data as ImageDataArray, width, height)
   previewCtx.putImageData(grayImg, 0, 0)
 }
 

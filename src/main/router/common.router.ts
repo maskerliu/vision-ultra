@@ -1,10 +1,8 @@
-import { format } from 'date-fns'
 import { Request, Response } from 'express'
 import { inject, injectable } from 'inversify'
-import 'reflect-metadata'
 import { IocTypes } from '../MainConst'
 import { BizNetwork } from '../misc/network.utils'
-import { ICommonService } from '../service'
+import { CommonService } from '../service'
 import { BaseRouter, ParamType } from './base.router'
 
 interface ReqResp {
@@ -12,17 +10,13 @@ interface ReqResp {
   resp: Response
 }
 
-function logDate(date: Date) {
-  return format(date, 'yyyy-MM-dd hh:MM:ss')
-}
-
 @injectable()
 export class CommonRouter extends BaseRouter {
 
   @inject(IocTypes.CommonService)
-  private commonService: ICommonService
+  private commonService: CommonService
   @inject(IocTypes.PushService)
-  private pushService: ICommonService
+  private pushService: CommonService
 
   private _clients: Map<string, ReqResp> = new Map()
 
@@ -47,11 +41,11 @@ export class CommonRouter extends BaseRouter {
       }
 
       req.on('error', (err: any) => {
-        console.log(`${logDate(new Date())}\terror: ${err}`, err.code)
+        console.log(`${(new Date())}\terror: ${err}`, err.code)
       })
 
       req.on('close', () => {
-        console.log(`${logDate(new Date())}\treq close: ${uid}\t ${req.closed}`)
+        console.log(`${(new Date())}\treq close: ${uid}\t ${req.closed}`)
         this._clients.delete(uid)
       })
       // console.log(`${logDate(new Date())}\t${req.headers['x-mock-uid']} connected\t ${req.closed}`)

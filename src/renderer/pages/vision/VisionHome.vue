@@ -50,10 +50,10 @@
               <span class="param-desc">直方图均衡</span>
             </template>
             <template #label>
-              <van-slider v-model="visionStore.contrastRatio" bar-height="4px" class="param-value"
+              <van-slider v-model="visionStore.contrast" bar-height="4px" class="param-value"
                 @change="onContrastChange">
                 <template #button>
-                  <van-button round type="primary" size="mini">{{ visionStore.contrastRatio }}</van-button>
+                  <van-button round type="primary" size="mini">{{ visionStore.contrast }}</van-button>
                 </template>
               </van-slider>
             </template>
@@ -147,7 +147,7 @@ const show = ref<boolean>(false)
 
 onMounted(() => {
   if (!__IS_WEB__) {
-    window.mainApis.onOpenSettings(() => { openSettings() })
+    window.mainApi.onOpenSettings(() => { openSettings() })
   }
 })
 

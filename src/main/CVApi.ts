@@ -11,15 +11,15 @@ let classifierAlt: CascadeClassifier
 // create the facemark object with the landmarks model
 let facemark: FacemarkLBF
 
-let cvApis: IOpencvAPI = {
+let cvApi: IOpencvAPI = {
   async init() {
     try {
       classifierEye = new cv.CascadeClassifier(cv.HAAR_EYE_TREE_EYEGLASSES)
       classifierDef = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_DEFAULT)
-      classifierAlt = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2)
+      classifierAlt = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT)
       facemark = new cv.FacemarkLBF()
 
-      const modelFile = path.join(__dirname, '../../resources/cv/lbfmodel.yaml')
+      const modelFile = path.join(__dirname, '../../resources/lbfmodel.yaml')
       facemark.loadModel(modelFile)
       // give the facemark object it's face detection callback
       // facemark.setFaceDetector((frame: Mat) => {
@@ -67,7 +67,7 @@ let cvApis: IOpencvAPI = {
 
       let grayImage = bgrFrame.cvtColor(cv.COLOR_BGR2GRAY)
       grayImage = grayImage.equalizeHist()
-      grayImage = cv.gaussianBlur(grayImage, new cv.Size(3, 3), params.gaussian, params.gaussian, cv.BORDER_DEFAULT)
+      // grayImage = cv.gaussianBlur(grayImage, new cv.Size(3, 3), params.gaussian, params.gaussian, cv.BORDER_DEFAULT)
 
       grayImage = grayImage.cvtColor(cv.COLOR_GRAY2RGBA)
       const data = Uint8ClampedArray.from(grayImage.getData())
@@ -84,15 +84,20 @@ let cvApis: IOpencvAPI = {
     try {
       if (originFrame == null) {
         originFrame = new cv.Mat(height, width, cv.CV_8UC4)
+      } else {
+        if (originFrame.cols !== width || originFrame.rows !== height) {
+          originFrame.release()
+          originFrame = new cv.Mat(height, width, cv.CV_8UC4)
+        }
       }
-      if (sharedData == null) {
+      if (sharedData == null || sharedData.length !== height * width * cv.CV_8UC4) {
         sharedData = new Uint8ClampedArray(height * width * cv.CV_8UC4)
       }
 
       originFrame.setData(Buffer.from(frame.data.buffer))
       const bgrFrame = originFrame.cvtColor(cv.COLOR_RGBA2BGR)
       let grayImage = bgrFrame.cvtColor(cv.COLOR_BGR2GRAY)
-      let faceResult = classifierDef.detectMultiScale(grayImage)
+      let faceResult = classifierAlt.detectMultiScale(grayImage, 1.1)
 
       const sortByNumDetections = (result: { objects: Rect[], numDetections: number[] }) => result.numDetections
         .map((num, idx) => ({ num, idx }))
@@ -124,4 +129,4 @@ let cvApis: IOpencvAPI = {
   }
 }
 
-export default cvApis
+export default cvApi

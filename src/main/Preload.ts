@@ -1,6 +1,6 @@
 import { contextBridge } from 'electron'
-import cvApis from './CVApis'
-import mainApis from './MainApis'
+import cvApi from './CVApi'
+import mainApi from './MainApi'
 
-contextBridge.exposeInMainWorld('mainApis', mainApis)
-contextBridge.exposeInMainWorld('cv', cvApis)
+contextBridge.exposeInMainWorld('mainApi', mainApi)
+contextBridge.exposeInMainWorld('cv', cvApi)

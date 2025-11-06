@@ -11,7 +11,7 @@ import { BizConfig } from '../common/base.models'
 import { bizContainer } from './IocContainer'
 import { IocTypes, USER_DATA_DIR } from './MainConst'
 import { CommonRouter, MapiRouter } from './router'
-import { ICommonService, IPushService } from './service'
+import { CommonService, PushService } from './service'
 
 export class MainServer {
 
@@ -22,8 +22,8 @@ export class MainServer {
 
   private mapiRouter: MapiRouter
   private commonRouter: CommonRouter
-  private commonService: ICommonService
-  private pushService: IPushService
+  private commonService: CommonService
+  private pushService: PushService
 
   bootstrap() {
     this.commonRouter = bizContainer.get(IocTypes.CommonRouter)

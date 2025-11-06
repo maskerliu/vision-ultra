@@ -53,12 +53,12 @@ onMounted(async () => {
   i18n.locale.value = lang.value
 
   if (!__IS_WEB__) {
-    window.mainApis.getSysSettings(async (result) => {
+    window.mainApi.getSysSettings(async (result) => {
 
       await CommonStore().init(result)
     })
 
-    window.mainApis.setAppTheme(theme.value)
+    window.mainApi.setAppTheme(theme.value)
   } else {
     await CommonStore().init()
   }
