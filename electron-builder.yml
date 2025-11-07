@@ -26,6 +26,7 @@ files:
   - "!**/node_modules/*/prebuilds/**/*"
   - "**/node_modules/*/prebuilds/${platform}-${arch}/**/*"
   - "./update.exe"
+  - "./resources/**/*"
   # - "./node_modules/level-transcoder/**/*"
 
 electronLanguages:

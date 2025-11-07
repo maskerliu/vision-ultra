@@ -1,5 +1,5 @@
 import { spawn } from "child_process"
-import { app, BrowserWindow, dialog, ipcMain, ipcRenderer, nativeTheme } from "electron"
+import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from "electron"
 import fs from 'fs'
 import fse from 'fs-extra'
 import os from 'os'
@@ -7,6 +7,7 @@ import path from "path"
 import { Version } from "../common"
 import { MainAPICMD } from "../common/ipc.api"
 import { fullUpdate, incrementUpdate } from "./AppUpdater"
+import { getAppWindow } from "./misc/utils"
 
 ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   if (fse.pathExistsSync(path.join(process.resourcesPath, 'update.asar'))) {
@@ -47,17 +48,12 @@ ipcMain.handle(MainAPICMD.OpenFile, async (_, target: string) => {
   })
 
   if (result.canceled) return
-  // ipcRenderer.send(MainAPICMD.OpenFile, result.filePaths[0])
-  BrowserWindow.getAllWindows()
-    .find((it, idx, _) => { return it.title == 'VisionUltra' })
-    .webContents.send(MainAPICMD.OpenFile, result.filePaths[0])
+  getAppWindow()?.webContents.send(MainAPICMD.OpenFile, result.filePaths[0])
 })
 
 
 ipcMain.handle(MainAPICMD.OpenDevTools, (_, args?: any) => {
-  BrowserWindow.getAllWindows()
-    .find((it, idx, _) => { return it.title == 'VisionUtra' })
-    .webContents.openDevTools({ mode: 'detach', activate: false })
+  getAppWindow()?.webContents.openDevTools({ mode: 'detach', activate: false })
 })
 
 
@@ -66,12 +62,10 @@ ipcMain.handle(MainAPICMD.SetAppTheme, (_, theme: ('system' | 'light' | 'dark'))
   if (os.platform() == 'darwin') {
     // console.log(this.mainWindow.setTitleBarOverlay)
   } else {
-    BrowserWindow.getAllWindows()
-      .find((it, idx, _) => { return it.title == 'VisionUltra' })
-      .setTitleBarOverlay({
-        color: '#f8f8f800',
-        symbolColor: nativeTheme.shouldUseDarkColors ? 'white' : 'black'
-      })
+    getAppWindow()?.setTitleBarOverlay({
+      color: '#f8f8f800',
+      symbolColor: nativeTheme.shouldUseDarkColors ? 'white' : 'black'
+    })
   }
 })
 

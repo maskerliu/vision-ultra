@@ -49,9 +49,12 @@
     "level-supports": "2.0.1",
     "buffer": "6.0.3",
     "http-errors": "2.0.0",
-    "node-gyp": "11.5.0"
+    "node-gyp": "11.5.0",
+    "yargs": "17.6.2",
+    "https-proxy-agent": "7.0.6"
   },
   "dependencies": {
+    "@tensorflow/tfjs-node": "^4.22.0",
     "@u4/opencv4nodejs": "^7.1.2",
     "axios": "^1.13.1",
     "compression": "^1.8.1",

@@ -4,7 +4,7 @@ import { inject, injectable } from "inversify"
 import path from 'path'
 import { BizConfig, CommonApi } from '../../common'
 import { IocTypes, Lynx_Mqtt_Broker, USER_DATA_DIR } from '../MainConst'
-import { getLocalIPs } from '../misc/network.utils'
+import { getLocalIPs } from '../misc/utils'
 import { PushService } from './push.service'
 
 @injectable()

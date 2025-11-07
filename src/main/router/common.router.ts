@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { inject, injectable } from 'inversify'
 import { IocTypes } from '../MainConst'
-import { BizNetwork } from '../misc/network.utils'
+import { BizNetwork } from '../misc/utils'
 import { CommonService } from '../service'
 import { BaseRouter, ParamType } from './base.router'
 
