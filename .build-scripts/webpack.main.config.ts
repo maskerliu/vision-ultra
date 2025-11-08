@@ -99,7 +99,7 @@ class MainConfig extends BaseConfig {
           from: path.join(dirname, `../icons/icon${suffix}`),
           to: path.join(dirname, '../dist/electron/static/'),
         }]
-      })
+      }),
     )
 
     if (process.env.NODE_ENV !== 'production') {

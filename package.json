@@ -51,7 +51,10 @@
     "http-errors": "2.0.0",
     "node-gyp": "11.5.0",
     "yargs": "17.6.2",
-    "https-proxy-agent": "7.0.6"
+    "https-proxy-agent": "7.0.6",
+    "which": "5.0.0",
+    "emoji-regex": "9.2.2",
+    "node-fetch": "2.7.0"
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^4.22.0",

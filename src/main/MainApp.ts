@@ -14,6 +14,12 @@ const BUILD_CONFIG = JSON.parse(process.env.BUILD_CONFIG)
 
 const VUE_PLUGIN = os.platform() == 'darwin' ? '~/Downloads/vue-devtools/7.6.8_0' : 'D:/vue-devtools/7.6.5_0'
 
+if (!IS_DEV) {
+  // process.env.OPENCV_BIN_DIR = path.join(__dirname, '../../')
+}
+
+console.log(`opencv env: ${process.env.OPENCV_BIN_DIR}`)
+
 export default class MainApp {
   private mainWindow: BrowserWindow = null
   private winURL: string = IS_DEV ? `${BUILD_CONFIG.protocol}://localhost:9080` : `file://${__dirname}/index.html`
