@@ -54,7 +54,6 @@ onMounted(async () => {
 
   if (!__IS_WEB__) {
     window.mainApi.getSysSettings(async (result) => {
-
       await CommonStore().init(result)
     })
 

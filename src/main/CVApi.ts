@@ -14,12 +14,18 @@ let facemark: FacemarkLBF
 let cvApi: IOpencvAPI = {
   async init() {
     try {
-      classifierEye = new cv.CascadeClassifier(cv.HAAR_EYE_TREE_EYEGLASSES)
-      classifierDef = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_DEFAULT)
-      classifierAlt = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT)
-      facemark = new cv.FacemarkLBF()
 
-      const modelFile = path.join(__dirname, '../../resources/lbfmodel.yaml')
+      let is_dev = process.env.NODE_ENV === 'development'
+      let baseDataPath = path.join(__dirname, '../../../data/')
+
+      classifierEye = new cv.CascadeClassifier(is_dev ? cv.HAAR_EYE_TREE_EYEGLASSES : path.join(baseDataPath, './haarcascades/haarcascade_eye.xml'))
+      classifierDef = new cv.CascadeClassifier(is_dev ? cv.HAAR_FRONTALFACE_DEFAULT : path.join(baseDataPath, './haarcascades/haarcascade_frontalface_default.xml'))
+      classifierAlt = new cv.CascadeClassifier(is_dev ? cv.HAAR_FRONTALFACE_ALT : path.join(baseDataPath, './haarcascades/haarcascade_frontalface_alt.xml'))
+
+      facemark = new cv.FacemarkLBF()
+      const modelFile = path.join(__dirname, `${is_dev ? '../../' : '../../../'}data/lbfmodel.yaml`)
+      console.log(modelFile)
+      console.log(facemark)
       facemark.loadModel(modelFile)
       // give the facemark object it's face detection callback
       // facemark.setFaceDetector((frame: Mat) => {

@@ -4,7 +4,9 @@ directories:
   output: build/${version}
 
 asarUnpack:
-  - "**/node_modules/@u4/opencv4nodejs/**/*"
+  - "node_modules/@u4/opencv4nodejs/**/*"
+  - "node_modules/@u4/opencv-build/**/*"
+  - "node_modules/@tensorflow/**"
 
 publish:
   - provider: "generic"
@@ -14,34 +16,73 @@ files:
   - "dist/**/*"
   - "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
   - "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}"
-  - "!**/node_modules/*/{LICENSE,README,readme,.eslintignore,.nycrc}"
+  - "!**/node_modules/*/{LICENSE,README,readme,.eslintignore,.nycrc,COPYING,UNLICENSE,LICENSE-MIT}"
+  - "!node_modules/@tensorflow/tfjs-node/**"
+  - "node_modules/@tensorflow/tfjs-node/dist/**"
+  - "node_modules/@tensorflow/tfjs-node/lib/**"
+  - "node_modules/@tensorflow/tfjs-node/node_modules/**"
+  - "node_modules/@tensorflow/tfjs-node/package.json"
+  - "!**/node_modules/**/*LICENSE*"
   - "!**/node_modules/**/*.map"
   - "!**/node_modules/**/*.md"
+  - "!**/node_modules/**/*.py"
+  - "!**/node_modules/**/*.markdown"
+  - "!**/node_modules/**/*.ts"
+  - "!**/node_modules/**/scripts/**"
+  - "!**/node_modules/**/python/"
   - "!**/node_modules/**/build/**/*"
-  - "**/node_modules/@u4/opencv4nodejs/build/Release/*.node"
-  - "!**/node_modules/**/bin/**/*"
-  - "!**/node_modules/*/doc/**/*"
-  - "!**/node_modules/*/.github/*"
-  - "!**/node_modules/*/deps/**/*"
-  - "!**/node_modules/*/prebuilds/**/*"
-  - "**/node_modules/*/prebuilds/${platform}-${arch}/**/*"
-  - "./update.exe"
-  - "./resources/**/*"
-  # - "./node_modules/level-transcoder/**/*"
+  - "!**/node_modules/**/bin/**"
+  - "!**/node_modules/**/bench/**"
+  - "!**/node_modules/**/test/**"
+  - "!**/node_modules/**/tests/**"
+  # - "!**/node_modules/**/*test.js"
+  # - "**/node_modules/**/chunking-test.js"
+  - "!**/node_modules/**/doc/**"
+  - "!**/node_modules/**/docs/**"
+  - "!**/node_modules/**/example/**"
+  - "!**/node_modules/**/examples/**"
+  - "!**/node_modules/**/.github/**"
+  - "!**/node_modules/**/deps/**"
+  - "!**/node_modules/**/prebuilds/**"
+  - "!**/node_modules/**/src/**"
+  - "!**/node_modules/**/browser/**"
+  - "!**/node_modules/**/umd/**"
+  - "!**/node_modules/**/esm/**"
+  - "!**/node_modules/**/esm-*/**"
+  - "!**/node_modules/**/*.min.js"
+  - "!**/node_modules/**/*.fesm.js"
+  - "!**/node_modules/**/*.es2017.js"
+  - "!**/node_modules/**/.rollup.cache/**"
+  - "!**/node_modules/**/*browser*"
+  - "!**/node_modules/**/tsconfig.json"
+  - "**/node_modules/**/prebuilds/${platform}-${arch}/**/*"
+  - "node_modules/debug/src/**"
+  - "**/node_modules/**/cuid2/src/**"
+  - "!node_modules/@u4/opencv4nodejs/**"
+  - "node_modules/@u4/opencv4nodejs/package.json"
+  - "node_modules/@u4/opencv4nodejs/cjs/**"
+  # - "node_modules/@u4/opencv4nodejs/src/**"
+  - "node_modules/@u4/opencv4nodejs/build/Release/*.node"
+  - "node_modules/@u4/opencv-build/script/**"
+  - "node_modules/@denodnt/logger/**"
 
 electronLanguages:
   - en-US
   - zh-CN
 
-# asarUnpack:
-#   - "node_modules/classic-level/**/*"
-#   - "node_modules/level-down/**/*"
-
+extraFiles:
+  - from: "./data"
+    to: "./resources/data/"
+  - from: "./node_modules/@u4/opencv4nodejs/src/lib"
+    to: "./resources/data/"
+  
 win:
   icon: icons/icon.ico
   extraFiles:
     - from: "./update.exe"
       to: "./resources/"
+    - from: "D:\\Opencv\\test\\install\\x64\\vc17\\bin"
+      to: "./"
   target:
     - target: nsis
       arch:
