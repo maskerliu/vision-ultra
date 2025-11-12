@@ -13,7 +13,10 @@ const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-let whiteListedModules = ['axios']
+let whiteListedModules = ['axios', '@mediapipe/face_mesh',
+  '@tensorflow/tfjs-converter',
+  '@tensorflow/tfjs-core',
+  '@tensorflow-models/face-landmarks-detection',]
 
 class RendererConfig extends BaseConfig {
   devtool: string | false = process.env.NODE_ENV !== 'production' ? "cheap-module-source-map" : false

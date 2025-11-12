@@ -57,6 +57,14 @@
     "node-fetch": "2.7.0"
   },
   "dependencies": {
+    "@mediapipe/face_detection": "~0.4.0",
+    "@mediapipe/face_mesh": "~0.4.0",
+    "@mediapipe/tasks-vision": "~0.10.21",
+    "@tensorflow-models/face-detection": "^1.0.3",
+    "@tensorflow-models/face-landmarks-detection": "1.0.6",
+    "@tensorflow/tfjs-backend-webgl": "^4.22.0",
+    "@tensorflow/tfjs-converter": "^4.22.0",
+    "@tensorflow/tfjs-core": "^4.22.0",
     "@tensorflow/tfjs-node": "^4.22.0",
     "@u4/opencv4nodejs": "^7.1.2",
     "axios": "^1.13.1",
@@ -79,7 +87,15 @@
     "tcp-port-used": "^1.0.2"
   },
   "devDependencies": {
+    "@mediapipe/face_detection": "~0.4.0",
+    "@mediapipe/face_mesh": "~0.4.0",
+    "@mediapipe/tasks-vision": "~0.10.21",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "@tensorflow-models/face-detection": "^1.0.3",
+    "@tensorflow-models/face-landmarks-detection": "1.0.6",
+    "@tensorflow/tfjs-backend-webgl": "^4.22.0",
+    "@tensorflow/tfjs-converter": "^4.22.0",
+    "@tensorflow/tfjs-core": "^4.22.0",
     "@types/clui": "^0.3.4",
     "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.17",

@@ -5,53 +5,87 @@
         <template #title>
           <van-row justify="space-between">
             <van-checkbox-group size="mini" direction="horizontal">
-              <van-checkbox shape="square" name="5010" icon-size="1rem" v-model="visionStore.isGray">
-                <van-icon class="iconfont icon-gray" style="font-size: 1.1rem; font-weight: blod;" />
+              <van-checkbox name="5010" v-model="visionStore.isGray">
+                <template #default>
+                  <van-icon class="iconfont icon-contrast-enhance"
+                    style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+                </template>
               </van-checkbox>
-              <van-checkbox shape="square" name="5020" icon-size="1rem" v-model="visionStore.imgEnhance">
-                <van-icon class="iconfont icon-image-enhance" style="font-size: 1.rem; font-weight: blod" />
+              <van-checkbox name="5020" v-model="visionStore.imgEnhance">
+                <template #default>
+                  <van-icon class="iconfont icon-clarity-enhance"
+                    style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+                </template>
               </van-checkbox>
-              <van-checkbox shape="square" name="5030" icon-size="1rem" v-model="visionStore.faceRec">
-                <van-icon class="iconfont icon-face-rec" style="font-size: 1.rem; font-weight: blod" />
+              <van-checkbox shape="square" name="5030" v-model="visionStore.faceRec">
+                <template #default>
+                  <van-icon class="iconfont icon-face-enhance"
+                    style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+                </template>
               </van-checkbox>
             </van-checkbox-group>
-            <div style="padding: 1px 0;">
-              <van-icon class="iconfont icon-open left-panel-icon" @click="openFolder" />
-            </div>
+            <van-radio-group v-model="visionStore.faceRecMode" direction="horizontal">
+              <van-radio name="1">
+                <van-icon class="iconfont icon-opencv" style="font-size: 1.5rem;" />
+              </van-radio>
+              <van-radio name="2">
+                <van-icon class="iconfont icon-tensorflow" style="font-size: 1.5rem;" />
+              </van-radio>
+            </van-radio-group>
           </van-row>
         </template>
         <template #right-icon>
-          <van-button plain size="small" type="primary" @click="openCamera">
+          <van-button plain size="small" type="primary" @click="openFolder">
             <template #icon>
-              <van-icon class="iconfont icon-camera" style="color: var(--van-gray-8)" />
+              <van-icon class="iconfont icon-open" />
+            </template>
+          </van-button>
+
+          <van-button plain size="small" type="danger" style="margin-left: 15px;" @click="onCapture">
+            <template #icon>
+              <van-icon class="iconfont icon-capture" />
+            </template>
+          </van-button>
+          <van-button plain size="small" type="default" style="margin-left: 15px;" @click="openCamera">
+            <template #icon>
+              <van-icon class="iconfont icon-camera" />
             </template>
           </van-button>
         </template>
       </van-cell>
       <canvas ref="preview"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
+      <canvas ref="capture" style="display: none;"></canvas>
       <video ref="preVideo" autoplay style="display: none;"></video>
     </van-cell-group>
   </van-row>
 </template>
 <script lang="ts" setup>
 
+import { VERSION } from '@mediapipe/face_mesh'
+import { createDetector, Face, FaceLandmarksDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
 import { Point2, Rect } from '@u4/opencv4nodejs'
+import { showNotify } from 'vant'
 import { onMounted, useTemplateRef, watch } from 'vue'
+import { drawResults, updateFaceRec } from '../../common/DrawUtils'
 import { VisionStore } from '../../store'
-import { off } from 'process'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
 const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
+const capture = useTemplateRef<HTMLCanvasElement>('capture')
 
 let animationId: number
 let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
+let captureCtx: CanvasRenderingContext2D
+
 let frames = 0
 let face: Rect = null, eyes: Array<Rect> = null, landmarks: Array<Point2> = null
+let faceDector: FaceLandmarksDetector = null
+let faces: Array<Face> = []
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
@@ -60,18 +94,24 @@ onMounted(async () => {
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
-
+  captureCtx = capture.value.getContext('2d', { willReadFrequently: false })
   previewCtx.imageSmoothingEnabled = true
   previewCtx.imageSmoothingQuality = 'high'
 
   if (!__IS_WEB__) {
-    window.cv.init()
+    window.cvApi.init()
+    window.tfApi.init('mediapipe-gpu')
   }
 
-  console.log('preivew parent height', previewParent.value.$el.offsetHeight)
+  faceDector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
+    runtime: 'mediapipe',
+    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${VERSION}`,
+    refineLandmarks: true,
+    maxFaces: 1
+  })
 })
 
-function processFrame() {
+async function processFrame() {
   if (preVideo.value.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) return
 
   offscreen.value.width = preview.value.width = preVideo.value.videoWidth
@@ -80,92 +120,43 @@ function processFrame() {
   offscreenCtx.translate(-offscreen.value.width, 0)
   offscreenCtx.drawImage(preVideo.value, 0, 0, offscreen.value.width, offscreen.value.height)
 
-  const imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+  let imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+  // const { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
+  //   isGray: visionStore.isGray,
+  //   contrast: visionStore.contrast,
+  //   brightness: visionStore.brightness,
+  //   laplace: visionStore.laplace,
+  //   enhance: visionStore.enhance
+  // })
+  // imageData = new ImageData(data as ImageDataArray, width, height)
 
   if (frames < 3) frames++
   else {
     frames = 0
     try {
-      const result = window.cv.faceRecognize(imageData, imageData.width, imageData.height)
-      face = result?.face
-      eyes = result?.eyes
-      landmarks = result?.landmarks
+      if (visionStore.faceRecMode == '1') {
+        const result = window.cvApi.faceRecognize(imageData, imageData.width, imageData.height)
+        face = result?.face
+        eyes = result?.eyes
+        landmarks = result?.landmarks
+      } else {
+        faces = await faceDector.estimateFaces(imageData)
+      }
     } catch (e) {
       console.error(e, imageData)
     }
   }
+
   offscreenCtx.putImageData(imageData, 0, 0)
-  previewCtx.drawImage(offscreen.value, 0, 0, imageData.width, imageData.height, 0, 0, imageData.width, imageData.height)
+  previewCtx.drawImage(offscreen.value,
+    0, 0, imageData.width, imageData.height,
+    0, 0, imageData.width, imageData.height)
 
-  updateFaceRec(previewCtx, face, eyes, landmarks)
-
-  previewCtx.scale(-1, 1)
-}
-
-function updateFaceRec(context: CanvasRenderingContext2D, face: Rect, eyes: Array<Rect>, landmarks?: Array<Point2>) {
-  if (face == null) return
-  context.beginPath()
-  context.strokeStyle = '#2ecc71'
-  context.lineWidth = 3
-  context.strokeRect(face.x, face.y, face.width, face.height)
-  context.closePath()
-
-  eyes?.forEach((eye) => {
-    context.beginPath()
-    context.strokeStyle = '#e74c3c'
-    context.lineWidth = 2
-    context.ellipse(eye.x + face.x + eye.width / 2, eye.y + face.y + eye.height / 2, eye.width / 2, eye.height / 2, 0, 0, Math.PI * 2)
-    context.stroke()
-    context.closePath()
-  })
-
-
-  if (landmarks.length == 68) {
-    drawMutliLine(context, landmarks, 0, 17) // Jaw
-    drawMutliLine(context, landmarks, 17, 22) // Left brow
-    drawMutliLine(context, landmarks, 22, 27) // Right brow
-    drawMutliLine(context, landmarks, 27, 31) // Nose
-    drawMutliLine(context, landmarks, 31, 36) // Nose bottom
-    drawMutliLine(context, landmarks, 36, 42, true) // Left eye
-    drawMutliLine(context, landmarks, 42, 48, true) // Right eye
-    drawMutliLine(context, landmarks, 48, 60, true) // Outer lip
-    drawMutliLine(context, landmarks, 60, 68, true) // Inner lip
+  if (visionStore.faceRecMode == '1') {
+    updateFaceRec(previewCtx, face, eyes, landmarks)
   } else {
-    landmarks?.forEach((landmark) => {
-      context.beginPath()
-      context.fillStyle = '#8e44ad'
-      context.arc(landmark.x, landmark.y, 2, 0, Math.PI * 2)
-      context.fill()
-      context.closePath()
-    })
+    drawResults(previewCtx, faces)
   }
-  landmarks?.forEach((landmark) => {
-    context.beginPath()
-    context.fillStyle = '#8e44ad'
-    context.arc(landmark.x, landmark.y, 2, 0, Math.PI * 2)
-    context.fill()
-    context.closePath()
-  })
-}
-
-function drawMutliLine(context: CanvasRenderingContext2D, points: Array<Point2>, start: number, end: number, closed: boolean = false) {
-  context.beginPath()
-  context.strokeStyle = '#2980b9'
-  context.lineWidth = 4
-  context.moveTo(points[start].x, points[start].y)
-  for (let i = start; i < end; ++i) {
-    context.lineTo(points[i].x, points[i].y)
-  }
-  if (closed) {
-    context.lineTo(points[start].x, points[start].y)
-  }
-  context.stroke()
-  context.closePath()
-}
-
-function onOpenFileResult(data:string) {
-
-  console.log(data)
 }
 
 async function openFolder() {
@@ -198,9 +189,40 @@ async function openFolder() {
   }
 }
 
+async function onCapture() {
+  if (__IS_WEB__) return
+  if (faces == null || faces.length == 0) {
+    showNotify({ type: 'warning', message: '未检测到人脸...', duration: 500 })
+    return
+  }
+
+  captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
+  capture.value.width = faces[0].box.width
+  capture.value.height = faces[0].box.height
+
+  captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
+
+  const imageData = offscreenCtx.getImageData(faces[0].box.xMin, faces[0].box.yMin,
+    faces[0].box.width, faces[0].box.height)
+  const { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
+    isGray: visionStore.isGray,
+    contrast: visionStore.contrast,
+    brightness: visionStore.brightness,
+    laplace: visionStore.laplace,
+    enhance: visionStore.enhance
+  })
+  var grayImg = new ImageData(data as ImageDataArray, width, height)
+  captureCtx.putImageData(grayImg, 0, 0)
+  capture.value.toBlob(async (blob) => {
+    let buffer = await blob.arrayBuffer()
+    window.mainApi.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
+    captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
+  }, 'image/png')
+}
+
 function drawImage() {
   const imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  let { data, width, height } = window.cv.imgProcess(imageData, imageData.width, imageData.height, {
+  let { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
     isGray: visionStore.isGray,
     contrast: visionStore.contrast,
     brightness: visionStore.brightness,
@@ -210,6 +232,10 @@ function drawImage() {
   var grayImg = new ImageData(data as ImageDataArray, width, height)
   previewCtx.putImageData(grayImg, 0, 0)
 }
+
+watch(() => visionStore.faceRecMode, (val) => {
+  console.log('faceRecMode', val)
+})
 
 watch(() => visionStore.isGray, (val) => {
   drawImage()
@@ -238,6 +264,7 @@ async function openCamera() {
     return
   }
 
+  faceDector.reset()
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true })
     preVideo.value.srcObject = stream
@@ -256,6 +283,9 @@ async function closeCamera() {
   if (preVideo.value.srcObject) {
     (preVideo.value.srcObject as MediaStream).getTracks().forEach(track => track.stop())
   }
+
+  offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
+  previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
 }
 
 </script>

@@ -5,6 +5,7 @@ import { BizConfig } from "./base.models"
 export const MainAPICMD = {
   Relaunch: 'relaunch',
   OpenFile: 'openFile',
+  SaveFileAs: 'saveFile',
   OpenDevTools: 'openDevTools',
   OpenMockRuleMgr: 'openMockRuleMgr',
   OpenSettings: 'openSettings',
@@ -22,6 +23,8 @@ export interface IMainAPI {
   relaunch(): void
 
   openFile(callback: Function): void
+
+  saveFile(title: string, fileName: string, file: string | ArrayBuffer, slient: boolean): void
 
   openDevTools(...args: any): void
 
@@ -62,4 +65,10 @@ export interface IOpencvAPI {
     sharpness: number,
   }>): { data: Uint8ClampedArray, width: number, height: number } | null
   faceRecognize(frame: ImageData, width: number, height: number): { face: Rect, eyes: Array<Rect>, landmarks: Array<Point2> } | null
+}
+
+export interface ITensorflowApi {
+  init(backend: 'mediapipe-gpu' | 'tfjs-webgl'): Promise<void>
+  destroy(): void
+  detect(video: ImageData): Promise<any[]>
 }

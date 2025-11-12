@@ -1,13 +1,13 @@
 import { spawn } from "child_process"
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from "electron"
-import fs from 'fs'
+import fs, { writeFileSync } from 'fs'
 import fse from 'fs-extra'
 import os from 'os'
 import path from "path"
 import { Version } from "../common"
 import { MainAPICMD } from "../common/ipc.api"
 import { fullUpdate, incrementUpdate } from "./AppUpdater"
-import { getAppWindow } from "./misc/utils"
+import { USER_DATA_DIR } from "./MainConst"
 
 ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   if (fse.pathExistsSync(path.join(process.resourcesPath, 'update.asar'))) {
@@ -48,12 +48,39 @@ ipcMain.handle(MainAPICMD.OpenFile, async (_, target: string) => {
   })
 
   if (result.canceled) return
-  getAppWindow()?.webContents.send(MainAPICMD.OpenFile, result.filePaths[0])
+  BrowserWindow.getFocusedWindow()?.webContents.send(MainAPICMD.OpenFile, result.filePaths[0])
+})
+
+ipcMain.handle(MainAPICMD.SaveFileAs, async (_, title: string, fileName: string, data: string | ArrayBuffer, slient = false) => {
+
+  if (slient) {
+    writeFileSync(path.join(app.getPath('downloads'), fileName), Buffer.from(data))
+    return
+  }
+
+  let filters = [{ name: '全部文件', extensions: ['*'] }]
+  let ext = path.extname(fileName)
+  if (ext && ext !== '.') {
+    const name = ext.slice(1, ext.length);
+    if (name) {
+      filters.unshift({ name: '', extensions: [name] })
+    }
+  }
+  dialog.showSaveDialog(BrowserWindow.getFocusedWindow(), {
+    title,
+    filters,
+    defaultPath: path.join(app.getPath('downloads'), fileName)
+  }).then((result) => {
+    writeFileSync(result.filePath, Buffer.from(data))
+  }).catch((reasion) => {
+    console.log(`save as--catch:${reasion}`)
+  })
+
 })
 
 
 ipcMain.handle(MainAPICMD.OpenDevTools, (_, args?: any) => {
-  getAppWindow()?.webContents.openDevTools({ mode: 'detach', activate: false })
+  BrowserWindow.getFocusedWindow()?.webContents.openDevTools({ mode: 'detach', activate: false })
 })
 
 
@@ -62,7 +89,7 @@ ipcMain.handle(MainAPICMD.SetAppTheme, (_, theme: ('system' | 'light' | 'dark'))
   if (os.platform() == 'darwin') {
     // console.log(this.mainWindow.setTitleBarOverlay)
   } else {
-    getAppWindow()?.setTitleBarOverlay({
+    BrowserWindow.getFocusedWindow()?.setTitleBarOverlay({
       color: '#f8f8f800',
       symbolColor: nativeTheme.shouldUseDarkColors ? 'white' : 'black'
     })

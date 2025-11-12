@@ -10,6 +10,10 @@ let mainApi: IMainAPI = {
     ipcRenderer.invoke(MainAPICMD.OpenFile)
     ipcRenderer.once(MainAPICMD.OpenFile, (event, result) => callback(result))
   },
+  saveFile(title: string, fileName: string, file: string | ArrayBuffer, slient: boolean = false): void {
+    ipcRenderer.invoke(MainAPICMD.SaveFileAs, title, fileName, file, slient)
+    // ipcRenderer.once(MainAPICMD.SaveFileAs, (event, result) => callback(result))
+  },
   openDevTools(...args: any) {
     ipcRenderer.invoke(MainAPICMD.OpenDevTools, args)
   },
