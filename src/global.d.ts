@@ -1,4 +1,4 @@
-import { IMainAPI, IOpencvAPI } from "./common/ipc.api"
+import { IMainAPI, IOpencvAPI, ITensorflowApi } from "./common/ipc.api"
 
 declare global {
   let __DEV__: boolean
@@ -7,8 +7,8 @@ declare global {
   interface Window {
     isWeb: boolean
     mainApi: IMainAPI
-    cv: IOpencvAPI
-    // ipcRenderer: IpcRenderer
+    cvApi: IOpencvAPI
+    tfApi: ITensorflowApi
   }
 
   let __IS_WEB__: boolean

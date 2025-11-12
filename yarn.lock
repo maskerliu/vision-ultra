@@ -674,6 +674,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mediapipe/face_detection@npm:~0.4.0":
+  version: 0.4.1646425229
+  resolution: "@mediapipe/face_detection@npm:0.4.1646425229"
+  checksum: 10c0/f9e1f41119caea76e1fbca005f68936574f6f5b1d427ac53fb8fd5e0615598d981bc182b16f9f0a0c85eb317a9e7893dec05ad2b01adfec32a0548e048c2976d
+  languageName: node
+  linkType: hard
+
+"@mediapipe/face_mesh@npm:~0.4.0":
+  version: 0.4.1633559619
+  resolution: "@mediapipe/face_mesh@npm:0.4.1633559619"
+  checksum: 10c0/10e3bed4c14478cabbffcc97716545119668755207e5177e7613e04a07582441734cbf369b4b1541cab4ba8281a32bde7019cf8b0df2db41654c861148632a8f
+  languageName: node
+  linkType: hard
+
+"@mediapipe/tasks-vision@npm:~0.10.21":
+  version: 0.10.21
+  resolution: "@mediapipe/tasks-vision@npm:0.10.21"
+  checksum: 10c0/11b2bdf98b8cb6e044f2a954e7c8393169e62c86ff49b3d0b61c3b327d18e1ccd47a187999b023bad48380c9da41bfa66eb165301c80da07746390482cb18a19
+  languageName: node
+  linkType: hard
+
 "@microsoft/fetch-event-source@npm:^2.0.1":
   version: 2.0.1
   resolution: "@microsoft/fetch-event-source@npm:2.0.1"
@@ -776,6 +797,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tensorflow-models/face-detection@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@tensorflow-models/face-detection@npm:1.0.3"
+  dependencies:
+    rimraf: "npm:^3.0.2"
+    tslib: "npm:2.4.0"
+  peerDependencies:
+    "@mediapipe/face_detection": ~0.4.0
+    "@tensorflow/tfjs-backend-webgl": ^4.21.0
+    "@tensorflow/tfjs-converter": ^4.21.0
+    "@tensorflow/tfjs-core": ^4.21.0
+  checksum: 10c0/67117de3341b694a846e512b67ba872c50346abdd30eb9856ccc46dcc2ee50948093f80e8a74b5d1f9fd3a8802d5643f45b984243f067cdc7e48f462bda8fb25
+  languageName: node
+  linkType: hard
+
+"@tensorflow-models/face-landmarks-detection@npm:1.0.6":
+  version: 1.0.6
+  resolution: "@tensorflow-models/face-landmarks-detection@npm:1.0.6"
+  dependencies:
+    rimraf: "npm:^3.0.2"
+  peerDependencies:
+    "@mediapipe/face_mesh": ~0.4.0
+    "@tensorflow-models/face-detection": ^1.0.3
+    "@tensorflow/tfjs-backend-webgl": ^4.13.0
+    "@tensorflow/tfjs-converter": ^4.13.0
+    "@tensorflow/tfjs-core": ^4.13.0
+  checksum: 10c0/2566fd4eab682dec596342f60f456515a09e6c9b56f4d236e04ff10876170df48e9ea6e0c36a10080cde1f8c3c30c9caacfcf45c122026efd1e6d1228aceaa33
+  languageName: node
+  linkType: hard
+
 "@tensorflow/tfjs-backend-cpu@npm:4.22.0":
   version: 4.22.0
   resolution: "@tensorflow/tfjs-backend-cpu@npm:4.22.0"
@@ -788,7 +839,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tensorflow/tfjs-backend-webgl@npm:4.22.0":
+"@tensorflow/tfjs-backend-webgl@npm:4.22.0, @tensorflow/tfjs-backend-webgl@npm:^4.22.0":
   version: 4.22.0
   resolution: "@tensorflow/tfjs-backend-webgl@npm:4.22.0"
   dependencies:
@@ -802,7 +853,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tensorflow/tfjs-converter@npm:4.22.0":
+"@tensorflow/tfjs-converter@npm:4.22.0, @tensorflow/tfjs-converter@npm:^4.22.0":
   version: 4.22.0
   resolution: "@tensorflow/tfjs-converter@npm:4.22.0"
   peerDependencies:
@@ -811,7 +862,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tensorflow/tfjs-core@npm:4.22.0":
+"@tensorflow/tfjs-core@npm:4.22.0, @tensorflow/tfjs-core@npm:^4.22.0":
   version: 4.22.0
   resolution: "@tensorflow/tfjs-core@npm:4.22.0"
   dependencies:
@@ -1983,7 +2034,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "VisionUltra@workspace:."
   dependencies:
+    "@mediapipe/face_detection": "npm:~0.4.0"
+    "@mediapipe/face_mesh": "npm:~0.4.0"
+    "@mediapipe/tasks-vision": "npm:~0.10.21"
     "@microsoft/fetch-event-source": "npm:^2.0.1"
+    "@tensorflow-models/face-detection": "npm:^1.0.3"
+    "@tensorflow-models/face-landmarks-detection": "npm:1.0.6"
+    "@tensorflow/tfjs-backend-webgl": "npm:^4.22.0"
+    "@tensorflow/tfjs-converter": "npm:^4.22.0"
+    "@tensorflow/tfjs-core": "npm:^4.22.0"
     "@tensorflow/tfjs-node": "npm:^4.22.0"
     "@types/clui": "npm:^0.3.4"
     "@types/compression": "npm:^1.7.5"
@@ -9502,6 +9561,13 @@ __metadata:
     typescript: "*"
     webpack: ^5.0.0
   checksum: 10c0/f0982404b43628c335d3b3a60ac3f1738385da7b97c3f04cb5ad2ebad791597be39b25c8a4e158a66173f9bd9f5aa72e285b046b0573e4beed8ecd032d418e4d
+  languageName: node
+  linkType: hard
+
+"tslib@npm:2.4.0":
+  version: 2.4.0
+  resolution: "tslib@npm:2.4.0"
+  checksum: 10c0/eb19bda3ae545b03caea6a244b34593468e23d53b26bf8649fbc20fce43e9b21a71127fd6d2b9662c0fe48ee6ff668ead48fd00d3b88b2b716b1c12edae25b5d
   languageName: node
   linkType: hard
 

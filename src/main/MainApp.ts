@@ -9,6 +9,8 @@ import { MainAPICMD } from '../common/ipc.api'
 import './IPCServices'
 import { IS_DEV, USER_DATA_DIR } from './MainConst'
 import { MainServer } from './MainServer'
+import { WASI } from 'wasi'
+import { readFile } from 'fs/promises'
 
 const BUILD_CONFIG = JSON.parse(process.env.BUILD_CONFIG)
 
@@ -39,13 +41,23 @@ export default class MainApp {
   public async startApp() {
     app.setName('AppApiProxy')
     app.setPath('crashDumps', path.join(USER_DATA_DIR, 'crashDumps'))
-    // app.disableHardwareAcceleration()
     app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors')
     app.commandLine.appendSwitch('ignore-certificate-errors')
-    app.commandLine.appendSwitch('disable-gpu')
     app.commandLine.appendSwitch('disable-software-rasterizer')
+    
+    // app.disableHardwareAcceleration()
+    // app.commandLine.appendSwitch('disable-gpu')
 
     crashReporter.start({ submitURL: 'https://your-domain.com/url-to-submit' })
+
+
+    // const gpuStatus = app.getGPUFeatureStatus()
+    // console.log('GPU功能状态:', gpuStatus)
+
+    // // 获取详细GPU信息
+    // app.getGPUInfo('complete').then(info => {
+    //   console.log('GPU详细信息:', info)
+    // })
 
     if (process.env.NODE_ENV == 'development') {
       app.commandLine.appendSwitch('trace-deprecation')

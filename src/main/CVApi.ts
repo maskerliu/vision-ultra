@@ -24,8 +24,6 @@ let cvApi: IOpencvAPI = {
 
       facemark = new cv.FacemarkLBF()
       const modelFile = path.join(__dirname, `${is_dev ? '../../' : '../../../'}data/lbfmodel.yaml`)
-      console.log(modelFile)
-      console.log(facemark)
       facemark.loadModel(modelFile)
       // give the facemark object it's face detection callback
       // facemark.setFaceDetector((frame: Mat) => {

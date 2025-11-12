@@ -3,6 +3,7 @@ import { defineStore } from "pinia"
 export const VisionStore = defineStore('Common', {
   state: () => {
     return {
+      faceRecMode: '1',  // 1: opencv 2: tensorflow
       faceDetect: false,
       landmark: false,
       faceRec: false,
