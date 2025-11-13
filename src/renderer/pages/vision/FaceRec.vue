@@ -56,6 +56,7 @@
       <canvas ref="preview"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
       <canvas ref="capture" style="display: none;"></canvas>
+      <canvas ref="masklayer" style="display: none;"></canvas>
       <video ref="preVideo" autoplay style="display: none;"></video>
     </van-cell-group>
   </van-row>
@@ -63,12 +64,13 @@
 <script lang="ts" setup>
 
 import { VERSION } from '@mediapipe/face_mesh'
-import { createDetector, Face, FaceLandmarksDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
+import { createDetector, Face, FaceLandmarksDetector, Keypoint, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
 import { Point2, Rect } from '@u4/opencv4nodejs'
 import { showNotify } from 'vant'
 import { onMounted, useTemplateRef, watch } from 'vue'
-import { drawResults, updateFaceRec } from '../../common/DrawUtils'
+import { BLUE, drawCVFaceResult, drawPath, drawTFFaceResult, getFaceContour } from '../../common/DrawUtils'
 import { VisionStore } from '../../store'
+import { B } from 'ace-builds-internal/lib/bidiutil'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -76,11 +78,13 @@ const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
 const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
+const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
 let animationId: number
 let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let captureCtx: CanvasRenderingContext2D
+let masklayerCtx: CanvasRenderingContext2D
 
 let frames = 0
 let face: Rect = null, eyes: Array<Rect> = null, landmarks: Array<Point2> = null
@@ -95,6 +99,7 @@ onMounted(async () => {
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: false })
+  masklayerCtx = masklayer.value.getContext('2d', { willReadFrequently: false })
   previewCtx.imageSmoothingEnabled = true
   previewCtx.imageSmoothingQuality = 'high'
 
@@ -153,9 +158,9 @@ async function processFrame() {
     0, 0, imageData.width, imageData.height)
 
   if (visionStore.faceRecMode == '1') {
-    updateFaceRec(previewCtx, face, eyes, landmarks)
+    drawCVFaceResult(previewCtx, face, eyes, landmarks)
   } else {
-    drawResults(previewCtx, faces)
+    drawTFFaceResult(previewCtx, faces, true, true)
   }
 }
 
@@ -196,23 +201,49 @@ async function onCapture() {
     return
   }
 
+  let path = getFaceContour(faces[0])
+  console.log('path', path)
   captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
+  masklayerCtx.clearRect(0, 0, masklayer.value.width, masklayer.value.height)
   capture.value.width = faces[0].box.width
   capture.value.height = faces[0].box.height
+  masklayer.value.width = faces[0].box.width
+  masklayer.value.height = faces[0].box.height
 
-  captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
-
-  const imageData = offscreenCtx.getImageData(faces[0].box.xMin, faces[0].box.yMin,
+  let imageData = offscreenCtx.getImageData(faces[0].box.xMin, faces[0].box.yMin,
     faces[0].box.width, faces[0].box.height)
-  const { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
-    isGray: visionStore.isGray,
-    contrast: visionStore.contrast,
-    brightness: visionStore.brightness,
-    laplace: visionStore.laplace,
-    enhance: visionStore.enhance
-  })
-  var grayImg = new ImageData(data as ImageDataArray, width, height)
-  captureCtx.putImageData(grayImg, 0, 0)
+
+  // const { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
+  //   isGray: visionStore.isGray,
+  //   contrast: visionStore.contrast,
+  //   brightness: visionStore.brightness,
+  //   laplace: visionStore.laplace,
+  //   enhance: visionStore.enhance
+  // })
+  // imageData = new ImageData(data as ImageDataArray, width, height)
+  captureCtx.putImageData(imageData, 0, 0)
+  masklayerCtx.beginPath()
+  for (let i = 1; i < path.length; i++) {
+    masklayerCtx.lineTo(path[i][0], path[i][1])
+  }
+  masklayerCtx.fillStyle = 'white'
+  masklayerCtx.fill()
+  let maskImgData = masklayerCtx.getImageData(0, 0, masklayer.value.width, masklayer.value.height)
+  for (let i = 0; i < maskImgData.data.length; i += 4) {
+    if (maskImgData.data[i + 3] == 0) {
+      maskImgData.data[i + 3] = 255
+    } else {
+      maskImgData.data[i + 3] = 0
+    }
+  }
+
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    if (maskImgData.data[i + 3] == 255) {
+      imageData.data[i + 3] = 0
+    }
+  }
+  captureCtx.putImageData(imageData, 0, 0)
+
   capture.value.toBlob(async (blob) => {
     let buffer = await blob.arrayBuffer()
     window.mainApi.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
