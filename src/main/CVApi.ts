@@ -42,47 +42,82 @@ let cvApi: IOpencvAPI = {
   imgProcess: function (frame: ImageData, width: number, height: number,
     params: Partial<{
       isGray: boolean,
-      isFaceDetect: boolean,
-      isFaceRecognize: boolean,
-      isFaceLandmark: boolean,
-      isFaceEyes: boolean,
-      contrast: number,
+      equalizeHist: boolean,
       brightness: number,
-      laplace: number,
-      enhance: number,
-      sharpness: number,
-      gaussian: number,
+      laplace: number, // 二阶导数滤波器的孔径大小，必须为正奇数
+      cannyThreshold: [number, number],
+      gaussian: number, // 决定滤波器的尺寸
     }>) {
-    try {
-      if (originFrame == null) {
+
+    if (originFrame == null) {
+      originFrame = new cv.Mat(height, width, cv.CV_8UC4)
+    } else {
+      if (originFrame.cols !== width || originFrame.rows !== height) {
+        originFrame.release()
         originFrame = new cv.Mat(height, width, cv.CV_8UC4)
-      } else {
-        if (originFrame.cols !== width || originFrame.rows !== height) {
-          originFrame.release()
-          originFrame = new cv.Mat(height, width, cv.CV_8UC4)
-        }
       }
-      if (sharedData == null) {
-        sharedData = new Uint8ClampedArray(height * width * cv.CV_8UC4)
+    }
+    if (sharedData == null) {
+      sharedData = new Uint8ClampedArray(height * width * cv.CV_8UC4)
+    }
+    originFrame.setData(Buffer.from(frame.data.buffer))
+    const bgrFrame = originFrame.cvtColor(cv.COLOR_RGBA2BGR)
+
+
+    let processedImg: Mat = bgrFrame.copy()
+    try {
+      if (params.isGray) {
+        console.log('gray')
+        processedImg = bgrFrame.cvtColor(cv.COLOR_BGR2GRAY)
       }
-
-      originFrame.setData(Buffer.from(frame.data.buffer))
-      const bgrFrame = originFrame.cvtColor(cv.COLOR_RGBA2BGR)
-
-      let grayImage = bgrFrame.cvtColor(cv.COLOR_BGR2GRAY)
-      grayImage = grayImage.equalizeHist()
-      // grayImage = cv.gaussianBlur(grayImage, new cv.Size(3, 3), params.gaussian, params.gaussian, cv.BORDER_DEFAULT)
-
-      grayImage = grayImage.cvtColor(cv.COLOR_GRAY2RGBA)
-      const data = Uint8ClampedArray.from(grayImage.getData())
-      let cols = grayImage.cols, rows = grayImage.rows
-      grayImage.release()
-      bgrFrame.release()
-      return { data, width: cols, height: rows }
     } catch (e) {
       console.error(e)
-      return { data: null, width, height }
     }
+    try {
+      if (params.isGray && params.equalizeHist) {
+        console.log('equalizeHist')
+        processedImg = processedImg.equalizeHist()
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    try {
+      if (params.laplace > 1) {
+        console.log('laplace')
+        processedImg = processedImg.laplacian(cv.CV_8U, params.laplace)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    try {
+      if (params.cannyThreshold) {
+        console.log('canny')
+        processedImg = processedImg.canny(params.cannyThreshold[0], params.cannyThreshold[1])
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    try {
+      if (params.gaussian > 1) {
+        processedImg = processedImg.gaussianBlur(new cv.Size(params.gaussian, params.gaussian), 0)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    if (params.isGray) {
+      processedImg = processedImg.cvtColor(cv.COLOR_GRAY2RGBA)
+    } else {
+      processedImg = processedImg.cvtColor(cv.COLOR_BGR2RGBA)
+    }
+    const data = Uint8ClampedArray.from(processedImg.getData())
+    let cols = processedImg.cols, rows = processedImg.rows
+    processedImg.release()
+    bgrFrame.release()
+    return { data, width: cols, height: rows }
   },
   faceRecognize: function (frame: ImageData, width: number, height: number) {
     try {

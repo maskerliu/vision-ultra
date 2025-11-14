@@ -4,26 +4,26 @@
       <van-cell>
         <template #title>
           <van-row justify="space-between">
-            <van-checkbox-group size="mini" direction="horizontal">
-              <van-checkbox name="5010" v-model="visionStore.isGray">
+            <van-row>
+              <van-checkbox name="isGray" v-model="visionStore.isGray">
                 <template #default>
                   <van-icon class="iconfont icon-contrast-enhance"
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
-              <van-checkbox name="5020" v-model="visionStore.imgEnhance">
+              <van-checkbox name="imgEnchance" v-model="visionStore.imgEnhance" style="margin-left: 15px;">
                 <template #default>
                   <van-icon class="iconfont icon-clarity-enhance"
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
-              <van-checkbox shape="square" name="5030" v-model="visionStore.faceRec">
+              <van-checkbox name="faceDect" v-model="visionStore.faceDetect" style="margin-left: 15px;">
                 <template #default>
                   <van-icon class="iconfont icon-face-enhance"
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
-            </van-checkbox-group>
+            </van-row>
             <van-radio-group v-model="visionStore.faceRecMode" direction="horizontal">
               <van-radio name="1">
                 <van-icon class="iconfont icon-opencv" style="font-size: 1.5rem;" />
@@ -64,13 +64,13 @@
 <script lang="ts" setup>
 
 import { VERSION } from '@mediapipe/face_mesh'
-import { createDetector, Face, FaceLandmarksDetector, Keypoint, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
+import { createDetector, Face, FaceLandmarksDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
 import { Point2, Rect } from '@u4/opencv4nodejs'
 import { showNotify } from 'vant'
-import { onMounted, useTemplateRef, watch } from 'vue'
-import { BLUE, drawCVFaceResult, drawPath, drawTFFaceResult, getFaceContour } from '../../common/DrawUtils'
+import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { drawCVFaceResult, drawTFFaceResult, getFaceContour } from '../../common/DrawUtils'
 import { VisionStore } from '../../store'
-import { B } from 'ace-builds-internal/lib/bidiutil'
+import { imag } from '@tensorflow/tfjs-core'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -90,6 +90,9 @@ let frames = 0
 let face: Rect = null, eyes: Array<Rect> = null, landmarks: Array<Point2> = null
 let faceDector: FaceLandmarksDetector = null
 let faces: Array<Face> = []
+let imgParams: { [key: string]: any } = {
+
+}
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
@@ -114,6 +117,9 @@ onMounted(async () => {
     refineLandmarks: true,
     maxFaces: 1
   })
+
+  imgParams['isGray'] = visionStore.isGray
+  imgParams['equalizeHist'] = visionStore.equalizeHist
 })
 
 async function processFrame() {
@@ -126,15 +132,38 @@ async function processFrame() {
   offscreenCtx.drawImage(preVideo.value, 0, 0, offscreen.value.width, offscreen.value.height)
 
   let imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  // const { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
-  //   isGray: visionStore.isGray,
-  //   contrast: visionStore.contrast,
-  //   brightness: visionStore.brightness,
-  //   laplace: visionStore.laplace,
-  //   enhance: visionStore.enhance
-  // })
-  // imageData = new ImageData(data as ImageDataArray, width, height)
+  if (visionStore.enhance) {
+    const { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
+      isGray: visionStore.isGray,
+      equalizeHist: visionStore.equalizeHist,
+      brightness: visionStore.brightness,
+      laplace: visionStore.laplace,
+    })
+    imageData = new ImageData(data as ImageDataArray, width, height)
+  }
 
+  if (visionStore.faceDetect) {
+    await faceDect()
+  } else {
+    faces = []
+    eyes = []
+    landmarks = []
+    face = null
+  }
+
+  offscreenCtx.putImageData(imageData, 0, 0)
+  previewCtx.drawImage(offscreen.value,
+    0, 0, imageData.width, imageData.height,
+    0, 0, imageData.width, imageData.height)
+  if (visionStore.faceRecMode == '1') {
+    drawCVFaceResult(previewCtx, face, eyes, landmarks)
+  } else {
+    drawTFFaceResult(previewCtx, faces, true, true)
+  }
+}
+
+async function faceDect() {
+  let imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
   if (frames < 3) frames++
   else {
     frames = 0
@@ -152,16 +181,16 @@ async function processFrame() {
     }
   }
 
-  offscreenCtx.putImageData(imageData, 0, 0)
-  previewCtx.drawImage(offscreen.value,
-    0, 0, imageData.width, imageData.height,
-    0, 0, imageData.width, imageData.height)
+  // offscreenCtx.putImageData(imageData, 0, 0)
+  // previewCtx.drawImage(offscreen.value,
+  //   0, 0, imageData.width, imageData.height,
+  //   0, 0, imageData.width, imageData.height)
 
-  if (visionStore.faceRecMode == '1') {
-    drawCVFaceResult(previewCtx, face, eyes, landmarks)
-  } else {
-    drawTFFaceResult(previewCtx, faces, true, true)
-  }
+  // if (visionStore.faceRecMode == '1') {
+  //   drawCVFaceResult(previewCtx, face, eyes, landmarks)
+  // } else {
+  //   drawTFFaceResult(previewCtx, faces, true, true)
+  // }
 }
 
 async function openFolder() {
@@ -202,7 +231,6 @@ async function onCapture() {
   }
 
   let path = getFaceContour(faces[0])
-  console.log('path', path)
   captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
   masklayerCtx.clearRect(0, 0, masklayer.value.width, masklayer.value.height)
   capture.value.width = faces[0].box.width
@@ -252,37 +280,12 @@ async function onCapture() {
 }
 
 function drawImage() {
-  const imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  let { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
-    isGray: visionStore.isGray,
-    contrast: visionStore.contrast,
-    brightness: visionStore.brightness,
-    laplace: visionStore.laplace,
-    enhance: visionStore.enhance
-  })
+  const imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+
+  let { data, width, height } = window.cvApi.imgProcess(imgData, imgData.width, imgData.height, visionStore.imgParams.getParams())
   var grayImg = new ImageData(data as ImageDataArray, width, height)
   previewCtx.putImageData(grayImg, 0, 0)
 }
-
-watch(() => visionStore.faceRecMode, (val) => {
-  console.log('faceRecMode', val)
-})
-
-watch(() => visionStore.isGray, (val) => {
-  drawImage()
-})
-
-watch(() => visionStore.enhance, (val) => {
-  drawImage()
-})
-
-watch(() => visionStore.contrast, (val) => {
-  drawImage()
-})
-
-watch(() => visionStore.laplace, (val) => {
-  drawImage()
-})
 
 async function openCamera() {
   if (__IS_WEB__) return
@@ -318,6 +321,21 @@ async function closeCamera() {
   offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
   previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
 }
+
+watch(() => visionStore.imgParams,
+  (val) => {
+    drawImage()
+  },
+  { deep: true }
+)
+
+watch(() => visionStore.enhance, (val) => {
+  drawImage()
+})
+
+watch(() => visionStore.faceDetect, (val) => {
+  console.log('faceDetect', val)
+})
 
 </script>
 <style lang="css"></style>

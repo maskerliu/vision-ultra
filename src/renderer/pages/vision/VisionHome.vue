@@ -2,17 +2,7 @@
   <van-row>
     <van-col class="border-bg left-panel">
       <van-row justify="space-between">
-        <van-checkbox-group size="mini" direction="horizontal" style="width: 235px;">
-          <van-checkbox shape="square" name="5010" style="padding: 5px 10px">
-            <i class="iconfont icon-api" style="font-weight: blod"></i>
-          </van-checkbox>
-          <van-checkbox shape="square" name="5020" style="padding: 5px 10px">
-            <van-icon class="iconfont icon-statistics" style="font-weight: blod" />
-          </van-checkbox>
-          <van-checkbox shape="square" name="5030" style="padding: 5px 10px">
-            <van-icon class="iconfont icon-websocket" style="font-weight: blod" />
-          </van-checkbox>
-        </van-checkbox-group>
+        <van-row></van-row>
         <div style="padding: 1px 0;">
           <van-icon class="iconfont icon-qrcode left-panel-icon" @click="commonStore.showQrCode = true" />
           <van-icon class="iconfont icon-rule left-panel-icon" @click="" />
@@ -27,21 +17,7 @@
         <van-cell-group title="图像处理" inset :border="false">
           <van-cell title="灰度" center>
             <template #value>
-              <van-switch v-model="visionStore.isGray"></van-switch>
-            </template>
-          </van-cell>
-          <van-cell>
-            <template #title>
-              <span>亮度</span>
-              <span class="param-desc">Gamma校正</span>
-            </template>
-            <template #label>
-              <van-slider v-model="visionStore.brightness" bar-height="4px" class="param-value"
-                @change="onBrightnessChange">
-                <template #button>
-                  <van-button round type="primary" size="mini">{{ visionStore.brightness }}</van-button>
-                </template>
-              </van-slider>
+              <van-switch v-model="visionStore.imgParams.isGray" size="1.3rem"></van-switch>
             </template>
           </van-cell>
           <van-cell>
@@ -49,25 +25,90 @@
               <span>对比度</span>
               <span class="param-desc">直方图均衡</span>
             </template>
-            <template #label>
-              <van-slider v-model="visionStore.contrast" bar-height="4px" class="param-value"
-                @change="onContrastChange">
-                <template #button>
-                  <van-button round type="primary" size="mini">{{ visionStore.contrast }}</van-button>
-                </template>
-              </van-slider>
+            <template #value>
+              <van-switch size="1.3rem" :disabled="!visionStore.imgParams.isGray"
+                v-model="visionStore.imgParams.equalizeHist"></van-switch>
             </template>
           </van-cell>
           <van-cell>
             <template #title>
-              <span>边缘增强</span>
-              <span class="param-desc">拉普拉斯增强</span>
+              <span>亮度</span>
+              <span class="param-desc">Gamma校正</span>
             </template>
-            <template #label>
-              <van-slider v-model="visionStore.laplace" bar-height="4px" class="param-value">
+            <template #value>
+              <van-switch v-model="visionStore.imgParams.enableGamma" size="1.3rem"></van-switch>
+              <van-slider bar-height="8px" class="param-value" :disabled="!visionStore.imgParams.enableGamma"
+                v-model="visionStore.imgParams.gamma">
                 <template #button>
-                  <van-button round type="primary" size="mini">{{ visionStore.laplace }}</van-button>
+                  <van-button round type="primary" size="mini">{{ visionStore.imgParams.gamma }}</van-button>
                 </template>
+              </van-slider>
+            </template>
+          </van-cell>
+
+          <van-cell>
+            <template #title>
+              <span>模糊</span>
+              <span class="param-desc">高斯模糊</span>
+            </template>
+            <template #value>
+              <van-switch v-model="visionStore.imgParams.enableGaussian" size="1.3rem"></van-switch>
+              <br></br>
+              <van-slider :max="11" bar-height="8px" class="param-value"
+                :disabled="!visionStore.imgParams.enableGaussian" v-model="visionStore.imgParams.gaussian">
+                <template #button>
+                  <van-button round type="primary" size="mini">{{ visionStore.imgParams.gaussian }}</van-button>
+                </template>
+              </van-slider>
+            </template>
+          </van-cell>
+        </van-cell-group>
+        <van-cell-group title="边缘检测" inset :border="false">
+          <van-cell>
+            <template #title>
+              <span>Sobel算子</span>
+              <span class="param-desc">离散的微分算子</span>
+            </template>
+            <template #value>
+              <van-switch v-model="visionStore.imgParams.enableSobel" size="1.3rem"></van-switch>
+              <br/>
+              <van-stepper button-size="1.6rem" step="2" min="1" max="31" :disabled="!visionStore.imgParams.enableSobel"
+                v-model="visionStore.imgParams.sobel" />
+            </template>
+          </van-cell>
+          <van-cell>
+            <template #title>
+              <span>Scharr算子</span>
+              <span class="param-desc">通常用于特征提取和特征检测</span>
+            </template>
+            <template #value>
+              <van-switch v-model="visionStore.enableScharr" size="1.3rem"></van-switch>
+              <br/>
+              <van-stepper button-size="1.6rem" step="2" min="1" max="31"
+                :disabled="!visionStore.imgParams.enableScharr" v-model="visionStore.imgParams.scharr" />
+            </template>
+          </van-cell>
+          <van-cell>
+            <template #title>
+              <span>拉普拉斯算子</span>
+              <span class="param-desc">通常用于特征提取和特征检测</span>
+            </template>
+            <template #value>
+              <van-switch v-model="visionStore.imgParams.enableLaplace" size="1.3rem"></van-switch>
+              <br/>
+              <van-stepper :disabled="!visionStore.imgParams.enableLaplace" button-size="1.6rem"
+                v-model="visionStore.imgParams.laplace" step="2" min="1" max="31" />
+            </template>
+          </van-cell>
+          <van-cell :label="'[ ' + visionStore.cannyThreshold.toString() + ' ]'">
+            <template #title>
+              <span>canny</span>
+              <span class="param-desc">边缘检测</span>
+            </template>
+            <template #value>
+              <van-switch v-model="visionStore.imgParams.enableCanny" size="1.4rem"></van-switch>
+              <van-slider range :max="160" :min="60" bar-height="8px" class="param-value"
+                :disabled="!visionStore.imgParams.enableCanny" v-model="visionStore.imgParams.cannyThreshold">
               </van-slider>
             </template>
           </van-cell>
@@ -133,9 +174,6 @@ const FaceRec = defineAsyncComponent({
 const isWeb = __IS_WEB__
 const theme = inject<Ref<ConfigProviderTheme>>('theme')
 
-const enhance = ref(0)
-const showPopup = ref(false)
-
 const showSettings = ref<boolean>(false)
 const reverseTheme = ref<string>(theme.value == 'dark' ? 'light' : 'dark')
 
@@ -144,6 +182,8 @@ provide('showSettings', showSettings)
 const commonStore = CommonStore()
 const visionStore = VisionStore()
 const show = ref<boolean>(false)
+const enhance = ref(0)
+const showPopup = ref(false)
 
 onMounted(() => {
   if (!__IS_WEB__) {
@@ -155,36 +195,9 @@ watch(() => theme.value, () => {
   reverseTheme.value = theme.value == 'dark' ? 'light' : 'dark'
 })
 
-watch(() => visionStore.brightness, () => {
-  console.info('brightness', visionStore.brightness)
-})
-
-function onBrightnessChange() {
-
-}
-
-function onContrastChange() {
-
-}
-
-function onEnhanceChange() {
-}
-
 function openSettings() {
   showPopup.value = true
   showSettings.value = true
-}
-
-async function saveProxyDelay() {
-  try {
-    showNotify({ message: '成功设置延迟', type: 'success', duration: 500 })
-  } catch (err) {
-    showNotify({ message: '设置延迟失败', type: 'danger', duration: 1200 })
-  }
-}
-
-function onMockRecordStart() {
-
 }
 
 </script>
