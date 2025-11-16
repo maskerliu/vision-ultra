@@ -758,6 +758,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@opencvjs/node@npm:4.12.0-release.1":
+  version: 4.12.0-release.1
+  resolution: "@opencvjs/node@npm:4.12.0-release.1"
+  dependencies:
+    "@opencvjs/types": "npm:4.12.0-release.1"
+  checksum: 10c0/0342bb08062041acefb1d0c172359262ff93ba83feca81b323de2b28f9afceee3fea06ada78e261146b309d32f7b8729e33efa3d04985bc905cb93700699efb1
+  languageName: node
+  linkType: hard
+
+"@opencvjs/types@npm:4.12.0-release.1":
+  version: 4.12.0-release.1
+  resolution: "@opencvjs/types@npm:4.12.0-release.1"
+  checksum: 10c0/703ecfb62c5a83416b2349ec7d67bd24355189764b8140929e34b8b231d9ad538d05dca4afdff4c727c64ae65fb8e23ae2efe389d1adff6fc3aacea56a3bd30f
+  languageName: node
+  linkType: hard
+
 "@paralleldrive/cuid2@npm:^2.2.2":
   version: 2.3.1
   resolution: "@paralleldrive/cuid2@npm:2.3.1"
@@ -2038,6 +2054,7 @@ __metadata:
     "@mediapipe/face_mesh": "npm:~0.4.0"
     "@mediapipe/tasks-vision": "npm:~0.10.21"
     "@microsoft/fetch-event-source": "npm:^2.0.1"
+    "@opencvjs/node": "npm:4.12.0-release.1"
     "@tensorflow-models/face-detection": "npm:^1.0.3"
     "@tensorflow-models/face-landmarks-detection": "npm:1.0.6"
     "@tensorflow/tfjs-backend-webgl": "npm:^4.22.0"

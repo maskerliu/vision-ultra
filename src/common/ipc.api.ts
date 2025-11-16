@@ -55,8 +55,11 @@ export interface IOpencvAPI {
   imgProcess(image: ImageData, width: number, height: number, params: Partial<{
     isGray: boolean,
     equalizeHist: boolean,
-    brightness: number,
-    laplace: number, // 二阶导数滤波器的孔径大小，必须为正奇数
+    gamma: number,
+    guassian: [number, number],
+    sobel: [number, number],
+    scharr: number,
+    laplace: [number, number], // 二阶导数滤波器的孔径大小，必须为正奇数
     cannyThreshold: [number, number],
     gaussian: number, // 决定滤波器的尺寸
   }>): { data: Uint8ClampedArray, width: number, height: number }

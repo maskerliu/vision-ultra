@@ -5,7 +5,7 @@
         <van-row></van-row>
         <div style="padding: 1px 0;">
           <van-icon class="iconfont icon-qrcode left-panel-icon" @click="commonStore.showQrCode = true" />
-          <van-icon class="iconfont icon-rule left-panel-icon" @click="" />
+          <van-icon class="iconfont icon-data left-panel-icon" @click="" />
           <van-icon class="iconfont icon-setting left-panel-icon" @click="openSettings">
             <span class="badge-dot"></span>
           </van-icon>
@@ -30,83 +30,85 @@
                 v-model="visionStore.imgParams.equalizeHist"></van-switch>
             </template>
           </van-cell>
-          <van-cell>
+          <van-cell label-class="label">
             <template #title>
-              <span>亮度</span>
-              <span class="param-desc">Gamma校正</span>
+              <van-checkbox shape="square" icon-size="1rem" v-model="visionStore.imgParams.enableGamma" size="1.3rem">
+                <span>亮度</span>
+                <span class="param-desc">Gamma校正</span>
+              </van-checkbox>
             </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableGamma" size="1.3rem"></van-switch>
-              <van-slider bar-height="8px" class="param-value" :disabled="!visionStore.imgParams.enableGamma"
-                v-model="visionStore.imgParams.gamma">
-                <template #button>
-                  <van-button round type="primary" size="mini">{{ visionStore.imgParams.gamma }}</van-button>
-                </template>
-              </van-slider>
+            <template #label>
+              <van-stepper :disabled="!visionStore.imgParams.enableGamma" button-size="1.6rem"
+                v-model="visionStore.imgParams.gamma" step="0.1" min="0" max="3" />
             </template>
           </van-cell>
 
-          <van-cell>
+          <van-cell label-class="label">
             <template #title>
-              <span>模糊</span>
-              <span class="param-desc">高斯模糊</span>
+              <van-checkbox shape="square" icon-size="1rem" v-model="visionStore.imgParams.enableGaussian"
+                size="1.3rem">
+                <span>模糊</span>
+                <span class="param-desc">高斯模糊</span>
+              </van-checkbox>
             </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableGaussian" size="1.3rem"></van-switch>
-              <br></br>
-              <van-slider :max="11" bar-height="8px" class="param-value"
-                :disabled="!visionStore.imgParams.enableGaussian" v-model="visionStore.imgParams.gaussian">
-                <template #button>
-                  <van-button round type="primary" size="mini">{{ visionStore.imgParams.gaussian }}</van-button>
-                </template>
-              </van-slider>
+            <template #label>
+              size: <van-stepper button-size="1.6rem" step="2" min="1" 
+                :disabled="!visionStore.imgParams.enableGaussian" v-model="visionStore.imgParams.gaussian[0]" />
+              sigmaX:<van-stepper button-size="1.6rem" step="1" min="1" 
+                :disabled="!visionStore.imgParams.enableGaussian" v-model="visionStore.imgParams.gaussian[1]" />
             </template>
           </van-cell>
         </van-cell-group>
         <van-cell-group title="边缘检测" inset :border="false">
-          <van-cell>
+          <van-cell label-class="label">
             <template #title>
-              <span>Sobel算子</span>
-              <span class="param-desc">离散的微分算子</span>
+              <van-checkbox shape="square" icon-size="1rem" v-model="visionStore.imgParams.enableSobel" size="1.3rem">
+                <span>Sobel算子</span>
+                <span class="param-desc">离散的微分算子</span>
+              </van-checkbox>
             </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableSobel" size="1.3rem"></van-switch>
-              <br/>
-              <van-stepper button-size="1.6rem" step="2" min="1" max="31" :disabled="!visionStore.imgParams.enableSobel"
-                v-model="visionStore.imgParams.sobel" />
+            <template #label>
+              size: <van-stepper button-size="1.6rem" step="2" min="1" max="7"
+                :disabled="!visionStore.imgParams.enableSobel" v-model="visionStore.imgParams.sobel[0]" />
+              scale:<van-stepper button-size="1.6rem" step="1" min="1" max="31"
+                :disabled="!visionStore.imgParams.enableSobel" v-model="visionStore.imgParams.sobel[1]" />
             </template>
           </van-cell>
-          <van-cell>
+          <van-cell label-class="label">
             <template #title>
-              <span>Scharr算子</span>
-              <span class="param-desc">通常用于特征提取和特征检测</span>
+              <van-checkbox shape="square" icon-size="1rem" v-model="visionStore.imgParams.enableScharr" size="1.3rem">
+                <span>Scharr算子</span>
+                <span class="param-desc">通常用于特征提取和特征检测</span>
+              </van-checkbox>
             </template>
-            <template #value>
-              <van-switch v-model="visionStore.enableScharr" size="1.3rem"></van-switch>
-              <br/>
+            <template #label>
               <van-stepper button-size="1.6rem" step="2" min="1" max="31"
                 :disabled="!visionStore.imgParams.enableScharr" v-model="visionStore.imgParams.scharr" />
             </template>
           </van-cell>
-          <van-cell>
+          <van-cell label-class="label">
             <template #title>
-              <span>拉普拉斯算子</span>
-              <span class="param-desc">通常用于特征提取和特征检测</span>
+              <van-checkbox shape="square" icon-size="1rem" v-model="visionStore.imgParams.enableLaplace" size="1.3rem">
+                <span>拉普拉斯算子</span>
+                <span class="param-desc">通常用于特征提取和特征检测</span>
+              </van-checkbox>
             </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableLaplace" size="1.3rem"></van-switch>
-              <br/>
-              <van-stepper :disabled="!visionStore.imgParams.enableLaplace" button-size="1.6rem"
-                v-model="visionStore.imgParams.laplace" step="2" min="1" max="31" />
+            <template #label>
+              size: <van-stepper :disabled="!visionStore.imgParams.enableLaplace" button-size="1.6rem"
+                v-model="visionStore.imgParams.laplace[0]" step="2" min="1" max="7" />
+              scale:<van-stepper :disabled="!visionStore.imgParams.enableLaplace" button-size="1.6rem"
+                v-model="visionStore.imgParams.laplace[1]" step="1" min="1" max="31" />
             </template>
           </van-cell>
-          <van-cell :label="'[ ' + visionStore.cannyThreshold.toString() + ' ]'">
+          <van-cell label-class="label">
             <template #title>
-              <span>canny</span>
-              <span class="param-desc">边缘检测</span>
+              <van-checkbox shape="square" icon-size="1rem" v-model="visionStore.imgParams.enableCanny" size="1.3rem">
+                <span>canny</span>
+                <span class="param-desc">边缘检测 [ {{ visionStore.imgParams.cannyThreshold.toString() }} ]</span>
+              </van-checkbox>
             </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableCanny" size="1.4rem"></van-switch>
+
+            <template #label>
               <van-slider range :max="160" :min="60" bar-height="8px" class="param-value"
                 :disabled="!visionStore.imgParams.enableCanny" v-model="visionStore.imgParams.cannyThreshold">
               </van-slider>
@@ -117,7 +119,7 @@
         <van-cell-group title="噪声滤波" inset :border="false">
           <van-cell title="均值滤波">
             <template #label>
-              <van-slider v-model="visionStore.enhance" bar-height="4px" class="param-value">
+              <van-slider bar-height="4px" class="param-value">
                 <template #button>
                   <van-button round type="primary" size="mini">{{ enhance }}</van-button>
                 </template>
@@ -126,7 +128,7 @@
           </van-cell>
           <van-cell title="中值滤波">
             <template #label>
-              <van-slider v-model="visionStore.enhance" bar-height="4px" class="param-value">
+              <van-slider bar-height="4px" class="param-value">
                 <template #button>
                   <van-button round type="primary" size="mini">{{ enhance }}</van-button>
                 </template>
@@ -135,7 +137,7 @@
           </van-cell>
           <van-cell title="高斯滤波">
             <template #label>
-              <van-slider v-model="visionStore.enhance" bar-height="4px" class="param-value">
+              <van-slider bar-height="4px" class="param-value">
                 <template #button>
                   <van-button round type="primary" size="mini">{{ enhance }}</van-button>
                 </template>
@@ -277,28 +279,7 @@ a {
   text-decoration: underline;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.v-enter-active,
-.v-leave-active {
-  transition: opacity 0.4s ease;
-}
-
-.v-enter-from,
-.v-leave-to {
-  opacity: 0;
-}
-
-.v-enter-to,
-.v-leave-from {
-  opacity: 1;
+.label {
+  padding: 15px 0;
 }
 </style>
