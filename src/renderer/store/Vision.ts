@@ -3,18 +3,18 @@ import { defineStore } from "pinia"
 class ImageParams {
   isGray: boolean = false
   equalizeHist: boolean = false
-  clahe: boolean = false
+  clahe: boolean = false // 自适应直方图均衡化
   enableGamma: boolean = false
-  gamma: number = 0.0
+  gamma: number = 1 // 伽马校正
   enableGaussian: boolean = false
-  gaussian: number = 1
+  gaussian: [number, number] = [1, 1] // 高斯滤波器的孔径大小，必须为正奇数
 
   enableSobel: boolean = false
-  sobel: number = 1
+  sobel: [number, number] = [3, 1] // 一阶导数滤波器的孔径大小，必须为正奇数
   enableScharr: boolean = false
-  scharr: number = 1
+  scharr: number = 1 // 一阶导数滤波器的孔径大小，必须为正奇数
   enableLaplace: boolean = false
-  laplace: number = 1
+  laplace: [number, number] = [1, 1] // 二阶导数滤波器的孔径大小，必须为正奇数
   enableCanny: boolean = false
   cannyThreshold: [number, number] = [80, 100]
 
@@ -25,13 +25,13 @@ class ImageParams {
     params['clahe'] = this.clahe
     if (this.enableGamma) params['gamma'] = this.gamma
     else delete params['gamma']
-    if (this.enableGaussian) params['gaussian'] = this.gaussian
+    if (this.enableGaussian) params['gaussian'] = [this.gaussian[0], this.gaussian[1]]
     else delete params['gaussian']
-    if (this.enableSobel) params['sobel'] = this.sobel
+    if (this.enableSobel) params['sobel'] = [this.sobel[0], this.sobel[1]]
     else delete params['sobel']
     if (this.enableScharr) params['scharr'] = this.scharr
     else delete params['scharr']
-    if (this.enableLaplace) params['laplace'] = this.laplace
+    if (this.enableLaplace) params['laplace'] = [this.laplace[0], this.laplace[1]]
     else delete params['laplace']
     if (this.enableCanny) params['cannyThreshold'] = [this.cannyThreshold[0], this.cannyThreshold[1]]
     else delete params['cannyThreshold']
@@ -48,22 +48,8 @@ export const VisionStore = defineStore('VisionStore', {
       faceDetect: false,
       landmark: false,
       faceRec: false,
-      imgEnhance: false,
+      imgEnhance: true,
       imgParams: new ImageParams(),
-      isGray: false,
-      equalizeHist: false,
-      clahe: false, // 自适应直方图均衡化
-      brightness: 0.0,
-      enableSobel: false,
-      sobel: 1, // 一阶导数滤波器的孔径大小，必须为正奇数
-      enableScharr: false,
-      scharr: 1, // 一阶导数滤波器的孔径大小，必须为正奇数
-      enableLaplace: false,
-      laplace: 1, // 二阶导数滤波器的孔径大小，必须为正奇数
-      enableCanny: false,
-      cannyThreshold: [80, 100] as [number, number],
-      enhance: 0.0,
-      gaussian: 1,
       showQrCode: false
     }
   },

@@ -1,23 +1,23 @@
 <template>
   <van-row class="full-row">
-    <van-cell-group ref="previewParent" inset style="width: 100%; text-align: center; margin: 30px 0 15px 0;">
+    <van-cell-group ref="previewParent" inset style="width: 100%; text-align: center; margin: 30px 0 0 0;">
       <van-cell>
         <template #title>
           <van-row justify="space-between">
             <van-row>
-              <van-checkbox name="isGray" v-model="visionStore.isGray">
+              <van-checkbox v-model="visionStore.imgParams.isGray">
                 <template #default>
                   <van-icon class="iconfont icon-contrast-enhance"
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
-              <van-checkbox name="imgEnchance" v-model="visionStore.imgEnhance" style="margin-left: 15px;">
+              <van-checkbox v-model="visionStore.imgEnhance" style="margin-left: 15px;">
                 <template #default>
                   <van-icon class="iconfont icon-clarity-enhance"
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
-              <van-checkbox name="faceDect" v-model="visionStore.faceDetect" style="margin-left: 15px;">
+              <van-checkbox v-model="visionStore.faceDetect" style="margin-left: 15px;">
                 <template #default>
                   <van-icon class="iconfont icon-face-enhance"
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
@@ -70,7 +70,7 @@ import { showNotify } from 'vant'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { drawCVFaceResult, drawTFFaceResult, getFaceContour } from '../../common/DrawUtils'
 import { VisionStore } from '../../store'
-import { imag } from '@tensorflow/tfjs-core'
+import { imag, image } from '@tensorflow/tfjs-core'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -90,9 +90,6 @@ let frames = 0
 let face: Rect = null, eyes: Array<Rect> = null, landmarks: Array<Point2> = null
 let faceDector: FaceLandmarksDetector = null
 let faces: Array<Face> = []
-let imgParams: { [key: string]: any } = {
-
-}
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
@@ -117,9 +114,6 @@ onMounted(async () => {
     refineLandmarks: true,
     maxFaces: 1
   })
-
-  imgParams['isGray'] = visionStore.isGray
-  imgParams['equalizeHist'] = visionStore.equalizeHist
 })
 
 async function processFrame() {
@@ -131,19 +125,14 @@ async function processFrame() {
   offscreenCtx.translate(-offscreen.value.width, 0)
   offscreenCtx.drawImage(preVideo.value, 0, 0, offscreen.value.width, offscreen.value.height)
 
-  let imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  if (visionStore.enhance) {
-    const { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
-      isGray: visionStore.isGray,
-      equalizeHist: visionStore.equalizeHist,
-      brightness: visionStore.brightness,
-      laplace: visionStore.laplace,
-    })
-    imageData = new ImageData(data as ImageDataArray, width, height)
+  let frame = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+  if (visionStore.imgEnhance) {
+    const { data, width, height } = window.cvApi.imgProcess(frame, frame.width, frame.height, visionStore.imgParams.getParams())
+    frame = new ImageData(data as ImageDataArray, width, height)
   }
 
   if (visionStore.faceDetect) {
-    await faceDect()
+    await faceDect(frame)
   } else {
     faces = []
     eyes = []
@@ -151,10 +140,10 @@ async function processFrame() {
     face = null
   }
 
-  offscreenCtx.putImageData(imageData, 0, 0)
+  offscreenCtx.putImageData(frame, 0, 0)
   previewCtx.drawImage(offscreen.value,
-    0, 0, imageData.width, imageData.height,
-    0, 0, imageData.width, imageData.height)
+    0, 0, frame.width, frame.height,
+    0, 0, frame.width, frame.height)
   if (visionStore.faceRecMode == '1') {
     drawCVFaceResult(previewCtx, face, eyes, landmarks)
   } else {
@@ -162,35 +151,23 @@ async function processFrame() {
   }
 }
 
-async function faceDect() {
-  let imageData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+async function faceDect(data: ImageData) {
   if (frames < 3) frames++
   else {
     frames = 0
     try {
       if (visionStore.faceRecMode == '1') {
-        const result = window.cvApi.faceRecognize(imageData, imageData.width, imageData.height)
+        const result = window.cvApi.faceRecognize(data, data.width, data.height)
         face = result?.face
         eyes = result?.eyes
         landmarks = result?.landmarks
       } else {
-        faces = await faceDector.estimateFaces(imageData)
+        faces = await faceDector.estimateFaces(data)
       }
     } catch (e) {
-      console.error(e, imageData)
+      console.error(e, data)
     }
   }
-
-  // offscreenCtx.putImageData(imageData, 0, 0)
-  // previewCtx.drawImage(offscreen.value,
-  //   0, 0, imageData.width, imageData.height,
-  //   0, 0, imageData.width, imageData.height)
-
-  // if (visionStore.faceRecMode == '1') {
-  //   drawCVFaceResult(previewCtx, face, eyes, landmarks)
-  // } else {
-  //   drawTFFaceResult(previewCtx, faces, true, true)
-  // }
 }
 
 async function openFolder() {
@@ -329,7 +306,7 @@ watch(() => visionStore.imgParams,
   { deep: true }
 )
 
-watch(() => visionStore.enhance, (val) => {
+watch(() => visionStore.imgEnhance, (val) => {
   drawImage()
 })
 
