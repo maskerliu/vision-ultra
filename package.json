@@ -57,6 +57,7 @@
     "node-fetch": "2.7.0"
   },
   "dependencies": {
+    "@lancedb/lancedb": "^0.22.3",
     "@mediapipe/face_detection": "~0.4.0",
     "@mediapipe/face_mesh": "~0.4.0",
     "@mediapipe/tasks-vision": "~0.10.21",
