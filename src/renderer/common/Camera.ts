@@ -137,14 +137,14 @@ export class Camera {
         break
       }
       case '2': {
-        let data = window.cvWasmApi.imgProcess(image, image.width, image.height, this.imgProcessParams)
-        for (let i = 0; i < data.length; i++)
+        let data = window.cvWasmApi?.imgProcess(image, image.width, image.height, this.imgProcessParams)
+        for (let i = 0; i < data?.length; i++)
           image.data[i] = data[i]
         break
       }
       case '3': {
-        let data = window.cvNativeApi.imgProcess(image, image.width, image.height, this.imgProcessParams)
-        for (let i = 0; i < data.length; i++)
+        let data = window.cvNativeApi?.imgProcess(image, image.width, image.height, this.imgProcessParams)
+        for (let i = 0; i < data?.length; i++)
           image.data[i] = data[i]
         break
       }

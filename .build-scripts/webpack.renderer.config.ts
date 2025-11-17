@@ -8,6 +8,7 @@ import { VueLoaderPlugin } from 'vue-loader'
 import webpack, { Configuration } from 'webpack'
 import pkg from '../package.json' assert { type: "json" }
 import { BaseConfig } from './webpack.base.config'
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 
 const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
 
@@ -122,6 +123,16 @@ class RendererConfig extends BaseConfig {
           priority: 20,
           test: /[\\/]node_modules[\\/]vant[\\/]/
         },
+        tensoflow: {
+          name: 'tensoflow',
+          test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
+          priority: 20,
+        },
+        opencvjs: {
+          name: 'opencvjs',
+          test: /[\\/]node_modules[\\/]@opencvjs[\\/]/,
+          priority: 20,
+        },
         echarts: {
           name: 'echarts',
           test: /[\\/]node_modules[\\/]echarts[\\/]/,
@@ -158,6 +169,21 @@ class RendererConfig extends BaseConfig {
     if (process.env.NODE_ENV !== 'production') {
       this.plugins?.push(
         new DefinePlugin({ '__static': `'${path.join(dirname, '../static').replace(/\\/g, '\\\\')}'` }),
+      )
+
+      this.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'server',
+          analyzerHost: '127.0.0.1',
+          analyzerPort: 9088,
+          reportFilename: 'report.html',
+          defaultSizes: 'parsed',
+          openAnalyzer: true,
+          generateStatsFile: false,
+          statsFilename: 'stats.json',
+          statsOptions: null,
+          logLevel: 'info'
+        }),
       )
     } else {
       this.plugins?.push(new LoaderOptionsPlugin({ minimize: true }))

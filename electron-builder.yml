@@ -103,6 +103,10 @@ mac:
   extraFiles:
     - from: "./update.sh"
       to: "./resources/"
+    - from: "${OPENCV_LIB_DIR}/libopencv_world.4.12.0.dylib"
+      to: "./libopencv_world.dylib"
+    - from: "${OPENCV_LIB_DIR}/libopencv_img_hash.4.12.0.dylib"
+      to: "./libopencv_img_hash.dylib"
   target:
     - target: dmg
       arch: universal
