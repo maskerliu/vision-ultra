@@ -17,7 +17,6 @@ export class FaceRecRepo extends BaseRepo<ProxyMock.MockRule> {
 
   constructor() {
     super()
-    this.pouchdb = new PouchDB(path.join(USER_DATA_DIR + '/biz_storage', 'Mock.Rules'))
   }
 
   async findFace(faceVector: [number]) {
