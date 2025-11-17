@@ -7,7 +7,8 @@ declare global {
   interface Window {
     isWeb: boolean
     mainApi: IMainAPI
-    cvApi: IOpencvAPI
+    cvNativeApi: IOpencvAPI
+    cvWasmApi: IOpencvAPI
     tfApi: ITensorflowApi
   }
 

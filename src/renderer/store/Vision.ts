@@ -7,7 +7,7 @@ class ImageParams {
   enableGamma: boolean = false
   gamma: number = 1 // 伽马校正
   enableGaussian: boolean = false
-  gaussian: [number, number] = [1, 1] // 高斯滤波器的孔径大小，必须为正奇数
+  gaussian: [number, number, number] = [1, 1, 1] // 高斯滤波器的孔径大小，必须为正奇数
 
   enableSobel: boolean = false
   sobel: [number, number] = [3, 1] // 一阶导数滤波器的孔径大小，必须为正奇数
@@ -25,7 +25,7 @@ class ImageParams {
     params['clahe'] = this.clahe
     if (this.enableGamma) params['gamma'] = this.gamma
     else delete params['gamma']
-    if (this.enableGaussian) params['gaussian'] = [this.gaussian[0], this.gaussian[1]]
+    if (this.enableGaussian) params['gaussian'] = [this.gaussian[0], this.gaussian[1], this.gaussian[2]]
     else delete params['gaussian']
     if (this.enableSobel) params['sobel'] = [this.sobel[0], this.sobel[1]]
     else delete params['sobel']
@@ -45,10 +45,11 @@ export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
       faceRecMode: '2',  // 1: opencv 2: tensorflow
-      faceDetect: false,
+      faceDetect: true,
       landmark: false,
       faceRec: false,
       imgEnhance: true,
+      imgProcessMode: '1' as '1' | '2' | '3', // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
       imgParams: new ImageParams(),
       showQrCode: false
     }
