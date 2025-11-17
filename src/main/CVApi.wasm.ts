@@ -3,21 +3,22 @@ import path from 'path'
 import { IOpencvAPI } from '../common/ipc.api'
 
 import { loadOpenCV, type OpenCV } from '@opencvjs/node'
-// import  OpenCV from '@opencvjs/node'
 const cv: typeof OpenCV = await loadOpenCV()
 
-console.log('opencv', cv)
-
+let gamma = 1.0
+let gammaTable = Uint8Array.from({ length: 256 }, (_, i) => i)
+let lut = cv.matFromArray(256, 1, cv.CV_8UC1, gammaTable)
 let originFrame: any
-let sharedData: Uint8ClampedArray
+let sharedData: Uint8ClampedArray = new Uint8ClampedArray(0)
 let bgrFrame = new cv.Mat()
+let processedImg = new cv.Mat()
 // let classifierEye: CascadeClassifier
 // let classifierDef: CascadeClassifier
 // let classifierAlt: CascadeClassifier
 // create the facemark object with the landmarks model
 // let facemark: FacemarkLBF
 
-let cvApi: IOpencvAPI = {
+let cvWasmApi: IOpencvAPI = {
   async init() {
     try {
 
@@ -42,34 +43,34 @@ let cvApi: IOpencvAPI = {
     }
   },
   destroy() {
-    if (originFrame) originFrame.release()
-    if (sharedData) sharedData = null
+    originFrame?.delete()
+    lut?.delete()
   },
   imgProcess: function (frame: ImageData, width: number, height: number,
     params: Partial<{
       isGray: boolean,
       equalizeHist: boolean,
       gamma: number,
-      guassian: [number, number],
+      gaussian: [number, number, number],
       sobel: [number, number],
       scharr: number,
       laplace: [number, number], // 二阶导数滤波器的孔径大小，必须为正奇数
       cannyThreshold: [number, number],
-      gaussian: number, // 决定滤波器的尺寸
     }>) {
+    if (sharedData.length !== width * height * 4) {
+      sharedData = null
+      sharedData = new Uint8ClampedArray(width * height * 4)
+    }
 
-    // if (originFrame == null) {
-    //   originFrame = new cv.Mat(height, width, cv.CV_8UC4)
-    // } else {
-    //   if (originFrame.cols !== width || originFrame.rows !== height) {
-    //     originFrame.delete()
-    //     originFrame = new cv.Mat(height, width, cv.CV_8UC4)
-    //   }
-    // }
-    // if (sharedData == null) {
-    //   sharedData = new Uint8ClampedArray(height * width * cv.CV_8UC4)
-    // }
-    let processedImg = cv.matFromArray(height, width, cv.CV_8UC4, frame.data)
+    if (processedImg == null) {
+      processedImg = new cv.Mat(height, width, cv.CV_8UC4)
+    }
+    if (processedImg.rows !== height || processedImg.cols !== width) {
+      processedImg.delete()
+      processedImg = new cv.Mat(height, width, cv.CV_8UC4)
+    }
+
+    processedImg.data.set(frame.data)
     cv.cvtColor(processedImg, processedImg, cv.COLOR_RGBA2BGR)
     try {
       if (params.isGray) {
@@ -89,14 +90,17 @@ let cvApi: IOpencvAPI = {
 
     try {
       if (params.gamma) {
-        let gammaTable = new cv.Mat(256)
-        for (let i = 0; i < 256; ++i) {
-          gammaTable[i] = Math.pow(i / 255.0, 1 / params.gamma) * 255.0
+        if (gamma !== params.gamma) {
+          gamma = params.gamma
+          for (let i = 0; i < 256; ++i) {
+            gammaTable[i] = Math.pow(i / 255.0, 1 / gamma) * 255.0
+            lut.data[i] = gammaTable[i]
+          }
+          // lut = cv.matFromArray(256, 1, cv.CV_8UC1, gammaTable)
         }
-
-        cv.LUT(processedImg, gammaTable, processedImg)
+        cv.LUT(processedImg, lut, processedImg)
         cv.normalize(processedImg, processedImg, 0, 255, cv.NORM_MINMAX)
-        cv.convertScaleAbs(processedImg, processedImg, 1, 0)
+        // cv.convertScaleAbs(processedImg, processedImg, 1, 0)
       }
     } catch (e) { console.error(e) }
 
@@ -139,11 +143,10 @@ let cvApi: IOpencvAPI = {
     } else {
       cv.cvtColor(processedImg, processedImg, cv.COLOR_BGR2RGBA)
     }
-    const data = Uint8ClampedArray.from(processedImg.data)
-    let cols = processedImg.cols, rows = processedImg.rows
-    // console.log('data', processedImg)
-    processedImg.delete()
-    return { data, width: cols, height: rows }
+
+    sharedData.set(processedImg.data)
+
+    return sharedData
   },
   faceRecognize: function (frame: ImageData, width: number, height: number) {
     // try {
@@ -195,4 +198,4 @@ let cvApi: IOpencvAPI = {
   }
 }
 
-export default cvApi
+export default cvWasmApi

@@ -774,6 +774,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@opencvjs/web@npm:^4.12.0-release.1":
+  version: 4.12.0-release.1
+  resolution: "@opencvjs/web@npm:4.12.0-release.1"
+  dependencies:
+    "@opencvjs/types": "npm:4.12.0-release.1"
+  checksum: 10c0/10b9db41f01416fe29e75f820754c7e3adea3d1124d02098bb2e8c4b40c4a08a7e51c8fa8505f4727e8cc70841c7ea27b4adf7914e8f6e4afac8590bbf5073cd
+  languageName: node
+  linkType: hard
+
 "@paralleldrive/cuid2@npm:^2.2.2":
   version: 2.3.1
   resolution: "@paralleldrive/cuid2@npm:2.3.1"
@@ -2055,6 +2064,7 @@ __metadata:
     "@mediapipe/tasks-vision": "npm:~0.10.21"
     "@microsoft/fetch-event-source": "npm:^2.0.1"
     "@opencvjs/node": "npm:4.12.0-release.1"
+    "@opencvjs/web": "npm:^4.12.0-release.1"
     "@tensorflow-models/face-detection": "npm:^1.0.3"
     "@tensorflow-models/face-landmarks-detection": "npm:1.0.6"
     "@tensorflow/tfjs-backend-webgl": "npm:^4.22.0"

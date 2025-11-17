@@ -13,8 +13,26 @@
       </van-row>
       <OverlayScrollbarsComponent class="snap-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}` } }"
         defer>
+        <van-cell-group title=" " :border="false">
 
-        <van-cell-group title="图像处理" inset :border="false">
+          <van-cell title="图像处理引擎">
+            <template #right-icon>
+              <van-radio-group v-model="visionStore.imgProcessMode" direction="horizontal">
+                <van-radio name="1" size="1rem">
+                  <van-icon class="iconfont icon-wasm" style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
+                </van-radio>
+                <van-radio name="2" size="1rem">
+                  <van-icon class="iconfont icon-nodejs" style="font-size: 1.2rem; color: #27ae60; margin-top: 4px;" />
+                </van-radio>
+                <van-radio name="3" size="1rem">
+                  <van-icon class="iconfont icon-native" style="font-size: 1.2rem; color: #3498db; margin-top: 4px;" />
+                </van-radio>
+              </van-radio-group>
+            </template>
+          </van-cell>
+        </van-cell-group>
+
+        <van-cell-group title=" " :border="false">
           <van-cell title="灰度" center>
             <template #value>
               <van-switch v-model="visionStore.imgParams.isGray" size="1.3rem"></van-switch>
@@ -52,14 +70,17 @@
               </van-checkbox>
             </template>
             <template #label>
-              size: <van-stepper button-size="1.6rem" step="2" min="1" 
-                :disabled="!visionStore.imgParams.enableGaussian" v-model="visionStore.imgParams.gaussian[0]" />
-              sigmaX:<van-stepper button-size="1.6rem" step="1" min="1" 
+              size: <van-stepper button-size="1.6rem" step="2" min="1" :disabled="!visionStore.imgParams.enableGaussian"
+                v-model="visionStore.imgParams.gaussian[0]" />
+              sigmaX:<van-stepper button-size="1.6rem" step="1" min="1"
                 :disabled="!visionStore.imgParams.enableGaussian" v-model="visionStore.imgParams.gaussian[1]" />
+              <br /><br />
+              amount:<van-stepper button-size="1.6rem" step="1" min="1"
+                :disabled="!visionStore.imgParams.enableGaussian" v-model="visionStore.imgParams.gaussian[2]" />
             </template>
           </van-cell>
         </van-cell-group>
-        <van-cell-group title="边缘检测" inset :border="false">
+        <van-cell-group title="边缘检测" :border="false">
           <van-cell label-class="label">
             <template #title>
               <van-checkbox shape="square" icon-size="1rem" v-model="visionStore.imgParams.enableSobel" size="1.3rem">
@@ -116,7 +137,7 @@
           </van-cell>
         </van-cell-group>
 
-        <van-cell-group title="噪声滤波" inset :border="false">
+        <van-cell-group title="噪声滤波" :border="false">
           <van-cell title="均值滤波">
             <template #label>
               <van-slider bar-height="4px" class="param-value">
@@ -161,7 +182,7 @@
 
 <script lang="ts" setup>
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import { ConfigProviderTheme, List, showNotify, Loading } from 'vant'
+import { ConfigProviderTheme, List, showNotify, Loading, showToast } from 'vant'
 import { inject, onMounted, provide, Ref, ref, watch, defineAsyncComponent } from 'vue'
 import Settings from '../settings/Settings.vue'
 import { VisionStore, CommonStore } from '../../store'
@@ -186,10 +207,16 @@ const visionStore = VisionStore()
 const show = ref<boolean>(false)
 const enhance = ref(0)
 const showPopup = ref(false)
+const showPopover = ref(false)
 
+const imgProcessEngines = ref([
+  { text: 'opencv.js web', value: '1' },
+  { text: 'opencv.js node', value: '2' },
+  { text: 'opencv4nodejs', value: '3' }
+])
 onMounted(() => {
   if (!__IS_WEB__) {
-    window.mainApi.onOpenSettings(() => { openSettings() })
+    window.mainApi?.onOpenSettings(() => { openSettings() })
   }
 })
 
@@ -200,6 +227,11 @@ watch(() => theme.value, () => {
 function openSettings() {
   showPopup.value = true
   showSettings.value = true
+}
+
+function onImgProcessEngineSelected(action: any) {
+  showToast(action)
+  // visionStore.imgProcessMode = imgProcessEngines
 }
 
 </script>
