@@ -2,7 +2,7 @@ import { Face, FaceLandmarksDetector } from '@tensorflow-models/face-landmarks-d
 import { Point2, Rect } from "@u4/opencv4nodejs"
 import { showNotify } from "vant"
 import { imgProcess } from "./CVApi"
-import { drawCVFaceResult, drawTFFaceResult, getFaceContour } from "./DrawUtils"
+import { drawCVFaceResult, drawTFFaceResult, getFaceContour, getFaceGradient } from "./DrawUtils"
 
 const CameraOpts = { mimeType: 'video/webm;codecs=vp9' }
 
@@ -205,6 +205,9 @@ export class Camera {
     this.capture.height = this.faces[0].box.height
     this.masklayer.width = this.faces[0].box.width
     this.masklayer.height = this.faces[0].box.height
+
+    let eyes = getFaceGradient(this.faces[0])
+    console.log(eyes)
 
     let imageData = this.offscreenCtx.getImageData(this.faces[0].box.xMin, this.faces[0].box.yMin,
       this.faces[0].box.width, this.faces[0].box.height)
