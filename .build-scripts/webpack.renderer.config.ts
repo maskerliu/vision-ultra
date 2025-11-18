@@ -3,12 +3,12 @@
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
 import path from 'path'
+import TerserPlugin from 'terser-webpack-plugin'
 import { fileURLToPath } from 'url'
 import { VueLoaderPlugin } from 'vue-loader'
 import webpack, { Configuration } from 'webpack'
 import pkg from '../package.json' assert { type: "json" }
 import { BaseConfig } from './webpack.base.config'
-import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 
 const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
 
@@ -109,6 +109,18 @@ class RendererConfig extends BaseConfig {
   }
 
   optimization: Configuration['optimization'] = {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          ecma: 2018, // 或者更高版本，取决于你的Babel配置
+          compress: {
+            comparisons: false,
+          },
+          mangle: true, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
+        },
+      }),
+    ],
     splitChunks: {
       chunks: 'all',
       cacheGroups: {
