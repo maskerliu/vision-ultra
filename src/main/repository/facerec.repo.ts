@@ -9,8 +9,11 @@ import BaseRepo from './base.repo'
 
 
 
-const facedb = await lancedb.connect(path.join(USER_DATA_DIR + '/biz_storage', 'face.db'))
-const faceTable = await facedb.createTable('face', [])
+// const facedb = await lancedb.connect(path.join(USER_DATA_DIR + '/biz_storage', 'face.db'))
+// await facedb.dropTable('face')
+// const faceTable = await facedb.createTable('face', [
+//   { id: 1, vector: [0, 0], name: 'test' }
+// ])
 
 @injectable()
 export class FaceRecRepo extends BaseRepo<ProxyMock.MockRule> {
@@ -20,6 +23,6 @@ export class FaceRecRepo extends BaseRepo<ProxyMock.MockRule> {
   }
 
   async findFace(faceVector: [number]) {
-    return await faceTable.vectorSearch(faceVector).limit(20).toArray()
+    // return await faceTable.vectorSearch(faceVector).limit(20).toArray()
   }
 }

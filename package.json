@@ -20,7 +20,7 @@
     "pub": "yarn pkg && yarn publish",
     "pub:full": "yarn pkg && yarn publish --target=full",
     "rebuild": "yarn electron-builder install-app-deps",
-    "electron-rebuild": "build-opencv --electron  build",
+    "electron-rebuild": "build-opencv --electron --version=4.12.0  build",
     "opencv:build": "./node_modules/.bin/electron-rebuild @u4/opencv4nodejs",
     "updateServer": "http-server build/ -p 4000 --cors -c-1"
   },
@@ -63,7 +63,7 @@
     "@mediapipe/tasks-vision": "~0.10.21",
     "@opencvjs/node": "4.12.0-release.1",
     "@u4/opencv4nodejs": "^7.1.2",
-    "apache-arrow": "21.1.0",
+    "apache-arrow": "18.1.0",
     "axios": "^1.13.1",
     "compression": "^1.8.1",
     "cors": "^2.8.5",

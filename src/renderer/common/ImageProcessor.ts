@@ -1,0 +1,27 @@
+import { imgProcess } from "./CVApi"
+
+
+export class ImageProcessor {
+  public imgEnhance: boolean = false
+  public imgProcessMode: '1' | '2' | '3' = '1'
+  public imgProcessParams: any = {}
+
+  process(image: ImageData) {
+    switch (this.imgProcessMode) {
+      case '1': {
+        imgProcess(image, image.width, image.height, this.imgProcessParams)
+        break
+      }
+      case '2': {
+        let data = window.cvWasmApi?.imgProcess(image, image.width, image.height, this.imgProcessParams)
+        image.data.set(data)
+        break
+      }
+      case '3': {
+        let data = window.cvNativeApi?.imgProcess(image, image.width, image.height, this.imgProcessParams)
+        image.data.set(data)
+        break
+      }
+    }
+  }
+}
