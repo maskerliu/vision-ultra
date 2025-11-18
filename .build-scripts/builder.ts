@@ -74,12 +74,6 @@ function pack(config: BaseConfig): Promise<string> {
   })
 }
 
-function renderer() {
-  deleteSync(['dist/electron/*', '!.gitkeep'])
-  rendererConfig.init().mode = Run_Mode_PROD
-  pack(rendererConfig)
-}
-
 function web() {
   deleteSync(['dist/web/*', '!.gitkeep'])
   webConfig.init().mode = Run_Mode_PROD
