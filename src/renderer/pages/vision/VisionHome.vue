@@ -70,7 +70,7 @@
               </van-checkbox>
             </template>
             <template #label>
-              size: <van-stepper button-size="1.6rem" step="2" min="1" :disabled="!visionStore.imgParams.enableGaussian"
+              size:\t\t<van-stepper button-size="1.6rem" step="2" min="1" :disabled="!visionStore.imgParams.enableGaussian"
                 v-model="visionStore.imgParams.gaussian[0]" />
               sigmaX:<van-stepper button-size="1.6rem" step="1" min="1"
                 :disabled="!visionStore.imgParams.enableGaussian" v-model="visionStore.imgParams.gaussian[1]" />
