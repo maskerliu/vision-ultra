@@ -64,8 +64,8 @@ let cvNativeApi: IOpencvAPI = {
       processedImg = new cv.Mat(height, width, cv.CV_8UC4)
     }
 
-    if (sharedData == null || sharedData.length !== height * width * cv.CV_8UC4) {
-      sharedData = new Uint8ClampedArray(height * width * cv.CV_8UC4)
+    if (sharedData == null || sharedData.length !== height * width * 4) {
+      sharedData = new Uint8ClampedArray(height * width * 4)
     }
 
     processedImg.setData(Buffer.from(frame.data.buffer))
@@ -89,7 +89,7 @@ let cvNativeApi: IOpencvAPI = {
     try {
       if (params.gaussian) {
         processedImg = processedImg.gaussianBlur(new cv.Size(params.gaussian[0], params.gaussian[0]), params.gaussian[1])
-        processedImg = processedImg.addWeighted(1.0 + params.gaussian[2], processedImg, -params.gaussian[2], 0, 0)
+        // processedImg = processedImg.addWeighted(1.0 + params.gaussian[2], processedImg, -params.gaussian[2], 0, 0)
       }
     } catch (e) {
       console.error(e)

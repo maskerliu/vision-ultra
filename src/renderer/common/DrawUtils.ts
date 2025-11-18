@@ -207,7 +207,7 @@ export function getFaceContour(face: Face) {
   return FaceContours['faceOval'].map((index) => keypoints[index])
 }
 
-export function getFaceGradient(face: Face) {
+export function getFaceSlope(face: Face) {
   const keypoints = face.keypoints.map((keypoint) => [keypoint.x - face.box.xMin, keypoint.y - face.box.yMin])
   let leftEye = FaceContours['leftIris'].map((index) => keypoints[index])
   let rightEye = FaceContours['rightIris'].map((index) => keypoints[index])
@@ -222,5 +222,5 @@ export function getFaceGradient(face: Face) {
     (rightEye[0][1] + rightEye[1][1] + rightEye[2][1] + rightEye[3][1]) / 4
   ]
 
-  return (left[0] - right[0]) / (left[1] - right[1])
+  return (right[0] - left[0]) / (right[1] - left[1])
 }

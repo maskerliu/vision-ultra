@@ -17,6 +17,12 @@
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
+              <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;">
+                <template #default>
+                  <van-icon class="iconfont icon-face-mesh"
+                    style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+                </template>
+              </van-checkbox>
             </van-row>
             <van-radio-group v-model="visionStore.faceRecMode" direction="horizontal">
               <van-radio name="1">
@@ -61,7 +67,8 @@ import { VERSION } from '@mediapipe/face_mesh'
 import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
 import { onMounted, useTemplateRef, watch } from 'vue'
 import { Camera } from '../../common/Camera'
-import { imgProcess } from '../../common/CVApi'
+import { FaceDetector } from '../../common/FaceDetector'
+import { ImageProcessor } from '../../common/ImageProcessor'
 import { VisionStore } from '../../store'
 
 const visionStore = VisionStore()
@@ -74,35 +81,36 @@ const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
 let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
-let captureCtx: CanvasRenderingContext2D
-let masklayerCtx: CanvasRenderingContext2D
-
+let imgProcessor: ImageProcessor = new ImageProcessor()
+let faceDetector: FaceDetector
 let camera: Camera = null
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
-    camera?.closeCamera()
+    camera?.close()
   })
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
 
-  captureCtx = capture.value.getContext('2d', { willReadFrequently: false })
-  masklayerCtx = masklayer.value.getContext('2d', { willReadFrequently: false })
+  imgProcessor.imgEnhance = visionStore.imgEnhance
+  imgProcessor.imgProcessMode = visionStore.imgProcessMode
+  imgProcessor.imgProcessParams = visionStore.imgParams.getParams()
 
-  camera = new Camera(preVideo.value, preview.value, offscreen.value, capture.value, masklayer.value)
-  camera.imgEnhance = visionStore.imgEnhance
-  camera.imgProcessMode = visionStore.imgProcessMode
-  camera.imgProcessParams = visionStore.imgParams.getParams()
-  camera.faceDetect = visionStore.faceDetect
-  camera.faceRecMode = visionStore.faceRecMode as any
-
-  camera.faceDector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
+  faceDetector = new FaceDetector(previewCtx, capture.value, masklayer.value)
+  faceDetector.drawFace = visionStore.drawFaceMesh
+  faceDetector.faceDetect = visionStore.faceDetect
+  faceDetector.faceRecMode = visionStore.faceRecMode as any
+  faceDetector.dector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
     runtime: 'mediapipe',
     solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${VERSION}`,
     refineLandmarks: true,
     maxFaces: 1
   })
+
+  camera = new Camera(preVideo.value, preview.value, offscreen.value)
+  camera.imgProcessor = imgProcessor
+  camera.faceDetector = faceDetector
 
   if (!__IS_WEB__) {
     window.cvNativeApi?.init()
@@ -110,31 +118,8 @@ onMounted(async () => {
   }
 })
 
-async function processImage(image: ImageData) {
-  if (!visionStore.imgEnhance) return
-
-  switch (visionStore.imgProcessMode) {
-    case '1': {
-      imgProcess(image, image.width, image.height, visionStore.imgParams.getParams())
-      break
-    }
-    case '2': {
-      let data = window.cvWasmApi?.imgProcess(image, image.width, image.height, visionStore.imgParams.getParams())
-      for (let i = 0; i < data?.length; i++)
-        image.data[i] = data[i]
-      break
-    }
-    case '3': {
-      let data = window.cvNativeApi?.imgProcess(image, image.width, image.height, visionStore.imgParams.getParams())
-      for (let i = 0; i < data?.length; i++)
-        image.data[i] = data[i]
-      break
-    }
-  }
-}
-
 async function onClickCamera() {
-  camera?.openCamera()
+  camera?.open()
 }
 
 async function openFolder() {
@@ -151,6 +136,7 @@ async function openFolder() {
 
         offscreen.value.width = preview.value.width = w
         offscreen.value.height = preview.value.height = h
+        previewCtx.save()
         previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
         offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
         offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
@@ -162,39 +148,43 @@ async function openFolder() {
 }
 
 async function onCapture() {
-  camera.faceCapture()
+  faceDetector?.faceCapture(offscreenCtx)
 }
 
 function drawImage() {
   const imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  processImage(imgData)
+  imgProcessor.process(imgData)
   previewCtx.putImageData(imgData, 0, 0)
 }
 
 watch(() => visionStore.faceDetect, async (val) => {
-  camera.faceDetect = val
-  camera.faceRecMode = visionStore.faceRecMode as any
+  faceDetector.faceDetect = val
+  faceDetector.faceRecMode = visionStore.faceRecMode as any
+})
+
+watch(() => visionStore.drawFaceMesh, (val) => {
+  faceDetector.drawFace = val 
 })
 
 watch(() => visionStore.faceRecMode, (val) => {
-  camera.faceRecMode = val as any
+  faceDetector.faceRecMode = val as any
 })
 
 watch(() => visionStore.imgProcessMode, (val) => {
-  camera.imgProcessMode = val
+  imgProcessor.imgProcessMode = val
 })
 
 watch(() => visionStore.imgParams,
   (val) => {
-    drawImage()
-    camera.imgProcessParams = visionStore.imgParams.getParams()
+    if (!camera.isOpen()) { drawImage() }
+    imgProcessor.imgProcessParams = visionStore.imgParams.getParams()
   },
   { deep: true }
 )
 
 watch(() => visionStore.imgEnhance, (val) => {
-  drawImage()
-  camera.imgEnhance = val
+  if (!camera.isOpen()) { drawImage() }
+  imgProcessor.imgEnhance = val
 })
 
 </script>
