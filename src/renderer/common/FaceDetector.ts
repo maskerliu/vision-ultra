@@ -2,6 +2,7 @@ import { Face, FaceLandmarksDetector } from "@tensorflow-models/face-landmarks-d
 import { drawCVFaceResult, drawTFFaceResult, getFaceContour, getFaceSlope } from "./DrawUtils"
 import { Point2, Rect } from "@u4/opencv4nodejs"
 import { showNotify } from "vant"
+import * as tf from '@tensorflow/tfjs'
 
 
 export class FaceDetector {
@@ -23,6 +24,8 @@ export class FaceDetector {
 
   private masklayer: HTMLCanvasElement
   private masklayerCtx: CanvasRenderingContext2D
+
+  private faceTensor: tf.Tensor = null
 
   constructor(context: CanvasRenderingContext2D, capture: HTMLCanvasElement, masklayer: HTMLCanvasElement) {
     this.previewCtx = context
@@ -83,6 +86,26 @@ export class FaceDetector {
       return
     }
 
+    let face = this.faces[0].keypoints.map((p) => [p.x - this.faces[0].box.xMin, p.y - this.faces[0].box.yMin])
+    let tensor = tf.tensor(face)
+    tensor = tensor.sub(tensor.min()).div(tensor.max().sub(tensor.min()))
+    if (this.faceTensor == null) {
+      this.faceTensor = tensor
+    } else {
+      let diff = this.faceTensor.squaredDifference(tensor)
+      let distance = diff.sum().sqrt()
+      distance.print()
+      distance.dispose()
+      // let similarity = this.faceTensor.dot(tensor).div(this.faceTensor.norm(2).mul(tensor.norm(2)))
+      // similarity.print()
+      // similarity.dispose()
+
+      this.faceTensor.dispose()
+      this.faceTensor = tensor
+    }
+
+
+
     let path = getFaceContour(this.faces[0])
     this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     this.masklayerCtx.clearRect(0, 0, this.masklayer.width, this.masklayer.height)
@@ -92,9 +115,6 @@ export class FaceDetector {
     this.masklayer.height = this.faces[0].box.height
 
     let eyes = getFaceSlope(this.faces[0])
-    console.log(Math.atan(eyes) * 180 / Math.PI)
-
-
     let imageData = context.getImageData(this.faces[0].box.xMin, this.faces[0].box.yMin,
       this.faces[0].box.width, this.faces[0].box.height)
 
@@ -128,14 +148,11 @@ export class FaceDetector {
         imageData.data[i + 3] = 0
       }
     }
-    this.captureCtx.save()
     this.captureCtx.translate(this.capture.width / 2, this.capture.height / 2)
-    this.captureCtx.rotate(Math.atan(eyes))
     this.captureCtx.putImageData(imageData, 0, 0)
-    this.captureCtx.restore()
     this.capture.toBlob(async (blob) => {
       let buffer = await blob.arrayBuffer()
-      window.mainApi.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
+      // window.mainApi.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     }, 'image/png')
   }
