@@ -1,7 +1,7 @@
 import { Face, FaceLandmarksDetector } from "@tensorflow-models/face-landmarks-detection"
-import { drawCVFaceResult, drawTFFaceResult, getFaceContour, getFaceSlope } from "./DrawUtils"
-import { showNotify } from "vant"
 import * as tf from '@tensorflow/tfjs'
+import { showNotify } from "vant"
+import { drawCVFaceResult, drawTFFaceResult, getFaceContour, getFaceSlope } from "./DrawUtils"
 
 
 export class FaceDetector {
@@ -26,7 +26,9 @@ export class FaceDetector {
 
   private faceTensor: tf.Tensor = null
 
+  private _enableFaceAngle: boolean = false
   private _faceAngle: number = 0
+  private _time = 0
 
   constructor(context: CanvasRenderingContext2D, capture: HTMLCanvasElement, masklayer: HTMLCanvasElement) {
     this.previewCtx = context
@@ -43,8 +45,20 @@ export class FaceDetector {
     this.faces = this.eyes = this.landmarks = this.face = null
   }
 
+  set enableFaceAngle(enable: boolean) {
+    this._enableFaceAngle = enable
+  }
+
+  get enableFaceAngle() {
+    return this._enableFaceAngle
+  }
+
   get faceAngle() {
     return this._faceAngle
+  }
+
+  get time() {
+    return this._time
   }
 
   async detect(frame: ImageData) {
@@ -69,23 +83,32 @@ export class FaceDetector {
         break
       }
       case '2': {
+        let time = Date.now()
         this.faces = await this.dector?.estimateFaces(frame)
+        this._time = Date.now() - time
         if (this.drawFace) drawTFFaceResult(this.previewCtx, this.faces, true, true)
-        console.log(this.faces[0].keypoints.length)
-        let slope = getFaceSlope(this.faces[0])
-        let angle = Math.atan(slope) * 180 / Math.PI
-        let tmpAngle = 0
-        if (angle > 0) {
-          tmpAngle = 90 - angle
-        }
-        if (angle < 0) {
-          tmpAngle = -(90 + angle)
-        }
-
-        if (Math.abs(tmpAngle - this._faceAngle) > 20 && Math.abs(tmpAngle) > 5) {
-          this._faceAngle = tmpAngle
-        }
+        this.calacleFaceAngle()
       }
+    }
+  }
+
+  private calacleFaceAngle() {
+    if (!this._enableFaceAngle) {
+      this._faceAngle = 0
+      return
+    }
+    let slope = getFaceSlope(this.faces[0])
+    let angle = Math.atan(slope) * 180 / Math.PI
+    let tmpAngle = 0
+    if (angle > 0) {
+      tmpAngle = 90 - angle
+    }
+    if (angle < 0) {
+      tmpAngle = -(90 + angle)
+    }
+
+    if (Math.abs(tmpAngle - this._faceAngle) > 20 && Math.abs(tmpAngle) > 5) {
+      this._faceAngle = tmpAngle
     }
   }
 
@@ -113,9 +136,7 @@ export class FaceDetector {
       this.faceTensor.dispose()
       this.faceTensor = tensor
     }
-
-
-
+    
     let path = getFaceContour(this.faces[0])
     this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     this.masklayerCtx.clearRect(0, 0, this.masklayer.width, this.masklayer.height)

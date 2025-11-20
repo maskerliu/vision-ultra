@@ -1,6 +1,5 @@
 import { spawn } from "child_process"
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from "electron"
-import fs, { writeFileSync } from 'fs'
 import fse from 'fs-extra'
 import { Buffer } from "node:buffer"
 import os from 'os'
@@ -8,12 +7,13 @@ import path from "path"
 import { Version } from "../common"
 import { MainAPICMD } from "../common/ipc.api"
 import { fullUpdate, incrementUpdate } from "./AppUpdater"
+import { USER_DATA_DIR } from "./MainConst"
 
 ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   if (fse.pathExistsSync(path.join(process.resourcesPath, 'update.asar'))) {
     const logPath = app.getPath('logs')
-    const out = fs.openSync(path.join(logPath, 'out.log'), 'a')
-    const err = fs.openSync(path.join(logPath, 'err.log'), 'a')
+    const out = fse.openSync(path.join(logPath, 'out.log'), 'a')
+    const err = fse.openSync(path.join(logPath, 'err.log'), 'a')
     let updateBash = `update.${os.platform() == 'win32' ? 'exe' : 'sh'}`
 
     if (os.platform() == 'win32') {
@@ -54,14 +54,14 @@ ipcMain.handle(MainAPICMD.OpenFile, async (_, target: string) => {
 ipcMain.handle(MainAPICMD.SaveFileAs, async (_, title: string, fileName: string, data: string | ArrayBuffer, slient = false) => {
 
   if (slient) {
-    writeFileSync(path.join(app.getPath('downloads'), fileName), Buffer.from(data))
+    fse.writeFileSync(path.join(USER_DATA_DIR, fileName), Buffer.from(data as any) as any)
     return
   }
 
   let filters = [{ name: '全部文件', extensions: ['*'] }]
   let ext = path.extname(fileName)
   if (ext && ext !== '.') {
-    const name = ext.slice(1, ext.length);
+    const name = ext.slice(1, ext.length)
     if (name) {
       filters.unshift({ name: '', extensions: [name] })
     }
@@ -69,9 +69,9 @@ ipcMain.handle(MainAPICMD.SaveFileAs, async (_, title: string, fileName: string,
   dialog.showSaveDialog(BrowserWindow.getFocusedWindow(), {
     title,
     filters,
-    defaultPath: path.join(app.getPath('downloads'), fileName)
+    defaultPath: path.join(USER_DATA_DIR, fileName)
   }).then((result) => {
-    writeFileSync(result.filePath, Buffer.from(data))
+    fse.writeFileSync(path.join(USER_DATA_DIR, fileName), Buffer.from(data as any) as any)
   }).catch((reasion) => {
     console.log(`save as--catch:${reasion}`)
   })
