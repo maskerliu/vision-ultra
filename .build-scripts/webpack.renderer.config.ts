@@ -14,7 +14,8 @@ const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-let whiteListedModules = ['axios', '@mediapipe/face_mesh',
+let whiteListedModules = ['axios',
+  '@mediapipe/face_mesh',
   '@tensorflow/tfjs-converter',
   '@tensorflow/tfjs-core',
   '@tensorflow-models/face-landmarks-detection',]
@@ -135,14 +136,14 @@ class RendererConfig extends BaseConfig {
           priority: 20,
           test: /[\\/]node_modules[\\/]vant[\\/]/
         },
+        opencvjs: {
+          name: 'opencv',
+          test: /[\\/]node_modules[\\/]@opencvjs[\\/]/,
+          priority: 20,
+        },
         tensoflow: {
           name: 'tensoflow',
           test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
-          priority: 20,
-        },
-        opencvjs: {
-          name: 'opencvjs',
-          test: /[\\/]node_modules[\\/]@opencvjs[\\/]/,
           priority: 20,
         },
         echarts: {

@@ -1,11 +1,6 @@
-import { Face, FaceLandmarksDetector } from '@tensorflow-models/face-landmarks-detection'
-import { Point2, Rect } from "@u4/opencv4nodejs"
-import { showNotify } from "vant"
-import { drawCVFaceResult, drawTFFaceResult, getFaceContour, getFaceSlope } from "./DrawUtils"
 import { FaceDetector } from './FaceDetector'
 import { ImageProcessor } from './ImageProcessor'
 
-const CameraOpts = { mimeType: 'video/webm;codecs=vp9' }
 
 export class Camera {
 
@@ -65,22 +60,26 @@ export class Camera {
     this.frame.data.set(this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data)
     // this.frame.data = this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data
     this.imgProcessor?.process(this.frame)
-    // if (visionStore.faceDetect) {
-    //   await faceDect(frame)
-    // } else {
-    //   faces = eyes = landmarks = face = null
-    // }
-
     this.offscreenCtx.putImageData(this.frame, 0, 0)
     this.previewCtx.drawImage(this.offscreen,
       0, 0, this.frame.width, this.frame.height,
       0, 0, this.frame.width, this.frame.height)
 
-    this.faceDetector.detect(this.frame)
+    await this.faceDetector.detect(this.frame)
+    this.previewCtx.fillStyle = 'red'
+    this.previewCtx.font = '14px sans-serif'
+    this.previewCtx.fillText(`Slope: ${this.faceDetector.faceAngle}`, 10, 20)
+
+    if (this.frames == 3) {
+      // this.imgProcessor.imgProcessParams['rotate'] = this.faceDetector.faceAngle
+      this.frames = 0
+    } else {
+      this.frames++
+    }
   }
 
 
-  isOpen(): boolean {
+  get isOpen(): boolean {
     return this.preVideo.srcObject != null
   }
 

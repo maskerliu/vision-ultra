@@ -6,11 +6,15 @@ let gamma = 1.0
 let lut = cv.matFromArray(256, 1, cv.CV_8UC1, gammaTable)
 let processedImg = new cv.Mat()
 let tmpImg = new cv.Mat()
+let dsize = new cv.Size(0, 0)
+let center = new cv.Point(0, 0)
+let rotateMat = new cv.Mat()
 
 export function imgProcess(frame: ImageData, width: number, height: number,
   params: Partial<{
     isGray: boolean,
     equalizeHist: boolean,
+    rotate: number,
     gamma: number,
     guassian: [number, number],
     sobel: [number, number],
@@ -36,7 +40,7 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     tmpImg.delete()
     tmpImg = new cv.Mat(height, width, cv.CV_8UC3)
   }
-  
+
   processedImg.data.set(frame.data)
   cv.cvtColor(processedImg, processedImg, cv.COLOR_RGBA2BGR)
   if (tmpImg.type() != processedImg.type()) {
@@ -44,50 +48,45 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     tmpImg = new cv.Mat(height, width, cv.CV_8UC3)
   }
   tmpImg.data.set(processedImg.data)
- 
-  try {
-    if (params.isGray) {
-      cv.cvtColor(processedImg, processedImg, cv.COLOR_BGR2GRAY)
-      cv.cvtColor(tmpImg, tmpImg, cv.COLOR_BGR2GRAY)
-    } 
-  } catch (e) {
-    console.error(e)
+
+  if (params.isGray) {
+    cv.cvtColor(processedImg, processedImg, cv.COLOR_BGR2GRAY)
+    cv.cvtColor(tmpImg, tmpImg, cv.COLOR_BGR2GRAY)
   }
 
-  try {
-    if (params.isGray && params.equalizeHist) {
-      cv.equalizeHist(processedImg, processedImg)
-    }
-  } catch (e) {
-    console.error(e)
+  if (params.rotate != 0) {
+    dsize.width = width
+    dsize.height = height
+    center.x = width / 2
+    center.y = height / 2
+    // You can try more different parameters
+    rotateMat = cv.getRotationMatrix2D(center, params.rotate, 1)
+    cv.warpAffine(processedImg, processedImg, rotateMat, dsize)
   }
 
-  try {
-    if (params.gamma) {
-      if (gamma !== params.gamma) {
-        gamma = params.gamma
-        for (let i = 0; i < 256; ++i) {
-          gammaTable[i] = Math.pow(i / 255.0, 1 / gamma) * 255.0
-          lut.data[i] = gammaTable[i]
-        }
+  if (params.isGray && params.equalizeHist) {
+    cv.equalizeHist(processedImg, processedImg)
+  }
+
+  if (params.gamma) {
+    if (gamma !== params.gamma) {
+      gamma = params.gamma
+      for (let i = 0; i < 256; ++i) {
+        gammaTable[i] = Math.pow(i / 255.0, 1 / gamma) * 255.0
+        lut.data[i] = gammaTable[i]
       }
-      lut = cv.matFromArray(256, 1, cv.CV_8UC1, gammaTable)
-      cv.LUT(processedImg, lut, processedImg)
-      cv.normalize(processedImg, processedImg, 0, 255, cv.NORM_MINMAX)
-      cv.convertScaleAbs(processedImg, processedImg, 1, 0)
     }
-  } catch (e) { console.error(e) }
-
-  try {
-    if (params.gaussian) {
-      cv.GaussianBlur(processedImg, processedImg,
-        new cv.Size(params.gaussian[0], params.gaussian[0]),
-        params.gaussian[1])
-    }
-  } catch (e) {
-    console.error(e)
+    lut = cv.matFromArray(256, 1, cv.CV_8UC1, gammaTable)
+    cv.LUT(processedImg, lut, processedImg)
+    cv.normalize(processedImg, processedImg, 0, 255, cv.NORM_MINMAX)
+    cv.convertScaleAbs(processedImg, processedImg, 1, 0)
   }
 
+  if (params.gaussian) {
+    cv.GaussianBlur(processedImg, processedImg,
+      new cv.Size(params.gaussian[0], params.gaussian[0]),
+      params.gaussian[1])
+  }
   // let hsv = originFrame.cvtColor(cv.COLOR_BGR2HSV)
 
   let kernel = cv.matFromArray(3, 3, cv.CV_8UC1, [
@@ -96,30 +95,19 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     0, -1, 0])
   // cv.GaussianBlur(processedImg, processedImg, new cv.Size(7, 7), 10)
   // cv.subtract(tmpImg, processedImg, processedImg)
-  cv.Laplacian(tmpImg, processedImg, cv.CV_8U, 1, 3)
+  // cv.Laplacian(tmpImg, processedImg, cv.CV_8U, 1, 3)
   // cv.filter2D(tmpImg, processedImg, cv.CV_8UC3, kernel)
-  cv.addWeighted(tmpImg, 1.5, processedImg, -0.5, 0, processedImg)
-
-  try {
-    if (params.sobel) {
-      cv.Sobel(processedImg, processedImg, cv.CV_8U, 1, 1, params.sobel[0], params.sobel[1])
-    }
-  } catch (e) { console.error(e) }
-
-  try {
-    if (params.laplace) {
-      cv.Laplacian(processedImg, processedImg, cv.CV_8U, params.laplace[0], params.laplace[1])
-    }
-  } catch (e) {
-    console.error(e)
+  // cv.addWeighted(tmpImg, 1.5, processedImg, -0.5, 0, processedImg)
+  if (params.sobel) {
+    cv.Sobel(processedImg, processedImg, cv.CV_8U, 1, 1, params.sobel[0], params.sobel[1])
   }
 
-  try {
-    if (params.cannyThreshold) {
-      cv.Canny(processedImg, processedImg, params.cannyThreshold[0], params.cannyThreshold[1])
-    }
-  } catch (e) {
-    console.error(e)
+  if (params.laplace) {
+    cv.Laplacian(processedImg, processedImg, cv.CV_8U, params.laplace[0], params.laplace[1])
+  }
+
+  if (params.isGray && params.cannyThreshold) {
+    cv.Canny(processedImg, processedImg, params.cannyThreshold[0], params.cannyThreshold[1])
   }
 
   if (params.isGray) {

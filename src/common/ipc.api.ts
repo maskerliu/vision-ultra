@@ -1,4 +1,3 @@
-import { Point2, Rect } from "@u4/opencv4nodejs"
 import { BizConfig } from "./base.models"
 
 
@@ -62,7 +61,7 @@ export interface IOpencvAPI {
     laplace: [number, number], // 二阶导数滤波器的孔径大小，必须为正奇数
     cannyThreshold: [number, number],
   }>): Uint8ClampedArray
-  faceRecognize(frame: ImageData, width: number, height: number): { face: Rect, eyes: Array<Rect>, landmarks: Array<Point2> } | null
+  faceRecognize(frame: ImageData, width: number, height: number): { face: any, eyes: Array<any>, landmarks: Array<any> } | null
 }
 
 export interface ITensorflowApi {

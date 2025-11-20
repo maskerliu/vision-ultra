@@ -123,28 +123,26 @@ async function onClickCamera() {
 }
 
 async function openFolder() {
-  if (!__IS_WEB__) {
-    window.mainApi.openFile((file: string) => {
-      var img = new Image()
-      img.onload = function () {
-        let w = img.width, h = img.height
-        if (w > previewParent.value.$el.offsetWidth || h > previewParent.value.$el.offsetHeight) {
-          const ratio = Math.min(previewParent.value.$el.offsetWidth / w, previewParent.value.$el.offsetHeight / h)
-          w = img.width * ratio
-          h = img.height * ratio
-        }
 
-        offscreen.value.width = preview.value.width = w
-        offscreen.value.height = preview.value.height = h
-        previewCtx.save()
-        previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
-        offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
-        offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
-        drawImage()
+  window.mainApi?.openFile((file: string) => {
+    var img = new Image()
+    img.onload = function () {
+      let w = img.width, h = img.height
+      if (w > previewParent.value.$el.offsetWidth || h > previewParent.value.$el.offsetHeight) {
+        const ratio = Math.min(previewParent.value.$el.offsetWidth / w, previewParent.value.$el.offsetHeight / h)
+        w = img.width * ratio
+        h = img.height * ratio
       }
-      img.src = file
-    })
-  }
+
+      offscreen.value.width = preview.value.width = w
+      offscreen.value.height = preview.value.height = h
+      previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
+      offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
+      offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
+      drawImage()
+    }
+    img.src = file
+  })
 }
 
 async function onCapture() {
@@ -154,6 +152,7 @@ async function onCapture() {
 function drawImage() {
   const imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
   imgProcessor.process(imgData)
+  previewCtx.clearRect(0, 0, imgData.width, imgData.height)
   previewCtx.putImageData(imgData, 0, 0)
 }
 
@@ -163,7 +162,7 @@ watch(() => visionStore.faceDetect, async (val) => {
 })
 
 watch(() => visionStore.drawFaceMesh, (val) => {
-  faceDetector.drawFace = val 
+  faceDetector.drawFace = val
 })
 
 watch(() => visionStore.faceRecMode, (val) => {
@@ -176,14 +175,14 @@ watch(() => visionStore.imgProcessMode, (val) => {
 
 watch(() => visionStore.imgParams,
   (val) => {
-    if (!camera.isOpen()) { drawImage() }
     imgProcessor.imgProcessParams = visionStore.imgParams.getParams()
+    if (!camera.isOpen) { drawImage() }
   },
   { deep: true }
 )
 
 watch(() => visionStore.imgEnhance, (val) => {
-  if (!camera.isOpen()) { drawImage() }
+  if (!camera.isOpen) { drawImage() }
   imgProcessor.imgEnhance = val
 })
 

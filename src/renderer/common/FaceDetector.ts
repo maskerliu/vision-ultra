@@ -1,6 +1,5 @@
 import { Face, FaceLandmarksDetector } from "@tensorflow-models/face-landmarks-detection"
 import { drawCVFaceResult, drawTFFaceResult, getFaceContour, getFaceSlope } from "./DrawUtils"
-import { Point2, Rect } from "@u4/opencv4nodejs"
 import { showNotify } from "vant"
 import * as tf from '@tensorflow/tfjs'
 
@@ -9,9 +8,9 @@ export class FaceDetector {
   public faceDetect: boolean = false
   public faceRecMode: '1' | '2' = '2'
   private frames = 0
-  private face: Rect = null
-  private eyes: Array<Rect> = null
-  private landmarks: Array<Point2> = null
+  private face: any = null
+  private eyes: Array<any> = null
+  private landmarks: Array<any> = null
   public dector: FaceLandmarksDetector = null
   private faces: Array<Face> = []
 
@@ -26,6 +25,8 @@ export class FaceDetector {
   private masklayerCtx: CanvasRenderingContext2D
 
   private faceTensor: tf.Tensor = null
+
+  private _faceAngle: number = 0
 
   constructor(context: CanvasRenderingContext2D, capture: HTMLCanvasElement, masklayer: HTMLCanvasElement) {
     this.previewCtx = context
@@ -42,6 +43,10 @@ export class FaceDetector {
     this.faces = this.eyes = this.landmarks = this.face = null
   }
 
+  get faceAngle() {
+    return this._faceAngle
+  }
+
   async detect(frame: ImageData) {
     // if (this.frames < 3) {
     //   this.frames++
@@ -56,7 +61,7 @@ export class FaceDetector {
 
     switch (this.faceRecMode) {
       case '1': {
-        const result = window.cvNativeApi.faceRecognize(frame, frame.width, frame.height)
+        const result = window.cvNativeApi?.faceRecognize(frame, frame.width, frame.height)
         this.face = result?.face
         this.eyes = result?.eyes
         this.landmarks = result?.landmarks
@@ -64,17 +69,22 @@ export class FaceDetector {
         break
       }
       case '2': {
-        // if (this.faceDector == null) {
-        //   this.faceDector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
-        //     runtime: 'mediapipe',
-        //     solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${VERSION}`,
-        //     refineLandmarks: true,
-        //     maxFaces: 1
-        //   })
-        // }
         this.faces = await this.dector?.estimateFaces(frame)
         if (this.drawFace) drawTFFaceResult(this.previewCtx, this.faces, true, true)
-        break
+        console.log(this.faces[0].keypoints.length)
+        let slope = getFaceSlope(this.faces[0])
+        let angle = Math.atan(slope) * 180 / Math.PI
+        let tmpAngle = 0
+        if (angle > 0) {
+          tmpAngle = 90 - angle
+        }
+        if (angle < 0) {
+          tmpAngle = -(90 + angle)
+        }
+
+        if (Math.abs(tmpAngle - this._faceAngle) > 20 && Math.abs(tmpAngle) > 5) {
+          this._faceAngle = tmpAngle
+        }
       }
     }
   }
@@ -149,10 +159,16 @@ export class FaceDetector {
       }
     }
     this.captureCtx.translate(this.capture.width / 2, this.capture.height / 2)
+
     this.captureCtx.putImageData(imageData, 0, 0)
     this.capture.toBlob(async (blob) => {
       let buffer = await blob.arrayBuffer()
       // window.mainApi.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
+      if (!__IS_WEB__) {
+        window.mainApi?.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
+      } else {
+        showNotify({ type: 'warning', message: '图片已保存到剪贴板', duration: 500 })
+      }
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     }, 'image/png')
   }

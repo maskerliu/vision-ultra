@@ -14,5 +14,6 @@ export const IocTypes = {
   MapiService: Symbol.for('MapiService'),
   CommonService: Symbol.for('CommonService'),
   PushService: Symbol.for('PushService'),
+  FaceRecService: Symbol.for('FaceRecService'),
   FaceRecRepo: Symbol.for('FaceRecRepo')
 }

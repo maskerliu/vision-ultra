@@ -1,5 +1,7 @@
 import { imgProcess } from "./CVApi"
 
+import { showNotify } from "vant"
+
 
 export class ImageProcessor {
   public imgEnhance: boolean = false
@@ -13,13 +15,21 @@ export class ImageProcessor {
         break
       }
       case '2': {
-        let data = window.cvWasmApi?.imgProcess(image, image.width, image.height, this.imgProcessParams)
-        image.data.set(data)
+        if (!__IS_WEB__) {
+          let data = window.cvWasmApi?.imgProcess(image, image.width, image.height, this.imgProcessParams)
+          image.data.set(data)
+        } else {
+          showNotify({ type: 'danger', message: '当前环境不支持' })
+        }
         break
       }
       case '3': {
-        let data = window.cvNativeApi?.imgProcess(image, image.width, image.height, this.imgProcessParams)
-        image.data.set(data)
+        if (!__IS_WEB__) {
+          let data = window.cvNativeApi?.imgProcess(image, image.width, image.height, this.imgProcessParams)
+          image.data.set(data)
+        } else {
+          showNotify({ type: 'danger', message: '当前环境不支持' })
+        }
         break
       }
     }

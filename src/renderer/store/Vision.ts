@@ -4,6 +4,9 @@ class ImageParams {
   isGray: boolean = false
   equalizeHist: boolean = false
   clahe: boolean = false // 自适应直方图均衡化
+
+  rotate: number = 0
+
   enableGamma: boolean = false
   gamma: number = 1 // 伽马校正
   enableGaussian: boolean = false
@@ -23,6 +26,7 @@ class ImageParams {
     params['isGray'] = this.isGray
     params['equalizeHist'] = this.equalizeHist
     params['clahe'] = this.clahe
+    params['rotate'] = this.rotate
     if (this.enableGamma) params['gamma'] = this.gamma
     else delete params['gamma']
     if (this.enableGaussian) params['gaussian'] = [this.gaussian[0], this.gaussian[1], this.gaussian[2]]
