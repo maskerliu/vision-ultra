@@ -3,6 +3,7 @@
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
 import path from 'path'
+import TerserPlugin from 'terser-webpack-plugin'
 import { fileURLToPath } from 'url'
 import { VueLoaderPlugin } from 'vue-loader'
 import webpack, { Configuration } from 'webpack'
@@ -13,7 +14,8 @@ const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-let whiteListedModules = ['axios', '@mediapipe/face_mesh',
+let whiteListedModules = ['axios',
+  '@mediapipe/face_mesh',
   '@tensorflow/tfjs-converter',
   '@tensorflow/tfjs-core',
   '@tensorflow-models/face-landmarks-detection',]
@@ -108,6 +110,18 @@ class RendererConfig extends BaseConfig {
   }
 
   optimization: Configuration['optimization'] = {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          ecma: 2018, // 或者更高版本，取决于你的Babel配置
+          compress: {
+            comparisons: false,
+          },
+          mangle: true, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
+        },
+      }),
+    ],
     splitChunks: {
       chunks: 'all',
       cacheGroups: {
@@ -121,6 +135,16 @@ class RendererConfig extends BaseConfig {
           name: "vant",
           priority: 20,
           test: /[\\/]node_modules[\\/]vant[\\/]/
+        },
+        opencvjs: {
+          name: 'opencv',
+          test: /[\\/]node_modules[\\/]@opencvjs[\\/]/,
+          priority: 20,
+        },
+        tensoflow: {
+          name: 'tensoflow',
+          test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
+          priority: 20,
         },
         echarts: {
           name: 'echarts',
@@ -158,6 +182,21 @@ class RendererConfig extends BaseConfig {
     if (process.env.NODE_ENV !== 'production') {
       this.plugins?.push(
         new DefinePlugin({ '__static': `'${path.join(dirname, '../static').replace(/\\/g, '\\\\')}'` }),
+      )
+
+      this.plugins.push(
+        // new BundleAnalyzerPlugin({
+        //   analyzerMode: 'server',
+        //   analyzerHost: '127.0.0.1',
+        //   analyzerPort: 9088,
+        //   reportFilename: 'report.html',
+        //   defaultSizes: 'parsed',
+        //   openAnalyzer: true,
+        //   generateStatsFile: false,
+        //   statsFilename: 'stats.json',
+        //   statsOptions: null,
+        //   logLevel: 'info'
+        // }),
       )
     } else {
       this.plugins?.push(new LoaderOptionsPlugin({ minimize: true }))

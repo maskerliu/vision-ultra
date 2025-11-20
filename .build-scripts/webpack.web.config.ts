@@ -1,12 +1,14 @@
 'use strict'
 
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
+// import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { VueLoaderPlugin } from 'vue-loader'
 import webpack, { Configuration } from 'webpack'
 // import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
+import TerserPlugin from 'terser-webpack-plugin'
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 import pkg from '../package.json' assert { type: "json" }
 import { BaseConfig } from './webpack.base.config'
 
@@ -22,8 +24,15 @@ class WebConfig extends BaseConfig {
   devtool: Configuration['devtool'] = 'cheap-module-source-map'
   target: Configuration['target'] = 'web'
   entry: Configuration['entry'] = { web: path.join(dirname, '../src/renderer/index.ts') }
-  externals: Configuration['externals'] = [...Object.keys(pkg.dependencies).filter(d => !whiteListedModules.includes(d))]
+  externals: Configuration['externals'] = [...Object.keys(pkg.dependencies).filter(d => !whiteListedModules.includes(d)), '@mediapipe/face_mesh']
   ignoreWarnings = [/Failed to parse source map/]
+
+  stats: Configuration['stats'] = {
+    modules: true,
+    usedExports: true,
+    providedExports: true,
+    optimizationBailout: true
+  }
 
   module: Configuration['module'] = {
     rules: [
@@ -103,7 +112,7 @@ class WebConfig extends BaseConfig {
     }),
     new VueLoaderPlugin(),
     new NoEmitOnErrorsPlugin(),
-    new NodePolyfillPlugin(),
+    // new NodePolyfillPlugin(),
     new DefinePlugin({
       __IS_WEB__: true,
       __VUE_OPTIONS_API__: false,
@@ -122,10 +131,34 @@ class WebConfig extends BaseConfig {
       '@': path.join(dirname, '../src/renderer'),
       // 'vue$': 'vue/dist/vue.esm-browser.js',
     },
-    extensions: ['.ts', '.js', '.vue', '.json', '.css', '.node']
+    extensions: ['.ts', '.js', '.vue', '.json', '.css', '.node'],
+    fallback: {
+      "fs": false,
+      "tls": false,
+      "net": false,
+      "path": false,
+      "zlib": false,
+      "http": false,
+      "https": false,
+      "stream": false,
+      "crypto": false,
+      "buffer": false
+    }
   }
 
   optimization: Configuration['optimization'] = {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          ecma: 2018, // 或者更高版本，取决于你的Babel配置
+          compress: {
+            comparisons: false,
+          },
+          mangle: true, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
+        },
+      }),
+    ],
     splitChunks: {
       chunks: 'all',
       cacheGroups: {
@@ -139,6 +172,16 @@ class WebConfig extends BaseConfig {
           name: "vant",
           priority: 20,
           test: /[\\/]node_modules[\\/]vant[\\/]/
+        },
+        opencvjs: {
+          name: 'opencv',
+          test: /[\\/]node_modules[\\/]@opencvjs[\\/]/,
+          priority: 20,
+        },
+        tensoflow: {
+          name: 'tensoflow',
+          test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
+          priority: 20,
         },
         echarts: {
           name: 'echarts',
@@ -171,18 +214,18 @@ class WebConfig extends BaseConfig {
       }))
 
       this.plugins.push(
-        // new BundleAnalyzerPlugin({
-        //   analyzerMode: 'server',
-        //   analyzerHost: '127.0.0.1',
-        //   analyzerPort: 9088,
-        //   reportFilename: 'report.html',
-        //   defaultSizes: 'parsed',
-        //   openAnalyzer: true,
-        //   generateStatsFile: false,
-        //   statsFilename: 'stats.json',
-        //   statsOptions: null,
-        //   logLevel: 'info'
-        // }),
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'server',
+          analyzerHost: '127.0.0.1',
+          analyzerPort: 9088,
+          reportFilename: 'report.html',
+          defaultSizes: 'parsed',
+          openAnalyzer: true,
+          generateStatsFile: false,
+          statsFilename: 'stats.json',
+          statsOptions: null,
+          logLevel: 'info'
+        }),
       )
     } else {
       this.plugins?.push(

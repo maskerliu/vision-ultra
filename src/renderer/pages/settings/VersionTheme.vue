@@ -117,7 +117,7 @@ function onSelectLang(_lang: string) {
 
 function onThemeChanged() {
   window.localStorage.setItem('theme', theme.value)
-  if (!__IS_WEB__) window.mainApi.setAppTheme(theme.value)
+  if (!__IS_WEB__) window.mainApi?.setAppTheme(theme.value)
 }
 
 async function onVersionCheck() {
@@ -157,12 +157,12 @@ function downloadNewVersion() {
   showDownload.value = true
   downloadProgress.value = 0
   if (newVersion.fullUpdate) showRestart.value = false
-  if (!__IS_WEB__) window.mainApi.downloadUpdate(newVersion)
+  if (!__IS_WEB__) window.mainApi?.downloadUpdate(newVersion)
 }
 
 function restart() {
   showDownload.value = false
-  if (!__IS_WEB__) window.mainApi.relaunch()
+  if (!__IS_WEB__) window.mainApi?.relaunch()
 }
 
 </script>

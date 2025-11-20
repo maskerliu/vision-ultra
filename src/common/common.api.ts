@@ -1,6 +1,7 @@
 import { Connection } from "sockjs"
 import { get } from './base.api'
 import { BizConfig } from './base.models'
+import { API_URL } from "./api.const"
 
 export namespace CommonApi {
   export interface MsgPushClient extends ClientInfo {
@@ -47,15 +48,11 @@ export namespace CommonApi {
   }
 
   export function getBizConfig() {
-    return get<BizConfig>('/_/getBizConfig')
+    return get<BizConfig>(`${API_URL.Common}${API_URL.GetBizConfig}`)
   }
 
 
   export function getAllPushClients() {
-    return get<Array<MsgPushClient>>('/_/getAllPushClients')
-  }
-
-  export function mockRegister(uid: string) {
-    return get<string>(`/_/register/${uid}`)
+    return get<Array<MsgPushClient>>(`${API_URL.Common}${API_URL.GetAllPushClients}`)
   }
 }

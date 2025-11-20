@@ -1,20 +1,48 @@
+import * as lancedb from '@lancedb/lancedb'
+import { Data, Field, FixedSizeList, Float16, Schema, Utf8 } from 'apache-arrow'
 import { injectable } from "inversify"
 import path from 'path'
-import PouchFind from 'pouchdb-find'
-import PouchDB from 'pouchdb-node'
 import "reflect-metadata"
-import { ProxyMock } from '../../common/proxy.api'
 import { USER_DATA_DIR } from '../MainConst'
-import BaseRepo from './base.repo'
-
-PouchDB.plugin(PouchFind)
-
 
 @injectable()
-export class FaceRecRepo extends BaseRepo<ProxyMock.MockRule> {
+export class FaceRecRepo {
+  private _faceDB: lancedb.Connection
+  private _faceTable: lancedb.Table
+  private _schema: lancedb.SchemaLike
 
   constructor() {
-    super()
-    this.pouchdb = new PouchDB(path.join(USER_DATA_DIR + '/biz_storage', 'Mock.Rules'))
+    this._schema = new Schema([
+      new Field('id', new Utf8(), false),
+      new Field('name', new Utf8(), false),
+      new Field('vector', new FixedSizeList(478,
+        new Field("item", new FixedSizeList(3, new Field('item', new Float16(), false)), false),
+      ), false)
+    ])
+  }
+
+  async init() {
+    this._faceDB = await lancedb.connect(path.join(USER_DATA_DIR + '/biz_storage', 'face.db'))
+    let tables = await this._faceDB.tableNames()
+    if (tables.indexOf('face') > -1) {
+      this._faceTable = await this._faceDB.openTable('face')
+    } else {
+      this._faceTable = await this._faceDB.createEmptyTable('face', this._schema)
+    }
+
+    console.log('face repo init')
+    let results = await this._faceTable.search('chris').limit(20).toArray()
+    console.log('results', results)
+  }
+
+  async insert(faceVector: [number], name: string) {
+    // let data = new Data()
+    // await this._faceTable.add({ vector: faceVector, name: name })
+  }
+
+  async search(faceVector: [number]) {
+
+    let results = await this._faceTable.vectorSearch(faceVector).limit(20).toArray()
+    // return await faceTable.vectorSearch(faceVector).limit(20).toArray()
   }
 }
