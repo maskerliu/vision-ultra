@@ -1,9 +1,7 @@
-import { Point2, Rect } from "@u4/opencv4nodejs"
-import { TRIANGULATION } from "./Triangulation"
+
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection'
 import { Face } from "@tensorflow-models/face-landmarks-detection"
-import exp from "constants"
-import { B, R } from "ace-builds-internal/lib/bidiutil"
+import { TRIANGULATION } from "./Triangulation"
 
 export const NUM_KEYPOINTS = 468
 export const NUM_IRIS_KEYPOINTS = 5
@@ -32,6 +30,9 @@ export const LABEL_TO_COLOR = {
   faceOval: SILVERY,
 }
 
+const FaceContours = faceLandmarksDetection.util.getKeypointIndexByContour(
+  faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh)
+
 function distance(a: number[], b: number[]) {
   return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2))
 }
@@ -53,7 +54,7 @@ export function drawPath(ctx: CanvasRenderingContext2D, points: number[][], clos
 
 
 export function drawMutliLine(context: CanvasRenderingContext2D,
-  points: Array<Point2>, start: number, end: number, closed: boolean = false) {
+  points: Array<any>, start: number, end: number, closed: boolean = false) {
   context.beginPath()
   context.strokeStyle = BLUE
   context.lineWidth = 4
@@ -69,7 +70,7 @@ export function drawMutliLine(context: CanvasRenderingContext2D,
 }
 
 export function drawCVFaceResult(context: CanvasRenderingContext2D,
-  face: Rect, eyes: Array<Rect>, landmarks?: Array<Point2>) {
+  face: any, eyes: Array<any>, landmarks?: Array<any>) {
   if (face == null) return
   context.beginPath()
   context.strokeStyle = GREEN
@@ -130,7 +131,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D, faces: Face[],
       drawPath(ctx, [
         [box.xMin + w, box.yMin], [box.xMin, box.yMin], [box.xMin, box.yMin + w]
       ])
-      
+
       drawPath(ctx, [
         [box.xMax - w, box.yMin], [box.xMax, box.yMin], [box.xMax, box.yMin + w]
       ])
@@ -188,10 +189,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D, faces: Face[],
       }
     }
 
-    const contours = faceLandmarksDetection.util.getKeypointIndexByContour(
-      faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh)
-
-    for (const [label, contour] of Object.entries(contours)) {
+    for (const [label, contour] of Object.entries(FaceContours)) {
       ctx.strokeStyle = LABEL_TO_COLOR[label]
       ctx.lineWidth = 2
       const path = contour.map((index) => keypoints[index])
@@ -203,8 +201,25 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D, faces: Face[],
 }
 
 export function getFaceContour(face: Face) {
-  const contours = faceLandmarksDetection.util.getKeypointIndexByContour(
-    faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh)
   const keypoints = face.keypoints.map((keypoint) => [keypoint.x - face.box.xMin, keypoint.y - face.box.yMin])
-  return contours['faceOval'].map((index) => keypoints[index])
+  return FaceContours['faceOval'].map((index) => keypoints[index])
+}
+
+export function getFaceSlope(face: Face) {
+  if (face == null) return 0
+  const keypoints = face.keypoints.map((keypoint) => [keypoint.x - face.box.xMin, keypoint.y - face.box.yMin])
+  let leftEye = FaceContours['leftIris'].map((index) => keypoints[index])
+  let rightEye = FaceContours['rightIris'].map((index) => keypoints[index])
+
+  let left = [
+    (leftEye[0][0] + leftEye[1][0] + leftEye[2][0] + leftEye[3][0]) / 4,
+    (leftEye[0][1] + leftEye[1][1] + leftEye[2][1] + leftEye[3][1]) / 4
+  ]
+
+  let right = [
+    (rightEye[0][0] + rightEye[1][0] + rightEye[2][0] + rightEye[3][0]) / 4,
+    (rightEye[0][1] + rightEye[1][1] + rightEye[2][1] + rightEye[3][1]) / 4
+  ]
+
+  return (right[0] - left[0]) / (right[1] - left[1])
 }

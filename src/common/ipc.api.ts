@@ -1,4 +1,3 @@
-import { Point2, Rect } from "@u4/opencv4nodejs"
 import { BizConfig } from "./base.models"
 
 
@@ -55,12 +54,14 @@ export interface IOpencvAPI {
   imgProcess(image: ImageData, width: number, height: number, params: Partial<{
     isGray: boolean,
     equalizeHist: boolean,
-    brightness: number,
-    laplace: number, // 二阶导数滤波器的孔径大小，必须为正奇数
+    gamma: number,
+    gaussian: [number, number, number],
+    sobel: [number, number],
+    scharr: number,
+    laplace: [number, number], // 二阶导数滤波器的孔径大小，必须为正奇数
     cannyThreshold: [number, number],
-    gaussian: number, // 决定滤波器的尺寸
-  }>): { data: Uint8ClampedArray, width: number, height: number }
-  faceRecognize(frame: ImageData, width: number, height: number): { face: Rect, eyes: Array<Rect>, landmarks: Array<Point2> } | null
+  }>): Uint8ClampedArray
+  faceRecognize(frame: ImageData, width: number, height: number): { face: any, eyes: Array<any>, landmarks: Array<any> } | null
 }
 
 export interface ITensorflowApi {
