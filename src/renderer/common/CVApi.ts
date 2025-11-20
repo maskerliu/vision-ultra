@@ -62,6 +62,7 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     // You can try more different parameters
     rotateMat = cv.getRotationMatrix2D(center, params.rotate, 1)
     cv.warpAffine(processedImg, processedImg, rotateMat, dsize)
+    rotateMat.delete()
   }
 
   if (params.isGray && params.equalizeHist) {

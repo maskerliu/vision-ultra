@@ -20,7 +20,8 @@ export class Camera {
   public faceDetector: FaceDetector = null
   private mediaRecorder: MediaRecorder
 
-  private frames = 0
+  private _frames = 0
+  private _step = 0
   // private face: Rect = null
   // private eyes: Array<Rect> = null
   // private landmarks: Array<Point2> = null
@@ -66,16 +67,28 @@ export class Camera {
       0, 0, this.frame.width, this.frame.height)
 
     await this.faceDetector.detect(this.frame)
-    this.previewCtx.fillStyle = 'red'
-    this.previewCtx.font = '14px sans-serif'
-    this.previewCtx.fillText(`Slope: ${this.faceDetector.faceAngle}`, 10, 20)
 
-    if (this.frames == 3) {
-      // this.imgProcessor.imgProcessParams['rotate'] = this.faceDetector.faceAngle
-      this.frames = 0
-    } else {
-      this.frames++
+    this.previewCtx.fillStyle = '#c0392b'
+    this.previewCtx.font = '14px sans-serif'
+    this.previewCtx.fillText(`Slope: ${this.faceDetector.faceAngle}\n Time: ${this.faceDetector.time}`, 10, 20)
+
+    if (Math.abs(this.faceDetector.faceAngle) > 5) {
+      this.faceDetector.enableFaceAngle = false
+      let size = Math.floor(500 / this.faceDetector.time)
+      this._step = this.faceDetector.faceAngle / 15
+      this._frames = 15
     }
+
+    if (this._frames > 0) {
+      this._frames--
+      this.imgProcessor.imgProcessParams['rotate'] = this._step * (15 - this._frames)
+    } else {
+      this.faceDetector.enableFaceAngle = true
+      this._step = 0
+      this._frames = 0
+    }
+
+    console.log(this._frames)
   }
 
 

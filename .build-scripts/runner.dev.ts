@@ -13,7 +13,6 @@ import { getLocalIPs } from './misc'
 import { BaseConfig } from './webpack.base.config.js'
 import mainConfig from './webpack.main.config'
 import rendererConfig from './webpack.renderer.config'
-import webConfig from './webpack.web.config'
 
 const Run_Mode_DEV = 'development'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -29,6 +28,18 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
   return new Promise<void>(async (resolve, reject) => {
     config.mode = Run_Mode_DEV
     const compiler = webpack(config)
+    compiler.watch({}, (err, stats) => {
+      if (err) {
+        console.log(config.name, err, 'red')
+        reject()
+        return
+      } else if (stats?.hasErrors()) {
+        console.log(config.name, stats.toString({ colors: true, errors: true }), 'red')
+        reject()
+        return
+      }
+      // console.log(config.name, stats)
+    })
 
     let serverConfig: WebpackDevServer.Configuration = {
       host, port, hot: true,
@@ -61,20 +72,6 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
       }
     }
 
-    compiler.watch({}, (err, stats) => {
-      if (err) {
-        console.log(config.name, err, 'red')
-        reject()
-        return
-      } else if (stats?.hasErrors()) {
-        console.log(config.name, stats.toString({ colors: true, errors: true }), 'red')
-        reject()
-        return
-      }
-
-      // console.log(config.name, stats)
-    })
-
     const server = new WebpackDevServer(serverConfig, compiler)
 
     try {
@@ -85,12 +82,6 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
       reject()
       return
     }
-    // server.start()
-    //   .then(() => resolve())
-    //   .catch(err => {
-    //     console.log(config.name, chalk.redBright(`fail to start ${config.target} server`, err))
-    //     reject()
-    //   })
   })
 }
 
