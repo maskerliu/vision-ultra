@@ -12,6 +12,7 @@ import { bizContainer } from './IocContainer'
 import { IocTypes, USER_DATA_DIR } from './MainConst'
 import { CommonRouter, MapiRouter } from './router'
 import { CommonService, PushService } from './service'
+import { FaceRecRepo } from './repository/facerec.repo'
 
 export class MainServer {
 
@@ -24,12 +25,14 @@ export class MainServer {
   private commonRouter: CommonRouter
   private commonService: CommonService
   private pushService: PushService
+  private faceRecRepo: FaceRecRepo
 
   bootstrap() {
     this.commonRouter = bizContainer.get(IocTypes.CommonRouter)
     this.mapiRouter = bizContainer.get(IocTypes.MapiRouter)
     this.commonService = bizContainer.get(IocTypes.CommonService)
     this.pushService = bizContainer.get(IocTypes.PushService)
+    this.faceRecRepo = bizContainer.get(IocTypes.FaceRecRepo)
   }
 
   private corsOpt: CorsOptions = {
@@ -38,6 +41,12 @@ export class MainServer {
   }
 
   public async start() {
+    try {
+      await this.faceRecRepo.init()
+    } catch (err) {
+      console.error(err)
+    }
+
     let portUsed = await tcpPortUsed.check(this.commonService.allConfig.port, '127.0.0.1')
 
     let config = this.commonService.allConfig

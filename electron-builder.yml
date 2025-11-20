@@ -7,6 +7,7 @@ asarUnpack:
   - "node_modules/@u4/opencv4nodejs/**/*"
   - "node_modules/@u4/opencv-build/**/*"
   - "node_modules/@tensorflow/**"
+  - "node_modules/@lancedb/**"
 
 publish:
   - provider: "generic"
@@ -25,7 +26,6 @@ files:
   - "node_modules/@tensorflow/tfjs-node/package.json"
   - "!node_modules/seedrandom/coverage/**"
   - "!**/node_modules/**/*LICENSE*"
-  - "!**/node_modules/**/*.map"
   - "!**/node_modules/**/*.md"
   - "!**/node_modules/**/*.py"
   - "!**/node_modules/**/*.markdown"
@@ -48,9 +48,6 @@ files:
   - "!**/node_modules/**/prebuilds/**"
   - "!**/node_modules/**/src/**"
   - "!**/node_modules/**/browser/**"
-  - "!**/node_modules/**/umd/**"
-  - "!**/node_modules/**/esm/**"
-  - "!**/node_modules/**/esm-*/**"
   - "!**/node_modules/**/*.min.js"
   - "!**/node_modules/**/*.fesm.js"
   - "!**/node_modules/**/*.es2017.js"
@@ -67,6 +64,10 @@ files:
   - "node_modules/@u4/opencv4nodejs/build/Release/*.node"
   - "node_modules/@u4/opencv-build/script/**"
   - "node_modules/@denodnt/logger/**"
+  - "!**/node_modules/**/*.map"
+  - "!**/node_modules/**/umd/**"
+  - "!**/node_modules/**/esm/**"
+  - "!**/node_modules/**/esm-*/**"
 
 electronLanguages:
   - en-US
@@ -103,9 +104,13 @@ mac:
   extraFiles:
     - from: "./update.sh"
       to: "./resources/"
+    - from: "../../../../../../${env.OPENCV_LIB_DIR}/libopencv_world.4.12.0.dylib"
+      to: "./libopencv_world.dylib"
+    - from: "../../../../../../${env.OPENCV_LIB_DIR}/libopencv_img_hash.4.12.0.dylib"
+      to: "./libopencv_img_hash.dylib"
   target:
     - target: dmg
-      arch: universal
+      arch: x64
 
 pkg:
   installLocation: /Applications

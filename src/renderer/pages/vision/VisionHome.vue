@@ -5,7 +5,7 @@
         <van-row></van-row>
         <div style="padding: 1px 0;">
           <van-icon class="iconfont icon-qrcode left-panel-icon" @click="commonStore.showQrCode = true" />
-          <van-icon class="iconfont icon-rule left-panel-icon" @click="" />
+          <van-icon class="iconfont icon-data left-panel-icon" @click="" />
           <van-icon class="iconfont icon-setting left-panel-icon" @click="openSettings">
             <span class="badge-dot"></span>
           </van-icon>
@@ -13,141 +13,13 @@
       </van-row>
       <OverlayScrollbarsComponent class="snap-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}` } }"
         defer>
-
-        <van-cell-group title="图像处理" inset :border="false">
-          <van-cell title="灰度" center>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.isGray" size="1.3rem"></van-switch>
-            </template>
-          </van-cell>
-          <van-cell>
-            <template #title>
-              <span>对比度</span>
-              <span class="param-desc">直方图均衡</span>
-            </template>
-            <template #value>
-              <van-switch size="1.3rem" :disabled="!visionStore.imgParams.isGray"
-                v-model="visionStore.imgParams.equalizeHist"></van-switch>
-            </template>
-          </van-cell>
-          <van-cell>
-            <template #title>
-              <span>亮度</span>
-              <span class="param-desc">Gamma校正</span>
-            </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableGamma" size="1.3rem"></van-switch>
-              <van-slider bar-height="8px" class="param-value" :disabled="!visionStore.imgParams.enableGamma"
-                v-model="visionStore.imgParams.gamma">
-                <template #button>
-                  <van-button round type="primary" size="mini">{{ visionStore.imgParams.gamma }}</van-button>
-                </template>
-              </van-slider>
-            </template>
-          </van-cell>
-
-          <van-cell>
-            <template #title>
-              <span>模糊</span>
-              <span class="param-desc">高斯模糊</span>
-            </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableGaussian" size="1.3rem"></van-switch>
-              <br></br>
-              <van-slider :max="11" bar-height="8px" class="param-value"
-                :disabled="!visionStore.imgParams.enableGaussian" v-model="visionStore.imgParams.gaussian">
-                <template #button>
-                  <van-button round type="primary" size="mini">{{ visionStore.imgParams.gaussian }}</van-button>
-                </template>
-              </van-slider>
-            </template>
-          </van-cell>
-        </van-cell-group>
-        <van-cell-group title="边缘检测" inset :border="false">
-          <van-cell>
-            <template #title>
-              <span>Sobel算子</span>
-              <span class="param-desc">离散的微分算子</span>
-            </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableSobel" size="1.3rem"></van-switch>
-              <br/>
-              <van-stepper button-size="1.6rem" step="2" min="1" max="31" :disabled="!visionStore.imgParams.enableSobel"
-                v-model="visionStore.imgParams.sobel" />
-            </template>
-          </van-cell>
-          <van-cell>
-            <template #title>
-              <span>Scharr算子</span>
-              <span class="param-desc">通常用于特征提取和特征检测</span>
-            </template>
-            <template #value>
-              <van-switch v-model="visionStore.enableScharr" size="1.3rem"></van-switch>
-              <br/>
-              <van-stepper button-size="1.6rem" step="2" min="1" max="31"
-                :disabled="!visionStore.imgParams.enableScharr" v-model="visionStore.imgParams.scharr" />
-            </template>
-          </van-cell>
-          <van-cell>
-            <template #title>
-              <span>拉普拉斯算子</span>
-              <span class="param-desc">通常用于特征提取和特征检测</span>
-            </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableLaplace" size="1.3rem"></van-switch>
-              <br/>
-              <van-stepper :disabled="!visionStore.imgParams.enableLaplace" button-size="1.6rem"
-                v-model="visionStore.imgParams.laplace" step="2" min="1" max="31" />
-            </template>
-          </van-cell>
-          <van-cell :label="'[ ' + visionStore.cannyThreshold.toString() + ' ]'">
-            <template #title>
-              <span>canny</span>
-              <span class="param-desc">边缘检测</span>
-            </template>
-            <template #value>
-              <van-switch v-model="visionStore.imgParams.enableCanny" size="1.4rem"></van-switch>
-              <van-slider range :max="160" :min="60" bar-height="8px" class="param-value"
-                :disabled="!visionStore.imgParams.enableCanny" v-model="visionStore.imgParams.cannyThreshold">
-              </van-slider>
-            </template>
-          </van-cell>
-        </van-cell-group>
-
-        <van-cell-group title="噪声滤波" inset :border="false">
-          <van-cell title="均值滤波">
-            <template #label>
-              <van-slider v-model="visionStore.enhance" bar-height="4px" class="param-value">
-                <template #button>
-                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
-                </template>
-              </van-slider>
-            </template>
-          </van-cell>
-          <van-cell title="中值滤波">
-            <template #label>
-              <van-slider v-model="visionStore.enhance" bar-height="4px" class="param-value">
-                <template #button>
-                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
-                </template>
-              </van-slider>
-            </template>
-          </van-cell>
-          <van-cell title="高斯滤波">
-            <template #label>
-              <van-slider v-model="visionStore.enhance" bar-height="4px" class="param-value">
-                <template #button>
-                  <van-button round type="primary" size="mini">{{ enhance }}</van-button>
-                </template>
-              </van-slider>
-            </template>
-          </van-cell>
-        </van-cell-group>
+        <img-params-panel />
       </OverlayScrollbarsComponent>
     </van-col>
     <OverlayScrollbarsComponent class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }"
       defer style="text-align: center;">
       <div class="drag-bar" v-if="!isWeb"></div>
+      <apm-panel  />
       <face-rec />
     </OverlayScrollbarsComponent>
 
@@ -156,13 +28,14 @@
     </van-popup>
   </van-row>
 </template>
-
 <script lang="ts" setup>
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import { ConfigProviderTheme, List, showNotify, Loading } from 'vant'
 import { inject, onMounted, provide, Ref, ref, watch, defineAsyncComponent } from 'vue'
+import { ConfigProviderTheme, showNotify, Loading } from 'vant'
 import Settings from '../settings/Settings.vue'
-import { VisionStore, CommonStore } from '../../store'
+import { CommonStore } from '../../store'
+import ImgParamsPanel from './ImgParamsPanel.vue'
+import ApmPanel from '../components/ApmPanel.vue'
 
 const FaceRec = defineAsyncComponent({
   loader: () => import('./FaceRec.vue'),
@@ -171,23 +44,20 @@ const FaceRec = defineAsyncComponent({
     console.info('loaded')
   }
 })
+
 const isWeb = __IS_WEB__
 const theme = inject<Ref<ConfigProviderTheme>>('theme')
 
 const showSettings = ref<boolean>(false)
 const reverseTheme = ref<string>(theme.value == 'dark' ? 'light' : 'dark')
+const showPopup = ref(false)
+const commonStore = CommonStore()
 
 provide('showSettings', showSettings)
 
-const commonStore = CommonStore()
-const visionStore = VisionStore()
-const show = ref<boolean>(false)
-const enhance = ref(0)
-const showPopup = ref(false)
-
 onMounted(() => {
   if (!__IS_WEB__) {
-    window.mainApi.onOpenSettings(() => { openSettings() })
+    window.mainApi?.onOpenSettings(() => { openSettings() })
   }
 })
 
@@ -277,28 +147,7 @@ a {
   text-decoration: underline;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.v-enter-active,
-.v-leave-active {
-  transition: opacity 0.4s ease;
-}
-
-.v-enter-from,
-.v-leave-to {
-  opacity: 0;
-}
-
-.v-enter-to,
-.v-leave-from {
-  opacity: 1;
+.label {
+  padding: 15px 0;
 }
 </style>

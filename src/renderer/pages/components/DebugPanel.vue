@@ -62,17 +62,12 @@ function toNew() {
 }
 
 function openDevTools() {
-  if (!__IS_WEB__) {
-    window.mainApi.openDevTools()
+  window.mainApi?.openDevTools()
     showDebugPanel.value = false
-  }
 }
 
 async function onSSE() {
-  if (!__IS_WEB__) {
-    window.mainApi.sendServerEvent()
-  }
-
+  window.mainApi?.sendServerEvent()
   await ProxyMock.broadcast(commonStore.uid)
 }
 

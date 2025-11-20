@@ -1,70 +1,134 @@
-import { Face } from "@tensorflow-models/face-landmarks-detection";
-import { drawResults, VIDEO_SIZE } from "./DrawUtils";
+import { FaceDetector } from './FaceDetector'
+import { ImageProcessor } from './ImageProcessor'
 
-const CameraOpts = { mimeType: 'video/webm;codecs=vp9' }
 
 export class Camera {
-  private video: HTMLVideoElement
-  private canvas: HTMLCanvasElement
-  private ctx: CanvasRenderingContext2D
-  // private stream: MediaStream
 
-  mediaRecorder: MediaRecorder
+  private preVideo: HTMLVideoElement
 
-  constructor(video: HTMLVideoElement, canvas: HTMLCanvasElement) {
-    this.video = video
-    this.canvas = canvas
-    this.ctx = this.canvas.getContext('2d')
-    // this.stream = this.canvas.captureStream()
-    // this.mediaRecorder = new MediaRecorder(this.stream, CameraOpts)
+  private preview: HTMLCanvasElement
+  private previewCtx: CanvasRenderingContext2D
+
+  private offscreen: HTMLCanvasElement
+  private offscreenCtx: CanvasRenderingContext2D
+
+  private animationId: number
+  private flip: boolean = true
+  private frame: ImageData
+
+  public imgProcessor: ImageProcessor = null
+  public faceDetector: FaceDetector = null
+  private mediaRecorder: MediaRecorder
+
+  private _frames = 0
+  private _step = 0
+  // private face: Rect = null
+  // private eyes: Array<Rect> = null
+  // private landmarks: Array<Point2> = null
+  // public faceDector: FaceLandmarksDetector = null
+  // private faces: Array<Face> = []
+
+  constructor(video: HTMLVideoElement, priview: HTMLCanvasElement, offscreen: HTMLCanvasElement, flip: boolean = true) {
+    this.preVideo = video
+    this.preview = priview
+    this.offscreen = offscreen
+
+    this.previewCtx = this.preview.getContext('2d', { willReadFrequently: true })
+    this.offscreenCtx = this.offscreen.getContext('2d', { willReadFrequently: true })
+
+    this.previewCtx.imageSmoothingEnabled = true
+    this.previewCtx.imageSmoothingQuality = 'high'
+
+    this.flip = flip
   }
 
-  static async setupCamera(video: HTMLVideoElement, canvas: HTMLCanvasElement, params: any) {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error('Browser API navigator.mediaDevices.getUserMedia not available');
+  async processFrame() {
+    if (this.preVideo.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) return
+
+    this.offscreen.width = this.preview.width = this.preVideo.videoWidth
+    this.offscreen.height = this.preview.height = this.preVideo.videoHeight
+
+    if (this.frame == null || this.frame.width != this.offscreen.width || this.frame.height != this.offscreen.height) {
+      this.frame = new ImageData(this.offscreen.width, this.offscreen.height)
     }
 
-    const { targetFPS, sizeOpt } = params
-    const size = VIDEO_SIZE[sizeOpt]
-    const videoConfig = {
-      'audio': false,
-      'video': {
-        facingMode: 'user',
-        width: size.width,
-        height: size.height,
-        frameRate: { ideal: targetFPS }
-      }
+    if (this.flip) {
+      this.offscreenCtx.scale(-1, 1)
+      this.offscreenCtx.translate(-this.offscreen.width, 0)
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia(videoConfig)
-    const camera = new Camera(video, canvas)
-    camera.video.srcObject = stream
+    this.offscreenCtx.drawImage(this.preVideo, 0, 0, this.offscreen.width, this.offscreen.height)
+    this.frame.data.set(this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data)
+    // this.frame.data = this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data
+    this.imgProcessor?.process(this.frame)
+    this.offscreenCtx.putImageData(this.frame, 0, 0)
+    this.previewCtx.drawImage(this.offscreen,
+      0, 0, this.frame.width, this.frame.height,
+      0, 0, this.frame.width, this.frame.height)
 
-    await new Promise((resolve) => {
-      camera.video.onloadedmetadata = () => {
-        resolve(video)
+    await this.faceDetector.detect(this.frame)
+
+    this.previewCtx.fillStyle = '#c0392b'
+    this.previewCtx.font = '14px sans-serif'
+    this.previewCtx.fillText(`Slope: ${this.faceDetector.faceAngle}\n Time: ${this.faceDetector.time}`, 10, 20)
+
+    if (Math.abs(this.faceDetector.faceAngle) > 5) {
+      this.faceDetector.enableFaceAngle = false
+      let size = Math.floor(500 / this.faceDetector.time)
+      this._step = this.faceDetector.faceAngle / 15
+      this._frames = 15
+    }
+
+    if (this._frames > 0) {
+      this._frames--
+      this.imgProcessor.imgProcessParams['rotate'] = this._step * (15 - this._frames)
+    } else {
+      this.faceDetector.enableFaceAngle = true
+      this._step = 0
+      this._frames = 0
+    }
+
+    console.log(this._frames)
+  }
+
+
+  get isOpen(): boolean {
+    return this.preVideo.srcObject != null
+  }
+
+  async open() {
+    if (__IS_WEB__) return
+
+    if (this.preVideo.srcObject) {
+      this.previewCtx.clearRect(0, 0, this.preview.width, this.preview.height)
+      this.offscreenCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height)
+      this.close()
+      this.preVideo.srcObject = null
+      return
+    }
+
+    this.faceDetector?.reset()
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      this.preVideo.srcObject = stream
+      var loop = () => {
+        this.processFrame()
+        this.animationId = requestAnimationFrame(loop)
       }
-    })
-
-    camera.video.play()
-
-    const videoW = camera.video.videoWidth
-    const videoH = camera.video.videoHeight
-
-    camera.canvas.width = videoW
-    camera.canvas.height = videoH
-
-    camera.ctx.translate(camera.video.videoWidth, 0)
-    camera.ctx.scale(-1, 1)
-
-    return camera
+      this.animationId = requestAnimationFrame(loop)
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  drawCtx() {
-    this.ctx.drawImage(this.video, 0, 0, this.video.videoWidth, this.video.videoHeight)
-  }
+  close() {
+    if (this.animationId) cancelAnimationFrame(this.animationId)
+    if (this.preVideo.srcObject) {
+      (this.preVideo.srcObject as MediaStream).getTracks().forEach(track => track.stop())
+    }
 
-  drawResult(faces:Face[], triangulateMesh = false, boundingBox = false) {
-    drawResults(this.ctx, faces, triangulateMesh, boundingBox)
+    this.offscreenCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height)
+    this.previewCtx.clearRect(0, 0, this.preview.width, this.preview.height)
   }
 }

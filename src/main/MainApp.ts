@@ -17,7 +17,7 @@ const BUILD_CONFIG = JSON.parse(process.env.BUILD_CONFIG)
 const VUE_PLUGIN = os.platform() == 'darwin' ? '~/Downloads/vue-devtools/7.6.8_0' : 'D:/vue-devtools/7.6.5_0'
 
 if (!IS_DEV) {
-  // process.env.OPENCV_BIN_DIR = path.join(__dirname, '../../')
+  process.env.OPENCV_BIN_DIR = path.join(__dirname, '../../')
 }
 
 console.log(`opencv env: ${process.env.OPENCV_BIN_DIR}`)
@@ -44,7 +44,7 @@ export default class MainApp {
     app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors')
     app.commandLine.appendSwitch('ignore-certificate-errors')
     app.commandLine.appendSwitch('disable-software-rasterizer')
-    
+
     // app.disableHardwareAcceleration()
     // app.commandLine.appendSwitch('disable-gpu')
 
