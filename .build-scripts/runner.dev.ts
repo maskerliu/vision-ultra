@@ -26,7 +26,7 @@ let manualRestart = false
 let hotMiddleware: any
 
 function startDevServer(config: BaseConfig, host: string, port: number): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
+  return new Promise<void>(async (resolve, reject) => {
     config.mode = Run_Mode_DEV
     const compiler = webpack(config)
 
@@ -66,6 +66,10 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
         console.log(config.name, err, 'red')
         reject()
         return
+      } else if (stats?.hasErrors()) {
+        console.log(config.name, stats.toString({ colors: true, errors: true }), 'red')
+        reject()
+        return
       }
 
       // console.log(config.name, stats)
@@ -73,12 +77,20 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
 
     const server = new WebpackDevServer(serverConfig, compiler)
 
-    server.start()
-      .then(() => resolve())
-      .catch(err => {
-        console.log(config.name, chalk.redBright(`fail to start ${config.target} server`, err))
-        reject()
-      })
+    try {
+      await server.start()
+      resolve()
+    } catch (err) {
+      console.log(config.name, chalk.redBright(`fail to start ${config.target} server`, err))
+      reject()
+      return
+    }
+    // server.start()
+    //   .then(() => resolve())
+    //   .catch(err => {
+    //     console.log(config.name, chalk.redBright(`fail to start ${config.target} server`, err))
+    //     reject()
+    //   })
   })
 }
 
@@ -184,7 +196,6 @@ async function start() {
     let localIPv4 = ips[0].address
 
     await Promise.all([
-      startDevServer(webConfig.init(localIPv4), localIPv4, 9081),
       startDevServer(rendererConfig.init(localIPv4), 'localhost', 9080),
       startMain()
     ])

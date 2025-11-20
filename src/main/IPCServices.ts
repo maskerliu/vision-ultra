@@ -2,12 +2,12 @@ import { spawn } from "child_process"
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from "electron"
 import fs, { writeFileSync } from 'fs'
 import fse from 'fs-extra'
+import { Buffer } from "node:buffer"
 import os from 'os'
 import path from "path"
 import { Version } from "../common"
 import { MainAPICMD } from "../common/ipc.api"
 import { fullUpdate, incrementUpdate } from "./AppUpdater"
-import { USER_DATA_DIR } from "./MainConst"
 
 ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   if (fse.pathExistsSync(path.join(process.resourcesPath, 'update.asar'))) {
@@ -71,7 +71,7 @@ ipcMain.handle(MainAPICMD.SaveFileAs, async (_, title: string, fileName: string,
     filters,
     defaultPath: path.join(app.getPath('downloads'), fileName)
   }).then((result) => {
-    writeFileSync(result.filePath, Buffer.from(data) )
+    writeFileSync(result.filePath, Buffer.from(data))
   }).catch((reasion) => {
     console.log(`save as--catch:${reasion}`)
   })

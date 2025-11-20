@@ -1,9 +1,7 @@
-import { Point2, Rect } from "@u4/opencv4nodejs"
-import { TRIANGULATION } from "./Triangulation"
+
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection'
 import { Face } from "@tensorflow-models/face-landmarks-detection"
-import exp from "constants"
-import { B, R } from "ace-builds-internal/lib/bidiutil"
+import { TRIANGULATION } from "./Triangulation"
 
 export const NUM_KEYPOINTS = 468
 export const NUM_IRIS_KEYPOINTS = 5
@@ -56,7 +54,7 @@ export function drawPath(ctx: CanvasRenderingContext2D, points: number[][], clos
 
 
 export function drawMutliLine(context: CanvasRenderingContext2D,
-  points: Array<Point2>, start: number, end: number, closed: boolean = false) {
+  points: Array<any>, start: number, end: number, closed: boolean = false) {
   context.beginPath()
   context.strokeStyle = BLUE
   context.lineWidth = 4
@@ -72,7 +70,7 @@ export function drawMutliLine(context: CanvasRenderingContext2D,
 }
 
 export function drawCVFaceResult(context: CanvasRenderingContext2D,
-  face: Rect, eyes: Array<Rect>, landmarks?: Array<Point2>) {
+  face: any, eyes: Array<any>, landmarks?: Array<any>) {
   if (face == null) return
   context.beginPath()
   context.strokeStyle = GREEN
@@ -208,6 +206,7 @@ export function getFaceContour(face: Face) {
 }
 
 export function getFaceSlope(face: Face) {
+  if (face == null) return 0
   const keypoints = face.keypoints.map((keypoint) => [keypoint.x - face.box.xMin, keypoint.y - face.box.yMin])
   let leftEye = FaceContours['leftIris'].map((index) => keypoints[index])
   let rightEye = FaceContours['rightIris'].map((index) => keypoints[index])
