@@ -19,12 +19,14 @@ export class FaceRecService {
   }
 
   async registe(name: string, vector: any, avatar: File) {
+    let arr = vector.split(',').map((item: string) => {
+      return Number(item)
+    })
     let fileName = `${avatar.newFilename}${path.extname(avatar.originalFilename)}`
     let dstPath = path.join(USER_DATA_DIR, 'avatar', fileName)
-    console.log(path.dirname(dstPath))
     await fse.ensureDir(path.dirname(dstPath))
     await fse.move(avatar.filepath, dstPath)
-    this.faceRepo.insert(name, vector, fileName)
+    await this.faceRepo.insert(name, convert2DArray(arr, 2), fileName)
     return name
   }
 
@@ -41,7 +43,19 @@ export class FaceRecService {
 
   async recognize(vector: any) {
     let name = 'chris'
-    await this.faceRepo.search(vector)
+    let arr = vector.split(',').map((item: string) => {
+      return Number(item)
+    })
+    let result = await this.faceRepo.search(convert2DArray(arr, 2))
+    console.log(result)
     return name
   }
+}
+
+function convert2DArray(arr: any, size: number) {
+  const result = []
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size))
+  }
+  return result
 }

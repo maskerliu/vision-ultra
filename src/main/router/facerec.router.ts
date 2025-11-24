@@ -38,7 +38,7 @@ export class FaceRecRouter extends BaseRouter {
     this.addApiInfo({
       method: BizNetwork.Method_Get, path: `${API_URL.F_Recognize}`,
       func: 'recognize', target: 'faceRecService',
-      params: [{ key: 'uid', type: ParamType.Path }]
+      params: [{ key: 'vector', type: ParamType.FormBody }]
     })
 
   }

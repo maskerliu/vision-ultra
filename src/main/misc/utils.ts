@@ -205,7 +205,8 @@ export async function parseMultipartForm(files: Files<string>, req: Request) {
   }
 }
 
-export function fetchFormFile(file: File) {
+export function fetchFormFile(file: string | File) {
+  if (typeof file === 'string') { return file }
   let data = fse.readFileSync(file.filepath, 'utf-8')
   switch (file.mimetype) {
     case BizNetwork.MIME_JSON:

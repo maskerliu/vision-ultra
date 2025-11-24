@@ -146,7 +146,7 @@ onMounted(async () => {
 })
 
 async function onCollect() {
-
+  await faceDetector?.faceRec()
 }
 
 async function onClickCamera() {

@@ -7,15 +7,17 @@ export namespace FaceRec {
     return get<Array<string>>(`${API_URL.FaceRec}${API_URL.F_List}`)
   }
 
-  export function registe(name: string, vector: any, avatar: Blob) {
+  export function registe(name: string, vector: any, avatar: File) {
     let formData = new FormData()
-    formData.append('name', name)
-    formData.append('vector', vector)
-    // formData.append('avatar', avatar)
+    formData.append('name', new File([name], 'name', { type: 'text/plain' }))
+    formData.append('vector', new File([vector], 'vector', { type: 'text/plain' }))
+    formData.append('avatar', avatar)
     return formPost<string>(`${API_URL.FaceRec}${API_URL.F_Registe}`, null, null, formData)
   }
 
   export function recognize(vector: any) {
-    return post<Array<string>>(`${API_URL.FaceRec}${API_URL.F_Recognize}`, null, {}, vector)
+    let formData = new FormData()
+    formData.append('vector', new File([vector], 'vector', { type: 'text/plain' }))
+    return formPost<string>(`${API_URL.FaceRec}${API_URL.F_Recognize}`, null, {}, formData)
   }
 }
