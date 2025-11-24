@@ -56,7 +56,6 @@ let cvWasmApi: IOpencvAPI = {
       laplace: [number, number], // 二阶导数滤波器的孔径大小，必须为正奇数
       cannyThreshold: [number, number],
     }>) {
-    console.log(cv.CV_8UC4)
     if (sharedData.length !== width * height * 4) {
       sharedData = null
       sharedData = new Uint8ClampedArray(width * height * 4)

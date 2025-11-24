@@ -52,6 +52,7 @@ export class CommonService  {
   }
 
   getAllConfig(): BizConfig {
+    console.log('get all config')
     return this._mixConfig
   }
 

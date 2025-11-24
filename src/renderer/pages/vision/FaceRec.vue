@@ -46,6 +46,11 @@
               <van-icon class="iconfont icon-capture" />
             </template>
           </van-button>
+          <van-button plain size="small" type="success" style="margin-left: 15px;" @click="onCollect">
+            <template #icon>
+              <van-icon class="iconfont icon-collect" />
+            </template>
+          </van-button>
           <van-button plain size="small" type="default" style="margin-left: 15px;" @click="onClickCamera">
             <template #icon>
               <van-icon class="iconfont icon-camera" />
@@ -59,17 +64,22 @@
       <canvas ref="masklayer" style="display: none;"></canvas>
       <video ref="preVideo" autoplay style="display: none;"></video>
     </van-cell-group>
+
+    <van-dialog v-model:show="showNameInputDialog" title="请输入姓名" show-cancel-button @confirm="onConfirmName">
+      <van-field v-model="name" placeholder="请输入姓名" />
+    </van-dialog>
   </van-row>
 </template>
 <script lang="ts" setup>
 
 import { VERSION } from '@mediapipe/face_mesh'
 import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
-import { onMounted, useTemplateRef, watch } from 'vue'
+import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { Camera } from '../../common/Camera'
 import { FaceDetector } from '../../common/FaceDetector'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VisionStore } from '../../store'
+import * as tf from '@tensorflow/tfjs'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -79,16 +89,32 @@ const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
+const showNameInputDialog = ref(false)
+const name = ref('')
+
 let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let imgProcessor: ImageProcessor = new ImageProcessor()
 let faceDetector: FaceDetector
 let camera: Camera = null
 
+function tensorTest() {
+  let angle = 90 * Math.PI / 180
+  let cos = Math.cos(angle)
+  let sin = Math.sin(angle)
+  let martix = tf.tensor([[cos, -sin], [sin, cos]])
+
+  let tmp = tf.tensor2d([[1, 0], [3, 0]])
+  tmp.print()
+  tf.matMul(tmp, martix).print()
+}
+
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
     camera?.close()
   })
+
+  // tensorTest()
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
@@ -101,6 +127,7 @@ onMounted(async () => {
   faceDetector.drawFace = visionStore.drawFaceMesh
   faceDetector.faceDetect = visionStore.faceDetect
   faceDetector.faceRecMode = visionStore.faceRecMode as any
+  faceDetector.imgProcessor = imgProcessor
   faceDetector.dector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
     runtime: 'mediapipe',
     solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${VERSION}`,
@@ -117,6 +144,10 @@ onMounted(async () => {
     window.tfApi?.init('mediapipe-gpu')
   }
 })
+
+async function onCollect() {
+
+}
 
 async function onClickCamera() {
   camera?.open()
@@ -146,7 +177,14 @@ async function openFolder() {
 }
 
 async function onCapture() {
-  faceDetector?.faceCapture(offscreenCtx)
+  showNameInputDialog.value = true
+  // faceDetector?.faceCapture(offscreenCtx)
+}
+
+function onConfirmName() {
+  faceDetector?.faceCapture(offscreenCtx, name.value)
+  name.value = null
+  showNameInputDialog.value = false
 }
 
 function drawImage() {
@@ -167,6 +205,10 @@ watch(() => visionStore.drawFaceMesh, (val) => {
 
 watch(() => visionStore.faceRecMode, (val) => {
   faceDetector.faceRecMode = val as any
+})
+
+watch(() => visionStore.imgEnhance, (val) => {
+  imgProcessor.imgEnhance = val
 })
 
 watch(() => visionStore.imgProcessMode, (val) => {

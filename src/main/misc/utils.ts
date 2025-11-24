@@ -1,6 +1,6 @@
 import { Request } from "express"
 import { File, Files } from "formidable"
-import { readFileSync } from "fs"
+import fse from 'fs-extra'
 import { Address6 } from 'ip-address'
 import JSONBig from 'json-bigint'
 import { NetworkInterfaceInfo, networkInterfaces } from 'os'
@@ -25,7 +25,10 @@ export namespace BizNetwork {
   export const MIME_MULTIPART = 'multipart/form-data'
   export const MIME_JSON = 'application/json'
   export const MIME_TEXT = 'text/plain'
-  export const MIME_IMAGE = 'image/jpeg'
+  export const MIME_IMAGE_JPEG = 'image/jpeg'
+  export const MIME_IMAGE_PNG = 'image/png'
+  export const MIME_IMAGE_GIF = 'image/gif'
+  export const MIME_IMAGE_WEBP = 'image/webp'
   export const MIME_FORM = 'application/x-www-form-urlencoded'
 }
 
@@ -178,16 +181,19 @@ export async function parseMultipartForm(files: Files<string>, req: Request) {
       let data: any
       switch (file.mimetype) {
         case BizNetwork.MIME_JSON:
-          data = readFileSync(file.filepath, 'utf-8')
+          data = await fse.readFile(file.filepath, 'utf-8')
           let blob = new Blob([data], { type: file.mimetype })
           formData.set(key, data)
           break
         case BizNetwork.MIME_TEXT:
-          data = readFileSync(file.filepath, 'utf-8')
+          data = await fse.readFile(file.filepath, 'utf-8')
           formData.set(key, data)
           break
-        case BizNetwork.MIME_IMAGE:
-          data = readFileSync(file.filepath, 'utf-8')
+        case BizNetwork.MIME_IMAGE_JPEG:
+        case BizNetwork.MIME_IMAGE_PNG:
+        case BizNetwork.MIME_IMAGE_GIF:
+        case BizNetwork.MIME_IMAGE_WEBP:
+          data = await fse.readFile(file.filepath, 'utf-8')
           formData.set(key, data)
           break
       }
@@ -200,16 +206,18 @@ export async function parseMultipartForm(files: Files<string>, req: Request) {
 }
 
 export function fetchFormFile(file: File) {
-  let data = readFileSync(file.filepath, 'utf-8')
+  let data = fse.readFileSync(file.filepath, 'utf-8')
   switch (file.mimetype) {
     case BizNetwork.MIME_JSON:
-      data = readFileSync(file.filepath, 'utf-8')
+      data = fse.readFileSync(file.filepath, 'utf-8')
       return JSON.parse(data)
     case BizNetwork.MIME_TEXT:
-      return readFileSync(file.filepath, 'utf-8')
-      break
-    case BizNetwork.MIME_IMAGE:
-      return readFileSync(file.filepath, 'utf-8')
+      return fse.readFileSync(file.filepath, 'utf-8')
+    case BizNetwork.MIME_IMAGE_JPEG:
+    case BizNetwork.MIME_IMAGE_PNG:
+    case BizNetwork.MIME_IMAGE_GIF:
+    case BizNetwork.MIME_IMAGE_WEBP:
+      return file
   }
 }
 

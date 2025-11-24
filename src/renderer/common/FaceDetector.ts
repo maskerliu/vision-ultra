@@ -2,17 +2,20 @@ import { Face, FaceLandmarksDetector } from "@tensorflow-models/face-landmarks-d
 import * as tf from '@tensorflow/tfjs'
 import { showNotify } from "vant"
 import { drawCVFaceResult, drawTFFaceResult, getFaceContour, getFaceSlope } from "./DrawUtils"
+import { ImageProcessor } from "./ImageProcessor"
+import { FaceRec } from "../../common"
 
 
 export class FaceDetector {
   public faceDetect: boolean = false
   public faceRecMode: '1' | '2' = '2'
-  private frames = 0
   private face: any = null
   private eyes: Array<any> = null
   private landmarks: Array<any> = null
   public dector: FaceLandmarksDetector = null
   private faces: Array<Face> = []
+
+  public imgProcessor: ImageProcessor = null
 
   public drawFace: boolean = true
 
@@ -47,6 +50,7 @@ export class FaceDetector {
 
   set enableFaceAngle(enable: boolean) {
     this._enableFaceAngle = enable
+    this._faceAngle = 0
   }
 
   get enableFaceAngle() {
@@ -62,12 +66,6 @@ export class FaceDetector {
   }
 
   async detect(frame: ImageData) {
-    // if (this.frames < 3) {
-    //   this.frames++
-    //   return
-    // }
-    this.frames = 0
-
     if (!this.faceDetect) {
       this.faces = this.eyes = this.landmarks = this.face = null
       return
@@ -112,7 +110,35 @@ export class FaceDetector {
     }
   }
 
-  async faceCapture(context: CanvasRenderingContext2D) {
+
+  genFaceTensor(face: Face) {
+    let slope = getFaceSlope(this.faces[0])
+    let angle = Math.atan(slope) * 180 / Math.PI
+    let tmpAngle = 0
+    if (angle > 0) {
+      tmpAngle = 90 - angle
+    }
+    if (angle < 0) {
+      tmpAngle = -(90 + angle)
+    }
+
+    let cos = Math.cos(tmpAngle)
+    let sin = Math.sin(tmpAngle)
+    let martix = tf.tensor([[cos, -sin], [sin, cos]])
+    let tmp = face.keypoints.map((p) => [p.x - face.box.xMin, p.y - face.box.yMin])
+    let tensor = tf.tensor(tmp)
+    let min = tensor.min()
+    let max = tensor.max()
+    tensor = tensor.sub(min).div(max.sub(min)) // normilize
+    let result = tf.matMul(tensor, martix)
+    tensor.dispose()
+    min.dispose()
+    max.dispose()
+    martix.dispose()
+    return result
+  }
+
+  async faceCapture(context: CanvasRenderingContext2D, name: string = '') {
     if (__IS_WEB__) return
     if (this.faces == null || this.faces.length == 0) {
       showNotify({ type: 'warning', message: '未检测到人脸...', duration: 500 })
@@ -120,6 +146,10 @@ export class FaceDetector {
     }
 
     let face = this.faces[0].keypoints.map((p) => [p.x - this.faces[0].box.xMin, p.y - this.faces[0].box.yMin])
+
+    let faceTensor = this.genFaceTensor(this.faces[0])
+    faceTensor?.print()
+
     let tensor = tf.tensor(face)
     tensor = tensor.sub(tensor.min()).div(tensor.max().sub(tensor.min()))
     if (this.faceTensor == null) {
@@ -136,7 +166,7 @@ export class FaceDetector {
       this.faceTensor.dispose()
       this.faceTensor = tensor
     }
-    
+
     let path = getFaceContour(this.faces[0])
     this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     this.masklayerCtx.clearRect(0, 0, this.masklayer.width, this.masklayer.height)
@@ -145,19 +175,8 @@ export class FaceDetector {
     this.masklayer.width = this.faces[0].box.width
     this.masklayer.height = this.faces[0].box.height
 
-    let eyes = getFaceSlope(this.faces[0])
     let imageData = context.getImageData(this.faces[0].box.xMin, this.faces[0].box.yMin,
       this.faces[0].box.width, this.faces[0].box.height)
-
-
-    // const { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
-    //   isGray: visionStore.isGray,
-    //   contrast: visionStore.contrast,
-    //   brightness: visionStore.brightness,
-    //   laplace: visionStore.laplace,
-    //   enhance: visionStore.enhance
-    // })
-    // imageData = new ImageData(data as ImageDataArray, width, height)
     this.captureCtx.putImageData(imageData, 0, 0)
     this.masklayerCtx.beginPath()
     for (let i = 1; i < path.length; i++) {
@@ -180,13 +199,24 @@ export class FaceDetector {
       }
     }
     this.captureCtx.translate(this.capture.width / 2, this.capture.height / 2)
-
+    this.calacleFaceAngle()
+    this.imgProcessor.imgProcessParams['rotate'] = this._faceAngle
+    this.imgProcessor?.process(imageData)
     this.captureCtx.putImageData(imageData, 0, 0)
+    context.putImageData(imageData, this.faces[0].box.xMin, this.faces[0].box.yMin)
     this.capture.toBlob(async (blob) => {
       let buffer = await blob.arrayBuffer()
-      // window.mainApi.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
+
+      let array = await faceTensor.array()
+      console.log(array)
+      try {
+        await FaceRec.registe(name, faceTensor.arraySync(), blob)
+      } catch (err) {
+        showNotify({ type: 'warning', message: '保存失败', duration: 500 })
+      }
+      console.log(__IS_WEB__)
       if (!__IS_WEB__) {
-        window.mainApi?.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
+        window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
       } else {
         showNotify({ type: 'warning', message: '图片已保存到剪贴板', duration: 500 })
       }

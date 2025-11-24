@@ -8,6 +8,7 @@ import { Version } from "../common"
 import { MainAPICMD } from "../common/ipc.api"
 import { fullUpdate, incrementUpdate } from "./AppUpdater"
 import { USER_DATA_DIR } from "./MainConst"
+import { getAppWindow } from "./misc/utils"
 
 ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   if (fse.pathExistsSync(path.join(process.resourcesPath, 'update.asar'))) {
@@ -48,13 +49,15 @@ ipcMain.handle(MainAPICMD.OpenFile, async (_, target: string) => {
   })
 
   if (result.canceled) return
-  BrowserWindow.getFocusedWindow()?.webContents.send(MainAPICMD.OpenFile, result.filePaths[0])
+  getAppWindow()?.webContents.send(MainAPICMD.OpenFile, result.filePaths[0])
 })
 
 ipcMain.handle(MainAPICMD.SaveFileAs, async (_, title: string, fileName: string, data: string | ArrayBuffer, slient = false) => {
 
+  let filePath = path.join(USER_DATA_DIR, fileName)
+  await fse.ensureDir(path.dirname(filePath))
   if (slient) {
-    fse.writeFileSync(path.join(USER_DATA_DIR, fileName), Buffer.from(data as any) as any)
+    await fse.writeFile(path.join(USER_DATA_DIR, fileName), Buffer.from(data as any) as any)
     return
   }
 
@@ -66,16 +69,17 @@ ipcMain.handle(MainAPICMD.SaveFileAs, async (_, title: string, fileName: string,
       filters.unshift({ name: '', extensions: [name] })
     }
   }
-  dialog.showSaveDialog(BrowserWindow.getFocusedWindow(), {
-    title,
-    filters,
-    defaultPath: path.join(USER_DATA_DIR, fileName)
-  }).then((result) => {
-    fse.writeFileSync(path.join(USER_DATA_DIR, fileName), Buffer.from(data as any) as any)
-  }).catch((reasion) => {
-    console.log(`save as--catch:${reasion}`)
-  })
 
+  try {
+    await dialog.showSaveDialog(BrowserWindow.getFocusedWindow(), {
+      title,
+      filters,
+      defaultPath: path.join(USER_DATA_DIR, fileName)
+    })
+    await fse.writeFile(path.join(USER_DATA_DIR, fileName), Buffer.from(data as any) as any)
+  } catch (e) {
+    console.log(`save as--catch:${e}`)
+  }
 })
 
 
