@@ -90,6 +90,12 @@ export class FaceDetector {
     }
   }
 
+  async faceRec() {
+    let vector = this.genFaceTensor(this.faces[0])
+    let result = await FaceRec.recognize(vector)
+    console.log(result)
+  }
+
   private calacleFaceAngle() {
     if (!this._enableFaceAngle) {
       this._faceAngle = 0
@@ -111,7 +117,7 @@ export class FaceDetector {
   }
 
 
-  genFaceTensor(face: Face) {
+  private genFaceTensor(face: Face) {
     let slope = getFaceSlope(this.faces[0])
     let angle = Math.atan(slope) * 180 / Math.PI
     let tmpAngle = 0
@@ -143,28 +149,6 @@ export class FaceDetector {
     if (this.faces == null || this.faces.length == 0) {
       showNotify({ type: 'warning', message: '未检测到人脸...', duration: 500 })
       return
-    }
-
-    let face = this.faces[0].keypoints.map((p) => [p.x - this.faces[0].box.xMin, p.y - this.faces[0].box.yMin])
-
-    let faceTensor = this.genFaceTensor(this.faces[0])
-    faceTensor?.print()
-
-    let tensor = tf.tensor(face)
-    tensor = tensor.sub(tensor.min()).div(tensor.max().sub(tensor.min()))
-    if (this.faceTensor == null) {
-      this.faceTensor = tensor
-    } else {
-      let diff = this.faceTensor.squaredDifference(tensor)
-      let distance = diff.sum().sqrt()
-      distance.print()
-      distance.dispose()
-      // let similarity = this.faceTensor.dot(tensor).div(this.faceTensor.norm(2).mul(tensor.norm(2)))
-      // similarity.print()
-      // similarity.dispose()
-
-      this.faceTensor.dispose()
-      this.faceTensor = tensor
     }
 
     let path = getFaceContour(this.faces[0])
@@ -207,10 +191,9 @@ export class FaceDetector {
     this.capture.toBlob(async (blob) => {
       let buffer = await blob.arrayBuffer()
 
-      let array = await faceTensor.array()
-      console.log(array)
       try {
-        await FaceRec.registe(name, faceTensor.arraySync(), blob)
+        let faceTensor = this.genFaceTensor(this.faces[0])
+        await FaceRec.registe(name, faceTensor.arraySync(), new File([blob], 'avatar.png', { type: 'image/png' }))
       } catch (err) {
         showNotify({ type: 'warning', message: '保存失败', duration: 500 })
       }

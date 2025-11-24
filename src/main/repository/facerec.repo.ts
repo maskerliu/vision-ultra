@@ -51,7 +51,7 @@ export class FaceRecRepo {
     // await this._faceTable.add({ vector, name , snap})
   }
 
-  async search(faceVector: [number]) {
+  async search(faceVector: any) {
     await this.init()
 
     let results = await this._faceTable.vectorSearch(faceVector).limit(20).toArray()

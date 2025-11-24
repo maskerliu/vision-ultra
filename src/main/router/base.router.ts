@@ -68,17 +68,22 @@ export abstract class BaseRouter {
         if (contentType == BizNetwork.MIME_MULTIPART) {
           let [_, files] = await this._form.parse(req)
           req['files'] = files
-          console.log(files)
         } else if (contentType == BizNetwork.MIME_JSON) {
           jsonBody = parseJsonBody(req)
         }
       }
-      let filesBody = req['files'] as Files<any>
+      let filesBody = req['files']
       for (const item of paramInfos) {
         if (item.type == ParamType.FormBody) {
           if (contentType == BizNetwork.MIME_MULTIPART) {
-            console.log('ddd', filesBody[item.key])
-            params.push(fetchFormFile(filesBody[item.key][0]))
+            try {
+              if (filesBody[item.key] != null) {
+                params.push(fetchFormFile(filesBody[item.key][0]))
+              }
+            } catch (err) {
+              console.error('error:', err)
+            }
+
           } else if (contentType == BizNetwork.MIME_JSON) {
             params.push(jsonBody)
           } else if (contentType == BizNetwork.MIME_FORM) {
