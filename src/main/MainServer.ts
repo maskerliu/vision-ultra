@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, HttpStatusCode, Method } from 'axios'
 import cors, { CorsOptions } from 'cors'
 import express, { Application, Request, Response } from 'express'
 // import fileUpload from 'express-fileupload'
-import fs from 'fs'
+import fse from 'fs-extra'
 import { Server } from 'http'
 import http2express from 'http2-express'
 import path from 'path'
@@ -10,9 +10,11 @@ import tcpPortUsed from 'tcp-port-used'
 import { BizConfig } from '../common/base.models'
 import { bizContainer } from './IocContainer'
 import { IocTypes, USER_DATA_DIR } from './MainConst'
-import { CommonRouter, MapiRouter } from './router'
+import { CommonRouter, FaceRecRouter, MapiRouter } from './router'
 import { CommonService, PushService } from './service'
 import { FaceRecRepo } from './repository/facerec.repo'
+import { API_URL } from '../common/api.const'
+import compression from 'compression'
 
 export class MainServer {
 
@@ -22,17 +24,17 @@ export class MainServer {
   private httpApp: Application
 
   private mapiRouter: MapiRouter
+  private faceRecRouter: FaceRecRouter
   private commonRouter: CommonRouter
   private commonService: CommonService
   private pushService: PushService
-  private faceRecRepo: FaceRecRepo
 
   bootstrap() {
     this.commonRouter = bizContainer.get(IocTypes.CommonRouter)
     this.mapiRouter = bizContainer.get(IocTypes.MapiRouter)
     this.commonService = bizContainer.get(IocTypes.CommonService)
     this.pushService = bizContainer.get(IocTypes.PushService)
-    this.faceRecRepo = bizContainer.get(IocTypes.FaceRecRepo)
+    this.faceRecRouter = bizContainer.get(IocTypes.FaceRecRouter)
   }
 
   private corsOpt: CorsOptions = {
@@ -41,12 +43,6 @@ export class MainServer {
   }
 
   public async start() {
-    try {
-      await this.faceRecRepo.init()
-    } catch (err) {
-      console.error(err)
-    }
-
     let portUsed = await tcpPortUsed.check(this.commonService.allConfig.port, '127.0.0.1')
 
     let config = this.commonService.allConfig
@@ -112,10 +108,10 @@ export class MainServer {
     this.httpApp.use(express.text({ type: 'application/json', limit: '50mb' }))
     this.httpApp.use(express.json())
 
-    this.httpApp.use('/_', this.commonRouter.router)
-    this.httpApp.use('/mapi', this.mapiRouter.router)
-    this.httpApp.use('/mediaproxy', this.proxyCorsMedia)
-    // this.httpApp.use('/burying-point', this.buryPointRouter.router)
+    this.httpApp.use(API_URL.Common, this.commonRouter.router)
+    this.httpApp.use(API_URL.MApi, this.mapiRouter.router)
+    this.httpApp.use(API_URL.FaceRec, this.faceRecRouter.router)
+    this.httpApp.use(API_URL.CorsMediaProxy, this.proxyCorsMedia)
   }
 
   private async startHttpServer() {
@@ -132,8 +128,8 @@ export class MainServer {
     let baseDir = process.env.NODE_ENV == 'development' ? '' : __dirname + '/'
     if (this.commonService.allConfig.protocol == 'https') {
       HTTP = await import('http2')
-      var key = fs.readFileSync(baseDir + 'cert/server.key')
-      var cert = fs.readFileSync(baseDir + 'cert/server.crt')
+      var key = fse.readFileSync(baseDir + 'cert/server.key')
+      var cert = fse.readFileSync(baseDir + 'cert/server.crt')
       let opt = { key, cert, allowHTTP1: true }
       this.httpServer = HTTP.createSecureServer(opt, this.httpApp)
     } else {

@@ -4,6 +4,7 @@ import { IocTypes } from '../MainConst'
 import { BizNetwork } from '../misc/utils'
 import { CommonService } from '../service'
 import { BaseRouter, ParamType } from './base.router'
+import { API_URL } from '../../common/api.const'
 
 interface ReqResp {
   req: Request
@@ -65,14 +66,14 @@ export class CommonRouter extends BaseRouter {
 
   override initApiInfos(): void {
     this.addApiInfo({
-      method: BizNetwork.Method_Get, path: '/register/:uid', func: 'register', target: 'commonService',
-      params: [{ key: 'uid', type: ParamType.Path }]
+      method: BizNetwork.Method_Get,
+      path: `${API_URL.GetAllPushClients}`,
+      func: 'getAllPushClients', target: 'pushService'
     })
     this.addApiInfo({
-      method: BizNetwork.Method_Get, path: '/getAllPushClients', func: 'getAllPushClients', target: 'pushService'
-    })
-    this.addApiInfo({
-      method: BizNetwork.Method_Get, path: '/getBizConfig', func: 'getAllConfig', target: 'commonService'
+      method: BizNetwork.Method_Get,
+      path: `${API_URL.GetBizConfig}`,
+      func: 'getAllConfig', target: 'commonService'
     })
   }
 }

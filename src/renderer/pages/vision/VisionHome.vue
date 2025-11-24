@@ -4,8 +4,8 @@
       <van-row justify="space-between">
         <van-row></van-row>
         <div style="padding: 1px 0;">
-          <van-icon class="iconfont icon-qrcode left-panel-icon" @click="commonStore.showQrCode = true" />
-          <van-icon class="iconfont icon-data left-panel-icon" @click="" />
+          <van-icon class="iconfont icon-apm left-panel-icon" @click="commonStore.showQrCode = true" />
+          <van-icon class="iconfont icon-data left-panel-icon" @click="openFaceDbMgr" />
           <van-icon class="iconfont icon-setting left-panel-icon" @click="openSettings">
             <span class="badge-dot"></span>
           </van-icon>
@@ -19,23 +19,25 @@
     <OverlayScrollbarsComponent class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }"
       defer style="text-align: center;">
       <div class="drag-bar" v-if="!isWeb"></div>
-      <apm-panel  />
+      <apm-panel />
       <face-rec />
     </OverlayScrollbarsComponent>
 
     <van-popup v-model:show="showPopup" position="right" :closeable="isWeb" close-icon="close">
       <settings v-if="showSettings" />
+      <face-db-mgr v-else-if="showFaceDbMgr" />
     </van-popup>
   </van-row>
 </template>
 <script lang="ts" setup>
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import { inject, onMounted, provide, Ref, ref, watch, defineAsyncComponent } from 'vue'
-import { ConfigProviderTheme, showNotify, Loading } from 'vant'
-import Settings from '../settings/Settings.vue'
+import { ConfigProviderTheme, Loading } from 'vant'
+import { defineAsyncComponent, inject, onMounted, provide, Ref, ref, watch } from 'vue'
 import { CommonStore } from '../../store'
-import ImgParamsPanel from './ImgParamsPanel.vue'
 import ApmPanel from '../components/ApmPanel.vue'
+import Settings from '../settings/Settings.vue'
+import FaceDbMgr from './FaceDbMgr.vue'
+import ImgParamsPanel from './ImgParamsPanel.vue'
 
 const FaceRec = defineAsyncComponent({
   loader: () => import('./FaceRec.vue'),
@@ -51,6 +53,7 @@ const theme = inject<Ref<ConfigProviderTheme>>('theme')
 const showSettings = ref<boolean>(false)
 const reverseTheme = ref<string>(theme.value == 'dark' ? 'light' : 'dark')
 const showPopup = ref(false)
+const showFaceDbMgr = ref(false)
 const commonStore = CommonStore()
 
 provide('showSettings', showSettings)
@@ -65,9 +68,16 @@ watch(() => theme.value, () => {
   reverseTheme.value = theme.value == 'dark' ? 'light' : 'dark'
 })
 
+function openFaceDbMgr() {
+  showPopup.value = true
+  showFaceDbMgr.value = true
+  showSettings.value = false
+}
+
 function openSettings() {
   showPopup.value = true
   showSettings.value = true
+  showFaceDbMgr.value = false
 }
 
 </script>

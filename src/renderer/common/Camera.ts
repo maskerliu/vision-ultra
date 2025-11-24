@@ -72,23 +72,21 @@ export class Camera {
     this.previewCtx.font = '14px sans-serif'
     this.previewCtx.fillText(`Slope: ${this.faceDetector.faceAngle}\n Time: ${this.faceDetector.time}`, 10, 20)
 
-    if (Math.abs(this.faceDetector.faceAngle) > 5) {
-      this.faceDetector.enableFaceAngle = false
-      let size = Math.floor(500 / this.faceDetector.time)
-      this._step = this.faceDetector.faceAngle / 15
-      this._frames = 15
-    }
+    // if (Math.abs(this.faceDetector.faceAngle) > 5) {
+    //   this.faceDetector.enableFaceAngle = false
+    //   let size = Math.floor(500 / this.faceDetector.time)
+    //   this._step = this.faceDetector.faceAngle / 15
+    //   this._frames = 15
+    // }
 
-    if (this._frames > 0) {
-      this._frames--
-      this.imgProcessor.imgProcessParams['rotate'] = this._step * (15 - this._frames)
-    } else {
-      this.faceDetector.enableFaceAngle = true
-      this._step = 0
-      this._frames = 0
-    }
-
-    console.log(this._frames)
+    // if (this._frames > 0) {
+    //   this._frames--
+    //   this.imgProcessor.imgProcessParams['rotate'] = this._step * (15 - this._frames)
+    // } else {
+    //   this.faceDetector.enableFaceAngle = true
+    //   this._step = 0
+    //   this._frames = 0
+    // }
   }
 
 
@@ -97,11 +95,9 @@ export class Camera {
   }
 
   async open() {
-    if (__IS_WEB__) return
+    if (window.isWeb) return
 
     if (this.preVideo.srcObject) {
-      this.previewCtx.clearRect(0, 0, this.preview.width, this.preview.height)
-      this.offscreenCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height)
       this.close()
       this.preVideo.srcObject = null
       return
@@ -128,7 +124,7 @@ export class Camera {
       (this.preVideo.srcObject as MediaStream).getTracks().forEach(track => track.stop())
     }
 
-    this.offscreenCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height)
-    this.previewCtx.clearRect(0, 0, this.preview.width, this.preview.height)
+    // this.offscreenCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height)
+    // this.previewCtx.clearRect(0, 0, this.preview.width, this.preview.height)
   }
 }

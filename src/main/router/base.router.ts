@@ -31,6 +31,10 @@ export abstract class BaseRouter {
   private _apiInfos: Array<ApiInfo> = []
   private _form = formidable()
 
+  private service<T>(name: string) {
+    return Reflect.get(this, name) as T
+  }
+
   constructor() {
     this._router = express.Router()
     this.initApiInfos()
@@ -52,7 +56,6 @@ export abstract class BaseRouter {
 
   protected async route(req: Request, resp: Response, func: string, target: any,
     paramInfos?: Array<ParamInfo>, hasContext: boolean = false) {
-
     let params = [], contentType: string = null, _: any, jsonBody: JSON
     if (paramInfos != null) {
 
@@ -65,14 +68,16 @@ export abstract class BaseRouter {
         if (contentType == BizNetwork.MIME_MULTIPART) {
           let [_, files] = await this._form.parse(req)
           req['files'] = files
+          console.log(files)
         } else if (contentType == BizNetwork.MIME_JSON) {
           jsonBody = parseJsonBody(req)
         }
       }
-      let filesBody = req['files'] as Files<string>
+      let filesBody = req['files'] as Files<any>
       for (const item of paramInfos) {
         if (item.type == ParamType.FormBody) {
           if (contentType == BizNetwork.MIME_MULTIPART) {
+            console.log('ddd', filesBody[item.key])
             params.push(fetchFormFile(filesBody[item.key][0]))
           } else if (contentType == BizNetwork.MIME_JSON) {
             params.push(jsonBody)

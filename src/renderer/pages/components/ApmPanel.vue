@@ -1,6 +1,6 @@
 <template>
   <div class="apm-panel">
-    <canvas ref="apmPanel" width="160" height="100"></canvas>
+    <canvas ref="apmPanel" width="200" height="100" style="margin: 5px;"></canvas>
   </div>
 </template>
 <script lang="ts" setup>
@@ -13,7 +13,7 @@ let fps = 0
 let frameCount = 0
 let lastTime = performance.now()
 const fpsHistory = []
-const maxHistoryLength = 100
+const maxHistoryLength = 20
 
 // 性能统计
 let minFps = Infinity
@@ -33,8 +33,8 @@ function drawFpsPanel(canvas: HTMLCanvasElement) {
   ctx.lineWidth = 0.5
 
   // 水平网格线
-  for (let i = 1; i < 5; i++) {
-    const y = canvas.height - (i * canvas.height / 5)
+  for (let i = 0; i < 5; i++) {
+    const y = (canvas.height - 4) - (i * (canvas.height - 4) / 5) - 2
     ctx.beginPath()
     ctx.moveTo(20, y + 0.5)
     ctx.lineTo(canvas.width - 10, y + 0.5)
@@ -49,24 +49,29 @@ function drawFpsPanel(canvas: HTMLCanvasElement) {
   // 绘制FPS数据线
   if (fpsHistory.length > 1) {
     ctx.strokeStyle = '#16a085'
-    ctx.lineWidth = 3
+    ctx.fillStyle = '#16a085'
+    ctx.lineWidth = 2
     ctx.beginPath()
 
-    const sliceWidth = (canvas.width - 30) / (maxHistoryLength - 1)
+    const sliceWidth = (canvas.width - 30) / (maxHistoryLength)
 
     for (let i = 0; i < fpsHistory.length; i++) {
       const x = i * sliceWidth + 20
       // 将FPS值映射到画布高度（假设最大FPS为100）
       const y = canvas.height - (fpsHistory[i] / 100 * canvas.height)
-
-      if (i === 0) {
-        ctx.moveTo(x, y + 0.5)
-      } else {
-        ctx.lineTo(x, y + 0.5)
-      }
+      ctx.rect(x, y - 4, sliceWidth - 0.5, canvas.height - y)
+      // if (i === 0) {
+      //   // ctx.moveTo(x, y+2 + 0.5)
+      //   ctx.rect(x, y, sliceWidth - 0.5, canvas.height - y + 0.5)
+      //   // ctx.arc(x, y, 5, 0, Math.PI * 2, false)
+      // } else {
+      //   // ctx.lineTo(x, y + 0.5)
+      //   ctx.rect(x, y, sliceWidth - 0.5, canvas.height - y + 0.5)
+      //   // ctx.arc(x, y, 5, 0, Math.PI * 2, false)
+      // }
     }
 
-    ctx.stroke()
+    ctx.fill()
   }
 
   // 绘制当前FPS值
@@ -125,10 +130,10 @@ function updateFps() {
   position: absolute;
   top: 120px;
   left: 0;
-  width: 160px;
-  height: 100px;
+  width: 210px;
+  height: 110px;
   z-index: 1000;
   background-color: #2c3e50;
-  border-radius: 15px;
+  border-radius: 10px;
 }
 </style>

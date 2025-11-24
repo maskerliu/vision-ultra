@@ -11,6 +11,8 @@ export class FaceRecRepo {
   private _faceTable: lancedb.Table
   private _schema: lancedb.SchemaLike
 
+  private _inited: boolean = false
+
   constructor() {
     this._schema = new Schema([
       new Field('id', new Utf8(), false),
@@ -22,25 +24,35 @@ export class FaceRecRepo {
   }
 
   async init() {
+    if (this._inited) return
+
     this._faceDB = await lancedb.connect(path.join(USER_DATA_DIR + '/biz_storage', 'face.db'))
     let tables = await this._faceDB.tableNames()
     if (tables.indexOf('face') > -1) {
       this._faceTable = await this._faceDB.openTable('face')
     } else {
       this._faceTable = await this._faceDB.createEmptyTable('face', this._schema)
+      let idxStat = await this._faceTable.indexStats('_nameIdx')
+      if (idxStat === null) {
+        await this._faceTable.createIndex('name', { name: '_nameIdx' })
+      }
     }
 
     console.log('face repo init')
-    let results = await this._faceTable.search('chris').limit(20).toArray()
-    console.log('results', results)
+
+    const results = await this._faceTable.vectorSearch([0.1, 0.3]).limit(20).toArray()
+    console.log(results)
+    this._inited = true
   }
 
-  async insert(faceVector: [number], name: string) {
+  async insert(name: string, vector: number[], snap: string) {
+    await this.init()
     // let data = new Data()
-    // await this._faceTable.add({ vector: faceVector, name: name })
+    // await this._faceTable.add({ vector, name , snap})
   }
 
   async search(faceVector: [number]) {
+    await this.init()
 
     let results = await this._faceTable.vectorSearch(faceVector).limit(20).toArray()
     // return await faceTable.vectorSearch(faceVector).limit(20).toArray()

@@ -2,7 +2,7 @@
 import chalk from 'chalk'
 import { ChildProcess, exec, spawn } from 'child_process'
 import express from 'express'
-import fs from 'fs'
+import fse from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import webpack from 'webpack'
@@ -64,8 +64,8 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
       serverConfig.server = {
         type: 'https',
         options: {
-          key: fs.readFileSync('cert/server.key'),
-          cert: fs.readFileSync('cert/server.crt'),
+          key: fse.readFileSync('cert/server.key'),
+          cert: fse.readFileSync('cert/server.crt'),
           requestCert: true,
           rejectUnauthorized: false
         }
@@ -107,7 +107,7 @@ function startMain(): Promise<void> {
       if (electronProc && electronProc.kill()) {
         manualRestart = true
 
-        if (process.platform === "win32") {
+        if (process.platform === 'win32') {
           const pid = electronProc.pid
           exec(`TASKKILL /F /IM electron.exe`, (err, data) => {
             if (err) console.log(chalk.bgRed.white(err))
@@ -180,7 +180,9 @@ function consoleLog(proc: string, data: any, color?: string) {
 }
 
 async function start() {
-  console.log(chalk.bgGreen.yellowBright('    getting ready...'.padEnd(process.stdout.columns - 20, ' ')))
+  console.log(chalk.bgGreen.yellowBright(
+    '    getting ready...'.padEnd(process.stdout.columns - 20, ' '))
+  )
 
   try {
     let ips = getLocalIPs()
@@ -197,4 +199,8 @@ async function start() {
   }
 }
 
-start()
+try {
+  await start()
+} catch (err) {
+  console.log(err)
+}
