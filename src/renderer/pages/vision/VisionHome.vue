@@ -4,7 +4,7 @@
       <van-row justify="space-between">
         <van-row></van-row>
         <div style="padding: 1px 0;">
-          <van-icon class="iconfont icon-apm left-panel-icon" @click="commonStore.showQrCode = true" />
+          <van-icon class="iconfont icon-apm left-panel-icon" @click="commonStore.showApm = !commonStore.showApm" />
           <van-icon class="iconfont icon-data left-panel-icon" @click="openFaceDbMgr" />
           <van-icon class="iconfont icon-setting left-panel-icon" @click="openSettings">
             <span class="badge-dot"></span>
@@ -19,7 +19,7 @@
     <OverlayScrollbarsComponent class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }"
       defer style="text-align: center;">
       <div class="drag-bar" v-if="!isWeb"></div>
-      <apm-panel />
+      <apm-panel v-if="commonStore.showApm" />
       <face-rec />
     </OverlayScrollbarsComponent>
 

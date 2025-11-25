@@ -20,4 +20,12 @@ export namespace FaceRec {
     formData.append('vector', new File([vector], 'vector', { type: 'text/plain' }))
     return formPost<string>(`${API_URL.FaceRec}${API_URL.F_Recognize}`, null, {}, formData)
   }
+
+  export function deleteFace(name: string, vectorId: string) {
+    return post<string>(`${API_URL.FaceRec}${API_URL.F_Delete}`, null, { name, vectorId })
+  }
+
+  export function list(name: string) {
+    return get<string>(`${API_URL.FaceRec}${API_URL.F_List}/${name}`)
+  }
 }

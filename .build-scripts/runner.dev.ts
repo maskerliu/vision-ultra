@@ -13,6 +13,7 @@ import { getLocalIPs } from './misc'
 import { BaseConfig } from './webpack.base.config.js'
 import mainConfig from './webpack.main.config'
 import rendererConfig from './webpack.renderer.config'
+import SockJS from 'sockjs-client'
 
 const Run_Mode_DEV = 'development'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -23,6 +24,7 @@ process.env.BUILD_CONFIG = JSON.stringify(pkg.config)
 let electronProc: ChildProcess | null = null
 let manualRestart = false
 let hotMiddleware: any
+let rendererDevServer: WebpackDevServer | null = null
 
 function startDevServer(config: BaseConfig, host: string, port: number): Promise<void> {
   return new Promise<void>(async (resolve, reject) => {
@@ -45,7 +47,7 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
       host, port, hot: true,
       liveReload: true,
       allowedHosts: "all",
-      client: { logging: 'none' },
+      client: { logging: 'none', overlay: false },
       static: { directory: path.join(dirname, '../src/'), },
       setupMiddlewares(middlewares, devServer) {
         devServer.app?.use('/node_modules/', express.static(path.resolve(dirname, '../node_modules')) as any)
@@ -74,6 +76,9 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
 
     const server = new WebpackDevServer(serverConfig, compiler)
 
+    if (config.name == 'renderer') rendererDevServer = server
+
+    rendererDevServer?.getClientEntry
     try {
       await server.start()
       resolve()
@@ -85,6 +90,12 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
   })
 }
 
+async function startMain1() {
+  mainConfig.mode = Run_Mode_DEV
+  const compiler = webpack(mainConfig)
+
+}
+
 function startMain(): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     mainConfig.mode = Run_Mode_DEV
@@ -92,6 +103,10 @@ function startMain(): Promise<void> {
     hotMiddleware = WebpackHotMiddleware(compiler, { log: false, heartbeat: 2500 })
     compiler.hooks.watchRun.tapAsync("watch-run", (_, done) => {
       hotMiddleware.publish({ action: "compiling" })
+
+      rendererDevServer?.sockets?.forEach(socket => {
+        socket?.emit('reload')
+      })
       done()
     })
 
@@ -184,19 +199,15 @@ async function start() {
     '    getting ready...'.padEnd(process.stdout.columns - 20, ' '))
   )
 
-  try {
-    let ips = getLocalIPs()
-    let localIPv4 = ips[0].address
+  let ips = getLocalIPs()
+  let localIPv4 = ips[0].address
 
-    await Promise.all([
-      startDevServer(rendererConfig.init(localIPv4), 'localhost', 9080),
-      startMain()
-    ])
+  await Promise.all([
+    startDevServer(rendererConfig.init(localIPv4), 'localhost', 9080),
+    startMain()
+  ])
 
-    startElectron()
-  } catch (err) {
-    console.error(err)
-  }
+  startElectron()
 }
 
 try {

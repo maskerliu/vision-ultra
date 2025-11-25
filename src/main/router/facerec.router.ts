@@ -18,8 +18,10 @@ export class FaceRecRouter extends BaseRouter {
 
   override initApiInfos(): void {
     this.addApiInfo({
-      method: BizNetwork.Method_Get, path: `${API_URL.F_List}`,
-      func: 'list', target: 'faceRecService'
+      method: BizNetwork.Method_Get, 
+      path: `${API_URL.F_List}/:keyword`,
+      func: 'list', target: 'faceRecService',
+      params: [{ key: 'keyword', type: ParamType.Path }]
     })
     this.addApiInfo({
       method: BizNetwork.Method_Post, path: `${API_URL.F_Registe}`,
@@ -36,7 +38,7 @@ export class FaceRecRouter extends BaseRouter {
     })
 
     this.addApiInfo({
-      method: BizNetwork.Method_Get, path: `${API_URL.F_Recognize}`,
+      method: BizNetwork.Method_Post, path: `${API_URL.F_Recognize}`,
       func: 'recognize', target: 'faceRecService',
       params: [{ key: 'vector', type: ParamType.FormBody }]
     })

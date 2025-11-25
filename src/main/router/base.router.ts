@@ -2,7 +2,7 @@ import express, { Request, Response, Router } from "express"
 import formidable, { Files } from 'formidable'
 import { BizCode, BizFail, BizResponse } from "../../common/base.models"
 import { BizNetwork, fetchFormFile, parseContext, parseJsonBody } from "../misc/utils"
-
+import JSONBig from 'json-bigint'
 
 export enum ParamType {
   Header,
@@ -116,6 +116,7 @@ export abstract class BaseRouter {
         bizResp = { code: BizCode.ERROR, msg: err.toString() }
       }
     } finally {
+      JSONBig.parse(bizResp.data)
       resp.json(bizResp)
       resp.end()
     }

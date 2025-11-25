@@ -10,7 +10,7 @@ export const CommonStore = defineStore('Common', {
   state: () => {
     return {
       uid: '',
-      showQrCode: false,
+      showApm: false,
       registerUrl: '',
       bizConfig: {} as BizConfig
     }
