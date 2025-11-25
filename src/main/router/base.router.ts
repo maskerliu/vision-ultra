@@ -116,8 +116,9 @@ export abstract class BaseRouter {
         bizResp = { code: BizCode.ERROR, msg: err.toString() }
       }
     } finally {
-      JSONBig.parse(bizResp.data)
-      resp.json(bizResp)
+      // JSONBig.parse(bizResp.data)
+      resp.setHeader('Content-Type', 'application/json')
+      resp.end(JSONBig.stringify(bizResp))
       resp.end()
     }
   }

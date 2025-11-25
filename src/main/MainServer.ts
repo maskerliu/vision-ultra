@@ -7,14 +7,12 @@ import { Server } from 'http'
 import http2express from 'http2-express'
 import path from 'path'
 import tcpPortUsed from 'tcp-port-used'
+import { API_URL } from '../common/api.const'
 import { BizConfig } from '../common/base.models'
 import { bizContainer } from './IocContainer'
 import { IocTypes, USER_DATA_DIR } from './MainConst'
 import { CommonRouter, FaceRecRouter, MapiRouter } from './router'
 import { CommonService, PushService } from './service'
-import { FaceRecRepo } from './repository/facerec.repo'
-import { API_URL } from '../common/api.const'
-import compression from 'compression'
 
 export class MainServer {
 

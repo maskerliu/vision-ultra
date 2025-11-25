@@ -1,5 +1,5 @@
 import * as lancedb from '@lancedb/lancedb'
-import { Field, FixedSizeList, Float16, Schema, Int64, Utf8 } from 'apache-arrow'
+import { Field, FixedSizeList, Float16, Schema, Int64, Utf8, Float32 } from 'apache-arrow'
 import { injectable } from "inversify"
 import path from 'path'
 import "reflect-metadata"
@@ -19,7 +19,7 @@ export class FaceRecRepo {
       new Field('snap', new Utf8(), false),
       new Field('timestamp', new Int64(), false),
       new Field('vector', new FixedSizeList(478,
-        new Field("item", new FixedSizeList(2, new Field('item', new Float16(), false)), false),
+        new Field("item", new FixedSizeList(2, new Field('item', new Float32(), false)), false),
       ), false)
     ])
   }
@@ -87,7 +87,7 @@ export class FaceRecRepo {
 
     let eigen = convertArray(vector, 2)
     let results = await this._faceTable.query().limit(4)
-      .nearestTo(eigen)
+      .nearestTo(new Float32Array(eigen))
       .distanceType('dot')
       .column('vector')
       .toArray()

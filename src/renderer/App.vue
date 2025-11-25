@@ -53,7 +53,6 @@ onMounted(async () => {
   i18n.locale.value = lang.value
 
   if (!window.isWeb) {
-    console.log('electron app init')
     window.mainApi?.getSysSettings(async (result) => {
       await CommonStore().init(result)
     })
