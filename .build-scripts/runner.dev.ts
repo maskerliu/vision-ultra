@@ -155,6 +155,7 @@ function startElectron() {
     args.push('--no-sandbox')
   }
 
+  args.push(`--unhandled-rejections=strict`)
   // detect yarn or npm and process commandline args accordingly
   if (process.env.npm_execpath?.endsWith('yarn.js')) {
     args = args.concat(process.argv.slice(3))

@@ -18,16 +18,32 @@ export class FaceRecService {
       return []
     }
     let results = await this.faceRepo.search(keyword, null)
-    console.log(results)
-    return results
+    let resp = []
+    results.forEach((item: any) => {
+      let result = {
+        id: item._rowid.toString(),
+        name: item.name,
+        snap: `_res/face/${item.snap}`,
+        tiemstamp: item.timestamp.toString()
+      }
+      resp.push(result)
+    })
+    console.log(resp)
+    return resp
   }
 
   async registe(name: string, vector: any, avatar: File) {
+    let arr = vector.split(',').map((item: string) => {
+      return Number(item)
+    })
+    if (arr.length != 478 * 2) {
+      return 'vector length error'
+    }
     let fileName = `${avatar.newFilename}${path.extname(avatar.originalFilename)}`
-    let dstPath = path.join(USER_DATA_DIR, 'avatar', fileName)
+    let dstPath = path.join(USER_DATA_DIR, 'static/face', fileName)
     await fse.ensureDir(path.dirname(dstPath))
     await fse.move(avatar.filepath, dstPath)
-    await this.faceRepo.insert(name, vector.split(','), fileName)
+    await this.faceRepo.insert(name, arr, fileName)
     return name
   }
 
@@ -45,7 +61,7 @@ export class FaceRecService {
     let arr = vector.split(',').map((item: string) => {
       return Number(item)
     })
-    let result = await this.faceRepo.search(null, vector)
+    let result = await this.faceRepo.search(null, arr)
     console.log(result)
     return name
   }

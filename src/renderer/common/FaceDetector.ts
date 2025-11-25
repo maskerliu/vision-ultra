@@ -191,8 +191,6 @@ export class FaceDetector {
     this.captureCtx.putImageData(imageData, 0, 0)
     context.putImageData(imageData, this.faces[0].box.xMin, this.faces[0].box.yMin)
     this.capture.toBlob(async (blob) => {
-      let buffer = await blob.arrayBuffer()
-
       try {
         let faceTensor = this.genFaceTensor(this.faces[0])
         await FaceRec.registe(name, faceTensor.arraySync(), new File([blob], 'avatar.png', { type: 'image/png' }))
@@ -201,12 +199,11 @@ export class FaceDetector {
       } catch (err) {
         showNotify({ type: 'warning', message: '保存失败', duration: 500 })
       }
-      console.log(__IS_WEB__)
-      if (!__IS_WEB__) {
-        window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
-      } else {
-        showNotify({ type: 'warning', message: '图片已保存到剪贴板', duration: 500 })
-      }
+      // if (!__IS_WEB__) {
+      //   window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
+      // } else {
+      //   showNotify({ type: 'warning', message: '图片已保存到剪贴板', duration: 500 })
+      // }
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     }, 'image/png')
   }
