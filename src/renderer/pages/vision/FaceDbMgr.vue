@@ -1,7 +1,11 @@
 <template>
-  <van-col class="face-db-mgr">
-    <van-search style="width: 100%; margin-top: 30px; ;" />
-    <van-list style="width: 100%;">
+  <van-form class="face-db-mgr">
+    <van-search v-model="keyword" show-action style="width: 100%; margin-top: 30px;">
+      <template #action>
+        <div @click="onSearch">搜索</div>
+      </template>
+    </van-search>
+    <van-list>
       <van-cell title="chris" center>
         <template #label>
           <van-button type="success" hairline plain size="small">添加</van-button>
@@ -22,16 +26,6 @@
           </van-badge>
         </template>
       </van-cell>
-      <van-cell title="chris" is-link center>
-        <template #right-icon>
-          <van-image fit="cover" width="100" height="100" src="https://img.yzcdn.cn/vant/cat.jpeg" />
-        </template>
-      </van-cell>
-      <van-cell title="chris" is-link center>
-        <template #right-icon>
-          <van-image fit="cover" width="100" height="100" src="https://img.yzcdn.cn/vant/cat.jpeg" />
-        </template>
-      </van-cell>
     </van-list>
 
     <van-dialog v-model:show="deleteConfirm" show-cancel-button>
@@ -40,21 +34,28 @@
         <p>确定删除？</p>
       </template>
     </van-dialog>
-  </van-col>
+  </van-form>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { FaceRec } from '../../../common'
 
 const deleteConfirm = ref(false)
+const keyword = ref('')
 
 function onDelete() {
   deleteConfirm.value = true
 }
 
+async function onSearch() {
+  if (keyword.value == '' || keyword.value == null) return
+
+  await FaceRec.list(keyword.value)
+}
+
 </script>
 <style lang="css" scoped>
 .face-db-mgr {
-  flex-grow: 1;
   width: 80vw;
   min-width: 375px;
   height: 100vh;

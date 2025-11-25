@@ -92,7 +92,9 @@ export class FaceDetector {
 
   async faceRec() {
     let vector = this.genFaceTensor(this.faces[0])
-    let result = await FaceRec.recognize(vector)
+    vector.print()
+    let result = await FaceRec.recognize(vector.arraySync())
+    vector.dispose()
     console.log(result)
   }
 
@@ -194,6 +196,8 @@ export class FaceDetector {
       try {
         let faceTensor = this.genFaceTensor(this.faces[0])
         await FaceRec.registe(name, faceTensor.arraySync(), new File([blob], 'avatar.png', { type: 'image/png' }))
+        showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })
+        faceTensor.dispose()
       } catch (err) {
         showNotify({ type: 'warning', message: '保存失败', duration: 500 })
       }

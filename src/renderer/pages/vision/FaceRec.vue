@@ -80,6 +80,7 @@ import { FaceDetector } from '../../common/FaceDetector'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VisionStore } from '../../store'
 import * as tf from '@tensorflow/tfjs'
+import { Uint16 } from 'apache-arrow'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -109,11 +110,23 @@ function tensorTest() {
   tf.matMul(tmp, martix).print()
 }
 
+function test() {
+  let data = '0.3476848006248474, 0.7408292293548584, 0.374585896730423, 0.6007864475250244, 0.36658036708831787, 0.6411869525909424'
+  let arr = data.split(',')
+
+  let arr2d = []
+  for (let i = 0; i < arr.length; i += 2) {
+    arr2d.push(Uint32Array.from(arr))
+  }
+
+  console.log(arr2d)
+}
+
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
     camera?.close()
   })
-
+  test()
   // tensorTest()
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
