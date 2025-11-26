@@ -49,8 +49,8 @@ export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
       faceRecMode: '2',  // 1: opencv 2: tensorflow
-      faceDetect: false,
-      drawFaceMesh: false,
+      faceDetect: true,
+      drawFaceMesh: true,
       landmark: false,
       faceRec: false,
       imgEnhance: true,

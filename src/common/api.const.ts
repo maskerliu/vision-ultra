@@ -1,8 +1,8 @@
 export const API_URL = {
 
-  Common: '/_',
+  Common: '/common',
   GetBizConfig: '/getBizConfig',
-  GetAllPushClients: 'getAllPushClients',
+  GetAllPushClients: '/getAllPushClients',
 
   FaceRec: '/facerec',
   F_List: '/list',

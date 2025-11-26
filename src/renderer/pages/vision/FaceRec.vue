@@ -35,7 +35,9 @@
           </van-row>
         </template>
         <template #right-icon>
-          <van-button plain size="small" type="primary" @click="openFolder">
+          <van-image fit="cover" radius="10" width="32" height="32" :src="recFace" />
+
+          <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="openFolder">
             <template #icon>
               <van-icon class="iconfont icon-open" />
             </template>
@@ -46,6 +48,16 @@
               <van-icon class="iconfont icon-capture" />
             </template>
           </van-button>
+          <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;" @click="onFaceScan">
+            <template #icon>
+              <van-icon class="iconfont icon-scan" />
+            </template>
+          </van-button>
+          <van-button plain size="small" type="success" style="margin-left: 15px;" @click="onCollect">
+            <template #icon>
+              <van-icon class="iconfont icon-collect" />
+            </template>
+          </van-button>
           <van-button plain size="small" type="default" style="margin-left: 15px;" @click="onClickCamera">
             <template #icon>
               <van-icon class="iconfont icon-camera" />
@@ -53,23 +65,31 @@
           </van-button>
         </template>
       </van-cell>
-      <canvas ref="preview"></canvas>
+
+      <canvas ref="preview" style="margin-top: 15px;"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
       <canvas ref="capture" style="display: none;"></canvas>
       <canvas ref="masklayer" style="display: none;"></canvas>
       <video ref="preVideo" autoplay style="display: none;"></video>
     </van-cell-group>
+
+    <van-dialog v-model:show="showNameInputDialog" title="请输入姓名" show-cancel-button @confirm="onConfirmName">
+      <van-field v-model="eigenName" placeholder="请输入姓名" />
+    </van-dialog>
   </van-row>
 </template>
 <script lang="ts" setup>
 
 import { VERSION } from '@mediapipe/face_mesh'
 import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
-import { onMounted, useTemplateRef, watch } from 'vue'
+import * as tf from '@tensorflow/tfjs'
+import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { baseDomain } from '../../../common'
 import { Camera } from '../../common/Camera'
 import { FaceDetector } from '../../common/FaceDetector'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VisionStore } from '../../store'
+import { showNotify } from 'vant'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -79,16 +99,48 @@ const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
+const showNameInputDialog = ref(false)
+const eigenName = ref('')
+const recFace = ref<string>()
+const isScan = ref(false)
+
 let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let imgProcessor: ImageProcessor = new ImageProcessor()
 let faceDetector: FaceDetector
 let camera: Camera = null
+let scanTask: any
+let count = 0
+
+function tensorTest() {
+  let angle = 90 * Math.PI / 180
+  let cos = Math.cos(angle)
+  let sin = Math.sin(angle)
+  let martix = tf.tensor([[cos, -sin], [sin, cos]])
+
+  let tmp = tf.tensor2d([[1, 0], [3, 0]])
+  tmp.print()
+  tf.matMul(tmp, martix).print()
+}
+
+function test() {
+  let data = '0.3476848006248474, 0.7408292293548584, 0.374585896730423, 0.6007864475250244, 0.36658036708831787, 0.6411869525909424'
+  let arr = data.split(',')
+
+  let arr2d = []
+  for (let i = 0; i < arr.length; i += 2) {
+    arr2d.push(Uint32Array.from(arr))
+  }
+
+  console.log(arr2d)
+}
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
     camera?.close()
   })
+  // test()
+  // tensorTest()
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
@@ -101,6 +153,7 @@ onMounted(async () => {
   faceDetector.drawFace = visionStore.drawFaceMesh
   faceDetector.faceDetect = visionStore.faceDetect
   faceDetector.faceRecMode = visionStore.faceRecMode as any
+  faceDetector.imgProcessor = imgProcessor
   faceDetector.dector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
     runtime: 'mediapipe',
     solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${VERSION}`,
@@ -118,6 +171,34 @@ onMounted(async () => {
   }
 })
 
+async function onFaceScan() {
+  if (isScan.value) {
+    showNotify({ type: 'warning', message: '正在扫描中，请稍后' })
+    return
+  }
+  isScan.value = true
+  scanTask = setInterval(() => {
+    drawImage()
+    faceDetector?.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
+    count++
+    if (count > 10) {
+      clearInterval(scanTask)
+      count = 0
+      isScan.value = false
+    }
+  }, 100)
+
+}
+
+async function onCollect() {
+  let recResult = await faceDetector?.faceRec()
+  if (recResult == null) {
+    recFace.value = null
+  } else {
+    recFace.value = baseDomain() + recResult.snap
+  }
+}
+
 async function onClickCamera() {
   camera?.open()
 }
@@ -128,25 +209,32 @@ async function openFolder() {
     var img = new Image()
     img.onload = function () {
       let w = img.width, h = img.height
-      if (w > previewParent.value.$el.offsetWidth || h > previewParent.value.$el.offsetHeight) {
-        const ratio = Math.min(previewParent.value.$el.offsetWidth / w, previewParent.value.$el.offsetHeight / h)
+      if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 82)) {
+        const ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 82) / h)
         w = img.width * ratio
         h = img.height * ratio
       }
-
       offscreen.value.width = preview.value.width = w
       offscreen.value.height = preview.value.height = h
       previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
       drawImage()
+      faceDetector.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
     }
     img.src = file
   })
 }
 
 async function onCapture() {
-  faceDetector?.faceCapture(offscreenCtx)
+  showNameInputDialog.value = true
+  // faceDetector?.faceCapture(offscreenCtx)
+}
+
+function onConfirmName() {
+  faceDetector?.faceCapture(offscreenCtx, eigenName.value)
+  eigenName.value = null
+  showNameInputDialog.value = false
 }
 
 function drawImage() {
@@ -167,6 +255,10 @@ watch(() => visionStore.drawFaceMesh, (val) => {
 
 watch(() => visionStore.faceRecMode, (val) => {
   faceDetector.faceRecMode = val as any
+})
+
+watch(() => visionStore.imgEnhance, (val) => {
+  imgProcessor.imgEnhance = val
 })
 
 watch(() => visionStore.imgProcessMode, (val) => {

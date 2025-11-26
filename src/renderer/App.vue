@@ -52,7 +52,7 @@ onMounted(async () => {
   lang.value = wrapLang != null ? wrapLang : 'zh-CN'
   i18n.locale.value = lang.value
 
-  if (!__IS_WEB__) {
+  if (!window.isWeb) {
     window.mainApi?.getSysSettings(async (result) => {
       await CommonStore().init(result)
     })
