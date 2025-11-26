@@ -1,5 +1,5 @@
 import * as lancedb from '@lancedb/lancedb'
-import { Field, FixedSizeList, Float32, Int64, List, Schema, Utf8, Vector } from 'apache-arrow'
+import { Field, FixedSizeList, Float16, Int64, List, Schema, Utf8, Vector } from 'apache-arrow'
 import { injectable } from "inversify"
 import path from 'path'
 import "reflect-metadata"
@@ -21,7 +21,7 @@ export class FaceRecRepo {
       new Field('vector',
         new List(
           new Field("item",
-            new FixedSizeList(2, new Field('item', new Float32())
+            new FixedSizeList(2, new Field('item', new Float16())
             )
           )
         )
@@ -52,7 +52,7 @@ export class FaceRecRepo {
           new List(
             new Field(
               "item",
-              new FixedSizeList(2, new Field("item", new Float32())),
+              new FixedSizeList(2, new Field("item", new Float16())),
             ),
           ),
         ),

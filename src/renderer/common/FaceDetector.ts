@@ -137,18 +137,18 @@ export class FaceDetector {
 
     let cos = Math.cos(tmpAngle)
     let sin = Math.sin(tmpAngle)
-    let martix = tf.tensor([[cos, -sin], [sin, cos]])
+    // let martix = tf.tensor([[cos, -sin], [sin, cos]])
     let tmp = face.keypoints.map((p) => [p.x - face.box.xMin, p.y - face.box.yMin])
     let tensor = tf.tensor(tmp)
     let min = tensor.min()
     let max = tensor.max()
     tensor = tensor.sub(min).div(max.sub(min)) // normilize
-    let result = tf.matMul(tensor, martix)
-    tensor.dispose()
+    // let result = tf.matMul(tensor, martix)
+    // tensor.dispose()
     min.dispose()
     max.dispose()
-    martix.dispose()
-    return result
+    // martix.dispose()
+    return tensor
   }
 
   async faceCapture(context: CanvasRenderingContext2D, name: string = '') {
