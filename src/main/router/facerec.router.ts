@@ -1,9 +1,9 @@
-import { inject, injectable } from "inversify";
-import { BaseRouter, ParamType } from "./base.router";
-import { BizNetwork } from "../misc/utils";
-import { FaceRecService } from "../service";
-import { IocTypes } from "../MainConst";
-import { API_URL } from "../../common/api.const";
+import { inject, injectable } from "inversify"
+import { BaseRouter, ParamType } from "./base.router"
+import { BizNetwork } from "../misc/utils"
+import { FaceRecService } from "../service"
+import { IocTypes } from "../MainConst"
+import { API_URL } from "../../common/api.const"
 
 @injectable()
 export class FaceRecRouter extends BaseRouter {
@@ -18,23 +18,33 @@ export class FaceRecRouter extends BaseRouter {
 
   override initApiInfos(): void {
     this.addApiInfo({
-      method: BizNetwork.Method_Post, path: `${API_URL.FaceRec}${API_URL.F_List}`,
-       func: 'list', target: 'facerecService'
-    })
-     this.addApiInfo({
-      method: BizNetwork.Method_Post, path: `${API_URL.FaceRec}${API_URL.F_Recognize}`,
-      func: 'registe', target: 'facerecService'
+      method: BizNetwork.Method_Get, 
+      path: `${API_URL.F_List}/:keyword`,
+      func: 'list', target: 'faceRecService',
+      params: [{ key: 'keyword', type: ParamType.Path }]
     })
     this.addApiInfo({
-      method: BizNetwork.Method_Post, path: `${API_URL.FaceRec}${API_URL.F_Delete}`,
-      func: 'delete', target: 'facerecService'
+      method: BizNetwork.Method_Post, path: `${API_URL.F_Registe}`,
+      func: 'registe', target: 'faceRecService',
+      params: [
+        { key: 'name', type: ParamType.FormBody },
+        { key: 'eigen', type: ParamType.FormBody },
+        { key: 'avatar', type: ParamType.FormBody }
+      ]
+    })
+    this.addApiInfo({
+      method: BizNetwork.Method_Post, path: `${API_URL.F_Delete}`,
+      func: 'delete', target: 'faceRecService',
+      params: [
+        { key: 'eigenIds', type: ParamType.FormBody }
+      ]
     })
 
     this.addApiInfo({
-      method: BizNetwork.Method_Get, path: `${API_URL.FaceRec}${API_URL.F_Recognize}`,
-      func: 'recognize', target: 'facerecService',
-      params: [{ key: 'uid', type: ParamType.Path }]
+      method: BizNetwork.Method_Post, path: `${API_URL.F_Recognize}`,
+      func: 'recognize', target: 'faceRecService',
+      params: [{ key: 'eigen', type: ParamType.FormBody }]
     })
-   
+
   }
 }

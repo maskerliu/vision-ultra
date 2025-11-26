@@ -5,17 +5,16 @@ export default {
     delete: '删除',
     save: '保存',
     upload: '上传',
-    searchPlaceholder: '请输入搜索关键词',
-    searchNoMatch: '未找到符合的规则'
+    search: '搜索',
   },
   settings: {
     sys: {
       title: '系统信息',
-      server: '服务IP地址',
       protocol: 'Http协议',
-      serverDomain: '服务域名',
+      server: '服务IP地址',
       port: '代理Http服务端口',
       porterror: "端口已被占用，请更换",
+      serverDomain: '服务域名',
       updateServer: '应用更新服务地址',
       mqttBroker: 'MQTT服务地址',
       theme: '主题',
@@ -53,5 +52,14 @@ export default {
     virtualClient: {
       title: 'Virtual Client'
     }
+  },
+  faceDbMgr: {
+    delPersonConfirmTitle: '确认删除该人员记录？',
+    delPersonConfirmTip: '删除后将导致该人员无法识别，请谨慎操作',
+    delEigenConfirmTitle: '删除特征脸',
+    delEigenConfirmTip: '删除该特征脸后将可能导致人脸识别的准确率下降，请谨慎操作',
+    searchPlaceholder: '请输入姓名',
+    noResult: '未找到相关人员记录',
+    noSearch: '请输入人员姓名进行搜索',
   }
 }

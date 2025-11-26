@@ -1,16 +1,14 @@
 import {
   app, BrowserWindow, BrowserWindowConstructorOptions, crashReporter,
-  globalShortcut, ipcMain, Menu, nativeImage, session, screen, Tray
+  globalShortcut, ipcMain, Menu, nativeImage, screen, session, Tray
 } from 'electron'
-import fs from 'original-fs'
+import fse from 'fs-extra'
 import os from 'os'
 import path from 'path'
 import { MainAPICMD } from '../common/ipc.api'
 import './IPCServices'
 import { IS_DEV, USER_DATA_DIR } from './MainConst'
 import { MainServer } from './MainServer'
-import { WASI } from 'wasi'
-import { readFile } from 'fs/promises'
 
 const BUILD_CONFIG = JSON.parse(process.env.BUILD_CONFIG)
 
@@ -19,8 +17,6 @@ const VUE_PLUGIN = os.platform() == 'darwin' ? '~/Downloads/vue-devtools/7.6.8_0
 if (!IS_DEV) {
   process.env.OPENCV_BIN_DIR = path.join(__dirname, '../../')
 }
-
-console.log(`opencv env: ${process.env.OPENCV_BIN_DIR}`)
 
 export default class MainApp {
   private mainWindow: BrowserWindow = null
@@ -34,8 +30,6 @@ export default class MainApp {
     let ext = os.platform() == 'win32' ? 'ico' : 'png'
     this.dockerIconFile = path.join(this.staticDir, `icon.${ext}`)
     this.mainServer.bootstrap()
-
-    console.log('home', app.getPath('temp'))
   }
 
   public async startApp() {
@@ -241,23 +235,23 @@ export default class MainApp {
 
   private initAppEnv() {
     let resPath = path.join(USER_DATA_DIR, 'static')
-    fs.access(resPath, err => {
-      if (err) fs.mkdir(resPath, err => console.log(err))
+    fse.access(resPath, err => {
+      if (err) fse.mkdir(resPath, err => console.log(err))
     })
 
     let dbPath = path.join(USER_DATA_DIR, 'biz_storage')
-    fs.access(dbPath, err => {
-      if (err) fs.mkdir(dbPath, err => console.log(err))
+    fse.access(dbPath, err => {
+      if (err) fse.mkdir(dbPath, err => console.log(err))
     })
 
     let updatePath = path.join(USER_DATA_DIR, 'update')
-    fs.access(updatePath, err => {
-      if (err) fs.mkdir(updatePath, err => console.log(err))
+    fse.access(updatePath, err => {
+      if (err) fse.mkdir(updatePath, err => console.log(err))
     })
 
     let dataPath = path.join(USER_DATA_DIR, 'data')
-    fs.access(dataPath, err => {
-      if (err) fs.mkdir(dataPath, err => console.log(err))
+    fse.access(dataPath, err => {
+      if (err) fse.mkdir(dataPath, err => console.log(err))
     })
   }
 

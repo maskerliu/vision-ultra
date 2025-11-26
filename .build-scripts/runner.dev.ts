@@ -2,7 +2,7 @@
 import chalk from 'chalk'
 import { ChildProcess, exec, spawn } from 'child_process'
 import express from 'express'
-import fs from 'fs'
+import fse from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import webpack from 'webpack'
@@ -13,6 +13,7 @@ import { getLocalIPs } from './misc'
 import { BaseConfig } from './webpack.base.config.js'
 import mainConfig from './webpack.main.config'
 import rendererConfig from './webpack.renderer.config'
+import SockJS from 'sockjs-client'
 
 const Run_Mode_DEV = 'development'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -23,6 +24,7 @@ process.env.BUILD_CONFIG = JSON.stringify(pkg.config)
 let electronProc: ChildProcess | null = null
 let manualRestart = false
 let hotMiddleware: any
+let rendererDevServer: WebpackDevServer | null = null
 
 function startDevServer(config: BaseConfig, host: string, port: number): Promise<void> {
   return new Promise<void>(async (resolve, reject) => {
@@ -45,14 +47,14 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
       host, port, hot: true,
       liveReload: true,
       allowedHosts: "all",
-      client: { logging: 'none' },
+      client: { logging: 'none', overlay: false },
       static: { directory: path.join(dirname, '../src/'), },
       setupMiddlewares(middlewares, devServer) {
         devServer.app?.use('/node_modules/', express.static(path.resolve(dirname, '../node_modules')) as any)
         devServer.app?.use((_, res, next) => {
           res.setHeader('Access-Control-Allow-Origin', '*')
           res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
-          res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
+          res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none')
           next()
         })
         devServer.middleware?.waitUntilValid(() => { resolve() })
@@ -64,8 +66,8 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
       serverConfig.server = {
         type: 'https',
         options: {
-          key: fs.readFileSync('cert/server.key'),
-          cert: fs.readFileSync('cert/server.crt'),
+          key: fse.readFileSync('cert/server.key'),
+          cert: fse.readFileSync('cert/server.crt'),
           requestCert: true,
           rejectUnauthorized: false
         }
@@ -74,6 +76,9 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
 
     const server = new WebpackDevServer(serverConfig, compiler)
 
+    if (config.name == 'renderer') rendererDevServer = server
+
+    rendererDevServer?.getClientEntry
     try {
       await server.start()
       resolve()
@@ -85,6 +90,12 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
   })
 }
 
+async function startMain1() {
+  mainConfig.mode = Run_Mode_DEV
+  const compiler = webpack(mainConfig)
+
+}
+
 function startMain(): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     mainConfig.mode = Run_Mode_DEV
@@ -92,6 +103,10 @@ function startMain(): Promise<void> {
     hotMiddleware = WebpackHotMiddleware(compiler, { log: false, heartbeat: 2500 })
     compiler.hooks.watchRun.tapAsync("watch-run", (_, done) => {
       hotMiddleware.publish({ action: "compiling" })
+
+      rendererDevServer?.sockets?.forEach(socket => {
+        // setTimeout(() => { socket?.emit('reload') }, 5000)
+      })
       done()
     })
 
@@ -107,20 +122,31 @@ function startMain(): Promise<void> {
       if (electronProc && electronProc.kill()) {
         manualRestart = true
 
-        if (process.platform === "win32") {
+        if (process.platform === 'win32') {
           const pid = electronProc.pid
           exec(`TASKKILL /F /IM electron.exe`, (err, data) => {
             if (err) console.log(chalk.bgRed.white(err))
             else console.log(chalk.bgRedBright.whiteBright(`    kill pid: ${pid} success!`.padEnd(process.stdout.columns - 20, ' ')))
             electronProc = null
             startElectron()
+            setTimeout(() => {
+              rendererDevServer?.sockets?.forEach(socket => {
+                console.log('try to reload renderer')
+                socket?.emit('reload')
+              })
+            }, 5000)
             manualRestart = false
           })
         } else {
           process.kill(electronProc.pid!)
           electronProc = null
           startElectron()
-          setTimeout(() => { manualRestart = false }, 5000)
+          setTimeout(() => {
+            manualRestart = false
+            rendererDevServer?.sockets?.forEach(socket => {
+              socket?.emit('reload')
+            })
+          }, 5000)
         }
       }
       resolve()
@@ -140,6 +166,7 @@ function startElectron() {
     args.push('--no-sandbox')
   }
 
+  args.push(`--unhandled-rejections=strict`)
   // detect yarn or npm and process commandline args accordingly
   if (process.env.npm_execpath?.endsWith('yarn.js')) {
     args = args.concat(process.argv.slice(3))
@@ -180,21 +207,23 @@ function consoleLog(proc: string, data: any, color?: string) {
 }
 
 async function start() {
-  console.log(chalk.bgGreen.yellowBright('    getting ready...'.padEnd(process.stdout.columns - 20, ' ')))
+  console.log(chalk.bgGreen.yellowBright(
+    '    getting ready...'.padEnd(process.stdout.columns - 20, ' '))
+  )
 
-  try {
-    let ips = getLocalIPs()
-    let localIPv4 = ips[0].address
+  let ips = getLocalIPs()
+  let localIPv4 = ips[0].address
 
-    await Promise.all([
-      startDevServer(rendererConfig.init(localIPv4), 'localhost', 9080),
-      startMain()
-    ])
+  await Promise.all([
+    startDevServer(rendererConfig.init(localIPv4), 'localhost', 9080),
+    startMain()
+  ])
 
-    startElectron()
-  } catch (err) {
-    console.error(err)
-  }
+  startElectron()
 }
 
-start()
+try {
+  await start()
+} catch (err) {
+  console.log(err)
+}
