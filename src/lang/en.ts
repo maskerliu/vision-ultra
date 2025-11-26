@@ -1,4 +1,3 @@
-
 export default {
   common: {
     done: 'Done',
@@ -6,8 +5,7 @@ export default {
     delete: 'Delete',
     save: 'Save',
     upload: 'Upload',
-    searchPlaceholder: 'keyword for search',
-    searchNoMatch: 'no match rule found'
+    search: 'Search',
   },
   settings: {
     sys: {
@@ -17,7 +15,6 @@ export default {
       port: 'Server Port',
       porterror: "Port has been used",
       serverDomain: 'Server Domain',
-      proxySocketPort: 'Socket Port',
       updateServer: 'App Update Server',
       mqttBroker: 'MQTT Broker',
       theme: 'Theme',
@@ -55,5 +52,14 @@ export default {
     virtualClient: {
       title: 'Virtual Client'
     }
+  },
+  faceDbMgr: {
+    delPersonConfirmTitle: 'delete person',
+    delPersonConfirmTip: 'Deleting will render the person unrecognizable, please proceed with caution',
+    delEigenConfirmTitle: 'Delete Eigenfaces',
+    delEigenConfirmTip: 'Deleting this feature face may result in a decrease in the accuracy of facial recognition, please proceed with caution',
+    searchPlaceholder: 'Please enter name',
+    noResult: 'No relevant personnel records found',
+    noSearch: 'Please enter the name of the person to search',
   }
 }

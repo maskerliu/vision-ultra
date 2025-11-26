@@ -2,7 +2,7 @@ import express, { Request, Response, Router } from "express"
 import formidable, { Files } from 'formidable'
 import { BizCode, BizFail, BizResponse } from "../../common/base.models"
 import { BizNetwork, fetchFormFile, parseContext, parseJsonBody } from "../misc/utils"
-
+import JSONBig from 'json-bigint'
 
 export enum ParamType {
   Header,
@@ -31,6 +31,10 @@ export abstract class BaseRouter {
   private _apiInfos: Array<ApiInfo> = []
   private _form = formidable()
 
+  private service<T>(name: string) {
+    return Reflect.get(this, name) as T
+  }
+
   constructor() {
     this._router = express.Router()
     this.initApiInfos()
@@ -52,15 +56,10 @@ export abstract class BaseRouter {
 
   protected async route(req: Request, resp: Response, func: string, target: any,
     paramInfos?: Array<ParamInfo>, hasContext: boolean = false) {
-
     let params = [], contentType: string = null, _: any, jsonBody: JSON
     if (paramInfos != null) {
 
       if (req.method.toLowerCase() == 'post') {
-        // console.log('content-type', req.headers['content-type'])
-        // let matchs = req.headers['content-type']?.match(/[\da-zA-Z\:\/\-\=]+/g)
-        // console.log(matchs)
-        // if (req.)
         [contentType, _] = req.headers['content-type']?.match(/[\da-zA-Z\:\/\-\=]+/g)
         if (contentType == BizNetwork.MIME_MULTIPART) {
           let [_, files] = await this._form.parse(req)
@@ -69,11 +68,17 @@ export abstract class BaseRouter {
           jsonBody = parseJsonBody(req)
         }
       }
-      let filesBody = req['files'] as Files<string>
+      let filesBody = req['files']
       for (const item of paramInfos) {
         if (item.type == ParamType.FormBody) {
           if (contentType == BizNetwork.MIME_MULTIPART) {
-            params.push(fetchFormFile(filesBody[item.key][0]))
+            try {
+              if (filesBody[item.key] != null) {
+                params.push(fetchFormFile(filesBody[item.key][0]))
+              }
+            } catch (err) {
+              console.error('error:', err)
+            }
           } else if (contentType == BizNetwork.MIME_JSON) {
             params.push(jsonBody)
           } else if (contentType == BizNetwork.MIME_FORM) {
@@ -106,8 +111,9 @@ export abstract class BaseRouter {
         bizResp = { code: BizCode.ERROR, msg: err.toString() }
       }
     } finally {
-      resp.json(bizResp)
-      resp.end()
+      resp.setHeader('Content-Type', 'application/json')
+      resp.end(JSONBig.stringify(bizResp))
+      this._form.removeAllListeners()
     }
   }
 

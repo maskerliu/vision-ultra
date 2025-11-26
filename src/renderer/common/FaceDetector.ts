@@ -2,17 +2,20 @@ import { Face, FaceLandmarksDetector } from "@tensorflow-models/face-landmarks-d
 import * as tf from '@tensorflow/tfjs'
 import { showNotify } from "vant"
 import { drawCVFaceResult, drawTFFaceResult, getFaceContour, getFaceSlope } from "./DrawUtils"
+import { ImageProcessor } from "./ImageProcessor"
+import { FaceRec } from "../../common"
 
 
 export class FaceDetector {
   public faceDetect: boolean = false
   public faceRecMode: '1' | '2' = '2'
-  private frames = 0
   private face: any = null
   private eyes: Array<any> = null
   private landmarks: Array<any> = null
   public dector: FaceLandmarksDetector = null
   private faces: Array<Face> = []
+
+  public imgProcessor: ImageProcessor = null
 
   public drawFace: boolean = true
 
@@ -47,6 +50,7 @@ export class FaceDetector {
 
   set enableFaceAngle(enable: boolean) {
     this._enableFaceAngle = enable
+    this._faceAngle = 0
   }
 
   get enableFaceAngle() {
@@ -62,12 +66,6 @@ export class FaceDetector {
   }
 
   async detect(frame: ImageData) {
-    // if (this.frames < 3) {
-    //   this.frames++
-    //   return
-    // }
-    this.frames = 0
-
     if (!this.faceDetect) {
       this.faces = this.eyes = this.landmarks = this.face = null
       return
@@ -92,6 +90,18 @@ export class FaceDetector {
     }
   }
 
+  async faceRec() {
+    let vector = this.genFaceTensor(this.faces[0])
+    try {
+      let result = await FaceRec.recognize(vector.arraySync())
+      return result
+    } catch (e) {
+      showNotify({ type: 'warning', message: '人脸识别失败...', duration: 500 })
+    } finally {
+      vector?.dispose()
+    }
+  }
+
   private calacleFaceAngle() {
     if (!this._enableFaceAngle) {
       this._faceAngle = 0
@@ -112,31 +122,42 @@ export class FaceDetector {
     }
   }
 
-  async faceCapture(context: CanvasRenderingContext2D) {
+
+  private genFaceTensor(face: Face) {
+    if (face == null || face.keypoints == null) return null
+    let slope = getFaceSlope(face)
+    let angle = Math.atan(slope) * 180 / Math.PI
+    let tmpAngle = 0
+    if (angle > 0) {
+      tmpAngle = 90 - angle
+    }
+    if (angle < 0) {
+      tmpAngle = -(90 + angle)
+    }
+
+    let cos = Math.cos(tmpAngle)
+    let sin = Math.sin(tmpAngle)
+    // let martix = tf.tensor([[cos, -sin], [sin, cos]])
+    let tmp = face.keypoints.map((p) => [p.x - face.box.xMin, p.y - face.box.yMin])
+    let tensor = tf.tensor(tmp)
+    let min = tensor.min()
+    let max = tensor.max()
+    tensor = tensor.sub(min).div(max.sub(min)) // normilize
+    // let result = tf.matMul(tensor, martix)
+    // tensor.dispose()
+    min.dispose()
+    max.dispose()
+    // martix.dispose()
+    return tensor
+  }
+
+  async faceCapture(context: CanvasRenderingContext2D, name: string = '') {
     if (__IS_WEB__) return
     if (this.faces == null || this.faces.length == 0) {
       showNotify({ type: 'warning', message: '未检测到人脸...', duration: 500 })
       return
     }
 
-    let face = this.faces[0].keypoints.map((p) => [p.x - this.faces[0].box.xMin, p.y - this.faces[0].box.yMin])
-    let tensor = tf.tensor(face)
-    tensor = tensor.sub(tensor.min()).div(tensor.max().sub(tensor.min()))
-    if (this.faceTensor == null) {
-      this.faceTensor = tensor
-    } else {
-      let diff = this.faceTensor.squaredDifference(tensor)
-      let distance = diff.sum().sqrt()
-      distance.print()
-      distance.dispose()
-      // let similarity = this.faceTensor.dot(tensor).div(this.faceTensor.norm(2).mul(tensor.norm(2)))
-      // similarity.print()
-      // similarity.dispose()
-
-      this.faceTensor.dispose()
-      this.faceTensor = tensor
-    }
-    
     let path = getFaceContour(this.faces[0])
     this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     this.masklayerCtx.clearRect(0, 0, this.masklayer.width, this.masklayer.height)
@@ -145,19 +166,8 @@ export class FaceDetector {
     this.masklayer.width = this.faces[0].box.width
     this.masklayer.height = this.faces[0].box.height
 
-    let eyes = getFaceSlope(this.faces[0])
     let imageData = context.getImageData(this.faces[0].box.xMin, this.faces[0].box.yMin,
       this.faces[0].box.width, this.faces[0].box.height)
-
-
-    // const { data, width, height } = window.cvApi.imgProcess(imageData, imageData.width, imageData.height, {
-    //   isGray: visionStore.isGray,
-    //   contrast: visionStore.contrast,
-    //   brightness: visionStore.brightness,
-    //   laplace: visionStore.laplace,
-    //   enhance: visionStore.enhance
-    // })
-    // imageData = new ImageData(data as ImageDataArray, width, height)
     this.captureCtx.putImageData(imageData, 0, 0)
     this.masklayerCtx.beginPath()
     for (let i = 1; i < path.length; i++) {
@@ -180,16 +190,25 @@ export class FaceDetector {
       }
     }
     this.captureCtx.translate(this.capture.width / 2, this.capture.height / 2)
-
+    this.calacleFaceAngle()
+    this.imgProcessor.imgProcessParams['rotate'] = this._faceAngle
+    this.imgProcessor?.process(imageData)
     this.captureCtx.putImageData(imageData, 0, 0)
+    context.putImageData(imageData, this.faces[0].box.xMin, this.faces[0].box.yMin)
     this.capture.toBlob(async (blob) => {
-      let buffer = await blob.arrayBuffer()
-      // window.mainApi.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
-      if (!__IS_WEB__) {
-        window.mainApi?.saveFile('保存图片', `face-${new Date().getTime()}.png`, buffer, true)
-      } else {
-        showNotify({ type: 'warning', message: '图片已保存到剪贴板', duration: 500 })
+      try {
+        let faceTensor = this.genFaceTensor(this.faces[0])
+        await FaceRec.registe(name, faceTensor.arraySync(), new File([blob], 'avatar.png', { type: 'image/png' }))
+        showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })
+        faceTensor.dispose()
+      } catch (err) {
+        showNotify({ type: 'warning', message: '保存失败', duration: 500 })
       }
+      // if (!__IS_WEB__) {
+      //   window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
+      // } else {
+      //   showNotify({ type: 'warning', message: '图片已保存到剪贴板', duration: 500 })
+      // }
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     }, 'image/png')
   }

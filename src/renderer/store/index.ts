@@ -10,7 +10,7 @@ export const CommonStore = defineStore('Common', {
   state: () => {
     return {
       uid: '',
-      showQrCode: false,
+      showApm: false,
       registerUrl: '',
       bizConfig: {} as BizConfig
     }
@@ -21,11 +21,11 @@ export const CommonStore = defineStore('Common', {
     },
     async init(config?: BizConfig) {
       pushClient = new PushClient()
-
+      
       if (config) {
         updateBaseDomain(`${config.protocol}://${config.ip}:${config.port}`)
       } else {
-        if (__DEV__ || !__IS_WEB__) {
+        if (__DEV__ || !window.isWeb) {
           updateBaseDomain(SERVER_BASE_URL)
         }
       }
@@ -42,7 +42,7 @@ export const CommonStore = defineStore('Common', {
         updateClientUID(this.uid)
 
         this.registerUrl = `${this.bizConfig.protocol}://${this.bizConfig.ip}:${this.bizConfig.port}/appmock/register/${this.uid}`
-        if (__IS_WEB__) {
+        if (window.isWeb) {
           pushClient.start(`${this.bizConfig.protocol}://${this.bizConfig.ip}:${this.bizConfig.port}`, this.uid)
         } else {
           pushClient.start(`${this.bizConfig.protocol}://localhost:${this.bizConfig.port}`, this.uid)

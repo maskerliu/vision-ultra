@@ -9,6 +9,7 @@ export class ImageProcessor {
   public imgProcessParams: any = {}
 
   process(image: ImageData) {
+    if (!this.imgEnhance) return
     switch (this.imgProcessMode) {
       case '1': {
         imgProcess(image, image.width, image.height, this.imgProcessParams)
