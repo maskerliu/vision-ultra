@@ -1,11 +1,12 @@
 
 import { File } from 'formidable'
-import { inject, injectable } from "inversify"
-import { APP_DATA_DIR, IocTypes, USER_DATA_DIR } from "../MainConst"
 import fse from 'fs-extra'
-import { FaceRecRepo } from "../repository/facerec.repo"
+import { inject, injectable } from "inversify"
 import path from 'path'
-import { init } from 'ace-builds/src-noconflict/ext-keybinding_menu'
+import { IocTypes, USER_DATA_DIR } from "../MainConst"
+import { FaceRecRepo } from "../repository/facerec.repo"
+import { eigenAsync } from '@u4/opencv4nodejs'
+import { Timestamp } from 'apache-arrow'
 
 @injectable()
 export class FaceRecService {
@@ -22,18 +23,16 @@ export class FaceRecService {
     results.forEach((item: any) => {
       let result = {
         id: item._rowid.toString(),
-        name: item.name,
-        snap: `_res/face/${item.snap}`,
+        snap: `/_res/face/${item.snap}`,
         tiemstamp: item.timestamp.toString()
       }
       resp.push(result)
     })
-    console.log(resp)
-    return resp
+    return { name: keyword, eigens: resp }
   }
 
-  async registe(name: string, vector: any, avatar: File) {
-    let arr = vector.split(',').map((item: string) => {
+  async registe(name: string, eigen: any, avatar: File) {
+    let arr = eigen.split(',').map((item: string) => {
       return Number(item)
     })
     if (arr.length != 478 * 2) {
@@ -47,9 +46,9 @@ export class FaceRecService {
     return name
   }
 
-  async delete(name: string, vectorId: string) {
+  async delete(eigenIds: Array<string>) {
     try {
-      await this.faceRepo.delete(name, vectorId)
+      await this.faceRepo.delete(eigenIds)
       return 'name deleted'
     } catch (err) {
       return 'fail to delete data'
@@ -62,8 +61,17 @@ export class FaceRecService {
       return Number(item)
     })
     let result = await this.faceRepo.search(null, arr)
-    console.log(result)
-    return name
+    if (result.length > 0) {
+      return {
+        id: result[0]._rowid.toString(),
+        name: result[0].name,
+        snap: `/_res/face/${result[0].snap}`,
+        similarity: result[0]._distance,
+        timestamp: result[0].timestamp.toString()
+      }
+    } else {
+      return null
+    }
   }
 }
 

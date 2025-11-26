@@ -54,7 +54,7 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
         devServer.app?.use((_, res, next) => {
           res.setHeader('Access-Control-Allow-Origin', '*')
           res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
-          res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
+          res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none')
           next()
         })
         devServer.middleware?.waitUntilValid(() => { resolve() })
