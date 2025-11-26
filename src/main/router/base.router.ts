@@ -60,10 +60,6 @@ export abstract class BaseRouter {
     if (paramInfos != null) {
 
       if (req.method.toLowerCase() == 'post') {
-        // console.log('content-type', req.headers['content-type'])
-        // let matchs = req.headers['content-type']?.match(/[\da-zA-Z\:\/\-\=]+/g)
-        // console.log(matchs)
-        // if (req.)
         [contentType, _] = req.headers['content-type']?.match(/[\da-zA-Z\:\/\-\=]+/g)
         if (contentType == BizNetwork.MIME_MULTIPART) {
           let [_, files] = await this._form.parse(req)
@@ -83,7 +79,6 @@ export abstract class BaseRouter {
             } catch (err) {
               console.error('error:', err)
             }
-
           } else if (contentType == BizNetwork.MIME_JSON) {
             params.push(jsonBody)
           } else if (contentType == BizNetwork.MIME_FORM) {
@@ -116,10 +111,9 @@ export abstract class BaseRouter {
         bizResp = { code: BizCode.ERROR, msg: err.toString() }
       }
     } finally {
-      // JSONBig.parse(bizResp.data)
       resp.setHeader('Content-Type', 'application/json')
       resp.end(JSONBig.stringify(bizResp))
-      resp.end()
+      this._form.removeAllListeners()
     }
   }
 

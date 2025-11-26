@@ -28,19 +28,22 @@ export class FaceRecRouter extends BaseRouter {
       func: 'registe', target: 'faceRecService',
       params: [
         { key: 'name', type: ParamType.FormBody },
-        { key: 'vector', type: ParamType.FormBody },
+        { key: 'eigen', type: ParamType.FormBody },
         { key: 'avatar', type: ParamType.FormBody }
       ]
     })
     this.addApiInfo({
       method: BizNetwork.Method_Post, path: `${API_URL.F_Delete}`,
-      func: 'delete', target: 'faceRecService'
+      func: 'delete', target: 'faceRecService',
+      params: [
+        { key: 'eigenIds', type: ParamType.FormBody }
+      ]
     })
 
     this.addApiInfo({
       method: BizNetwork.Method_Post, path: `${API_URL.F_Recognize}`,
       func: 'recognize', target: 'faceRecService',
-      params: [{ key: 'vector', type: ParamType.FormBody }]
+      params: [{ key: 'eigen', type: ParamType.FormBody }]
     })
 
   }

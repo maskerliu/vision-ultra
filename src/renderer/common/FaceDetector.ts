@@ -92,10 +92,14 @@ export class FaceDetector {
 
   async faceRec() {
     let vector = this.genFaceTensor(this.faces[0])
-    vector.print()
-    let result = await FaceRec.recognize(vector.arraySync())
-    vector.dispose()
-    console.log(result)
+    try {
+      let result = await FaceRec.recognize(vector.arraySync())
+      return result
+    } catch (e) {
+      showNotify({ type: 'warning', message: '人脸识别失败...', duration: 500 })
+    } finally {
+      vector?.dispose()
+    }
   }
 
   private calacleFaceAngle() {
@@ -120,7 +124,8 @@ export class FaceDetector {
 
 
   private genFaceTensor(face: Face) {
-    let slope = getFaceSlope(this.faces[0])
+    if (face == null || face.keypoints == null) return null
+    let slope = getFaceSlope(face)
     let angle = Math.atan(slope) * 180 / Math.PI
     let tmpAngle = 0
     if (angle > 0) {
