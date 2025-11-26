@@ -105,7 +105,7 @@ function startMain(): Promise<void> {
       hotMiddleware.publish({ action: "compiling" })
 
       rendererDevServer?.sockets?.forEach(socket => {
-        socket?.emit('reload')
+        // setTimeout(() => { socket?.emit('reload') }, 5000)
       })
       done()
     })
@@ -129,13 +129,24 @@ function startMain(): Promise<void> {
             else console.log(chalk.bgRedBright.whiteBright(`    kill pid: ${pid} success!`.padEnd(process.stdout.columns - 20, ' ')))
             electronProc = null
             startElectron()
+            setTimeout(() => {
+              rendererDevServer?.sockets?.forEach(socket => {
+                console.log('try to reload renderer')
+                socket?.emit('reload')
+              })
+            }, 5000)
             manualRestart = false
           })
         } else {
           process.kill(electronProc.pid!)
           electronProc = null
           startElectron()
-          setTimeout(() => { manualRestart = false }, 5000)
+          setTimeout(() => {
+            manualRestart = false
+            rendererDevServer?.sockets?.forEach(socket => {
+              socket?.emit('reload')
+            })
+          }, 5000)
         }
       }
       resolve()
