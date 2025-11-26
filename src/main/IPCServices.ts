@@ -9,6 +9,7 @@ import { MainAPICMD } from "../common/ipc.api"
 import { fullUpdate, incrementUpdate } from "./AppUpdater"
 import { USER_DATA_DIR } from "./MainConst"
 import { getAppWindow } from "./misc/utils"
+import { platform } from "node:os"
 
 ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   if (fse.pathExistsSync(path.join(process.resourcesPath, 'update.asar'))) {
@@ -49,7 +50,7 @@ ipcMain.handle(MainAPICMD.OpenFile, async (_, target: string) => {
   })
 
   if (result.canceled) return
-  getAppWindow()?.webContents.send(MainAPICMD.OpenFile, result.filePaths[0])
+  getAppWindow()?.webContents.send(MainAPICMD.OpenFile, os.platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0])
 })
 
 ipcMain.handle(MainAPICMD.SaveFileAs, async (_, title: string, fileName: string, data: string | ArrayBuffer, slient = false) => {
