@@ -29,7 +29,7 @@ const theme = ref<ConfigProviderTheme>('light')
 const lang = ref<string>('zh-CN')
 const active = ref<number>(0)
 const showDebugPanel = ref<boolean>(false)
-const enableDebug = true // !__IS_WEB__
+const enableDebug = true
 
 provide('theme', theme)
 provide('lang', lang)
@@ -52,15 +52,15 @@ onMounted(async () => {
   lang.value = wrapLang != null ? wrapLang : 'zh-CN'
   i18n.locale.value = lang.value
 
-  if (!window.isWeb) {
+  window.mainApi?.setAppTheme(theme.value)
+  if (window.mainApi) {
     window.mainApi?.getSysSettings(async (result) => {
       await CommonStore().init(result)
     })
-
-    window.mainApi?.setAppTheme(theme.value)
   } else {
     await CommonStore().init()
   }
+
   canRender.value = true
 })
 

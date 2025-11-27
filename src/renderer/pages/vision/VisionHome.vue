@@ -23,7 +23,7 @@
       <face-rec />
     </OverlayScrollbarsComponent>
 
-    <van-popup v-model:show="showPopup" position="right" :closeable="isWeb" close-icon="close">
+    <van-popup v-model:show="showPopup" position="right" close-icon="close">
       <settings v-if="showSettings" />
       <face-db-mgr v-else-if="showFaceDbMgr" />
     </van-popup>
@@ -47,7 +47,7 @@ const FaceRec = defineAsyncComponent({
   }
 })
 
-const isWeb = __IS_WEB__
+const isWeb = window.isWeb
 const theme = inject<Ref<ConfigProviderTheme>>('theme')
 
 const showSettings = ref<boolean>(false)
@@ -59,9 +59,7 @@ const commonStore = CommonStore()
 provide('showSettings', showSettings)
 
 onMounted(() => {
-  if (!__IS_WEB__) {
-    window.mainApi?.onOpenSettings(() => { openSettings() })
-  }
+  window.mainApi?.onOpenSettings(() => { openSettings() })
 })
 
 watch(() => theme.value, () => {
