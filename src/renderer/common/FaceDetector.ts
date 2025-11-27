@@ -83,9 +83,11 @@ export class FaceDetector {
       case '2': {
         let time = Date.now()
         this.faces = await this.dector?.estimateFaces(frame)
+        if (this.faces == null || this.faces.length == 0) return
         this._time = Date.now() - time
-        if (this.drawFace) drawTFFaceResult(this.previewCtx, this.faces, true, true)
+        if (this.drawFace) drawTFFaceResult(this.previewCtx, this.faces[0], false, true)
         this.calacleFaceAngle()
+        break
       }
     }
   }
@@ -204,6 +206,7 @@ export class FaceDetector {
         showNotify({ type: 'warning', message: '保存失败', duration: 500 })
       }
 
+      // TODO: 保存图片 不通过请求直接native
       // let buffer = await blob.arrayBuffer()
       // window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
 

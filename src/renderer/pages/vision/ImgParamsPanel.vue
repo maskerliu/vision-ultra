@@ -1,7 +1,6 @@
 <template>
   <van-col>
-    <van-cell-group title=" " :border="false">
-
+    <van-cell-group :border="false">
       <van-cell title="图像处理引擎">
         <template #right-icon>
           <van-radio-group v-model="visionStore.imgProcessMode" direction="horizontal">

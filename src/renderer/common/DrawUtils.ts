@@ -1,7 +1,7 @@
 
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection'
 import { Face } from "@tensorflow-models/face-landmarks-detection"
-import { TRIANGULATION } from "./Triangulation"
+import { LeftEyebrowIdxs, LeftEyeIdxs, LipsContourIdxs, RightEyebrowIdxs, RightEyeIdxs, TRIANGULATION } from "./Triangulation"
 
 export const NUM_KEYPOINTS = 468
 export const NUM_IRIS_KEYPOINTS = 5
@@ -9,8 +9,8 @@ export const GREEN = '#32EEDB'
 export const RED = '#FF2C35'
 export const BLUE = '#157AB3'
 export const YELLOW = '#F8E16C'
-export const WHITE = '#FFFFFF'
-export const SILVERY = '#E0E0E0'
+export const WHITE = '#ffffff'
+export const SILVERY = '#f1f2f6'
 export const PURPLE = '#7F00FF'
 
 export const VIDEO_SIZE = {
@@ -43,6 +43,7 @@ export function drawPath(ctx: CanvasRenderingContext2D, points: number[][], clos
   for (let i = 1; i < points.length; i++) {
     const point = points[i]
     region.lineTo(point[0], point[1])
+    // ctx.fillText(`${point[2]}`, point[0], point[1])
   }
 
   if (closedPath) {
@@ -53,7 +54,7 @@ export function drawPath(ctx: CanvasRenderingContext2D, points: number[][], clos
 }
 
 
-export function drawMutliLine(context: CanvasRenderingContext2D,
+function drawMutliLine(context: CanvasRenderingContext2D,
   points: Array<any>, start: number, end: number, closed: boolean = false) {
   context.beginPath()
   context.strokeStyle = BLUE
@@ -117,88 +118,114 @@ export function drawCVFaceResult(context: CanvasRenderingContext2D,
   })
 }
 
-export function drawTFFaceResult(ctx: CanvasRenderingContext2D, faces: Face[],
-  triangulateMesh = true, boundingBox = false) {
-  if (faces == null || faces.length === 0) return
-  faces.forEach((face: any) => {
-    const keypoints = face.keypoints.map((keypoint) => [keypoint.x, keypoint.y])
-    if (boundingBox) {
-      ctx.strokeStyle = SILVERY
-      ctx.lineWidth = 5
+function drawRectCorner(ctx: CanvasRenderingContext2D, box: any) {
+  ctx.strokeStyle = SILVERY
+  ctx.lineWidth = 5
 
-      const box = face.box
-      const w = box.width / 6
-      drawPath(ctx, [
-        [box.xMin + w, box.yMin], [box.xMin, box.yMin], [box.xMin, box.yMin + w]
-      ])
+  const w = box.width / 6
+  drawPath(ctx, [
+    [box.xMin + w, box.yMin], [box.xMin, box.yMin], [box.xMin, box.yMin + w]
+  ])
 
-      drawPath(ctx, [
-        [box.xMax - w, box.yMin], [box.xMax, box.yMin], [box.xMax, box.yMin + w]
-      ])
+  drawPath(ctx, [
+    [box.xMax - w, box.yMin], [box.xMax, box.yMin], [box.xMax, box.yMin + w]
+  ])
 
-      drawPath(ctx, [
-        [box.xMin, box.yMax - w], [box.xMin, box.yMax], [box.xMin + w, box.yMax]
-      ])
+  drawPath(ctx, [
+    [box.xMin, box.yMax - w], [box.xMin, box.yMax], [box.xMin + w, box.yMax]
+  ])
 
-      drawPath(ctx, [
-        [box.xMax, box.yMax - w], [box.xMax, box.yMax], [box.xMax - w, box.yMax]
-      ])
-    }
-
-    if (triangulateMesh) {
-      ctx.strokeStyle = GREEN
-      ctx.lineWidth = 0.5
-      for (let i = 0; i < TRIANGULATION.length / 3; i++) {
-        const points = [
-          TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2],
-        ].map((index) => keypoints[index])
-
-        drawPath(ctx, points, true)
-      }
-    } else {
-      ctx.strokeStyle = GREEN
-
-      for (let i = 0; i < NUM_KEYPOINTS; i++) {
-        ctx.beginPath()
-        ctx.arc(keypoints[i][0], keypoints[i][1], 1 /* radius */, 0, 2 * Math.PI)
-        ctx.fill()
-      }
-    }
-
-    if (keypoints.length > NUM_KEYPOINTS) {
-      ctx.strokeStyle = RED
-      ctx.lineWidth = 2
-
-      const leftCenter = keypoints[NUM_KEYPOINTS]
-      const leftDiameterY = distance(keypoints[NUM_KEYPOINTS + 4], keypoints[NUM_KEYPOINTS + 2])
-      const leftDiameterX = distance(keypoints[NUM_KEYPOINTS + 3], keypoints[NUM_KEYPOINTS + 1])
-      ctx.beginPath()
-      ctx.ellipse(leftCenter[0], leftCenter[1], leftDiameterX / 2, leftDiameterY / 2, 0, 0, 2 * Math.PI)
-      ctx.stroke()
-
-      if (keypoints.length > NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS) {
-        const rightCenter = keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS]
-        const rightDiameterY = distance(keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 2],
-          keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 4])
-        const rightDiameterX = distance(keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 3],
-          keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 1])
-
-        ctx.beginPath()
-        ctx.ellipse(rightCenter[0], rightCenter[1], rightDiameterX / 2, rightDiameterY / 2, 0, 0, 2 * Math.PI)
-        ctx.stroke()
-      }
-    }
-
-    for (const [label, contour] of Object.entries(FaceContours)) {
-      ctx.strokeStyle = LABEL_TO_COLOR[label]
-      ctx.lineWidth = 2
-      const path = contour.map((index) => keypoints[index])
-      if (path.every(value => value != undefined)) {
-        drawPath(ctx, path, false)
-      }
-    }
-  })
+  drawPath(ctx, [
+    [box.xMax, box.yMax - w], [box.xMax, box.yMax], [box.xMax - w, box.yMax]
+  ])
 }
+
+export function drawTFFaceResult(ctx: CanvasRenderingContext2D, face: Face,
+  triangulateMesh = true, boundingBox = false) {
+  if (face == null || face.keypoints?.length === 0) return
+  const keypoints = face.keypoints.map((keypoint) => [keypoint.x, keypoint.y])
+  if (boundingBox) {
+    drawRectCorner(ctx, face.box)
+  }
+
+  if (triangulateMesh) {
+    ctx.strokeStyle = SILVERY
+    ctx.lineWidth = 0.5
+    for (let i = 0; i < TRIANGULATION.length / 3; i++) {
+      const points = [
+        TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2],
+      ].map((index) => keypoints[index])
+
+      drawPath(ctx, points, true)
+    }
+  } else {
+    ctx.strokeStyle = GREEN
+    ctx.fillStyle = WHITE
+    for (let i = 0; i < NUM_KEYPOINTS; i++) {
+      ctx.beginPath()
+      ctx.arc(keypoints[i][0], keypoints[i][1], 1.5 /* radius */, 0, 2 * Math.PI)
+      ctx.fill()
+    }
+  }
+
+  if (keypoints.length > NUM_KEYPOINTS) {
+    ctx.strokeStyle = RED
+    ctx.lineWidth = 2
+
+    const leftCenter = keypoints[NUM_KEYPOINTS]
+    const leftDiameterY = distance(keypoints[NUM_KEYPOINTS + 4], keypoints[NUM_KEYPOINTS + 2])
+    const leftDiameterX = distance(keypoints[NUM_KEYPOINTS + 3], keypoints[NUM_KEYPOINTS + 1])
+    ctx.beginPath()
+    ctx.ellipse(leftCenter[0], leftCenter[1], leftDiameterX / 2, leftDiameterY / 2, 0, 0, 2 * Math.PI)
+    ctx.stroke()
+
+    if (keypoints.length > NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS) {
+      const rightCenter = keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS]
+      const rightDiameterY = distance(keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 2],
+        keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 4])
+      const rightDiameterX = distance(keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 3],
+        keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 1])
+
+      ctx.beginPath()
+      ctx.ellipse(rightCenter[0], rightCenter[1], rightDiameterX / 2, rightDiameterY / 2, 0, 0, 2 * Math.PI)
+      ctx.stroke()
+    }
+  }
+
+  for (const [label, contour] of Object.entries(FaceContours)) {
+    ctx.strokeStyle = LABEL_TO_COLOR[label]
+    ctx.lineWidth = 2
+    let path = []
+    switch (label) {
+      case 'lips':
+        path = LipsContourIdxs.map((index) => [...keypoints[index], index])
+        break
+      case 'rightEye':
+        path = RightEyeIdxs.map(idx => [...keypoints[idx], idx])
+        break
+      case 'rightEyebrow':
+        path = RightEyebrowIdxs.map(idx => [...keypoints[idx], idx])
+        break
+      case 'leftEye':
+        path = LeftEyeIdxs.map(idx => [...keypoints[idx], idx])
+        break
+      case 'leftEyebrow':
+        path = LeftEyebrowIdxs.map(idx => [...keypoints[idx], idx])
+        break
+      case 'lips':
+        path = LipsContourIdxs.map(idx => [...keypoints[idx], idx])
+        break
+      default:
+        path = contour.map((index) => [...keypoints[index], index])
+        break
+    }
+    if (path.every(value => value != undefined)) {
+      drawPath(ctx, path, false)
+    }
+  }
+}
+
+
 
 export function getFaceContour(face: Face) {
   const keypoints = face.keypoints.map((keypoint) => [keypoint.x - face.box.xMin, keypoint.y - face.box.yMin])
