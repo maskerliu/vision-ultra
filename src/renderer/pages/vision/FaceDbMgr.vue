@@ -1,16 +1,16 @@
 <template>
   <van-form class="face-db-mgr">
     <van-search v-model="keyword" show-action style="width: 100%;" @search="onSearch"
-      :placeholder="t('faceDbMgr.searchPlaceholder')">
+      :placeholder="$t('faceDbMgr.searchPlaceholder')">
       <template #action>
-        <div @click="onSearch">{{ t('common.search') }}</div>
+        <div @click="onSearch">{{ $t('common.search') }}</div>
       </template>
     </van-search>
     <van-cell :title="eigenfaces?.name" v-if="eigenfaces && eigenfaces.eigens.length > 0"
       :title-style="{ 'margin-top': '5px', 'font-size': '1.2rem' }">
       <template #label>
         <van-button type="danger" plain size="small" style="margin-top: 20px; width: 50%" @click="onDeletePerson">
-          {{ t('common.delete') }}
+          {{ $t('common.delete') }}
         </van-button>
       </template>
       <template #right-icon>
@@ -22,28 +22,26 @@
         </van-badge>
       </template>
     </van-cell>
-    <van-empty v-else image="search" :description="keyword ? t('faceDbMgr.noResult') : t('faceDbMgr.noSearch')" />
+    <van-empty v-else image="search" :description="keyword ? $t('faceDbMgr.noResult') : $t('faceDbMgr.noSearch')" />
 
-    <van-dialog style="text-align: center;" :title="'&#9889;' + t('faceDbMgr.delEigenConfirmTitle')" show-cancel-button
+    <van-dialog style="text-align: center;" :title="'&#9889;' + $t('faceDbMgr.delEigenConfirmTitle')" show-cancel-button
       confirmButtonColor="#c0392b" v-model:show="showDeleteEigenConfirm" @confirm="onDeleteEigenConfirm">
       <van-image fit="cover" width="100" height="100" style="margin-top: 15px;"
         :src="baseDomain() + selectedEigenSnap" />
-      <p style="color: red; font-size: 0.8rem; margin: 15px;">{{ t('faceDbMgr.delEigenConfirmTip') }}</p>
+      <p style="color: red; font-size: 0.8rem; margin: 15px;">{{ $t('faceDbMgr.delEigenConfirmTip') }}</p>
     </van-dialog>
 
-    <van-dialog style="text-align: center;" :title="'&#9889;' + t('faceDbMgr.delPersonConfirmTitle') + eigenfaces?.name"
+    <van-dialog style="text-align: center;" :title="'&#9889;' + $t('faceDbMgr.delPersonConfirmTitle') + eigenfaces?.name"
       show-cancel-button confirmButtonColor="#c0392b" v-model:show="showDeletePersonConfirm"
       @confirm="onDeletePersonConfirm">
-      <p style="color: red; font-size: 0.8rem; margin: 15px;">{{ t('faceDbMgr.delPersonConfirmTip') }}</p>
+      <p style="color: red; font-size: 0.8rem; margin: 15px;">{{ $t('faceDbMgr.delPersonConfirmTip') }}</p>
     </van-dialog>
   </van-form>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { FaceRec, baseDomain } from '../../../common'
-import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
 const showDeleteEigenConfirm = ref(false)
 const showDeletePersonConfirm = ref(false)
 const keyword = ref('')
@@ -53,10 +51,6 @@ const selectedEigenSnap = ref<string>()
 
 function onDeletePerson() {
   showDeletePersonConfirm.value = true
-}
-
-function onDeletePersonCancel() {
-  showDeletePersonConfirm.value = false
 }
 
 async function onDeletePersonConfirm() {
@@ -74,11 +68,6 @@ function onDeleteEigen(id: string) {
       break
     }
   }
-}
-
-function onDeleteEigenCancel() {
-  showDeleteEigenConfirm.value = false
-  selectedEigenSnap.value = null
 }
 
 async function onDeleteEigenConfirm() {

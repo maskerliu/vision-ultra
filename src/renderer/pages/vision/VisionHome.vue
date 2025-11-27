@@ -118,10 +118,9 @@ function openSettings() {
 
 .snap-panel {
   width: 100%;
-  height: calc(100vh - 54px);
+  height: calc(100vh - 40px);
   overflow-y: auto;
   overflow-x: hidden;
-  margin: 5px 0 0 0;
 }
 
 .param-desc {
