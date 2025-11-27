@@ -22,8 +22,7 @@
         </van-badge>
       </template>
     </van-cell>
-    <van-empty v-else :description="keyword ? t('faceDbMgr.noResult') : t('faceDbMgr.noSearch')"
-      image="search"></van-empty>
+    <van-empty v-else image="search" :description="keyword ? t('faceDbMgr.noResult') : t('faceDbMgr.noSearch')" />
 
     <van-dialog style="text-align: center;" :title="'&#9889;' + t('faceDbMgr.delEigenConfirmTitle')" show-cancel-button
       confirmButtonColor="#c0392b" v-model:show="showDeleteEigenConfirm" @confirm="onDeleteEigenConfirm">

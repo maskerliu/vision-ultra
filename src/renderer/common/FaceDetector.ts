@@ -137,7 +137,7 @@ export class FaceDetector {
 
     let cos = Math.cos(tmpAngle)
     let sin = Math.sin(tmpAngle)
-    // let martix = tf.tensor([[cos, -sin], [sin, cos]])
+    let martix = tf.tensor([[cos, -sin], [sin, cos]])
     let tmp = face.keypoints.map((p) => [p.x - face.box.xMin, p.y - face.box.yMin])
     let tensor = tf.tensor(tmp)
     let min = tensor.min()
@@ -147,12 +147,11 @@ export class FaceDetector {
     // tensor.dispose()
     min.dispose()
     max.dispose()
-    // martix.dispose()
+    martix.dispose()
     return tensor
   }
 
   async faceCapture(context: CanvasRenderingContext2D, name: string = '') {
-    if (__IS_WEB__) return
     if (this.faces == null || this.faces.length == 0) {
       showNotify({ type: 'warning', message: '未检测到人脸...', duration: 500 })
       return
@@ -204,11 +203,10 @@ export class FaceDetector {
       } catch (err) {
         showNotify({ type: 'warning', message: '保存失败', duration: 500 })
       }
-      // if (!__IS_WEB__) {
-      //   window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
-      // } else {
-      //   showNotify({ type: 'warning', message: '图片已保存到剪贴板', duration: 500 })
-      // }
+
+      // let buffer = await blob.arrayBuffer()
+      // window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
+
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     }, 'image/png')
   }

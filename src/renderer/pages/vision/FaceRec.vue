@@ -48,7 +48,8 @@
               <van-icon class="iconfont icon-capture" />
             </template>
           </van-button>
-          <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;" @click="onFaceScan">
+          <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;"
+            @click="onFaceScan">
             <template #icon>
               <van-icon class="iconfont icon-scan" />
             </template>
@@ -165,10 +166,10 @@ onMounted(async () => {
   camera.imgProcessor = imgProcessor
   camera.faceDetector = faceDetector
 
-  if (!__IS_WEB__) {
-    window.cvNativeApi?.init()
-    window.tfApi?.init('mediapipe-gpu')
-  }
+
+  window.cvNativeApi?.init()
+  window.tfApi?.init('mediapipe-gpu')
+
 })
 
 async function onFaceScan() {
