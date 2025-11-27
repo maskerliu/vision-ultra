@@ -37,7 +37,7 @@ provide('showDebugPanel', showDebugPanel)
 
 onMounted(async () => {
 
-  window.isWeb = __IS_WEB__
+  window.isWeb = window.mainApi == null
   useRouter().beforeEach((to: any, from: any) => {
     return true
   })
@@ -138,8 +138,8 @@ function onOpenDebugPanel() {
 .border-bg {
   margin: 5px;
   padding: 0;
-  /* border-radius: 8px; */
-  /* border: 1px solid #e1e1e1; */
+  /* border-radius: 8px;
+  border: 1px solid #e1e1e1; */
   box-shadow: 0px 12px 8px -12px #000;
 }
 
