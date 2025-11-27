@@ -7,10 +7,10 @@
             <van-radio name="1" size="1rem">
               <van-icon class="iconfont icon-wasm" style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
             </van-radio>
-            <van-radio name="2" size="1rem">
+            <van-radio name="2" size="1rem" :disabled="isWeb">
               <van-icon class="iconfont icon-nodejs" style="font-size: 1.2rem; color: #27ae60; margin-top: 4px;" />
             </van-radio>
-            <van-radio name="3" size="1rem">
+            <van-radio name="3" size="1rem" :disabled="isWeb">
               <van-icon class="iconfont icon-native" style="font-size: 1.2rem; color: #3498db; margin-top: 4px;" />
             </van-radio>
           </van-radio-group>
@@ -57,7 +57,7 @@
           </van-checkbox>
         </template>
         <template #label>
-          size:\t\t<van-stepper button-size="1.6rem" step="2" min="1" :disabled="!visionStore.imgParams.enableGaussian"
+          size:<van-stepper button-size="1.6rem" step="2" min="1" :disabled="!visionStore.imgParams.enableGaussian"
             v-model="visionStore.imgParams.gaussian[0]" />
           sigmaX:<van-stepper button-size="1.6rem" step="1" min="1" :disabled="!visionStore.imgParams.enableGaussian"
             v-model="visionStore.imgParams.gaussian[1]" />
@@ -152,6 +152,7 @@ import { VisionStore } from '../../store'
 const cannyThreshold = ref<[number, number]>([60, 160])
 const rotate = ref(0)
 const visionStore = VisionStore()
+const isWeb = window.isWeb
 
 onMounted(() => {
   cannyThreshold.value[0] = visionStore.imgParams.cannyThreshold[0]

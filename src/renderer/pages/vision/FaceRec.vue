@@ -25,7 +25,7 @@
               </van-checkbox>
             </van-row>
             <van-radio-group v-model="visionStore.faceRecMode" direction="horizontal">
-              <van-radio name="1">
+              <van-radio name="1" :disabled="isWeb">
                 <van-icon class="iconfont icon-opencv" style="font-size: 1.5rem;" />
               </van-radio>
               <van-radio name="2">
@@ -104,6 +104,7 @@ const showNameInputDialog = ref(false)
 const eigenName = ref('')
 const recFace = ref<string>()
 const isScan = ref(false)
+const isWeb = window.isWeb
 
 let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D

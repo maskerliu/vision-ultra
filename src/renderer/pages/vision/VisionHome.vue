@@ -2,7 +2,10 @@
   <van-row>
     <van-col class="border-bg left-panel">
       <van-row justify="space-between">
-        <van-row></van-row>
+        <van-row style="color: #c0392b;"> 
+          <van-icon class="iconfont icon-sjtu-logo" style="font-size: 1.6rem; margin-left: 10px;" />
+          <van-icon class="iconfont icon-sjtu-name" style="font-size: 1.4rem; margin: 2px 10px;"/>
+        </van-row>
         <div style="padding: 1px 0;">
           <van-icon class="iconfont icon-apm left-panel-icon" @click="commonStore.showApm = !commonStore.showApm" />
           <van-icon class="iconfont icon-data left-panel-icon" @click="openFaceDbMgr" />
@@ -103,7 +106,7 @@ function openSettings() {
 .right-panel {
   flex-grow: 19;
   flex-basis: 50%;
-  min-width: 375px;
+  min-width: 620px;
   height: calc(100vh - 10px);
   margin: 5px 2px;
   overflow: hidden;
