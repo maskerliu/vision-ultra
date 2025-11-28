@@ -54,9 +54,9 @@
               <van-icon class="iconfont icon-scan" />
             </template>
           </van-button>
-          <van-button plain size="small" type="success" style="margin-left: 15px;" @click="onCollect">
+          <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="onCollect">
             <template #icon>
-              <van-icon class="iconfont icon-collect" />
+              <van-icon class="iconfont icon-face-rec" />
             </template>
           </van-button>
           <van-button plain size="small" type="default" style="margin-left: 15px;" @click="onClickCamera">
@@ -69,7 +69,9 @@
 
       <canvas ref="preview" style="margin-top: 15px;"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
-      <canvas ref="capture" style="display: none;"></canvas>
+      <div class="eigen-face">
+        <canvas ref="capture"></canvas>
+      </div>
       <canvas ref="masklayer" style="display: none;"></canvas>
       <video ref="preVideo" autoplay style="display: none;"></video>
     </van-cell-group>
@@ -281,4 +283,18 @@ watch(() => visionStore.imgEnhance, (val) => {
 })
 
 </script>
-<style lang="css"></style>
+<style lang="css">
+
+.eigen-face {
+  width: 90px;
+  height: 100px;
+  padding: 5px;
+  object-fit: contain;
+  position: absolute;
+  top: 100px;
+  right: 15px;
+  border-radius: 12px;
+  background-color: #2f3542;
+}
+
+</style>
