@@ -1,6 +1,7 @@
 
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection'
 import { Face } from "@tensorflow-models/face-landmarks-detection"
+import { Tensor } from '@tensorflow/tfjs-core'
 import { LeftEyebrowIdxs, LeftEyeIdxs, LipsContourIdxs, RightEyebrowIdxs, RightEyeIdxs, TRIANGULATION } from "./Triangulation"
 
 export const NUM_KEYPOINTS = 468
@@ -225,7 +226,21 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D, face: Face,
   }
 }
 
+export async function drawTFEigenFace(ctx: CanvasRenderingContext2D, eigen: Tensor, scale = 100) {
 
+  let data = await eigen.data()
+  ctx.fillStyle = GREEN
+  // ctx.strokeStyle = BLUE
+  // ctx.lineWidth = 1
+  // ctx.rect(0.5, 0.5, 100, 100)
+  // ctx.stroke()
+  for (let i = 0; i < data.length; i += 2) {
+    ctx.beginPath()
+    ctx.arc(data[i] * scale, data[i + 1] * scale, 1.5 /* radius */, 0, 2 * Math.PI)
+    ctx.fill()
+  }
+  // ctx.scale(100,100)
+}
 
 export function getFaceContour(face: Face) {
   const keypoints = face.keypoints.map((keypoint) => [keypoint.x - face.box.xMin, keypoint.y - face.box.yMin])

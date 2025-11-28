@@ -1,7 +1,7 @@
 import { Face, FaceLandmarksDetector } from "@tensorflow-models/face-landmarks-detection"
 import * as tf from '@tensorflow/tfjs'
 import { showNotify } from "vant"
-import { drawCVFaceResult, drawTFFaceResult, getFaceContour, getFaceSlope } from "./DrawUtils"
+import { drawCVFaceResult, drawTFEigenFace, drawTFFaceResult, getFaceContour, getFaceSlope } from "./DrawUtils"
 import { ImageProcessor } from "./ImageProcessor"
 import { FaceRec } from "../../common"
 
@@ -94,6 +94,9 @@ export class FaceDetector {
 
   async faceRec() {
     let vector = this.genFaceTensor(this.faces[0])
+    this.capture.width = this.faces[0].box.width
+    this.capture.height = this.faces[0].box.height
+    await drawTFEigenFace(this.captureCtx, vector)
     try {
       let result = await FaceRec.recognize(vector.arraySync())
       return result
@@ -140,12 +143,17 @@ export class FaceDetector {
     let cos = Math.cos(tmpAngle)
     let sin = Math.sin(tmpAngle)
     let martix = tf.tensor([[cos, -sin], [sin, cos]])
-    let tmp = face.keypoints.map((p) => [p.x - face.box.xMin, p.y - face.box.yMin])
+    let tmp = face.keypoints.map((p) => [
+      p.x - face.box.xMin,
+      p.y - face.box.yMin
+    ])
+
     let tensor = tf.tensor(tmp)
+    // let result = tf.matMul(tensor, martix)
+
     let min = tensor.min()
     let max = tensor.max()
     tensor = tensor.sub(min).div(max.sub(min)) // normilize
-    // let result = tf.matMul(tensor, martix)
     // tensor.dispose()
     min.dispose()
     max.dispose()
@@ -190,12 +198,11 @@ export class FaceDetector {
         imageData.data[i + 3] = 0
       }
     }
-    this.captureCtx.translate(this.capture.width / 2, this.capture.height / 2)
     this.calacleFaceAngle()
     this.imgProcessor.imgProcessParams['rotate'] = this._faceAngle
     this.imgProcessor?.process(imageData)
+    this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     this.captureCtx.putImageData(imageData, 0, 0)
-    context.putImageData(imageData, this.faces[0].box.xMin, this.faces[0].box.yMin)
     this.capture.toBlob(async (blob) => {
       try {
         let faceTensor = this.genFaceTensor(this.faces[0])
@@ -210,7 +217,7 @@ export class FaceDetector {
       // let buffer = await blob.arrayBuffer()
       // window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
 
-      this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
+      // this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     }, 'image/png')
   }
 }
