@@ -161,7 +161,7 @@ export class FaceDetector {
     return tensor
   }
 
-  async faceCapture(context: CanvasRenderingContext2D, name: string = '') {
+  async faceCapture(context: CanvasRenderingContext2D, name: string) {
     if (this.faces == null || this.faces.length == 0) {
       showNotify({ type: 'warning', message: '未检测到人脸...', duration: 500 })
       return

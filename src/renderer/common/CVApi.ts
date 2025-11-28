@@ -16,12 +16,9 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     equalizeHist: boolean,
     rotate: number,
     gamma: number,
-    guassian: [number, number],
-    sobel: [number, number],
-    scharr: number,
-    laplace: [number, number], // 二阶导数滤波器的孔径大小，必须为正奇数
+    blur: [string, number, number, number, number, number, number]
+    filter: [string, number, number, number, number],
     cannyThreshold: [number, number],
-    gaussian: number, // 决定滤波器的尺寸
   }>) {
 
   if (processedImg == null) {
@@ -41,7 +38,7 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     tmpImg = new cv.Mat(height, width, cv.CV_8UC3)
   }
 
-  processedImg.data.set(frame.data)
+  processedImg.data.set(frame.data, 0)
   cv.cvtColor(processedImg, processedImg, cv.COLOR_RGBA2BGR)
   if (tmpImg.type() != processedImg.type()) {
     tmpImg.delete()
@@ -83,10 +80,19 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     cv.convertScaleAbs(processedImg, processedImg, 1, 0)
   }
 
-  if (params.gaussian) {
-    cv.GaussianBlur(processedImg, processedImg,
-      new cv.Size(params.gaussian[0], params.gaussian[0]),
-      params.gaussian[1])
+  if (params.blur && params.blur[0] === 'gaussian' && params.blur[1] % 2 == 1 && params.blur[2] % 2 == 1) {
+    cv.GaussianBlur(processedImg, processedImg, new cv.Size(params.blur[1], params.blur[2]), 0)
+  }
+  if (params.blur && params.blur[0] === 'median') {
+    cv.medianBlur(processedImg, processedImg, params.blur[3])
+  }
+  if (params.blur && params.blur[0] === 'avg') {
+    cv.blur(processedImg, processedImg, new cv.Size(params.blur[1], params.blur[2]))
+  }
+  if (params.blur && params.blur[0] === 'bilateral') {
+    console.log(params.blur[4], params.blur[5], params.blur[6])
+    // cv.bilateralFilter(processedImg, processedImg, 9, 75, 75, cv.BORDER_DEFAULT)
+    // cv.bilateralFilter(processedImg, processedImg, params.blur[4], params.blur[5], params.blur[6], cv.BORDER_DEFAULT)
   }
   // let hsv = originFrame.cvtColor(cv.COLOR_BGR2HSV)
 
@@ -99,13 +105,18 @@ export function imgProcess(frame: ImageData, width: number, height: number,
   // cv.Laplacian(tmpImg, processedImg, cv.CV_8U, 1, 3)
   // cv.filter2D(tmpImg, processedImg, cv.CV_8UC3, kernel)
   // cv.addWeighted(tmpImg, 1.5, processedImg, -0.5, 0, processedImg)
-  if (params.sobel) {
-    cv.Sobel(processedImg, processedImg, cv.CV_8U, 1, 1, params.sobel[0], params.sobel[1])
+  if (params.isGray && params.filter && params.filter[0] === 'sobel' && params.filter[4] % 2 == 1) {
+    cv.Sobel(processedImg, processedImg, cv.CV_8U, params.filter[1], params.filter[2], params.filter[4], params[3])
   }
 
-  if (params.laplace) {
-    cv.Laplacian(processedImg, processedImg, cv.CV_8U, params.laplace[0], params.laplace[1])
+  if (params.isGray && params.filter && params.filter[0] === 'scharr' && params.filter[4] % 2 == 1) {
+    cv.Scharr(processedImg, processedImg, cv.CV_8U, params.filter[1], params.filter[2], params.filter[3])
   }
+
+  if (params.isGray && params.filter && params.filter[0] === 'laplace' && params.filter[4] % 2 == 1) {
+    cv.Laplacian(processedImg, processedImg, cv.CV_8U, params.filter[4], params.filter[3])
+  }
+
 
   if (params.isGray && params.cannyThreshold) {
     cv.Canny(processedImg, processedImg, params.cannyThreshold[0], params.cannyThreshold[1])

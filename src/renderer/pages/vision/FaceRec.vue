@@ -1,5 +1,5 @@
 <template>
-  <van-row class="full-row">
+  <van-row class="full-row" style="position: relative;">
     <van-cell-group ref="previewParent" inset style="width: 100%; text-align: center; margin: 30px 0 0 0;">
       <van-cell>
         <template #title>
@@ -76,8 +76,10 @@
       <video ref="preVideo" autoplay style="display: none;"></video>
     </van-cell-group>
 
-    <van-dialog v-model:show="showNameInputDialog" title="请输入姓名" show-cancel-button @confirm="onConfirmName">
-      <van-field v-model="eigenName" placeholder="请输入姓名" />
+    <van-dialog v-model:show="showNameInputDialog" :title="$t('faceRec.nameInput')" show-cancel-button
+      @confirm="onConfirmName">
+      <van-field v-model="eigenName" :placeholder="$t('faceRec.nameInput')"
+        :error-message="$t('faceRec.nameInputError')" :error="!isEigenNameValid" />
     </van-dialog>
   </van-row>
 </template>
@@ -106,6 +108,7 @@ const showNameInputDialog = ref(false)
 const eigenName = ref('')
 const recFace = ref<string>()
 const isScan = ref(false)
+const isEigenNameValid = ref(true)
 const isWeb = window.isWeb
 
 let previewCtx: CanvasRenderingContext2D
@@ -115,6 +118,7 @@ let faceDetector: FaceDetector
 let camera: Camera = null
 let scanTask: any
 let count = 0
+
 
 function tensorTest() {
   let angle = 90 * Math.PI / 180
@@ -151,7 +155,7 @@ onMounted(async () => {
 
   imgProcessor.imgEnhance = visionStore.imgEnhance
   imgProcessor.imgProcessMode = visionStore.imgProcessMode
-  imgProcessor.imgProcessParams = visionStore.imgParams.getParams()
+  imgProcessor.imgProcessParams = visionStore.imgParams.value
 
   faceDetector = new FaceDetector(previewCtx, capture.value, masklayer.value)
   faceDetector.drawFace = visionStore.drawFaceMesh
@@ -236,6 +240,11 @@ async function onCapture() {
 }
 
 function onConfirmName() {
+  if (eigenName.value == null || eigenName.value.length == 0) {
+    isEigenNameValid.value = false
+    showNameInputDialog.value = true
+    return
+  }
   faceDetector?.faceCapture(offscreenCtx, eigenName.value)
   eigenName.value = null
   showNameInputDialog.value = false
@@ -271,7 +280,7 @@ watch(() => visionStore.imgProcessMode, (val) => {
 
 watch(() => visionStore.imgParams,
   (val) => {
-    imgProcessor.imgProcessParams = visionStore.imgParams.getParams()
+    imgProcessor.imgProcessParams = visionStore.imgParams.value
     if (!camera.isOpen) { drawImage() }
   },
   { deep: true }
@@ -284,7 +293,6 @@ watch(() => visionStore.imgEnhance, (val) => {
 
 </script>
 <style lang="css">
-
 .eigen-face {
   width: 90px;
   height: 100px;
@@ -295,6 +303,6 @@ watch(() => visionStore.imgEnhance, (val) => {
   right: 15px;
   border-radius: 12px;
   background-color: #2f3542;
+  z-index: 2000;
 }
-
 </style>
