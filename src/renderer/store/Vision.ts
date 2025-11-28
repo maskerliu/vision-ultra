@@ -9,19 +9,20 @@ class ImageParams {
 
   enableGamma: boolean = false
   gamma: number = 1 // 伽马校正
+
   enableGaussian: boolean = false
   gaussian: [number, number, number] = [1, 1, 1] // 高斯滤波器的孔径大小，必须为正奇数
 
-  enableSobel: boolean = false
-  sobel: [number, number] = [3, 1] // 一阶导数滤波器的孔径大小，必须为正奇数
-  enableScharr: boolean = false
-  scharr: number = 1 // 一阶导数滤波器的孔径大小，必须为正奇数
-  enableLaplace: boolean = false
-  laplace: [number, number] = [1, 1] // 二阶导数滤波器的孔径大小，必须为正奇数
-  enableCanny: boolean = false
-  cannyThreshold: [number, number] = [80, 100]
+  enableBlur: boolean = false
+  blur: [string, number, number, number, number, number, number] = ['gaussian', 3, 31, 5, 9, 75, 75] // type, sizeX, sizeY, aperture, diameter, sigmaColor, sigmaSpace
 
-  getParams() {
+  enableFilter: boolean = false
+  filter: [string, number, number, number, number] = ['sobel', 1, 1, 1, 1] // type, dx, dy, scale, size
+
+  enableCanny: boolean = false
+  canny: [number, number] = [80, 100]
+
+  get value() {
     let params = {}
     params['isGray'] = this.isGray
     params['equalizeHist'] = this.equalizeHist
@@ -29,16 +30,24 @@ class ImageParams {
     params['rotate'] = this.rotate
     if (this.enableGamma) params['gamma'] = this.gamma
     else delete params['gamma']
-    if (this.enableGaussian) params['gaussian'] = [this.gaussian[0], this.gaussian[1], this.gaussian[2]]
+    if (this.enableGaussian)
+      params['gaussian'] = [this.gaussian[0], this.gaussian[1], this.gaussian[2]]
     else delete params['gaussian']
-    if (this.enableSobel) params['sobel'] = [this.sobel[0], this.sobel[1]]
-    else delete params['sobel']
-    if (this.enableScharr) params['scharr'] = this.scharr
-    else delete params['scharr']
-    if (this.enableLaplace) params['laplace'] = [this.laplace[0], this.laplace[1]]
-    else delete params['laplace']
-    if (this.enableCanny) params['cannyThreshold'] = [this.cannyThreshold[0], this.cannyThreshold[1]]
-    else delete params['cannyThreshold']
+
+    if (this.enableBlur)
+      params['blur'] = [
+        this.blur[0], this.blur[1], this.blur[2],
+        this.blur[3], this.blur[4], this.blur[5], this.blur[6]
+      ]
+    else delete params['blur']
+
+    if (this.enableFilter)
+      params['filter'] = [this.filter[0], this.filter[1], this.filter[2], this.filter[3], this.filter[4]]
+    else delete params['filter']
+
+    if (this.enableCanny)
+      params['canny'] = [this.canny[0], this.canny[1]]
+    else delete params['canny']
 
     return params
   }

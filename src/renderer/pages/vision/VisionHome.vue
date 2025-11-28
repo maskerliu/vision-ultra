@@ -2,9 +2,9 @@
   <van-row>
     <van-col class="border-bg left-panel">
       <van-row justify="space-between">
-        <van-row style="color: #c0392b;"> 
+        <van-row style="color: #c0392b;">
           <van-icon class="iconfont icon-sjtu-logo" style="font-size: 1.6rem; margin-left: 10px;" />
-          <van-icon class="iconfont icon-sjtu-name" style="font-size: 1.4rem; margin: 2px 10px;"/>
+          <van-icon class="iconfont icon-sjtu-name" style="font-size: 1.4rem; margin: 2px 10px;" />
         </van-row>
         <div style="padding: 1px 0;">
           <van-icon class="iconfont icon-apm left-panel-icon" @click="commonStore.showApm = !commonStore.showApm" />
@@ -19,12 +19,12 @@
         <img-params-panel />
       </OverlayScrollbarsComponent>
     </van-col>
-    <OverlayScrollbarsComponent class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }"
-      defer style="text-align: center;">
+    <van-col class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }" defer
+      style="text-align: center;">
       <div class="drag-bar" v-if="!isWeb"></div>
       <apm-panel v-if="commonStore.showApm" />
       <face-rec />
-    </OverlayScrollbarsComponent>
+    </van-col>
 
     <van-popup v-model:show="showPopup" position="right" close-icon="close">
       <settings v-if="showSettings" />
@@ -99,11 +99,12 @@ function openSettings() {
 .left-panel {
   flex-grow: 1;
   min-width: 340px;
-  height: calc(100% - 10px);
+  height: calc(100vh - 10px);
   margin: 5px;
 }
 
 .right-panel {
+  position: relative;
   flex-grow: 19;
   flex-basis: 50%;
   min-width: 620px;
@@ -121,7 +122,7 @@ function openSettings() {
 
 .snap-panel {
   width: 100%;
-  height: calc(100vh - 40px);
+  height: calc(100vh - 45px);
   overflow-y: auto;
   overflow-x: hidden;
 }

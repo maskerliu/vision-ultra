@@ -9,7 +9,6 @@ import { MainAPICMD } from "../common/ipc.api"
 import { fullUpdate, incrementUpdate } from "./AppUpdater"
 import { USER_DATA_DIR } from "./MainConst"
 import { getAppWindow } from "./misc/utils"
-import { platform } from "node:os"
 
 ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   if (fse.pathExistsSync(path.join(process.resourcesPath, 'update.asar'))) {

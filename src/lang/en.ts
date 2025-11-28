@@ -53,6 +53,46 @@ export default {
       title: 'Virtual Client'
     }
   },
+  imgProcess: {
+    Gray: 'Gray',
+    Contrast: 'Contrast', // 对比度
+    ContrastDesc: 'Equalization', // 直方图均衡
+    Rotate: 'Rotate',
+    Brightness: 'Brightness', // 亮度
+    BrightnessDesc: 'Gamma correction',
+
+    Saturation: 'Saturation', // 饱和度
+    SaturationDesc: 'HSV', // 
+    Hue: 'Hue', // 色调
+
+    Blur: 'Blur',
+    GaussianBlur: 'Gaussian', // 高斯模糊
+    AvgBlur: 'Average', // 均值滤波
+    MedianBlur: 'Median', // 中值滤波
+    BilateralBlur: 'Bilateral', // 双边滤波
+
+    Sharpness: 'Sharpness', // 锐度
+    SharpnessDesc: 'Gamma correction',
+    Laplace: 'Laplace',
+    LaplaceDesc: 'Laplace operator',
+    Sobel: 'Sobel',
+    SobelDesc:'Discrete differential operator',
+    Scharr: 'Scharr',
+    ScharrDesc: 'Enhanced version of Sobel operator',
+    
+    
+    FeatExtract: 'Feature Extract', // 特征提取
+    Canny: 'Canny',
+    CannyDesc: 'Effective edge detection',
+    HoughTransform: 'Hough Transform',
+    Hough: '霍夫变换',
+    HoughCircle: '霍夫圆变换',
+    HoughLine: '霍夫直线变换',
+  },
+  faceRec: {
+    nameInput: 'Please enter name',
+    nameInputError: 'Name cannot be empty',
+  },
   faceDbMgr: {
     delPersonConfirmTitle: 'delete person',
     delPersonConfirmTip: 'Deleting will render the person unrecognizable, please proceed with caution',

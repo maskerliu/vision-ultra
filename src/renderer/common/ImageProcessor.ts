@@ -15,7 +15,11 @@ export class ImageProcessor {
     }
     switch (this.imgProcessMode) {
       case '1': {
-        imgProcess(image, image.width, image.height, this.imgProcessParams)
+        try {
+          imgProcess(image, image.width, image.height, this.imgProcessParams)
+        } catch (err) {
+          console.error(err)
+        }
         break
       }
       case '2': {
