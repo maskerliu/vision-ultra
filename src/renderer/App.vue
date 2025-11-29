@@ -6,8 +6,13 @@
       </transition>
     </router-view>
 
-    <van-floating-bubble v-if="enableDebug" :offset="{ x: 10, y: 500 }" axis="xy" :gap="10" magnetic="x" icon="fire-o"
-      @click="onOpenDebugPanel" />
+    <van-floating-bubble v-if="enableDebug" :offset="{ x: 1000, y: 450 }" axis="xy" :gap="10" magnetic="x"
+      @click="onOpenDebugPanel">
+
+      <template #default>
+        <van-icon class="iconfont icon-debug" style="font-size: 1.6rem;" />
+      </template>
+    </van-floating-bubble>
 
     <van-popup v-model:show="showDebugPanel" position="left" closeable close-icon="close">
       <debug-panel />

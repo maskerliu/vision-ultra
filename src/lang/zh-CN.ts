@@ -60,12 +60,14 @@ export default {
     Rotate: '旋转',
     
     Contrast: '对比度', // 对比度
-    ContrastDesc: '直方图均衡', // 直方图均衡
+    EqualizeHist: '直方图均衡', // 直方图均衡
+    CLAHE: 'CLAHE', // CLAHE
 
     Saturation: '饱和度', // 饱和度
     SaturationDesc: 'HSV 色彩空间增强',
     Hue: '色调', // 色调
 
+    Sharpness: '锐化',
     Blur: '模糊',
     GaussianBlur: '高斯模糊', // 高斯模糊
     AvgBlur: '均值滤波', // 均值滤波
@@ -73,7 +75,6 @@ export default {
     BilateralBlur: '双边滤波', // 双边滤波
 
     Filter: '滤波',
-    SharpnessDesc: 'Gamma correction',
     Laplace: '拉普拉斯算子',
     LaplaceDesc: '通常用于特征提取和特征检测',
     Sobel: 'Sobel算子',
