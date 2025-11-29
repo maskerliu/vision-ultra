@@ -55,32 +55,33 @@ export default {
   },
   imgProcess: {
     Gray: 'Gray',
-    Contrast: 'Contrast', // 对比度
-    ContrastDesc: 'Equalization', // 直方图均衡
-    Rotate: 'Rotate',
     Brightness: 'Brightness', // 亮度
     BrightnessDesc: 'Gamma correction',
+    Rotate: 'Rotate',
+
+    Contrast: 'Contrast', // 对比度
+    EqualizeHist: 'EqualizeHist', // 直方图均衡
+    CLAHE: 'CLAHE', // CLAHE
 
     Saturation: 'Saturation', // 饱和度
     SaturationDesc: 'HSV', // 
     Hue: 'Hue', // 色调
 
+    Sharpness: 'Sharpen',
     Blur: 'Blur',
     GaussianBlur: 'Gaussian', // 高斯模糊
     AvgBlur: 'Average', // 均值滤波
     MedianBlur: 'Median', // 中值滤波
     BilateralBlur: 'Bilateral', // 双边滤波
 
-    Sharpness: 'Sharpness', // 锐度
-    SharpnessDesc: 'Gamma correction',
     Laplace: 'Laplace',
     LaplaceDesc: 'Laplace operator',
     Sobel: 'Sobel',
-    SobelDesc:'Discrete differential operator',
+    SobelDesc: 'Discrete differential operator',
     Scharr: 'Scharr',
     ScharrDesc: 'Enhanced version of Sobel operator',
-    
-    
+
+
     FeatExtract: 'Feature Extract', // 特征提取
     Canny: 'Canny',
     CannyDesc: 'Effective edge detection',

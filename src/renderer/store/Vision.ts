@@ -1,23 +1,59 @@
 import { defineStore } from "pinia"
 
+export type cvEqualizeHist = [
+  string, // type equalizeHist
+  number, // clipLimit
+  number, // tileGridSizeX
+  number, // tileGridSizeY
+]
+
+export type cvSharpen = [
+  string, // type laplacian, usm
+  number, // dx
+  number, // dy
+  number, // scale
+]
+
+export type cvBlur = [
+  string, // type gaussian, median, bilateral
+  number, // sizeX
+  number, // sizeY
+  number, // aperture
+  number, // diameter
+  number, // sigmaColor
+  number  // sigmaSpace
+]
+
+export type cvFilter = [
+  string, // type sobel, laplacian, scharr
+  number, // dx
+  number, // dy
+  number, // scale
+  number, // size
+]
+
 class ImageParams {
   isGray: boolean = false
   equalizeHist: boolean = false
   clahe: boolean = false // 自适应直方图均衡化
-
   rotate: number = 0
 
   enableGamma: boolean = false
   gamma: number = 1 // 伽马校正
 
-  enableGaussian: boolean = false
-  gaussian: [number, number, number] = [1, 1, 1] // 高斯滤波器的孔径大小，必须为正奇数
+  enableContrast: boolean = false
+  equalization: cvEqualizeHist = ['equalizeHist', 0, 1, 1]
+
+  enableClahe: boolean = false
 
   enableBlur: boolean = false
-  blur: [string, number, number, number, number, number, number] = ['gaussian', 3, 31, 5, 9, 75, 75] // type, sizeX, sizeY, aperture, diameter, sigmaColor, sigmaSpace
+  blur: cvBlur = ['gaussian', 3, 31, 5, 5, 75, 75]
+
+  enableSharpen: boolean = false
+  sharpen: cvSharpen = ['laplace', 1, 0, 1]
 
   enableFilter: boolean = false
-  filter: [string, number, number, number, number] = ['sobel', 1, 1, 1, 1] // type, dx, dy, scale, size
+  filter: cvFilter = ['sobel', 1, 1, 1, 1]
 
   enableCanny: boolean = false
   canny: [number, number] = [80, 100]
@@ -30,15 +66,17 @@ class ImageParams {
     params['rotate'] = this.rotate
     if (this.enableGamma) params['gamma'] = this.gamma
     else delete params['gamma']
-    if (this.enableGaussian)
-      params['gaussian'] = [this.gaussian[0], this.gaussian[1], this.gaussian[2]]
-    else delete params['gaussian']
+
+    if (this.enableContrast)
+      params['equalization'] = [this.equalization[0], this.equalization[1], this.equalization[2], this.equalization[3]]
+    else delete params['equalization']
+
+    if (this.enableSharpen)
+      params['sharpen'] = [this.sharpen[0], this.sharpen[1], this.sharpen[2], this.sharpen[3]]
+    else delete params['sharpen']
 
     if (this.enableBlur)
-      params['blur'] = [
-        this.blur[0], this.blur[1], this.blur[2],
-        this.blur[3], this.blur[4], this.blur[5], this.blur[6]
-      ]
+      params['blur'] = [this.blur[0], this.blur[1], this.blur[2], this.blur[3], this.blur[4], this.blur[5], this.blur[6]]
     else delete params['blur']
 
     if (this.enableFilter)

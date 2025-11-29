@@ -1,4 +1,5 @@
 import { loadOpenCV, type OpenCV } from '@opencvjs/web'
+import { cvBlur, cvFilter, cvSharpen } from '../store'
 
 const cv: typeof OpenCV = await loadOpenCV()
 let gammaTable = new Uint8Array(256)
@@ -16,8 +17,10 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     equalizeHist: boolean,
     rotate: number,
     gamma: number,
-    blur: [string, number, number, number, number, number, number]
-    filter: [string, number, number, number, number],
+    equalization: cvSharpen,
+    blur: cvBlur,
+    sharpen: cvSharpen,
+    filter: cvFilter,
     cannyThreshold: [number, number],
   }>) {
 
@@ -62,8 +65,15 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     rotateMat.delete()
   }
 
-  if (params.isGray && params.equalizeHist) {
-    cv.equalizeHist(processedImg, processedImg)
+  if (params.isGray && params.equalization) {
+    if (params.equalization[0] === 'equalizeHist') {
+      cv.equalizeHist(processedImg, processedImg)
+    }
+
+    if (params.equalization[0] === 'clahe') {
+      let clahe = new cv.CLAHE(params.equalization[1], new cv.Size(params.equalization[2], params.equalization[3]))
+      clahe.apply(processedImg, processedImg)
+    }
   }
 
   if (params.gamma) {
@@ -90,9 +100,21 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     cv.blur(processedImg, processedImg, new cv.Size(params.blur[1], params.blur[2]))
   }
   if (params.blur && params.blur[0] === 'bilateral') {
-    console.log(params.blur[4], params.blur[5], params.blur[6])
-    // cv.bilateralFilter(processedImg, processedImg, 9, 75, 75, cv.BORDER_DEFAULT)
-    // cv.bilateralFilter(processedImg, processedImg, params.blur[4], params.blur[5], params.blur[6], cv.BORDER_DEFAULT)
+    try {
+      cv.bilateralFilter(processedImg, processedImg, params.blur[4], params.blur[5], params.blur[6], cv.BORDER_DEFAULT)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (params.sharpen && params.sharpen[0] === 'laplace') {
+    cv.Laplacian(processedImg, tmpImg, -1)
+    cv.addWeighted(processedImg, params.sharpen[1], tmpImg, params.sharpen[2], 0, processedImg)
+  }
+
+  if (params.sharpen && params.sharpen[0] === 'usm') {
+    cv.GaussianBlur(processedImg, tmpImg, new cv.Size(params.sharpen[1], params.sharpen[1]), 25)
+    cv.addWeighted(processedImg, params.sharpen[1], tmpImg, params.sharpen[2], 0, processedImg)
   }
   // let hsv = originFrame.cvtColor(cv.COLOR_BGR2HSV)
 
@@ -106,10 +128,11 @@ export function imgProcess(frame: ImageData, width: number, height: number,
   // cv.filter2D(tmpImg, processedImg, cv.CV_8UC3, kernel)
   // cv.addWeighted(tmpImg, 1.5, processedImg, -0.5, 0, processedImg)
   if (params.isGray && params.filter && params.filter[0] === 'sobel' && params.filter[4] % 2 == 1) {
-    cv.Sobel(processedImg, processedImg, cv.CV_8U, params.filter[1], params.filter[2], params.filter[4], params[3])
+    cv.Sobel(processedImg, processedImg, cv.CV_8U, params.filter[1], params.filter[2], params.filter[4], params.filter[3])
   }
 
-  if (params.isGray && params.filter && params.filter[0] === 'scharr' && params.filter[4] % 2 == 1) {
+  if (params.isGray && params.filter && params.filter[0] === 'scharr' && (params.filter[1] + params.filter[2] == 1)) {
+    // dx + dy == 1 
     cv.Scharr(processedImg, processedImg, cv.CV_8U, params.filter[1], params.filter[2], params.filter[3])
   }
 
