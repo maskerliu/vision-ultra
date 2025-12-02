@@ -135,16 +135,11 @@ onMounted(async () => {
   faceDetector.faceDetect = visionStore.faceDetect
   faceDetector.faceRecMode = visionStore.faceRecMode as any
   faceDetector.imgProcessor = imgProcessor
-  // faceDetector.dector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
-  //   runtime: 'mediapipe',
-  //   solutionPath: __DEV__ ? 'node_modules/@mediapipe/face_mesh' : `static/face_mesh`,
-  //   refineLandmarks: true,
-  //   maxFaces: 1
-  // })
 
+  try { await faceDetector.init() } catch (err) {
+    console.log(err)
+  }
 
-
-  await faceDetector.init()
 
   camera = new Camera(preVideo.value, preview.value, offscreen.value)
   camera.imgProcessor = imgProcessor
@@ -279,7 +274,7 @@ watch(() => visionStore.imgEnhance, (val) => {
   top: 100px;
   right: 15px;
   border-radius: 12px;
-  background-color: #2f3542;
+  background-color: #2f354288;
   z-index: 2000;
 }
 </style>

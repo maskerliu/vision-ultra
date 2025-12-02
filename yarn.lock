@@ -904,36 +904,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tensorflow-models/face-detection@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "@tensorflow-models/face-detection@npm:1.0.3"
-  dependencies:
-    rimraf: "npm:^3.0.2"
-    tslib: "npm:2.4.0"
-  peerDependencies:
-    "@mediapipe/face_detection": ~0.4.0
-    "@tensorflow/tfjs-backend-webgl": ^4.21.0
-    "@tensorflow/tfjs-converter": ^4.21.0
-    "@tensorflow/tfjs-core": ^4.21.0
-  checksum: 10c0/67117de3341b694a846e512b67ba872c50346abdd30eb9856ccc46dcc2ee50948093f80e8a74b5d1f9fd3a8802d5643f45b984243f067cdc7e48f462bda8fb25
-  languageName: node
-  linkType: hard
-
-"@tensorflow-models/face-landmarks-detection@npm:1.0.6":
-  version: 1.0.6
-  resolution: "@tensorflow-models/face-landmarks-detection@npm:1.0.6"
-  dependencies:
-    rimraf: "npm:^3.0.2"
-  peerDependencies:
-    "@mediapipe/face_mesh": ~0.4.0
-    "@tensorflow-models/face-detection": ^1.0.3
-    "@tensorflow/tfjs-backend-webgl": ^4.13.0
-    "@tensorflow/tfjs-converter": ^4.13.0
-    "@tensorflow/tfjs-core": ^4.13.0
-  checksum: 10c0/2566fd4eab682dec596342f60f456515a09e6c9b56f4d236e04ff10876170df48e9ea6e0c36a10080cde1f8c3c30c9caacfcf45c122026efd1e6d1228aceaa33
-  languageName: node
-  linkType: hard
-
 "@tensorflow/tfjs-backend-cpu@npm:4.22.0":
   version: 4.22.0
   resolution: "@tensorflow/tfjs-backend-cpu@npm:4.22.0"
@@ -2146,8 +2116,6 @@ __metadata:
     "@microsoft/fetch-event-source": "npm:^2.0.1"
     "@opencvjs/node": "npm:4.12.0-release.1"
     "@opencvjs/web": "npm:4.12.0-release.1"
-    "@tensorflow-models/face-detection": "npm:^1.0.3"
-    "@tensorflow-models/face-landmarks-detection": "npm:1.0.6"
     "@tensorflow/tfjs": "npm:^4.22.0"
     "@tensorflow/tfjs-backend-webgl": "npm:^4.22.0"
     "@tensorflow/tfjs-converter": "npm:^4.22.0"
@@ -8503,17 +8471,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "rimraf@npm:3.0.2"
-  dependencies:
-    glob: "npm:^7.1.3"
-  bin:
-    rimraf: bin.js
-  checksum: 10c0/9cb7757acb489bd83757ba1a274ab545eafd75598a9d817e0c3f8b164238dd90eba50d6b848bd4dcc5f3040912e882dc7ba71653e35af660d77b25c381d402e8
-  languageName: node
-  linkType: hard
-
 "ripemd160@npm:^2.0.0, ripemd160@npm:^2.0.1, ripemd160@npm:^2.0.3":
   version: 2.0.3
   resolution: "ripemd160@npm:2.0.3"
@@ -9660,13 +9617,6 @@ __metadata:
     typescript: "*"
     webpack: ^5.0.0
   checksum: 10c0/f0982404b43628c335d3b3a60ac3f1738385da7b97c3f04cb5ad2ebad791597be39b25c8a4e158a66173f9bd9f5aa72e285b046b0573e4beed8ecd032d418e4d
-  languageName: node
-  linkType: hard
-
-"tslib@npm:2.4.0":
-  version: 2.4.0
-  resolution: "tslib@npm:2.4.0"
-  checksum: 10c0/eb19bda3ae545b03caea6a244b34593468e23d53b26bf8649fbc20fce43e9b21a71127fd6d2b9662c0fe48ee6ff668ead48fd00d3b88b2b716b1c12edae25b5d
   languageName: node
   linkType: hard
 
