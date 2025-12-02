@@ -1,8 +1,9 @@
 
-import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection'
-import { Face } from "@tensorflow-models/face-landmarks-detection"
+// import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection'
+// import { Face } from "@tensorflow-models/face-landmarks-detection"
 import { Tensor } from '@tensorflow/tfjs-core'
-import { LeftEyebrowIdxs, LeftEyeIdxs, LipsContourIdxs, RightEyebrowIdxs, RightEyeIdxs, TRIANGULATION } from "./Triangulation"
+import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
+import { FACEMESH_CONTOURS } from '@mediapipe/face_mesh'
 
 export const NUM_KEYPOINTS = 468
 export const NUM_IRIS_KEYPOINTS = 5
@@ -13,12 +14,6 @@ export const YELLOW = '#F8E16C'
 export const WHITE = '#ffffff'
 export const SILVERY = '#f1f2f6'
 export const PURPLE = '#7F00FF'
-
-export const VIDEO_SIZE = {
-  '640 X 480': { width: 640, height: 480 },
-  '640 X 360': { width: 640, height: 360 },
-  '360 X 270': { width: 360, height: 270 }
-}
 
 export const LABEL_TO_COLOR = {
   lips: PURPLE,
@@ -31,8 +26,21 @@ export const LABEL_TO_COLOR = {
   faceOval: SILVERY,
 }
 
-const FaceContours = faceLandmarksDetection.util.getKeypointIndexByContour(
-  faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh)
+type BoundingBox = {
+  xMin: number,
+  yMin: number,
+  xMax: number,
+  yMax: number
+  width: number,
+  height: number
+}
+
+export type KeyPoint = {
+  x: number,
+  y: number
+  z: number,
+  visibility: number
+}
 
 function distance(a: number[], b: number[]) {
   return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2))
@@ -44,6 +52,9 @@ export function drawPath(ctx: CanvasRenderingContext2D, points: number[][], clos
   for (let i = 1; i < points.length; i++) {
     const point = points[i]
     region.lineTo(point[0], point[1])
+    ctx.arc(point[0], point[1], 2.5/* radius */, 0, 2 * Math.PI)
+    // ctx.stroke()
+    // ctx.fill()
     // ctx.fillText(`${point[2]}`, point[0], point[1])
   }
 
@@ -53,7 +64,6 @@ export function drawPath(ctx: CanvasRenderingContext2D, points: number[][], clos
 
   ctx.stroke(region)
 }
-
 
 function drawMutliLine(context: CanvasRenderingContext2D,
   points: Array<any>, start: number, end: number, closed: boolean = false) {
@@ -119,7 +129,7 @@ export function drawCVFaceResult(context: CanvasRenderingContext2D,
   })
 }
 
-function drawRectCorner(ctx: CanvasRenderingContext2D, box: any) {
+function drawRectCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
   ctx.strokeStyle = SILVERY
   ctx.lineWidth = 5
 
@@ -141,12 +151,14 @@ function drawRectCorner(ctx: CanvasRenderingContext2D, box: any) {
   ])
 }
 
-export function drawTFFaceResult(ctx: CanvasRenderingContext2D, face: Face,
-  triangulateMesh = true, boundingBox = false) {
-  if (face == null || face.keypoints?.length === 0) return
-  const keypoints = face.keypoints.map((keypoint) => [keypoint.x, keypoint.y])
-  if (boundingBox) {
-    drawRectCorner(ctx, face.box)
+export function drawTFFaceResult(ctx: CanvasRenderingContext2D, facePoints: Array<KeyPoint>,
+  imgWidth: number, imgHeight: number, triangulateMesh = true, boundingBox = false) {
+  if (facePoints == null || facePoints?.length === 0) return
+  let box = landmarksToBox(facePoints, imgWidth, imgHeight)
+  let keypoints = facePoints.map((point) => [point.x * imgWidth, point.y * imgHeight])
+  console.log(keypoints.length)
+  if (boundingBox && box != null) {
+    drawRectCorner(ctx, box)
   }
 
   if (triangulateMesh) {
@@ -160,69 +172,19 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D, face: Face,
       drawPath(ctx, points, true)
     }
   } else {
-    ctx.strokeStyle = GREEN
-    ctx.fillStyle = WHITE
+    ctx.fillStyle = SILVERY
     for (let i = 0; i < NUM_KEYPOINTS; i++) {
       ctx.beginPath()
       ctx.arc(keypoints[i][0], keypoints[i][1], 1.5 /* radius */, 0, 2 * Math.PI)
       ctx.fill()
     }
   }
-
-  if (keypoints.length > NUM_KEYPOINTS) {
-    ctx.strokeStyle = RED
-    ctx.lineWidth = 2
-
-    const leftCenter = keypoints[NUM_KEYPOINTS]
-    const leftDiameterY = distance(keypoints[NUM_KEYPOINTS + 4], keypoints[NUM_KEYPOINTS + 2])
-    const leftDiameterX = distance(keypoints[NUM_KEYPOINTS + 3], keypoints[NUM_KEYPOINTS + 1])
-    ctx.beginPath()
-    ctx.ellipse(leftCenter[0], leftCenter[1], leftDiameterX / 2, leftDiameterY / 2, 0, 0, 2 * Math.PI)
-    ctx.stroke()
-
-    if (keypoints.length > NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS) {
-      const rightCenter = keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS]
-      const rightDiameterY = distance(keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 2],
-        keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 4])
-      const rightDiameterX = distance(keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 3],
-        keypoints[NUM_KEYPOINTS + NUM_IRIS_KEYPOINTS + 1])
-
-      ctx.beginPath()
-      ctx.ellipse(rightCenter[0], rightCenter[1], rightDiameterX / 2, rightDiameterY / 2, 0, 0, 2 * Math.PI)
-      ctx.stroke()
-    }
-  }
-
-  for (const [label, contour] of Object.entries(FaceContours)) {
+  
+  for (const [label, contour] of Object.entries(FACEMESH_CONTOUR)) {
     ctx.strokeStyle = LABEL_TO_COLOR[label]
     ctx.lineWidth = 2
-    let path = []
-    switch (label) {
-      case 'lips':
-        path = LipsContourIdxs.map((index) => [...keypoints[index], index])
-        break
-      case 'rightEye':
-        path = RightEyeIdxs.map(idx => [...keypoints[idx], idx])
-        break
-      case 'rightEyebrow':
-        path = RightEyebrowIdxs.map(idx => [...keypoints[idx], idx])
-        break
-      case 'leftEye':
-        path = LeftEyeIdxs.map(idx => [...keypoints[idx], idx])
-        break
-      case 'leftEyebrow':
-        path = LeftEyebrowIdxs.map(idx => [...keypoints[idx], idx])
-        break
-      case 'lips':
-        path = LipsContourIdxs.map(idx => [...keypoints[idx], idx])
-        break
-      default:
-        path = contour.map((index) => [...keypoints[index], index])
-        break
-    }
-    if (path.every(value => value != undefined)) {
-      drawPath(ctx, path, false)
-    }
+    let path = contour.map((idx: number) => [...keypoints[idx], idx])
+    drawPath(ctx, path, false)
   }
 }
 
@@ -242,16 +204,16 @@ export async function drawTFEigenFace(ctx: CanvasRenderingContext2D, eigen: Tens
   // ctx.scale(100,100)
 }
 
-export function getFaceContour(face: Face) {
-  const keypoints = face.keypoints.map((keypoint) => [keypoint.x - face.box.xMin, keypoint.y - face.box.yMin])
-  return FaceContours['faceOval'].map((index) => keypoints[index])
+export function getFaceContour(face: any) {
+  const keypoints = face.keypoints.map((p) => [p.x - face.box.xMin, p.y - face.box.yMin])
+  return FACEMESH_CONTOUR['faceOval'].map((idx) => keypoints[idx])
 }
 
-export function getFaceSlope(face: Face) {
+export function getFaceSlope(face: any) {
   if (face == null) return 0
-  const keypoints = face.keypoints.map((keypoint) => [keypoint.x - face.box.xMin, keypoint.y - face.box.yMin])
-  let leftEye = FaceContours['leftIris'].map((index) => keypoints[index])
-  let rightEye = FaceContours['rightIris'].map((index) => keypoints[index])
+  const keypoints = face.keypoints.map((p: { x: number, y: number }) => [p.x - face.box.xMin, p.y - face.box.yMin])
+  let leftEye = FACEMESH_CONTOUR['leftIris'].map((idx) => keypoints[idx])
+  let rightEye = FACEMESH_CONTOUR['rightIris'].map((idx) => keypoints[idx])
 
   let left = [
     (leftEye[0][0] + leftEye[1][0] + leftEye[2][0] + leftEye[3][0]) / 4,
@@ -264,4 +226,21 @@ export function getFaceSlope(face: Face) {
   ]
 
   return (right[0] - left[0]) / (right[1] - left[1])
+}
+
+function landmarksToBox(landmarks: Array<KeyPoint>, imgWidth: number, imgHeight: number) {
+  var xMin = Number.MAX_SAFE_INTEGER
+  var xMax = Number.MIN_SAFE_INTEGER
+  var yMin = Number.MAX_SAFE_INTEGER
+  var yMax = Number.MIN_SAFE_INTEGER
+  for (var i = 0; i < landmarks.length; ++i) {
+    var landmark = landmarks[i]
+    xMin = Math.min(xMin, landmark.x * imgWidth)
+    xMax = Math.max(xMax, landmark.x * imgWidth)
+    yMin = Math.min(yMin, landmark.y * imgHeight)
+    yMax = Math.max(yMax, landmark.y * imgHeight)
+  }
+  let boundingBox: BoundingBox =
+    { xMin: xMin, yMin: yMin, xMax: xMax, yMax: yMax, width: (xMax - xMin), height: (yMax - yMin) }
+  return boundingBox
 }

@@ -85,16 +85,13 @@
 </template>
 <script lang="ts" setup>
 
-import { VERSION } from '@mediapipe/face_mesh'
-import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
-import * as tf from '@tensorflow/tfjs'
+import { showNotify } from 'vant'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { baseDomain } from '../../../common'
 import { Camera } from '../../common/Camera'
 import { FaceDetector } from '../../common/FaceDetector'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VisionStore } from '../../store'
-import { showNotify } from 'vant'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -119,30 +116,6 @@ let camera: Camera = null
 let scanTask: any
 let count = 0
 
-
-function tensorTest() {
-  let angle = 90 * Math.PI / 180
-  let cos = Math.cos(angle)
-  let sin = Math.sin(angle)
-  let martix = tf.tensor([[cos, -sin], [sin, cos]])
-
-  let tmp = tf.tensor2d([[1, 0], [3, 0]])
-  tmp.print()
-  tf.matMul(tmp, martix).print()
-}
-
-function test() {
-  let data = '0.3476848006248474, 0.7408292293548584, 0.374585896730423, 0.6007864475250244, 0.36658036708831787, 0.6411869525909424'
-  let arr = data.split(',')
-
-  let arr2d = []
-  for (let i = 0; i < arr.length; i += 2) {
-    arr2d.push(Uint32Array.from(arr))
-  }
-
-  console.log(arr2d)
-}
-
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
     camera?.close()
@@ -162,12 +135,16 @@ onMounted(async () => {
   faceDetector.faceDetect = visionStore.faceDetect
   faceDetector.faceRecMode = visionStore.faceRecMode as any
   faceDetector.imgProcessor = imgProcessor
-  faceDetector.dector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
-    runtime: 'mediapipe',
-    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${VERSION}`,
-    refineLandmarks: true,
-    maxFaces: 1
-  })
+  // faceDetector.dector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
+  //   runtime: 'mediapipe',
+  //   solutionPath: __DEV__ ? 'node_modules/@mediapipe/face_mesh' : `static/face_mesh`,
+  //   refineLandmarks: true,
+  //   maxFaces: 1
+  // })
+
+
+
+  await faceDetector.init()
 
   camera = new Camera(preVideo.value, preview.value, offscreen.value)
   camera.imgProcessor = imgProcessor
@@ -203,7 +180,7 @@ async function onCollect() {
   if (recResult == null) {
     recFace.value = null
   } else {
-    recFace.value = baseDomain() + recResult.snap
+    recFace.value = baseDomain() + recResult?.snap
   }
 }
 
@@ -228,7 +205,7 @@ async function openFolder() {
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
       drawImage()
-      faceDetector.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
+      faceDetector?.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
     }
     img.src = file
   })

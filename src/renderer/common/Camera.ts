@@ -95,15 +95,13 @@ export class Camera {
   }
 
   async open() {
-    if (window.isWeb) return
-
     if (this.preVideo.srcObject) {
       this.close()
       this.preVideo.srcObject = null
       return
     }
 
-    this.faceDetector?.reset()
+    // this.faceDetector?.reset()
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true })

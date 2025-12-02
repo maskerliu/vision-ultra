@@ -90,22 +90,25 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     cv.convertScaleAbs(processedImg, processedImg, 1, 0)
   }
 
-  if (params.blur && params.blur[0] === 'gaussian' && params.blur[1] % 2 == 1 && params.blur[2] % 2 == 1) {
-    cv.GaussianBlur(processedImg, processedImg, new cv.Size(params.blur[1], params.blur[2]), 0)
-  }
-  if (params.blur && params.blur[0] === 'median') {
-    cv.medianBlur(processedImg, processedImg, params.blur[3])
-  }
-  if (params.blur && params.blur[0] === 'avg') {
-    cv.blur(processedImg, processedImg, new cv.Size(params.blur[1], params.blur[2]))
-  }
-  if (params.blur && params.blur[0] === 'bilateral') {
-    try {
-      cv.bilateralFilter(processedImg, processedImg, params.blur[4], params.blur[5], params.blur[6], cv.BORDER_DEFAULT)
-    } catch (err) {
-      console.error(err)
+  if (params.blur) {
+    if (params.blur[0] === 'gaussian' && params.blur[1] % 2 == 1 && params.blur[2] % 2 == 1) {
+      cv.GaussianBlur(processedImg, processedImg, new cv.Size(params.blur[1], params.blur[2]), 0)
+    }
+    if (params.blur[0] === 'median') {
+      cv.medianBlur(processedImg, processedImg, params.blur[3])
+    }
+    if (params.blur[0] === 'avg') {
+      cv.blur(processedImg, processedImg, new cv.Size(params.blur[1], params.blur[2]))
+    }
+    if (params.blur[0] === 'bilateral') {
+      try {
+        cv.bilateralFilter(processedImg, processedImg, params.blur[4], params.blur[5], params.blur[6], cv.BORDER_DEFAULT)
+      } catch (err) {
+        console.error(err)
+      }
     }
   }
+
 
   if (params.sharpen && params.sharpen[0] === 'laplace') {
     cv.Laplacian(processedImg, tmpImg, -1)
