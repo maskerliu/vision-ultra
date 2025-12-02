@@ -41,6 +41,7 @@ import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
 import FaceDbMgr from './FaceDbMgr.vue'
 import ImgParamsPanel from './ImgParamsPanel.vue'
+// import FaceRec from './FaceRec.vue'
 
 const FaceRec = defineAsyncComponent({
   loader: () => import('./FaceRec.vue'),

@@ -6,6 +6,7 @@ import path from 'path'
 import TerserPlugin from 'terser-webpack-plugin'
 import { fileURLToPath } from 'url'
 import { VueLoaderPlugin } from 'vue-loader'
+// import   from 'babel-loader'
 import webpack, { Configuration } from 'webpack'
 import pkg from '../package.json' assert { type: "json" }
 import { BaseConfig } from './webpack.base.config'
@@ -16,14 +17,16 @@ const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 let whiteListedModules = ['axios',
   '@mediapipe/face_mesh',
+  '@mediapipe/tasks-vision',
   '@tensorflow/tfjs-converter',
   '@tensorflow/tfjs-core',
-  '@tensorflow-models/face-landmarks-detection',]
+  // '@tensorflow-models/face-landmarks-detection',
+]
 
 class RendererConfig extends BaseConfig {
   devtool: string | false = process.env.NODE_ENV !== 'production' ? "cheap-module-source-map" : false
   name: Configuration['name'] = 'renderer'
-  // target: Configuration['target'] = 'electron-renderer'
+  target: Configuration['target'] = 'web'
   entry: Configuration['entry'] = { renderer: path.join(dirname, '../src/renderer/index.ts') }
   externals: Configuration['externals'] = [...Object.keys(pkg.dependencies).filter(d => !whiteListedModules.includes(d))]
 
@@ -55,10 +58,6 @@ class RendererConfig extends BaseConfig {
         }
       },
       {
-        test: /\.wasm$/,
-        type: "asset/inline",
-      },
-      {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: 'url-loader',
         options: {
@@ -73,13 +72,19 @@ class RendererConfig extends BaseConfig {
           limit: 10000,
           name: 'fonts/[name].[ext]'
         }
+      },
+      {
+        test: /\.wasm$/,
+        type: 'webassembly/async' // 或 'webassembly/sync'
+      },
+      {
+        test: /\.(tflite|data|binarypb)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[name][hash][ext]'
+        }
       }
     ]
-  }
-
-  experiments: Configuration['experiments'] = {
-    asyncWebAssembly: true,
-    syncWebAssembly: true
   }
 
   plugins: Configuration['plugins'] = [
@@ -105,62 +110,15 @@ class RendererConfig extends BaseConfig {
     alias: {
       '@': path.join(dirname, '../src/renderer'),
     },
-    extensions: ['.js', '.ts', '.vue', '.json', '.css']
+    extensions: ['.js', '.ts', '.vue', '.json', '.css', '.wasm']
   }
 
   optimization: Configuration['optimization'] = {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          ecma: 2018, // 或者更高版本，取决于你的Babel配置
-          compress: {
-            comparisons: false,
-          },
-          mangle: true, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
-        },
-      }),
-    ],
-    splitChunks: {
-      chunks: 'all',
-      cacheGroups: {
-        vender: {
-          name: 'vender',
-          test: /[\\/]node_modules[\\/]/,
-          priority: 10,
-          chunks: 'initial'
-        },
-        vant: {
-          name: "vant",
-          priority: 20,
-          test: /[\\/]node_modules[\\/]vant[\\/]/
-        },
-        opencvjs: {
-          name: 'opencv',
-          test: /[\\/]node_modules[\\/]@opencvjs[\\/]/,
-          priority: 20,
-        },
-        tensoflow: {
-          name: 'tensoflow',
-          test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
-          priority: 20,
-        },
-        echarts: {
-          name: 'echarts',
-          test: /[\\/]node_modules[\\/]echarts[\\/]/,
-          priority: 20,
-        }
-      }
-    },
+    minimize: false,
   }
 
   init(localServer?: string) {
     super.init()
-
-    this.node = {
-      // __dirname: process.env.NODE_ENV !== 'production',
-      // __filename: process.env.NODE_ENV !== 'production'
-    }
 
     this.plugins?.push(
       new HtmlWebpackPlugin({
@@ -198,6 +156,54 @@ class RendererConfig extends BaseConfig {
         // }),
       )
     } else {
+
+      this.optimization.minimize = true
+      this.optimization.minimizer = [
+        new TerserPlugin({
+          terserOptions: {
+            keep_classnames: true,
+            keep_fnames: true,
+            ecma: 2020,
+            compress: {
+              comparisons: false,
+              // drop_console: true
+            },
+            mangle: false, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
+          },
+          exclude: /[\\/]node_modules[\\/]/
+        }),
+      ]
+      this.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vender: {
+            name: 'vender',
+            test: /[\\/]node_modules[\\/]/,
+            priority: 10,
+            chunks: 'initial'
+          },
+          vant: {
+            name: "vant",
+            priority: 20,
+            test: /[\\/]node_modules[\\/]vant[\\/]/
+          },
+          opencvjs: {
+            name: 'opencv',
+            test: /[\\/]node_modules[\\/]@opencvjs[\\/]/,
+            priority: 20,
+          },
+          tensoflow: {
+            name: 'tensoflow',
+            test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
+            priority: 20,
+          },
+          echarts: {
+            name: 'echarts',
+            test: /[\\/]node_modules[\\/]echarts[\\/]/,
+            priority: 20,
+          }
+        }
+      }
       this.plugins?.push(new LoaderOptionsPlugin({ minimize: true }))
       this.output!.publicPath = './'
     }

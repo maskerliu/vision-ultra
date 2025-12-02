@@ -10,9 +10,10 @@ import tcpPortUsed from 'tcp-port-used'
 import { API_URL } from '../common/api.const'
 import { BizConfig } from '../common/base.models'
 import { bizContainer } from './IocContainer'
-import { IocTypes, USER_DATA_DIR } from './MainConst'
+import { IocTypes, IS_DEV, USER_DATA_DIR } from './MainConst'
 import { CommonRouter, FaceRecRouter, MapiRouter } from './router'
 import { CommonService, PushService } from './service'
+import compression from 'compression'
 
 export class MainServer {
 
@@ -79,7 +80,8 @@ export class MainServer {
       `${this.commonService.allConfig.protocol}://${this.commonService.allConfig.ip}:9081`,
     ]
 
-    this.httpApp.use(express.static(path.resolve(__dirname, '../web'), {
+    if (!IS_DEV) this.httpApp.use(compression()) // 开启gzip压缩
+    this.httpApp.use(express.static(path.resolve(__dirname, '../static'), {
       setHeaders: (res, path: string, stat: any) => {
         if (path.indexOf('static') == -1) {
           res.header('Cross-Origin-Embedder-Policy', 'require-corp')
@@ -101,7 +103,6 @@ export class MainServer {
     }))
 
     this.httpApp.use(cors(this.corsOpt))
-    // this.httpApp.use(compression())
     this.httpApp.use(express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }))
     this.httpApp.use(express.text({ type: 'application/json', limit: '50mb' }))
     this.httpApp.use(express.json())

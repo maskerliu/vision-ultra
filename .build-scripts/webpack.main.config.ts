@@ -100,6 +100,12 @@ class MainConfig extends BaseConfig {
           to: path.join(dirname, '../dist/electron/static/'),
         }]
       }),
+      new CopyWebpackPlugin({
+        patterns: [{
+          from: path.join(dirname, `../node_modules/@mediapipe/face_mesh/`),
+          to: path.join(dirname, '../dist/electron/static/face_mesh/'),
+        }]
+      }),
     )
 
     if (process.env.NODE_ENV !== 'production') {
