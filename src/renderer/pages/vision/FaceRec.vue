@@ -270,14 +270,15 @@ watch(() => visionStore.imgEnhance, (val) => {
 </script>
 <style lang="css">
 .eigen-face {
-  width: 180px;
-  height: 200px;
+  width: 125px;
+  height: 140px;
   padding: 5px;
   object-fit: contain;
   position: absolute;
   top: 100px;
   right: 15px;
   border-radius: 12px;
+  border: 1px solid #f1f2f699;
   background-color: #2f3542BB;
   z-index: 2000;
 }
