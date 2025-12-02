@@ -95,7 +95,7 @@ class ImageParams {
 export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
-      faceRecMode: '2',  // 1: opencv 2: tensorflow
+      faceRecMode: 'tfjs' as 'tfjs' | 'opencv',  // 1: opencv 2: tensorflow
       faceDetect: true,
       drawFaceMesh: true,
       landmark: false,

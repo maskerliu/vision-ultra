@@ -9,10 +9,8 @@ import { ImageProcessor } from "./ImageProcessor"
 export class FaceDetector {
   private faceLandmarker: FaceLandmarker = null
   public faceDetect: boolean = false
-  public faceRecMode: '1' | '2' = '2' // opencv or tfjs
+  public faceRecMode: 'opencv' | 'tfjs' = 'tfjs' // opencv or tfjs
   private face: FaceResult = null
-  private eyes: Array<any> = null
-  private landmarks: Array<any> = null
 
   public imgProcessor: ImageProcessor = null
 
@@ -65,7 +63,6 @@ export class FaceDetector {
 
   reset() {
     this.face.valid = false
-    // this.faces = this.eyes = this.landmarks = this.face = null
     this.faceLandmarker?.close()
   }
 
@@ -98,15 +95,13 @@ export class FaceDetector {
     }
 
     switch (this.faceRecMode) {
-      case '1': {
+      case 'opencv': {
         const result = window.cvNativeApi?.faceRecognize(frame, frame.width, frame.height)
         this.face = result?.face
-        this.eyes = result?.eyes
-        this.landmarks = result?.landmarks
-        if (this.drawFace) drawCVFaceResult(this.previewCtx, this.face, this.eyes, this.landmarks)
+        // if (this.drawFace) drawCVFaceResult(this.previewCtx, this.face, this.eyes, this.landmarks)
         break
       }
-      case '2': {
+      case 'tfjs': {
         let time = Date.now()
         let result = this.faceLandmarker?.detect(frame)
         landmarksToFace(result?.faceLandmarks[0], this.face, frame.width, frame.height)
@@ -120,8 +115,12 @@ export class FaceDetector {
 
   async faceRec() {
     if (this.face.valid) {
+      let ratio = this.face.box.height / this.face.box.width
+      if (ratio != this.capture.height / this.capture.width) {
+        this.capture.width = this.face.box.width * this.capture.height / this.capture.width
+      }
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
-      drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.width)
+      drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.height)
     }
     // let vector = this.genFaceTensor(this.faces[0])
     // this.capture.width = this.faces[0].box.width

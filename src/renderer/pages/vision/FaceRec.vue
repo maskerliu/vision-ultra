@@ -25,10 +25,10 @@
               </van-checkbox>
             </van-row>
             <van-radio-group v-model="visionStore.faceRecMode" direction="horizontal">
-              <van-radio name="1" :disabled="isWeb">
+              <van-radio name="opencv" :disabled="isWeb">
                 <van-icon class="iconfont icon-opencv" style="font-size: 1.5rem;" />
               </van-radio>
-              <van-radio name="2">
+              <van-radio name="tfjs">
                 <van-icon class="iconfont icon-tensorflow" style="font-size: 1.5rem;" />
               </van-radio>
             </van-radio-group>
@@ -272,7 +272,7 @@ watch(() => visionStore.imgEnhance, (val) => {
 .eigen-face {
   width: 180px;
   height: 200px;
-  padding: 5px 0 5px 10px;
+  padding: 5px;
   object-fit: contain;
   position: absolute;
   top: 100px;
