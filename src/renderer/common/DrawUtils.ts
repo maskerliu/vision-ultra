@@ -27,7 +27,7 @@ export const LABEL_TO_COLOR = {
 }
 
 export type FaceResult = {
-  landmarks: Uint16Array,
+  landmarks: Float16Array,
   box: BoundingBox,
   valid: boolean
 }
@@ -156,7 +156,10 @@ function drawRectCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
 }
 
 export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResult, width: number, height: number) {
-  if (landmarks == null || landmarks.length == 0) return
+  if (landmarks == null || landmarks.length == 0) {
+    face.valid = false
+    return
+  }
 
   var xMin = Number.MAX_SAFE_INTEGER
   var xMax = Number.MIN_SAFE_INTEGER
@@ -180,42 +183,60 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
   face.box.yMin = yMin
   face.box.width = xMax - xMin
   face.box.height = yMax - yMin
+
+  let normilize = Math.max(face.box.width, face.box.height)
+  for (let i = 0; i < face.landmarks.length; i += 3) {
+    face.landmarks[i] = (face.landmarks[i] - face.box.xMin) / normilize
+    face.landmarks[i + 1] = (face.landmarks[i + 1] - face.box.yMin) / normilize
+  }
+
+  face.valid = true
 }
 
-export function originNormalize(landmarks: NormalizedLandmark[], result: Array<KeyPoint>, width: number, height: number) {
-
-}
-
-export function drawTFFaceResult(ctx: CanvasRenderingContext2D, face: FaceResult, triangulateMesh = true, boundingBox = false) {
+export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
+  face: FaceResult, mesh: 'mesh' | 'dot' | 'none' = 'none', eigen = false, boundingBox = false, scale?: number) {
   if (face.landmarks == null || face.landmarks?.length === 0) return
+  let normilize = scale ? scale : Math.max(face.box.width, face.box.height)
+  let orginX = scale ? 0 : face.box.xMin
+  let originY = scale ? 0 : face.box.yMin
 
   if (boundingBox && face.box != null) {
     drawRectCorner(ctx, face.box)
   }
 
-  if (triangulateMesh) {
-    ctx.strokeStyle = SILVERY
-    ctx.lineWidth = 0.5
-    for (let i = 0; i < TRIANGULATION.length / 3; i++) {
-      const points = [
-        TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2],
-      ].map((index) => [face.landmarks[index], face.landmarks[index + 1], face.landmarks[index + 2]])
+  switch (mesh) {
+    case 'mesh':
+      ctx.strokeStyle = SILVERY
+      ctx.lineWidth = 0.5
+      for (let i = 0; i < TRIANGULATION.length / 3; i++) {
+        const points = [
+          TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2],
+        ].map((index) => [
+          face.landmarks[index * 3] * normilize + orginX,
+          face.landmarks[index * 3 + 1] * normilize + originY, index])
 
-      drawPath(ctx, points, false)
-    }
-  } else {
-    ctx.fillStyle = SILVERY
-    for (let i = 0; i < NUM_KEYPOINTS; i++) {
-      ctx.beginPath()
-      ctx.arc(face.landmarks[i * 3], face.landmarks[i * 3 + 1], 1.5 /* radius */, 0, 2 * Math.PI)
-      ctx.fill()
-    }
+        drawPath(ctx, points, true)
+      }
+      break
+    case 'dot':
+      ctx.fillStyle = SILVERY
+      for (let i = 0; i < NUM_KEYPOINTS; i++) {
+        ctx.beginPath()
+        ctx.arc(face.landmarks[i * 3] * normilize + orginX,
+          face.landmarks[i * 3 + 1] * normilize + originY, 1.5 /* radius */, 0, 2 * Math.PI)
+        ctx.fill()
+        ctx.closePath()
+      }
+      break
   }
 
+  if (!eigen) return
   for (const [label, contour] of Object.entries(FACEMESH_CONTOUR)) {
     ctx.strokeStyle = LABEL_TO_COLOR[label]
     ctx.lineWidth = 2
-    let path = contour.map((idx: number) => [face.landmarks[idx * 3], face.landmarks[idx * 3 + 1], idx])
+    let path = contour.map((idx: number) => [
+      face.landmarks[idx * 3] * normilize + orginX,
+      face.landmarks[idx * 3 + 1] * normilize + originY, idx])
     drawPath(ctx, path, false)
   }
 }

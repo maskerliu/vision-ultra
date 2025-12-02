@@ -66,7 +66,7 @@ export class Camera {
       0, 0, this.frame.width, this.frame.height,
       0, 0, this.frame.width, this.frame.height)
 
-    if (this._frames == 3) {
+    if (this._frames == 2) {
       await this.faceDetector.detect(this.frame)
       this._frames = 0
     } else {
