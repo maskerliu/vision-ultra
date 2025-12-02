@@ -120,8 +120,8 @@ export class FaceDetector {
 
   async faceRec() {
     if (this.face.valid) {
-      this.captureCtx.clearRect(0, 0, 100, 100)
-      drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, 100)
+      this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
+      drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.width)
     }
     // let vector = this.genFaceTensor(this.faces[0])
     // this.capture.width = this.faces[0].box.width

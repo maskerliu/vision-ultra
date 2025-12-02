@@ -69,7 +69,7 @@
 
       <canvas ref="preview" style="margin-top: 15px;"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
-      <div class="eigen-face">
+      <div ref="eigenFace" class="eigen-face">
         <canvas ref="capture"></canvas>
       </div>
       <canvas ref="masklayer" style="display: none;"></canvas>
@@ -98,6 +98,7 @@ const previewParent = useTemplateRef<any>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
 const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
+const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
@@ -129,6 +130,9 @@ onMounted(async () => {
   imgProcessor.imgEnhance = visionStore.imgEnhance
   imgProcessor.imgProcessMode = visionStore.imgProcessMode
   imgProcessor.imgProcessParams = visionStore.imgParams.value
+
+  capture.value.width = eigenFace.value.clientWidth
+  capture.value.height = eigenFace.value.clientHeight
 
   faceDetector = new FaceDetector(previewCtx, capture.value, masklayer.value)
   faceDetector.drawFace = visionStore.drawFaceMesh
@@ -266,9 +270,9 @@ watch(() => visionStore.imgEnhance, (val) => {
 </script>
 <style lang="css">
 .eigen-face {
-  width: 90px;
-  height: 100px;
-  padding: 5px 5px 5px 10px;
+  width: 180px;
+  height: 200px;
+  padding: 5px 0 5px 10px;
   object-fit: contain;
   position: absolute;
   top: 100px;
