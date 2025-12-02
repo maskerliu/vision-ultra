@@ -19,7 +19,7 @@
               </van-checkbox>
               <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;">
                 <template #default>
-                  <van-icon class="iconfont icon-face-mesh"
+                  <van-icon class="iconfont icon-mesh"
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
@@ -268,13 +268,13 @@ watch(() => visionStore.imgEnhance, (val) => {
 .eigen-face {
   width: 90px;
   height: 100px;
-  padding: 5px;
+  padding: 5px 5px 5px 10px;
   object-fit: contain;
   position: absolute;
   top: 100px;
   right: 15px;
   border-radius: 12px;
-  background-color: #2f354288;
+  background-color: #2f3542BB;
   z-index: 2000;
 }
 </style>

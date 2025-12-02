@@ -45,7 +45,7 @@ export class FaceDetector {
 
   async init() {
     this.face = {
-      landmarks: new Uint16Array(478 * 3),
+      landmarks: new Float16Array(478 * 3),
       box: { xMin: 0, yMin: 0, xMax: 0, yMax: 0, width: 0, height: 0 },
       valid: false
     }
@@ -87,7 +87,8 @@ export class FaceDetector {
   }
 
   drawFaceLandmarks() {
-    if (this.drawFace) drawTFFaceResult(this.previewCtx, this.face, false, true)
+    if (this.drawFace) drawTFFaceResult(this.previewCtx, this.face, 'none', true, true)
+    this.faceRec()
   }
 
   async detect(frame: ImageData) {
@@ -109,8 +110,7 @@ export class FaceDetector {
         let time = Date.now()
         let result = this.faceLandmarker?.detect(frame)
         landmarksToFace(result?.faceLandmarks[0], this.face, frame.width, frame.height)
-        if (this.drawFace) drawTFFaceResult(this.previewCtx, this.face, false, true)
-        // if (this.faces == null || this.faces.length == 0) return
+        this.drawFaceLandmarks()
         this._time = Date.now() - time
         this.calacleFaceAngle()
         break
@@ -119,6 +119,10 @@ export class FaceDetector {
   }
 
   async faceRec() {
+    if (this.face.valid) {
+      this.captureCtx.clearRect(0, 0, 100, 100)
+      drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, 100)
+    }
     // let vector = this.genFaceTensor(this.faces[0])
     // this.capture.width = this.faces[0].box.width
     // this.capture.height = this.faces[0].box.height
