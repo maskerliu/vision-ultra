@@ -81,6 +81,7 @@ export class MainServer {
     ]
 
     if (!IS_DEV) this.httpApp.use(compression()) // 开启gzip压缩
+    
     this.httpApp.use(express.static(path.resolve(__dirname, '../static'), {
       setHeaders: (res, path: string, stat: any) => {
         if (path.indexOf('static') == -1) {
@@ -91,6 +92,14 @@ export class MainServer {
           res.header('Cross-Origin-Resource-Policy', 'cross-origin')
           res.header('Access-Control-Allow-Origin', '*')
         }
+      }
+    }))
+
+    this.httpApp.use('/data', express.static(path.join(__dirname, IS_DEV ? '../../data' : '../../../data'), {
+      setHeaders: (res, path: string, stat: any) => {
+        res.header('Cross-Origin-Opener-Policy', 'same-origin')
+        res.header('Cross-Origin-Resource-Policy', 'cross-origin')
+        res.header('Access-Control-Allow-Origin', '*')
       }
     }))
 

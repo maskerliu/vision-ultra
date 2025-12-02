@@ -66,7 +66,13 @@ export class Camera {
       0, 0, this.frame.width, this.frame.height,
       0, 0, this.frame.width, this.frame.height)
 
-    await this.faceDetector.detect(this.frame)
+    if (this._frames == 3) {
+      await this.faceDetector.detect(this.frame)
+      this._frames = 0
+    } else {
+      this._frames++
+      this.faceDetector.drawFaceLandmarks()
+    }
 
     this.previewCtx.fillStyle = '#c0392b'
     this.previewCtx.font = '14px sans-serif'

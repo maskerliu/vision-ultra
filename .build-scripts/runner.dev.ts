@@ -63,6 +63,19 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
             ignored: '*.txt',
             usePolling: false,
           },
+        },
+        {
+          directory: path.join(dirname, '../data/'), 
+          publicPath: '/data/', 
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+          watch: {
+            ignored: '*.txt',
+            usePolling: false,
+          },
         }
       ],
       headers: {
