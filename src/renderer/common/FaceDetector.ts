@@ -115,10 +115,6 @@ export class FaceDetector {
 
   async faceRec() {
     if (this.face.valid) {
-      let ratio = this.face.box.height / this.face.box.width
-      if (ratio != this.capture.height / this.capture.width) {
-        this.capture.width = this.face.box.width * this.capture.height / this.capture.width
-      }
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
       drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.height)
     }
