@@ -57,9 +57,7 @@ export function drawPath(ctx: CanvasRenderingContext2D, points: number[][], clos
   region.moveTo(points[0][0], points[0][1])
   for (let i = 1; i < points.length; i++) {
     region.lineTo(points[i][0], points[i][1])
-    // ctx.stroke()
-    // ctx.fill()
-    // ctx.fillText(`${point[2]}`, point[0], point[1])
+    // region.arcTo(points[i - 1][0], points[i - 1][1], points[i][0], points[i][1], 10)
   }
 
   if (closedPath) {
