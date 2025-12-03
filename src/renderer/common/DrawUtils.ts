@@ -3,7 +3,7 @@
 // import { Face } from "@tensorflow-models/face-landmarks-detection"
 import { Tensor } from '@tensorflow/tfjs-core'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
-import { FACEMESH_CONTOURS, NormalizedLandmark } from '@mediapipe/face_mesh'
+import { FaceMesh, FACEMESH_CONTOURS, NormalizedLandmark } from '@mediapipe/face_mesh'
 
 export const NUM_KEYPOINTS = 468
 export const NUM_IRIS_KEYPOINTS = 5
@@ -48,21 +48,32 @@ export type KeyPoint = {
   idx: number
 }
 
+const SharedPaths = {
+  lips: new Float16Array(FACEMESH_CONTOUR.lips.length * 3),
+  leftEye: new Float16Array(FACEMESH_CONTOUR.leftEye.length * 3),
+  leftEyebrow: new Float16Array(FACEMESH_CONTOUR.leftEyebrow.length * 3),
+  rightEye: new Float16Array(FACEMESH_CONTOUR.rightEye.length * 3),
+  rightEyebrow: new Float16Array(FACEMESH_CONTOUR.rightEyebrow.length * 3),
+  leftIris: new Float16Array(FACEMESH_CONTOUR.leftIris.length * 3),
+  rightIris: new Float16Array(FACEMESH_CONTOUR.rightIris.length * 3),
+  faceOval: new Float16Array(FACEMESH_CONTOUR.faceOval.length * 3),
+  mesh: new Float16Array(TRIANGULATION.length * 3),
+  corner: new Float16Array(36)
+}
+
 function distance(a: number[], b: number[]) {
   return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2))
 }
 
-export function drawPath(ctx: CanvasRenderingContext2D, points: number[][], closedPath = false) {
+function drawPath(ctx: CanvasRenderingContext2D, points: Float16Array, start: number, end: number, closedPath = false) {
   const region = new Path2D()
-  region.moveTo(points[0][0], points[0][1])
-  for (let i = 1; i < points.length; i++) {
-    region.lineTo(points[i][0], points[i][1])
+  region.moveTo(points[start], points[start + 1])
+  for (let i = start + 3; i < end; i += 3) {
+    region.lineTo(points[i], points[i + 1])
     // region.arcTo(points[i - 1][0], points[i - 1][1], points[i][0], points[i][1], 10)
   }
 
-  if (closedPath) {
-    region.closePath()
-  }
+  if (closedPath) region.closePath()
 
   ctx.stroke(region)
 }
@@ -136,21 +147,39 @@ function drawRectCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
   ctx.lineWidth = 5
 
   const w = box.width / 6
-  drawPath(ctx, [
-    [box.xMin + w, box.yMin], [box.xMin, box.yMin], [box.xMin, box.yMin + w]
-  ])
+  //   [box.xMin + w, box.yMin], [box.xMin, box.yMin], [box.xMin, box.yMin + w]
+  SharedPaths.corner[0] = box.xMin + w
+  SharedPaths.corner[1] = box.yMin
+  SharedPaths.corner[3] = box.xMin
+  SharedPaths.corner[4] = box.yMin
+  SharedPaths.corner[6] = box.xMin
+  SharedPaths.corner[7] = box.yMin + w
+  drawPath(ctx, SharedPaths.corner, 0, 9)
+  //   [box.xMax - w, box.yMin], [box.xMax, box.yMin], [box.xMax, box.yMin + w]
+  SharedPaths.corner[9] = box.xMax - w
+  SharedPaths.corner[10] = box.yMin
+  SharedPaths.corner[12] = box.xMax
+  SharedPaths.corner[13] = box.yMin
+  SharedPaths.corner[15] = box.xMax
+  SharedPaths.corner[16] = box.yMin + w
+  drawPath(ctx, SharedPaths.corner, 9, 18)
 
-  drawPath(ctx, [
-    [box.xMax - w, box.yMin], [box.xMax, box.yMin], [box.xMax, box.yMin + w]
-  ])
-
-  drawPath(ctx, [
-    [box.xMin, box.yMax - w], [box.xMin, box.yMax], [box.xMin + w, box.yMax]
-  ])
-
-  drawPath(ctx, [
-    [box.xMax, box.yMax - w], [box.xMax, box.yMax], [box.xMax - w, box.yMax]
-  ])
+  //   [box.xMin, box.yMax - w], [box.xMin, box.yMax], [box.xMin + w, box.yMax]
+  SharedPaths.corner[18] = box.xMin
+  SharedPaths.corner[19] = box.yMax - w
+  SharedPaths.corner[21] = box.xMin
+  SharedPaths.corner[22] = box.yMax
+  SharedPaths.corner[24] = box.xMin + w
+  SharedPaths.corner[25] = box.yMax
+  drawPath(ctx, SharedPaths.corner, 18, 27)
+  //   [box.xMax, box.yMax - w], [box.xMax, box.yMax], [box.xMax - w, box.yMax]
+  SharedPaths.corner[27] = box.xMax
+  SharedPaths.corner[28] = box.yMax - w
+  SharedPaths.corner[30] = box.xMax
+  SharedPaths.corner[31] = box.yMax
+  SharedPaths.corner[33] = box.xMax - w
+  SharedPaths.corner[34] = box.yMax
+  drawPath(ctx, SharedPaths.corner, 27, 36)
 }
 
 export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResult, width: number, height: number) {
@@ -192,7 +221,8 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
 }
 
 export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
-  face: FaceResult, mesh: 'mesh' | 'dot' | 'none' = 'none', eigen = false, boundingBox = false, scale?: number) {
+  face: FaceResult, mesh: 'mesh' | 'dot' | 'none' = 'none',
+  eigen = false, boundingBox = false, scale?: number) {
   if (face.landmarks == null || face.landmarks?.length === 0) return
   let normilize = scale ? scale : Math.max(face.box.width, face.box.height)
   let orginX = scale ? 0 : face.box.xMin
@@ -207,13 +237,12 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
       ctx.strokeStyle = SILVERY
       ctx.lineWidth = 0.5
       for (let i = 0; i < TRIANGULATION.length / 3; i++) {
-        const points = [
-          TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2],
-        ].map((index) => [
-          face.landmarks[index * 3] * normilize + orginX,
-          face.landmarks[index * 3 + 1] * normilize + originY, index])
-
-        drawPath(ctx, points, true)
+        [TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2]].forEach((val: number, idx: number) => {
+          SharedPaths.mesh[i * 9 + idx * 3] = face.landmarks[val * 3] * normilize + orginX
+          SharedPaths.mesh[i * 9 + idx * 3 + 1] = face.landmarks[val * 3 + 1] * normilize + originY
+          SharedPaths.mesh[i * 9 + idx * 3 + 2] = face.landmarks[val * 3 + 2]
+        })
+        drawPath(ctx, SharedPaths.mesh, i * 9, i * 9 + 9, true)
       }
       break
     case 'dot':
@@ -232,32 +261,23 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   for (const [label, contour] of Object.entries(FACEMESH_CONTOUR)) {
     ctx.strokeStyle = LABEL_TO_COLOR[label]
     ctx.lineWidth = 2
-    let path = contour.map((idx: number) => [
-      face.landmarks[idx * 3] * normilize + orginX,
-      face.landmarks[idx * 3 + 1] * normilize + originY, idx])
-    drawPath(ctx, path, false)
+    contour.forEach((val: number, idx: number) => {
+      SharedPaths[label][idx * 3] = face.landmarks[val * 3] * normilize + orginX
+      SharedPaths[label][idx * 3 + 1] = face.landmarks[val * 3 + 1] * normilize + originY
+      SharedPaths[label][idx * 3 + 2] = face.landmarks[val * 3 + 2]
+    })
+    drawPath(ctx, SharedPaths[label], 0, SharedPaths[label].length)
   }
 }
 
-export async function drawTFEigenFace(ctx: CanvasRenderingContext2D, eigen: Tensor, scale = 100) {
+export function getFaceContour(face: FaceResult, scale: number = 1, orginX: number = 0, originY: number = 0) {
+  FACEMESH_CONTOUR.faceOval.forEach((val: number, idx: number) => {
+    SharedPaths.faceOval[idx * 3] = face.landmarks[val * 3] * scale + orginX
+    SharedPaths.faceOval[idx * 3 + 1] = face.landmarks[val * 3 + 1] * scale + originY
+    SharedPaths.faceOval[idx * 3 + 2] = face.landmarks[val * 3 + 2]
+  })
 
-  let data = await eigen.data()
-  ctx.fillStyle = GREEN
-  // ctx.strokeStyle = BLUE
-  // ctx.lineWidth = 1
-  // ctx.rect(0.5, 0.5, 100, 100)
-  // ctx.stroke()
-  for (let i = 0; i < data.length; i += 2) {
-    ctx.beginPath()
-    ctx.arc(data[i] * scale, data[i + 1] * scale, 1.5 /* radius */, 0, 2 * Math.PI)
-    ctx.fill()
-  }
-  // ctx.scale(100,100)
-}
-
-export function getFaceContour(face: any) {
-  const keypoints = face.keypoints.map((p) => [p.x - face.box.xMin, p.y - face.box.yMin])
-  return FACEMESH_CONTOUR['faceOval'].map((idx) => keypoints[idx])
+  return SharedPaths.faceOval
 }
 
 export function getFaceSlope(face: FaceResult) {
@@ -278,7 +298,7 @@ export function getFaceSlope(face: FaceResult) {
   return (right[0] - left[0]) / (right[1] - left[1])
 }
 
-export function landmarksToBox(landmarks: Array<KeyPoint>, imgWidth: number, imgHeight: number) {
+function landmarksToBox(landmarks: Array<KeyPoint>, imgWidth: number, imgHeight: number) {
   var xMin = Number.MAX_SAFE_INTEGER
   var xMax = Number.MIN_SAFE_INTEGER
   var yMin = Number.MAX_SAFE_INTEGER

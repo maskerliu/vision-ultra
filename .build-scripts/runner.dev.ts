@@ -16,8 +16,6 @@ import rendererConfig from './webpack.renderer.config'
 const Run_Mode_DEV = 'development'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-console.log(`__dirname:\t ${dirname}`)
-
 process.env.NODE_ENV = Run_Mode_DEV
 process.env.BUILD_CONFIG = JSON.stringify(pkg.config)
 

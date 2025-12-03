@@ -19,8 +19,12 @@
               </van-checkbox>
               <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;">
                 <template #default>
-                  <van-icon class="iconfont icon-mesh"
-                    style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+                  <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+                </template>
+              </van-checkbox>
+              <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;">
+                <template #default>
+                  <van-icon class="iconfont icon-eigen" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
             </van-row>
@@ -70,9 +74,11 @@
       <canvas ref="preview" style="margin-top: 15px;"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
       <div ref="eigenFace" class="eigen-face">
-        <canvas ref="capture"></canvas>
+        <canvas ref="capture" width="120" height="140"></canvas>
+        <canvas ref="masklayer" width="120" height="140"
+          style="position: absolute; top: 5px; left: 5px; z-index: 3000; display: none;"></canvas>
       </div>
-      <canvas ref="masklayer" style="display: none;"></canvas>
+
       <video ref="preVideo" autoplay style="display: none;"></video>
     </van-cell-group>
 
@@ -131,8 +137,8 @@ onMounted(async () => {
   imgProcessor.imgProcessMode = visionStore.imgProcessMode
   imgProcessor.imgProcessParams = visionStore.imgParams.value
 
-  capture.value.width = eigenFace.value.clientWidth
-  capture.value.height = eigenFace.value.clientHeight
+  // capture.value.width = eigenFace.value.clientWidth
+  // capture.value.height = eigenFace.value.clientHeight
 
   faceDetector = new FaceDetector(previewCtx, capture.value, masklayer.value)
   faceDetector.drawFace = visionStore.drawFaceMesh
@@ -156,10 +162,10 @@ onMounted(async () => {
 })
 
 async function onFaceScan() {
-  if (isScan.value) {
-    showNotify({ type: 'warning', message: '正在扫描中，请稍后' })
-    return
-  }
+  // if (isScan.value) {
+  //   showNotify({ type: 'warning', message: '正在扫描中，请稍后' })
+  //   return
+  // }
   isScan.value = true
   scanTask = setInterval(() => {
     drawImage()
@@ -205,6 +211,7 @@ async function openFolder() {
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
       drawImage()
       faceDetector?.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
+      faceDetector?.updateUI()
     }
     img.src = file
   })
@@ -242,6 +249,10 @@ watch(() => visionStore.drawFaceMesh, (val) => {
   faceDetector.drawFace = val
 })
 
+watch(() => visionStore.drawEigen, (val) => {
+  faceDetector.drawEigen = val
+})
+
 watch(() => visionStore.faceRecMode, (val) => {
   faceDetector.faceRecMode = val as any
 })
@@ -270,15 +281,14 @@ watch(() => visionStore.imgEnhance, (val) => {
 </script>
 <style lang="css">
 .eigen-face {
-  width: 125px;
   height: 140px;
-  padding: 5px;
   object-fit: contain;
   position: absolute;
   top: 100px;
   right: 15px;
+  padding: 5px;
   border-radius: 12px;
-  border: 1px solid #f1f2f699;
+  border: 2px solid #f1f2f699;
   background-color: #2f3542BB;
   z-index: 2000;
 }

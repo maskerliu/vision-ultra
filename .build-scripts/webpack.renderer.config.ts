@@ -156,7 +156,6 @@ class RendererConfig extends BaseConfig {
         // }),
       )
     } else {
-
       this.optimization.minimize = true
       this.optimization.minimizer = [
         new TerserPlugin({
@@ -166,7 +165,7 @@ class RendererConfig extends BaseConfig {
             ecma: 2020,
             compress: {
               comparisons: false,
-              // drop_console: true
+              drop_console: true
             },
             mangle: false, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
           },

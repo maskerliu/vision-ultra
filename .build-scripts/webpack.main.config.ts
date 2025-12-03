@@ -83,28 +83,28 @@ class MainConfig extends BaseConfig {
 
     this.plugins?.push(
       new CopyWebpackPlugin({
-        patterns: [{
-          from: path.join(dirname, '../cert'),
-          to: path.join(dirname, '../dist/electron/cert/'),
-        }]
-      }),
-      new CopyWebpackPlugin({
-        patterns: [{
-          from: path.join(dirname, `../icons/common/`),
-          to: path.join(dirname, '../dist/electron/static/'),
-        }]
-      }),
-      new CopyWebpackPlugin({
-        patterns: [{
-          from: path.join(dirname, `../icons/icon${suffix}`),
-          to: path.join(dirname, '../dist/electron/static/'),
-        }]
-      }),
-      new CopyWebpackPlugin({
-        patterns: [{
-          from: path.join(dirname, `../node_modules/@mediapipe/face_mesh/`),
-          to: path.join(dirname, '../dist/electron/static/face_mesh/'),
-        }]
+        patterns: [
+          {
+            from: path.join(dirname, '../cert'),
+            to: path.join(dirname, '../dist/electron/cert/'),
+          },
+          {
+            from: path.join(dirname, `../icons/common/`),
+            to: path.join(dirname, '../dist/electron/static/'),
+          },
+          {
+            from: path.join(dirname, `../icons/icon${suffix}`),
+            to: path.join(dirname, '../dist/electron/static/'),
+          },
+          {
+            from: path.posix.join(dirname, '../node_modules/@mediapipe/face_mesh/*.{js,wasm,binarypb,data}'),
+            to: path.join(dirname, '../dist/electron/static/face_mesh/[name][ext]'),
+          },
+          {
+            from: path.join(dirname, `../data/face_landmarker.task`),
+            to: path.join(dirname, '../dist/electron/static/face_landmarker.task'),
+          }
+        ]
       }),
     )
 
