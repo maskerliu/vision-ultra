@@ -53,7 +53,7 @@ export class FaceDetector {
       __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
     this.faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
       baseOptions: {
-        modelAssetPath: (baseDomain() ? baseDomain() : 'https://localhost:8884') + '/static/face_landmarker.task',
+        modelAssetPath: baseDomain() + '/static/face_landmarker.task',
         delegate: 'GPU'
       },
       numFaces: 1,
@@ -87,7 +87,8 @@ export class FaceDetector {
 
 
   updateUI() {
-    if (this.drawFace) drawTFFaceResult(this.previewCtx, this.face, 'none', true, true)
+    drawTFFaceResult(this.previewCtx, this.face, 'none', this.drawFace, true)
+
     if (this.face.valid && this.drawEigen) {
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
       drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.height)
@@ -237,8 +238,8 @@ export class FaceDetector {
       // }
 
       // TODO: 保存图片 不通过请求直接native
-      let buffer = await blob.arrayBuffer()
-      window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
+      // let buffer = await blob.arrayBuffer()
+      // window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
 
       // this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     }, 'image/png')

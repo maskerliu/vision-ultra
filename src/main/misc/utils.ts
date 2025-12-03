@@ -25,6 +25,7 @@ export namespace BizNetwork {
   export const MIME_MULTIPART = 'multipart/form-data'
   export const MIME_JSON = 'application/json'
   export const MIME_TEXT = 'text/plain'
+  export const MIME_STREAM = 'application/octet-stream'
   export const MIME_IMAGE_JPEG = 'image/jpeg'
   export const MIME_IMAGE_PNG = 'image/png'
   export const MIME_IMAGE_GIF = 'image/gif'
@@ -214,6 +215,9 @@ export function fetchFormFile(file: string | File) {
       return JSON.parse(data)
     case BizNetwork.MIME_TEXT:
       return fse.readFileSync(file.filepath, 'utf-8')
+    case BizNetwork.MIME_STREAM:
+      let buffer = fse.readFileSync(file.filepath)
+      return Float16Array.from(buffer)
     case BizNetwork.MIME_IMAGE_JPEG:
     case BizNetwork.MIME_IMAGE_PNG:
     case BizNetwork.MIME_IMAGE_GIF:
