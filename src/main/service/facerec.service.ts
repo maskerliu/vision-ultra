@@ -31,18 +31,19 @@ export class FaceRecService {
     return { name: keyword, eigens: resp }
   }
 
-  async registe(name: string, eigen: any, avatar: File) {
-    let arr = eigen.split(',').map((item: string) => {
-      return Number(item)
-    })
-    if (arr.length != 478 * 2) {
-      return 'vector length error'
+  async registe(name: string, eigen: Float16Array, avatar: File) {
+    console.log('eigen', eigen)
+    // let arr = eigen.split(',').map((item: string) => {
+    //   return Number(item)
+    // })
+    if (eigen.length != 478 * 3) {
+      throw 'vector length error'
     }
     let fileName = `${avatar.newFilename}${path.extname(avatar.originalFilename)}`
     let dstPath = path.join(USER_DATA_DIR, 'static/face', fileName)
     await fse.ensureDir(path.dirname(dstPath))
     await fse.move(avatar.filepath, dstPath)
-    await this.faceRepo.insert(name, arr, fileName)
+    // await this.faceRepo.insert(name, eigen, fileName)
     return name
   }
 
