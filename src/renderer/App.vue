@@ -6,7 +6,7 @@
       </transition>
     </router-view>
 
-    <van-floating-bubble v-if="enableDebug" :offset="{ x: 1000, y: 450 }" axis="xy" :gap="10" magnetic="x"
+    <van-floating-bubble v-if="enableDebug" :offset="{ x: 1040, y: 450 }" axis="xy" :gap="10" magnetic="x"
       @click="onOpenDebugPanel">
 
       <template #default>

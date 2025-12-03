@@ -15,6 +15,7 @@ export class FaceDetector {
   public imgProcessor: ImageProcessor = null
 
   public drawFace: boolean = true
+  public drawEigen: boolean = true
 
   private previewCtx: CanvasRenderingContext2D
 
@@ -48,10 +49,11 @@ export class FaceDetector {
       valid: false
     }
 
-    const filesetResolver = await FilesetResolver.forVisionTasks(__DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
+    const filesetResolver = await FilesetResolver.forVisionTasks(
+      __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
     this.faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
       baseOptions: {
-        modelAssetPath: (baseDomain() ? baseDomain() : 'https://localhost:8884') + '/data/face_landmarker.task',
+        modelAssetPath: (baseDomain() ? baseDomain() : 'https://localhost:8884') + '/static/face_landmarker.task',
         delegate: 'GPU'
       },
       numFaces: 1,
@@ -83,10 +85,15 @@ export class FaceDetector {
     return this._time
   }
 
-  drawFaceLandmarks() {
+
+  updateUI() {
     if (this.drawFace) drawTFFaceResult(this.previewCtx, this.face, 'none', true, true)
-    this.faceRec()
+    if (this.face.valid && this.drawEigen) {
+      this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
+      drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.height)
+    }
   }
+
 
   async detect(frame: ImageData) {
     if (!this.faceDetect) {
@@ -105,7 +112,6 @@ export class FaceDetector {
         let time = Date.now()
         let result = this.faceLandmarker?.detect(frame)
         landmarksToFace(result?.faceLandmarks[0], this.face, frame.width, frame.height)
-        this.drawFaceLandmarks()
         this._time = Date.now() - time
         this.calacleFaceAngle()
         break
@@ -114,10 +120,7 @@ export class FaceDetector {
   }
 
   async faceRec() {
-    if (this.face.valid) {
-      this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
-      drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.height)
-    }
+
     // let vector = this.genFaceTensor(this.faces[0])
     // this.capture.width = this.faces[0].box.width
     // this.capture.height = this.faces[0].box.height
@@ -194,55 +197,48 @@ export class FaceDetector {
       return
     }
 
-    let path = getFaceContour(this.face)
     this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     this.masklayerCtx.clearRect(0, 0, this.masklayer.width, this.masklayer.height)
-    this.capture.width = this.face.box.width
-    this.capture.height = this.face.box.height
-    this.masklayer.width = this.face.box.width
-    this.masklayer.height = this.face.box.height
 
-    let imageData = context.getImageData(this.face.box.xMin, this.face.box.yMin,
-      this.face.box.width, this.face.box.height)
-    this.captureCtx.putImageData(imageData, 0, 0)
+    let ratio = Math.min(this.capture.width / this.face.box.width, this.capture.height / this.face.box.height)
+    this.captureCtx.drawImage(context.canvas,
+      this.face.box.xMin, this.face.box.yMin, this.face.box.width, this.face.box.height,
+      0, 0, this.face.box.width * ratio, this.face.box.height * ratio)
+    let imageData = this.captureCtx.getImageData(0, 0, this.face.box.width * ratio, this.face.box.height * ratio)
+    let faceOval = getFaceContour(this.face, Math.max(this.face.box.width * ratio, this.face.box.height * ratio))
     this.masklayerCtx.beginPath()
-    for (let i = 1; i < path.length; i++) {
-      this.masklayerCtx.lineTo(path[i][0], path[i][1])
+    this.masklayerCtx.moveTo(faceOval[0], faceOval[1])
+    for (let i = 3; i < faceOval.length; i += 3) {
+      this.masklayerCtx.lineTo(faceOval[i], faceOval[i + 1])
     }
-    this.masklayerCtx.fillStyle = 'white'
+    this.masklayerCtx.fillStyle = 'red'
     this.masklayerCtx.fill()
     let maskImgData = this.masklayerCtx.getImageData(0, 0, this.masklayer.width, this.masklayer.height)
-    for (let i = 0; i < maskImgData.data.length; i += 4) {
-      if (maskImgData.data[i + 3] == 0) {
-        maskImgData.data[i + 3] = 255
-      } else {
-        maskImgData.data[i + 3] = 0
-      }
-    }
-
     for (let i = 0; i < imageData.data.length; i += 4) {
-      if (maskImgData.data[i + 3] == 255) {
+      if (maskImgData.data[i] !== 255) {
+        imageData.data[i] = 0
+        imageData.data[i + 1] = 0
+        imageData.data[i + 2] = 0
         imageData.data[i + 3] = 0
       }
     }
-    this.calacleFaceAngle()
-    this.imgProcessor.imgProcessParams['rotate'] = this._faceAngle
-    this.imgProcessor?.process(imageData)
+    // this.calacleFaceAngle()
+    // this.imgProcessor.imgProcessParams['rotate'] = this._faceAngle
+    // this.imgProcessor?.process(imageData)
     this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     this.captureCtx.putImageData(imageData, 0, 0)
     this.capture.toBlob(async (blob) => {
-      try {
-        let faceTensor = this.genFaceTensor(this.face)
-        await FaceRec.registe(name, faceTensor.arraySync(), new File([blob], 'avatar.png', { type: 'image/png' }))
-        showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })
-        faceTensor.dispose()
-      } catch (err) {
-        showNotify({ type: 'warning', message: '保存失败', duration: 500 })
-      }
+      // try {
+      //   await FaceRec.registe(name, this.face.landmarks, new File([blob], 'avatar.png', { type: 'image/png' }))
+      //   showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })
+      // } catch (err) {
+      //   console.error(err)
+      //   showNotify({ type: 'warning', message: '保存失败', duration: 500 })
+      // }
 
       // TODO: 保存图片 不通过请求直接native
-      // let buffer = await blob.arrayBuffer()
-      // window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
+      let buffer = await blob.arrayBuffer()
+      window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
 
       // this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
     }, 'image/png')

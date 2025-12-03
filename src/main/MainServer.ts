@@ -81,35 +81,16 @@ export class MainServer {
     ]
 
     if (!IS_DEV) this.httpApp.use(compression()) // 开启gzip压缩
-    
-    this.httpApp.use(express.static(path.resolve(__dirname, '../static'), {
-      setHeaders: (res, path: string, stat: any) => {
-        if (path.indexOf('static') == -1) {
-          res.header('Cross-Origin-Embedder-Policy', 'require-corp')
-          res.header('Cross-Origin-Opener-Policy', 'same-origin')
-        } else {
-          res.header('Cross-Origin-Opener-Policy', 'same-origin')
-          res.header('Cross-Origin-Resource-Policy', 'cross-origin')
-          res.header('Access-Control-Allow-Origin', '*')
-        }
-      }
-    }))
 
-    this.httpApp.use('/data', express.static(path.join(__dirname, IS_DEV ? '../../data' : '../../../data'), {
-      setHeaders: (res, path: string, stat: any) => {
-        res.header('Cross-Origin-Opener-Policy', 'same-origin')
-        res.header('Cross-Origin-Resource-Policy', 'cross-origin')
-        res.header('Access-Control-Allow-Origin', '*')
-      }
-    }))
+    this.httpApp.use(/.*/, (req, resp, next) => {
+      resp.header('Cross-Origin-Opener-Policy', 'same-origin')
+      resp.header('Cross-Origin-Resource-Policy', 'cross-origin')
+      next()
+    })
 
-    this.httpApp.use('/_res', express.static(path.join(USER_DATA_DIR, './static'), {
-      setHeaders: (res, path: string, stat: any) => {
-        res.header('Cross-Origin-Opener-Policy', 'same-origin')
-        res.header('Cross-Origin-Resource-Policy', 'cross-origin')
-        res.header('Access-Control-Allow-Origin', '*')
-      }
-    }))
+    if (IS_DEV) this.httpApp.use('/static', express.static(path.join(__dirname, '../../data')))
+    this.httpApp.use('/static', express.static(path.resolve(__dirname, '../static')))
+    this.httpApp.use('/_res', express.static(path.join(USER_DATA_DIR, './static')))
 
     this.httpApp.use(cors(this.corsOpt))
     this.httpApp.use(express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }))
