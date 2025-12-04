@@ -74,8 +74,8 @@ electronLanguages:
   - zh-CN
 
 extraFiles:
-  - from: "./data"
-    to: "./resources/data/"
+  - from: "./data/lbfmodel.yaml"
+    to: "./resources/data/lbfmodel.yaml"
   - from: "./node_modules/@u4/opencv4nodejs/src/lib"
     to: "./resources/data/"
   

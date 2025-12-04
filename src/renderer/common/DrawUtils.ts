@@ -1,9 +1,5 @@
-
-// import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection'
-// import { Face } from "@tensorflow-models/face-landmarks-detection"
-import { Tensor } from '@tensorflow/tfjs-core'
+import { NormalizedLandmark } from '@mediapipe/face_mesh'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
-import { FaceMesh, FACEMESH_CONTOURS, NormalizedLandmark } from '@mediapipe/face_mesh'
 
 export const NUM_KEYPOINTS = 468
 export const NUM_IRIS_KEYPOINTS = 5
@@ -48,17 +44,19 @@ export type KeyPoint = {
   idx: number
 }
 
+export const FACE_DIMS: number = 2
+
 const SharedPaths = {
-  lips: new Float16Array(FACEMESH_CONTOUR.lips.length * 3),
-  leftEye: new Float16Array(FACEMESH_CONTOUR.leftEye.length * 3),
-  leftEyebrow: new Float16Array(FACEMESH_CONTOUR.leftEyebrow.length * 3),
-  rightEye: new Float16Array(FACEMESH_CONTOUR.rightEye.length * 3),
-  rightEyebrow: new Float16Array(FACEMESH_CONTOUR.rightEyebrow.length * 3),
-  leftIris: new Float16Array(FACEMESH_CONTOUR.leftIris.length * 3),
-  rightIris: new Float16Array(FACEMESH_CONTOUR.rightIris.length * 3),
-  faceOval: new Float16Array(FACEMESH_CONTOUR.faceOval.length * 3),
-  mesh: new Float16Array(TRIANGULATION.length * 3),
-  corner: new Float16Array(36)
+  lips: new Float16Array(FACEMESH_CONTOUR.lips.length * FACE_DIMS),
+  leftEye: new Float16Array(FACEMESH_CONTOUR.leftEye.length * FACE_DIMS),
+  leftEyebrow: new Float16Array(FACEMESH_CONTOUR.leftEyebrow.length * FACE_DIMS),
+  rightEye: new Float16Array(FACEMESH_CONTOUR.rightEye.length * FACE_DIMS),
+  rightEyebrow: new Float16Array(FACEMESH_CONTOUR.rightEyebrow.length * FACE_DIMS),
+  leftIris: new Float16Array(FACEMESH_CONTOUR.leftIris.length * FACE_DIMS),
+  rightIris: new Float16Array(FACEMESH_CONTOUR.rightIris.length * FACE_DIMS),
+  faceOval: new Float16Array(FACEMESH_CONTOUR.faceOval.length * FACE_DIMS),
+  mesh: new Float16Array(TRIANGULATION.length * FACE_DIMS),
+  corner: new Float16Array(12 * FACE_DIMS)
 }
 
 function distance(a: number[], b: number[]) {
@@ -68,7 +66,7 @@ function distance(a: number[], b: number[]) {
 function drawPath(ctx: CanvasRenderingContext2D, points: Float16Array, start: number, end: number, closedPath = false) {
   const region = new Path2D()
   region.moveTo(points[start], points[start + 1])
-  for (let i = start + 3; i < end; i += 3) {
+  for (let i = start + FACE_DIMS; i < end; i += FACE_DIMS) {
     region.lineTo(points[i], points[i + 1])
     // region.arcTo(points[i - 1][0], points[i - 1][1], points[i][0], points[i][1], 10)
   }
@@ -150,36 +148,36 @@ function drawRectCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
   //   [box.xMin + w, box.yMin], [box.xMin, box.yMin], [box.xMin, box.yMin + w]
   SharedPaths.corner[0] = box.xMin + w
   SharedPaths.corner[1] = box.yMin
-  SharedPaths.corner[3] = box.xMin
-  SharedPaths.corner[4] = box.yMin
-  SharedPaths.corner[6] = box.xMin
-  SharedPaths.corner[7] = box.yMin + w
-  drawPath(ctx, SharedPaths.corner, 0, 9)
+  SharedPaths.corner[FACE_DIMS] = box.xMin
+  SharedPaths.corner[FACE_DIMS + 1] = box.yMin
+  SharedPaths.corner[2 * FACE_DIMS] = box.xMin
+  SharedPaths.corner[2 * FACE_DIMS + 1] = box.yMin + w
+  drawPath(ctx, SharedPaths.corner, 0, 3 * FACE_DIMS)
   //   [box.xMax - w, box.yMin], [box.xMax, box.yMin], [box.xMax, box.yMin + w]
-  SharedPaths.corner[9] = box.xMax - w
-  SharedPaths.corner[10] = box.yMin
-  SharedPaths.corner[12] = box.xMax
-  SharedPaths.corner[13] = box.yMin
-  SharedPaths.corner[15] = box.xMax
-  SharedPaths.corner[16] = box.yMin + w
-  drawPath(ctx, SharedPaths.corner, 9, 18)
+  SharedPaths.corner[3 * FACE_DIMS] = box.xMax - w
+  SharedPaths.corner[3 * FACE_DIMS + 1] = box.yMin
+  SharedPaths.corner[4 * FACE_DIMS] = box.xMax
+  SharedPaths.corner[4 * FACE_DIMS + 1] = box.yMin
+  SharedPaths.corner[5 * FACE_DIMS] = box.xMax
+  SharedPaths.corner[5 * FACE_DIMS + 1] = box.yMin + w
+  drawPath(ctx, SharedPaths.corner, 3 * FACE_DIMS, 6 * FACE_DIMS)
 
   //   [box.xMin, box.yMax - w], [box.xMin, box.yMax], [box.xMin + w, box.yMax]
-  SharedPaths.corner[18] = box.xMin
-  SharedPaths.corner[19] = box.yMax - w
-  SharedPaths.corner[21] = box.xMin
-  SharedPaths.corner[22] = box.yMax
-  SharedPaths.corner[24] = box.xMin + w
-  SharedPaths.corner[25] = box.yMax
-  drawPath(ctx, SharedPaths.corner, 18, 27)
+  SharedPaths.corner[6 * FACE_DIMS] = box.xMin
+  SharedPaths.corner[6 * FACE_DIMS + 1] = box.yMax - w
+  SharedPaths.corner[7 * FACE_DIMS] = box.xMin
+  SharedPaths.corner[7 * FACE_DIMS + 1] = box.yMax
+  SharedPaths.corner[8 * FACE_DIMS] = box.xMin + w
+  SharedPaths.corner[8 * FACE_DIMS + 1] = box.yMax
+  drawPath(ctx, SharedPaths.corner, 6 * FACE_DIMS, 9 * FACE_DIMS)
   //   [box.xMax, box.yMax - w], [box.xMax, box.yMax], [box.xMax - w, box.yMax]
-  SharedPaths.corner[27] = box.xMax
-  SharedPaths.corner[28] = box.yMax - w
-  SharedPaths.corner[30] = box.xMax
-  SharedPaths.corner[31] = box.yMax
-  SharedPaths.corner[33] = box.xMax - w
-  SharedPaths.corner[34] = box.yMax
-  drawPath(ctx, SharedPaths.corner, 27, 36)
+  SharedPaths.corner[9 * FACE_DIMS] = box.xMax
+  SharedPaths.corner[9 * FACE_DIMS + 1] = box.yMax - w
+  SharedPaths.corner[10 * FACE_DIMS] = box.xMax
+  SharedPaths.corner[10 * FACE_DIMS + 1] = box.yMax
+  SharedPaths.corner[11 * FACE_DIMS] = box.xMax - w
+  SharedPaths.corner[11 * FACE_DIMS + 1] = box.yMax
+  drawPath(ctx, SharedPaths.corner, 9 * FACE_DIMS, 12 * FACE_DIMS)
 }
 
 export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResult, width: number, height: number) {
@@ -199,9 +197,9 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
     xMax = Math.max(xMax, landmark.x * width)
     yMin = Math.min(yMin, landmark.y * height)
     yMax = Math.max(yMax, landmark.y * height)
-    face.landmarks[i * 3] = landmarks[i].x * width
-    face.landmarks[i * 3 + 1] = landmarks[i].y * height
-    face.landmarks[i * 3 + 2] = landmarks[i].z
+    face.landmarks[i * FACE_DIMS] = landmarks[i].x * width
+    face.landmarks[i * FACE_DIMS + 1] = landmarks[i].y * height
+    // face.landmarks[i * 3 + 2] = landmarks[i].z
   }
 
   face.box.xMax = xMax
@@ -212,7 +210,7 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
   face.box.height = yMax - yMin
 
   let normilize = Math.max(face.box.width, face.box.height)
-  for (let i = 0; i < face.landmarks.length; i += 3) {
+  for (let i = 0; i < face.landmarks.length; i += FACE_DIMS) {
     face.landmarks[i] = (face.landmarks[i] - face.box.xMin) / normilize
     face.landmarks[i + 1] = (face.landmarks[i + 1] - face.box.yMin) / normilize
   }
@@ -237,20 +235,20 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
       ctx.strokeStyle = SILVERY
       ctx.lineWidth = 0.5
       for (let i = 0; i < TRIANGULATION.length / 3; i++) {
-        [TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2]].forEach((val: number, idx: number) => {
-          SharedPaths.mesh[i * 9 + idx * 3] = face.landmarks[val * 3] * normilize + orginX
-          SharedPaths.mesh[i * 9 + idx * 3 + 1] = face.landmarks[val * 3 + 1] * normilize + originY
-          SharedPaths.mesh[i * 9 + idx * 3 + 2] = face.landmarks[val * 3 + 2]
+        [TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2]].forEach((val, idx) => {
+          SharedPaths.mesh[i * 3 * FACE_DIMS + idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * normilize + orginX
+          SharedPaths.mesh[i * 3 * FACE_DIMS + idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * normilize + originY
+          if (FACE_DIMS == 3) SharedPaths.mesh[i * 3 * FACE_DIMS + idx * FACE_DIMS + 2] = face.landmarks[val * FACE_DIMS + 2]
         })
-        drawPath(ctx, SharedPaths.mesh, i * 9, i * 9 + 9, true)
+        drawPath(ctx, SharedPaths.mesh, i * 3 * FACE_DIMS, i * 3 * FACE_DIMS + 3 * FACE_DIMS, true)
       }
       break
     case 'dot':
       ctx.fillStyle = SILVERY
       for (let i = 0; i < NUM_KEYPOINTS; i++) {
         ctx.beginPath()
-        ctx.arc(face.landmarks[i * 3] * normilize + orginX,
-          face.landmarks[i * 3 + 1] * normilize + originY, 1.5 /* radius */, 0, 2 * Math.PI)
+        ctx.arc(face.landmarks[i * FACE_DIMS] * normilize + orginX,
+          face.landmarks[i * FACE_DIMS + 1] * normilize + originY, 1.5 /* radius */, 0, 2 * Math.PI)
         ctx.fill()
         ctx.closePath()
       }
@@ -261,20 +259,20 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   for (const [label, contour] of Object.entries(FACEMESH_CONTOUR)) {
     ctx.strokeStyle = LABEL_TO_COLOR[label]
     ctx.lineWidth = 2
-    contour.forEach((val: number, idx: number) => {
-      SharedPaths[label][idx * 3] = face.landmarks[val * 3] * normilize + orginX
-      SharedPaths[label][idx * 3 + 1] = face.landmarks[val * 3 + 1] * normilize + originY
-      SharedPaths[label][idx * 3 + 2] = face.landmarks[val * 3 + 2]
+    contour.forEach((val, idx) => {
+      SharedPaths[label][idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * normilize + orginX
+      SharedPaths[label][idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * normilize + originY
+      if (FACE_DIMS == 3) SharedPaths[label][idx * FACE_DIMS + 2] = face.landmarks[val * FACE_DIMS + 2]
     })
     drawPath(ctx, SharedPaths[label], 0, SharedPaths[label].length)
   }
 }
 
 export function getFaceContour(face: FaceResult, scale: number = 1, orginX: number = 0, originY: number = 0) {
-  FACEMESH_CONTOUR.faceOval.forEach((val: number, idx: number) => {
-    SharedPaths.faceOval[idx * 3] = face.landmarks[val * 3] * scale + orginX
-    SharedPaths.faceOval[idx * 3 + 1] = face.landmarks[val * 3 + 1] * scale + originY
-    SharedPaths.faceOval[idx * 3 + 2] = face.landmarks[val * 3 + 2]
+  FACEMESH_CONTOUR.faceOval.forEach((val, idx) => {
+    SharedPaths.faceOval[idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * scale + orginX
+    SharedPaths.faceOval[idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * scale + originY
+    if (FACE_DIMS == 3) SharedPaths.faceOval[idx * FACE_DIMS + 2] = face.landmarks[val * FACE_DIMS + 2]
   })
 
   return SharedPaths.faceOval
@@ -282,20 +280,35 @@ export function getFaceContour(face: FaceResult, scale: number = 1, orginX: numb
 
 export function getFaceSlope(face: FaceResult) {
   if (face == null) return 0
-  let leftEye = FACEMESH_CONTOUR.leftIris.map((idx) => [face.landmarks[idx * 3], face.landmarks[idx * 3 + 1]])
-  let rightEye = FACEMESH_CONTOUR.rightIris.map((idx) => [face.landmarks[idx * 3], face.landmarks[idx * 3 + 1]])
+  FACEMESH_CONTOUR.leftIris.forEach((val, idx) => {
+    SharedPaths.leftIris[idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS]
+    SharedPaths.leftIris[idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1]
+    if (FACE_DIMS == 3) SharedPaths.leftIris[idx * FACE_DIMS + 2] = face.landmarks[val * FACE_DIMS + 2]
+  })
 
-  let left = [
-    (leftEye[0][0] + leftEye[1][0] + leftEye[2][0] + leftEye[3][0]) / 4,
-    (leftEye[0][1] + leftEye[1][1] + leftEye[2][1] + leftEye[3][1]) / 4
-  ]
+  FACEMESH_CONTOUR.rightIris.forEach((val, idx) => {
+    SharedPaths.rightIris[idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS]
+    SharedPaths.rightIris[idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1]
+    if (FACE_DIMS == 3) SharedPaths.leftIris[idx * FACE_DIMS + 2] = face.landmarks[val * FACE_DIMS + 2]
+  })
 
-  let right = [
-    (rightEye[0][0] + rightEye[1][0] + rightEye[2][0] + rightEye[3][0]) / 4,
-    (rightEye[0][1] + rightEye[1][1] + rightEye[2][1] + rightEye[3][1]) / 4
-  ]
+  let size = SharedPaths.rightIris.length / FACE_DIMS
+  let left = { x: 0, y: 0 }, right = { x: 0, y: 0 }
+  for (let i = 0; i < size; i++) {
+    left.x += SharedPaths.rightIris[i * FACE_DIMS]
+    left.y += SharedPaths.rightIris[i * FACE_DIMS + 1]
 
-  return (right[0] - left[0]) / (right[1] - left[1])
+    right.x += SharedPaths.rightIris[i * FACE_DIMS]
+    right.y += SharedPaths.rightIris[i * FACE_DIMS + 1]
+  }
+
+  left.x /= size
+  left.y /= size
+
+  right.x /= size
+  right.y /= size
+
+  return (right.x - left.x) / (right.y - left.y)
 }
 
 function landmarksToBox(landmarks: Array<KeyPoint>, imgWidth: number, imgHeight: number) {

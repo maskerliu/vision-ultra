@@ -1,8 +1,9 @@
 import { FaceDetector } from './FaceDetector'
 import { ImageProcessor } from './ImageProcessor'
-
+import Hls from 'hls.js'
 
 export class Camera {
+  private hls: Hls
 
   private preVideo: HTMLVideoElement
 
@@ -29,6 +30,8 @@ export class Camera {
   // private faces: Array<Face> = []
 
   constructor(video: HTMLVideoElement, priview: HTMLCanvasElement, offscreen: HTMLCanvasElement, flip: boolean = true) {
+    this.hls = new Hls()
+
     this.preVideo = video
     this.preview = priview
     this.offscreen = offscreen
@@ -100,7 +103,7 @@ export class Camera {
     return this.preVideo.srcObject != null
   }
 
-  async open() {
+  async open(url?: string) {
     if (this.preVideo.srcObject) {
       this.close()
       this.preVideo.srcObject = null
@@ -110,8 +113,19 @@ export class Camera {
     // this.faceDetector?.reset()
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      this.preVideo.srcObject = stream
+      if (url == null) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        this.preVideo.srcObject = stream
+      } else {
+        if (Hls.isSupported()) {
+          this.hls.loadSource(url)
+          this.hls.attachMedia(this.preVideo)
+          this.flip = false
+          this.hls.on(Hls.Events.MANIFEST_PARSED, function () {
+            this.preVideo.play()
+          })
+        }
+      }
       var loop = () => {
         this.processFrame()
         this.animationId = requestAnimationFrame(loop)

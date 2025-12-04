@@ -31,12 +31,12 @@ export class FaceRecService {
     return { name: keyword, eigens: resp }
   }
 
-  async registe(name: string, eigen: Float16Array, avatar: File) {
-    console.log('eigen', eigen)
-    // let arr = eigen.split(',').map((item: string) => {
-    //   return Number(item)
-    // })
-    if (eigen.length != 478 * 3) {
+  async registe(name: string, eigen: Uint16Array, avatar: File) {
+    let arr = new Float16Array(eigen.length)
+    for (let i = 0; i < eigen.length; i++) {
+      arr[i] = eigen[i] / 1000000000.0
+    }
+    if (eigen.length != 478 * 2) {
       throw 'vector length error'
     }
     let fileName = `${avatar.newFilename}${path.extname(avatar.originalFilename)}`
@@ -56,11 +56,11 @@ export class FaceRecService {
     }
   }
 
-  async recognize(vector: any) {
-    let name = 'unknown'
-    let arr = vector.split(',').map((item: string) => {
-      return Number(item)
-    })
+  async recognize(vector: Uint16Array) {
+    let arr = new Float16Array(vector.length)
+    for (let i = 0; i < vector.length; i++) {
+      arr[i] = vector[i] / 1000000000.0
+    }
     let result = await this.faceRepo.search(null, arr)
     if (result.length > 0) {
       return {
@@ -70,9 +70,9 @@ export class FaceRecService {
         similarity: result[0]._distance,
         timestamp: result[0].timestamp.toString()
       }
-    } else {
-      return null
-    }
+    } 
+    
+    throw 'no match'
   }
 }
 

@@ -15,9 +15,12 @@ export namespace FaceRec {
 
   export function registe(name: string, vector: Float16Array, avatar: File) {
     let formData = new FormData()
-    let data = new Float32Array(vector.buffer)
+    let data = new Uint32Array(vector.length)
+    for (let i = 0; i < vector.length; i++) {
+      data[i] = vector[i] * 1000000000
+    }
     formData.append('name', new File([name], 'name', { type: 'text/plain' }))
-    formData.append('eigen', new File([vector.buffer as ArrayBuffer], 'eigen', { type: 'application/octet-stream' }))
+    formData.append('eigen', new File([data], 'eigen', { type: 'application/octet-stream' }))
     formData.append('avatar', avatar)
     return formPost<string>(`${API_URL.FaceRec}${API_URL.F_Registe}`, null, null, formData)
   }
