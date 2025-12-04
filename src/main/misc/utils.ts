@@ -217,7 +217,11 @@ export function fetchFormFile(file: string | File) {
       return fse.readFileSync(file.filepath, 'utf-8')
     case BizNetwork.MIME_STREAM:
       let buffer = fse.readFileSync(file.filepath)
-      return Float16Array.from(buffer)
+      const arrayBuffer = buffer.buffer.slice(
+        buffer.byteOffset,
+        buffer.byteOffset + buffer.byteLength
+      )
+      return new Uint32Array(arrayBuffer)
     case BizNetwork.MIME_IMAGE_JPEG:
     case BizNetwork.MIME_IMAGE_PNG:
     case BizNetwork.MIME_IMAGE_GIF:

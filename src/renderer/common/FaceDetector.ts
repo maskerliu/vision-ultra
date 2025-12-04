@@ -1,8 +1,7 @@
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
-import * as tf from '@tensorflow/tfjs'
 import { showNotify } from "vant"
 import { baseDomain, FaceRec } from "../../common"
-import { drawCVFaceResult, drawTFFaceResult, FaceResult, getFaceContour, getFaceSlope, landmarksToFace } from "./DrawUtils"
+import { drawCVFaceResult, drawTFFaceResult, FACE_DIMS, FaceResult, getFaceContour, getFaceSlope, landmarksToFace } from "./DrawUtils"
 import { ImageProcessor } from "./ImageProcessor"
 
 
@@ -25,8 +24,6 @@ export class FaceDetector {
   private masklayer: HTMLCanvasElement
   private masklayerCtx: CanvasRenderingContext2D
 
-  private faceTensor: tf.Tensor = null
-
   private _enableFaceAngle: boolean = false
   private _faceAngle: number = 0
   private _time = 0
@@ -44,7 +41,7 @@ export class FaceDetector {
 
   async init() {
     this.face = {
-      landmarks: new Float16Array(478 * 3),
+      landmarks: new Float16Array(478 * FACE_DIMS),
       box: { xMin: 0, yMin: 0, xMax: 0, yMax: 0, width: 0, height: 0 },
       valid: false
     }
@@ -173,7 +170,7 @@ export class FaceDetector {
 
     let cos = Math.cos(tmpAngle)
     let sin = Math.sin(tmpAngle)
-    let martix = tf.tensor([[cos, -sin], [sin, cos]])
+    // let martix = tf.tensor([[cos, -sin], [sin, cos]])
     // let tmp = face.landmarks.map((p) => [
     //   p.x - face.box.xMin,
     //   p.y - face.box.yMin
@@ -188,7 +185,7 @@ export class FaceDetector {
     // tensor.dispose()
     // min.dispose()
     // max.dispose()
-    martix.dispose()
+    // martix.dispose()
     return null
   }
 
@@ -205,37 +202,38 @@ export class FaceDetector {
     this.captureCtx.drawImage(context.canvas,
       this.face.box.xMin, this.face.box.yMin, this.face.box.width, this.face.box.height,
       0, 0, this.face.box.width * ratio, this.face.box.height * ratio)
-    let imageData = this.captureCtx.getImageData(0, 0, this.face.box.width * ratio, this.face.box.height * ratio)
-    let faceOval = getFaceContour(this.face, Math.max(this.face.box.width * ratio, this.face.box.height * ratio))
-    this.masklayerCtx.beginPath()
-    this.masklayerCtx.moveTo(faceOval[0], faceOval[1])
-    for (let i = 3; i < faceOval.length; i += 3) {
-      this.masklayerCtx.lineTo(faceOval[i], faceOval[i + 1])
-    }
-    this.masklayerCtx.fillStyle = 'red'
-    this.masklayerCtx.fill()
-    let maskImgData = this.masklayerCtx.getImageData(0, 0, this.masklayer.width, this.masklayer.height)
-    for (let i = 0; i < imageData.data.length; i += 4) {
-      if (maskImgData.data[i] !== 255) {
-        imageData.data[i] = 0
-        imageData.data[i + 1] = 0
-        imageData.data[i + 2] = 0
-        imageData.data[i + 3] = 0
-      }
-    }
+    // let imageData = this.captureCtx.getImageData(0, 0, this.face.box.width * ratio, this.face.box.height * ratio)
+    // let faceOval = getFaceContour(this.face, Math.max(this.face.box.width * ratio, this.face.box.height * ratio))
+    // let region = new Path2D()
+    // region.moveTo(faceOval[0], faceOval[1])
+    // this.masklayerCtx.moveTo(faceOval[0], faceOval[1])
+    // for (let i = FACE_DIMS; i < faceOval.length; i += FACE_DIMS) {
+    //   region.lineTo(faceOval[i], faceOval[i + 1])
+    // }
+    // region.closePath()
+    // this.masklayerCtx.fillStyle = '#ff000088'
+    // this.masklayerCtx.fill(region)
+    // let maskImgData = this.masklayerCtx.getImageData(0, 0, this.masklayer.width, this.masklayer.height)
+    // for (let i = 0; i < maskImgData.data.length; i += 4) {
+    //   if (maskImgData.data[i + 3] != 136) {
+    //     maskImgData.data[i + 3] = 0
+    //   }
+    // }
+    // this.masklayerCtx.clearRect(0, 0, this.masklayer.width, this.masklayer.height)
+    // this.masklayerCtx.putImageData(maskImgData, 0, 0)
     // this.calacleFaceAngle()
     // this.imgProcessor.imgProcessParams['rotate'] = this._faceAngle
     // this.imgProcessor?.process(imageData)
-    this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
-    this.captureCtx.putImageData(imageData, 0, 0)
+    // this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
+    // this.captureCtx.putImageData(imageData, 0, 0)
     this.capture.toBlob(async (blob) => {
-      // try {
-      //   await FaceRec.registe(name, this.face.landmarks, new File([blob], 'avatar.png', { type: 'image/png' }))
-      //   showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })
-      // } catch (err) {
-      //   console.error(err)
-      //   showNotify({ type: 'warning', message: '保存失败', duration: 500 })
-      // }
+      try {
+        await FaceRec.registe(name, this.face.landmarks, new File([blob], 'avatar.png', { type: 'image/png' }))
+        showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })
+      } catch (err) {
+        console.error(err)
+        showNotify({ type: 'warning', message: '保存失败', duration: 500 })
+      }
 
       // TODO: 保存图片 不通过请求直接native
       // let buffer = await blob.arrayBuffer()

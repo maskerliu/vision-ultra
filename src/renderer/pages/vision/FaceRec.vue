@@ -24,7 +24,8 @@
               </van-checkbox>
               <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;">
                 <template #default>
-                  <van-icon class="iconfont icon-eigen" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+                  <van-icon class="iconfont icon-eigen"
+                    style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
             </van-row>
@@ -55,12 +56,12 @@
           <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;"
             @click="onFaceScan">
             <template #icon>
-              <van-icon class="iconfont icon-scan" />
+              <van-icon class="iconfont icon-face-rec" />
             </template>
           </van-button>
-          <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="onCollect">
+          <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="showLiveStreamInput = true">
             <template #icon>
-              <van-icon class="iconfont icon-face-rec" />
+              <van-icon class="iconfont icon-live-stream" />
             </template>
           </van-button>
           <van-button plain size="small" type="default" style="margin-left: 15px;" @click="onClickCamera">
@@ -87,17 +88,28 @@
       <van-field v-model="eigenName" :placeholder="$t('faceRec.nameInput')"
         :error-message="$t('faceRec.nameInputError')" :error="!isEigenNameValid" />
     </van-dialog>
+
+    <van-popup v-model:show="showLiveStreamInput" position="center" :style="{ width: '50%' }" round>
+      <van-field center v-model="liveStreamUrl">
+        <template #left-icon>
+          <van-icon class="iconfont icon-stream-url" />
+        </template>
+        <template #right-icon>
+          <van-button type="primary" plain size="small" @click="onLiveStream">确认</van-button>
+        </template>
+      </van-field>
+    </van-popup>
   </van-row>
 </template>
 <script lang="ts" setup>
 
-import { showNotify } from 'vant'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { baseDomain } from '../../../common'
 import { Camera } from '../../common/Camera'
 import { FaceDetector } from '../../common/FaceDetector'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VisionStore } from '../../store'
+import Hls from 'hls.js'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -109,7 +121,9 @@ const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
 const showNameInputDialog = ref(false)
+const showLiveStreamInput = ref(false)
 const eigenName = ref('')
+const liveStreamUrl = ref(`https://scpull04.scjtonline.cn/scgro4/8B4800E59656CB0B83233981CCF7A01F.m3u8`)
 const recFace = ref<string>()
 const isScan = ref(false)
 const isEigenNameValid = ref(true)
@@ -122,6 +136,7 @@ let faceDetector: FaceDetector
 let camera: Camera = null
 let scanTask: any
 let count = 0
+let hls: Hls
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
@@ -155,6 +170,7 @@ onMounted(async () => {
   camera.imgProcessor = imgProcessor
   camera.faceDetector = faceDetector
 
+  hls = new Hls()
 
   window.cvNativeApi?.init()
   window.tfApi?.init('mediapipe-gpu')
@@ -170,6 +186,7 @@ async function onFaceScan() {
   scanTask = setInterval(() => {
     drawImage()
     faceDetector?.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
+    faceDetector?.updateUI()
     count++
     if (count > 10) {
       clearInterval(scanTask)
@@ -187,6 +204,11 @@ async function onCollect() {
   } else {
     recFace.value = baseDomain() + recResult?.snap
   }
+}
+
+async function onLiveStream() {
+  camera?.open(liveStreamUrl.value)
+  showLiveStreamInput.value = false
 }
 
 async function onClickCamera() {
@@ -228,7 +250,7 @@ function onConfirmName() {
     showNameInputDialog.value = true
     return
   }
-  faceDetector?.faceCapture(offscreenCtx, eigenName.value)
+  faceDetector?.faceCapture(previewCtx, eigenName.value)
   eigenName.value = null
   showNameInputDialog.value = false
 }
@@ -289,7 +311,7 @@ watch(() => visionStore.imgEnhance, (val) => {
   padding: 5px;
   border-radius: 12px;
   border: 2px solid #f1f2f699;
-  background-color: #2f3542BB;
+  background-color: #2f3542;
   z-index: 2000;
 }
 </style>
