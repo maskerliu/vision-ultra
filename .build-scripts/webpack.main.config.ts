@@ -93,6 +93,10 @@ class MainConfig extends BaseConfig {
             to: path.join(dirname, '../dist/electron/static/'),
           },
           {
+            from: path.join(dirname, `../icons/colormaps/`),
+            to: path.join(dirname, '../dist/electron/static/'),
+          },
+          {
             from: path.join(dirname, `../icons/icon${suffix}`),
             to: path.join(dirname, '../dist/electron/static/'),
           },

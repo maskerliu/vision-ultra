@@ -58,6 +58,7 @@ export default {
     Brightness: 'Brightness', // 亮度
     BrightnessDesc: 'Gamma correction',
     Rotate: 'Rotate',
+    ColorMap: 'Color Map',
 
     Contrast: 'Contrast', // 对比度
     EqualizeHist: 'EqualizeHist', // 直方图均衡
@@ -89,6 +90,11 @@ export default {
     Hough: '霍夫变换',
     HoughCircle: '霍夫圆变换',
     HoughLine: '霍夫直线变换',
+
+    ObjectDetect: 'Object Detect',
+    ColorTrack: 'Color Track',
+    ContourTrack: 'Contour Track',
+    BackgroundSub: 'Background Subtract',
   },
   faceRec: {
     nameInput: 'Please enter name',

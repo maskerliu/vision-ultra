@@ -1,3 +1,5 @@
+import { ObjectDetector } from "@mediapipe/tasks-vision"
+
 export default {
   common: {
     done: '确定',
@@ -58,7 +60,8 @@ export default {
     Brightness: '亮度', // 亮度
     BrightnessDesc: 'Gamma增强',
     Rotate: '旋转',
-    
+    ColorMap: '色彩映射',
+
     Contrast: '对比度', // 对比度
     EqualizeHist: '直方图均衡', // 直方图均衡
     CLAHE: 'CLAHE', // CLAHE
@@ -78,16 +81,21 @@ export default {
     Laplace: '拉普拉斯算子',
     LaplaceDesc: '通常用于特征提取和特征检测',
     Sobel: 'Sobel算子',
-    SobelDesc:'离散的微分算子',
+    SobelDesc: '离散的微分算子',
     Scharr: 'Scharr算子',
     ScharrDesc: 'Sobel算子的增强版本',
 
-    FeatExtract: '特征提取', 
+    FeatExtract: '特征提取',
     Canny: 'Canny',
     CannyDesc: '边缘检测',
     Hough: '霍夫变换',
     HoughCircle: '霍夫圆变换',
     HoughLine: '霍夫直线变换',
+
+    ObjectDetect: '物体检测',
+    ColorTrack: '颜色追踪',
+    ContourTrack: '轮廓跟踪',
+    BackgroundSub: '背景减除'
   },
   faceRec: {
     nameInput: '请输入姓名',
