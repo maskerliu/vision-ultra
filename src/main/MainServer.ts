@@ -10,9 +10,10 @@ import tcpPortUsed from 'tcp-port-used'
 import { API_URL } from '../common/api.const'
 import { BizConfig } from '../common/base.models'
 import { bizContainer } from './IocContainer'
-import { IocTypes, USER_DATA_DIR } from './MainConst'
+import { IocTypes, IS_DEV, USER_DATA_DIR } from './MainConst'
 import { CommonRouter, FaceRecRouter, MapiRouter } from './router'
 import { CommonService, PushService } from './service'
+import compression from 'compression'
 
 export class MainServer {
 
@@ -79,29 +80,19 @@ export class MainServer {
       `${this.commonService.allConfig.protocol}://${this.commonService.allConfig.ip}:9081`,
     ]
 
-    this.httpApp.use(express.static(path.resolve(__dirname, '../web'), {
-      setHeaders: (res, path: string, stat: any) => {
-        if (path.indexOf('static') == -1) {
-          res.header('Cross-Origin-Embedder-Policy', 'require-corp')
-          res.header('Cross-Origin-Opener-Policy', 'same-origin')
-        } else {
-          res.header('Cross-Origin-Opener-Policy', 'same-origin')
-          res.header('Cross-Origin-Resource-Policy', 'cross-origin')
-          res.header('Access-Control-Allow-Origin', '*')
-        }
-      }
-    }))
+    if (!IS_DEV) this.httpApp.use(compression()) // 开启gzip压缩
 
-    this.httpApp.use('/_res', express.static(path.join(USER_DATA_DIR, './static'), {
-      setHeaders: (res, path: string, stat: any) => {
-        res.header('Cross-Origin-Opener-Policy', 'same-origin')
-        res.header('Cross-Origin-Resource-Policy', 'cross-origin')
-        res.header('Access-Control-Allow-Origin', '*')
-      }
-    }))
+    this.httpApp.use(/.*/, (req, resp, next) => {
+      resp.header('Cross-Origin-Opener-Policy', 'same-origin')
+      resp.header('Cross-Origin-Resource-Policy', 'cross-origin')
+      next()
+    })
+
+    if (IS_DEV) this.httpApp.use('/static', express.static(path.join(__dirname, '../../data')))
+    this.httpApp.use('/static', express.static(path.resolve(__dirname, '../static')))
+    this.httpApp.use('/_res', express.static(path.join(USER_DATA_DIR, './static')))
 
     this.httpApp.use(cors(this.corsOpt))
-    // this.httpApp.use(compression())
     this.httpApp.use(express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }))
     this.httpApp.use(express.text({ type: 'application/json', limit: '50mb' }))
     this.httpApp.use(express.json())

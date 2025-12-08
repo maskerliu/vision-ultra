@@ -66,14 +66,14 @@ const { t } = useI18n()
 const commonStore = CommonStore()
 const curServerIp = ref<LocalIP>(null)
 const showPopover = ref<boolean>(false)
-const isWeb = __IS_WEB__
 const showSettings = inject<Ref<boolean>>('showSettings')
 const protocol = ref(0)
+const isWeb = window.isWeb
 
 let perferences = [
   { tooltip: 'settings.sys.serverDomain', key: 'domain' },
-  { tooltip: 'settings.sys.port', key: 'port', readonly: __IS_WEB__ },
-  { tooltip: 'settings.sys.updateServer', key: 'updateServer', readonly: __IS_WEB__ },
+  { tooltip: 'settings.sys.port', key: 'port', readonly: isWeb },
+  { tooltip: 'settings.sys.updateServer', key: 'updateServer', readonly: isWeb },
   { tooltip: 'settings.sys.mqttBroker', key: 'mqttBroker', },
 ] as Array<SettingPreference>
 

@@ -1,44 +1,107 @@
 import { defineStore } from "pinia"
 
+export type cvEqualizeHist = [
+  string, // type equalizeHist
+  number, // clipLimit
+  number, // tileGridSizeX
+  number, // tileGridSizeY
+]
+
+export type cvSharpen = [
+  string, // type laplacian, usm
+  number, // dx
+  number, // dy
+  number, // scale
+]
+
+export type cvBlur = [
+  string, // type gaussian, median, bilateral
+  number, // sizeX
+  number, // sizeY
+  number, // aperture
+  number, // diameter
+  number, // sigmaColor
+  number  // sigmaSpace
+]
+
+export type cvFilter = [
+  string, // type sobel, laplacian, scharr
+  number, // dx
+  number, // dy
+  number, // scale
+  number, // size
+]
+
+export type cvTracker = [
+  string, // type meanShift, camShift
+  number, // threshold
+  number, // minSize
+]
+
 class ImageParams {
   isGray: boolean = false
   equalizeHist: boolean = false
   clahe: boolean = false // 自适应直方图均衡化
-
   rotate: number = 0
+  colorMap: number = 0
 
   enableGamma: boolean = false
   gamma: number = 1 // 伽马校正
-  enableGaussian: boolean = false
-  gaussian: [number, number, number] = [1, 1, 1] // 高斯滤波器的孔径大小，必须为正奇数
 
-  enableSobel: boolean = false
-  sobel: [number, number] = [3, 1] // 一阶导数滤波器的孔径大小，必须为正奇数
-  enableScharr: boolean = false
-  scharr: number = 1 // 一阶导数滤波器的孔径大小，必须为正奇数
-  enableLaplace: boolean = false
-  laplace: [number, number] = [1, 1] // 二阶导数滤波器的孔径大小，必须为正奇数
+  enableContrast: boolean = false
+  equalization: cvEqualizeHist = ['equalizeHist', 0, 1, 1]
+
+  enableClahe: boolean = false
+
+  enableBlur: boolean = false
+  blur: cvBlur = ['gaussian', 3, 31, 5, 5, 75, 75]
+
+  enableSharpen: boolean = false
+  sharpen: cvSharpen = ['laplace', 1, 0, 1]
+
+  enableFilter: boolean = false
+  filter: cvFilter = ['sobel', 1, 1, 1, 1]
+
+  enableTrack: boolean = false
+  tracker: cvTracker = ['contour', 50, 100]
+
   enableCanny: boolean = false
-  cannyThreshold: [number, number] = [80, 100]
+  canny: [number, number] = [80, 100]
 
-  getParams() {
+  get value() {
     let params = {}
     params['isGray'] = this.isGray
     params['equalizeHist'] = this.equalizeHist
     params['clahe'] = this.clahe
     params['rotate'] = this.rotate
+    params['colorMap'] = this.colorMap
+    
     if (this.enableGamma) params['gamma'] = this.gamma
     else delete params['gamma']
-    if (this.enableGaussian) params['gaussian'] = [this.gaussian[0], this.gaussian[1], this.gaussian[2]]
-    else delete params['gaussian']
-    if (this.enableSobel) params['sobel'] = [this.sobel[0], this.sobel[1]]
-    else delete params['sobel']
-    if (this.enableScharr) params['scharr'] = this.scharr
-    else delete params['scharr']
-    if (this.enableLaplace) params['laplace'] = [this.laplace[0], this.laplace[1]]
-    else delete params['laplace']
-    if (this.enableCanny) params['cannyThreshold'] = [this.cannyThreshold[0], this.cannyThreshold[1]]
-    else delete params['cannyThreshold']
+
+    if (this.enableContrast)
+      params['equalization'] = [this.equalization[0], this.equalization[1], this.equalization[2], this.equalization[3]]
+    else delete params['equalization']
+
+    if (this.enableSharpen)
+      params['sharpen'] = [this.sharpen[0], this.sharpen[1], this.sharpen[2], this.sharpen[3]]
+    else delete params['sharpen']
+
+    if (this.enableBlur)
+      params['blur'] = [this.blur[0], this.blur[1], this.blur[2], this.blur[3], this.blur[4], this.blur[5], this.blur[6]]
+    else delete params['blur']
+
+    if (this.enableFilter)
+      params['filter'] = [this.filter[0], this.filter[1], this.filter[2], this.filter[3], this.filter[4]]
+    else delete params['filter']
+
+    if (this.enableTrack)
+      params['tracker'] = [this.tracker[0], this.tracker[1], this.tracker[2]]
+    else delete params['tracker']
+
+    if (this.enableCanny)
+      params['canny'] = [this.canny[0], this.canny[1]]
+    else delete params['canny']
 
     return params
   }
@@ -48,9 +111,10 @@ class ImageParams {
 export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
-      faceRecMode: '2',  // 1: opencv 2: tensorflow
+      faceRecMode: 'tfjs' as 'tfjs' | 'opencv',  // 1: opencv 2: tensorflow
       faceDetect: true,
       drawFaceMesh: true,
+      drawEigen: true,
       landmark: false,
       faceRec: false,
       imgEnhance: true,

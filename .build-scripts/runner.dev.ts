@@ -1,7 +1,6 @@
 
 import chalk from 'chalk'
 import { ChildProcess, exec, spawn } from 'child_process'
-import express from 'express'
 import fse from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -13,7 +12,6 @@ import { getLocalIPs } from './misc'
 import { BaseConfig } from './webpack.base.config.js'
 import mainConfig from './webpack.main.config'
 import rendererConfig from './webpack.renderer.config'
-import SockJS from 'sockjs-client'
 
 const Run_Mode_DEV = 'development'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -47,16 +45,56 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
       host, port, hot: true,
       liveReload: true,
       allowedHosts: "all",
-      client: { logging: 'none', overlay: false },
-      static: { directory: path.join(dirname, '../src/'), },
+      compress: true,
+      client: { logging: 'none', overlay: false, progress: true },
+      static: [
+        { directory: path.join(dirname, '../src/'), publicPath: '/' },
+        {
+          directory: path.join(dirname, '../node_modules/'), 
+          publicPath: '/node_modules/', 
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+          watch: {
+            ignored: '*.txt',
+            usePolling: false,
+          },
+        },
+        {
+          directory: path.join(dirname, '../data/'), 
+          publicPath: '/data/', 
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+          watch: {
+            ignored: '*.txt',
+            usePolling: false,
+          },
+        },
+        {
+          directory: path.join(dirname, '../icons/colormaps'), 
+          publicPath: '/static/', 
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+          watch: {
+            ignored: '*.txt',
+            usePolling: false,
+          },
+        }
+      ],
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'unsafe-none',
+      },
       setupMiddlewares(middlewares, devServer) {
-        devServer.app?.use('/node_modules/', express.static(path.resolve(dirname, '../node_modules')) as any)
-        devServer.app?.use((_, res, next) => {
-          res.setHeader('Access-Control-Allow-Origin', '*')
-          res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
-          res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none')
-          next()
-        })
         devServer.middleware?.waitUntilValid(() => { resolve() })
         return middlewares
       },
@@ -104,9 +142,9 @@ function startMain(): Promise<void> {
     compiler.hooks.watchRun.tapAsync("watch-run", (_, done) => {
       hotMiddleware.publish({ action: "compiling" })
 
-      rendererDevServer?.sockets?.forEach(socket => {
-        // setTimeout(() => { socket?.emit('reload') }, 5000)
-      })
+      // rendererDevServer?.sockets?.forEach(socket => {
+      //   setTimeout(() => { socket?.emit('reload') }, 5000)
+      // })
       done()
     })
 
@@ -129,12 +167,12 @@ function startMain(): Promise<void> {
             else console.log(chalk.bgRedBright.whiteBright(`    kill pid: ${pid} success!`.padEnd(process.stdout.columns - 20, ' ')))
             electronProc = null
             startElectron()
-            setTimeout(() => {
-              rendererDevServer?.sockets?.forEach(socket => {
-                console.log('try to reload renderer')
-                socket?.emit('reload')
-              })
-            }, 5000)
+            // setTimeout(() => {
+            //   rendererDevServer?.sockets?.forEach(socket => {
+            //     console.log('try to reload renderer')
+            //     socket?.emit('reload')
+            //   })
+            // }, 5000)
             manualRestart = false
           })
         } else {

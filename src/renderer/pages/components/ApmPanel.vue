@@ -129,11 +129,12 @@ function updateFps() {
 .apm-panel {
   position: absolute;
   top: 120px;
-  left: 0;
+  left: 5px;
   width: 210px;
   height: 110px;
   z-index: 1000;
-  background-color: #2c3e50;
+  background-color: #2c3e5077;
+  border: 1px solid #f1f2f699;
   border-radius: 10px;
 }
 </style>

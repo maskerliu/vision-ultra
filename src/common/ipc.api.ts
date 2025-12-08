@@ -55,10 +55,9 @@ export interface IOpencvAPI {
     isGray: boolean,
     equalizeHist: boolean,
     gamma: number,
-    gaussian: [number, number, number],
-    sobel: [number, number],
-    scharr: number,
-    laplace: [number, number], // 二阶导数滤波器的孔径大小，必须为正奇数
+    rotate: number,
+    blur:[string, number, number, number, number, number, number]
+    filter:[string, number, number, number],
     cannyThreshold: [number, number],
   }>): Uint8ClampedArray
   faceRecognize(frame: ImageData, width: number, height: number): { face: any, eyes: Array<any>, landmarks: Array<any> } | null

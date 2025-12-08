@@ -49,10 +49,9 @@ let cvNativeApi: IOpencvAPI = {
     isGray: boolean,
     equalizeHist: boolean,
     gamma: number,
-    gaussian: [number, number, number],
-    sobel: [number, number],
-    scharr: number,
-    laplace: [number, number], // 二阶导数滤波器的孔径大小，必须为正奇数
+    rotate: number,
+    blur: [string, number, number, number, number, number, number]
+    filter: [string, number, number, number],
     cannyThreshold: [number, number],
   }>) {
     if (processedImg == null) {
@@ -71,36 +70,44 @@ let cvNativeApi: IOpencvAPI = {
     processedImg.setData(Buffer.from(frame.data.buffer))
     processedImg = processedImg.cvtColor(cv.COLOR_RGBA2BGR)
 
-    try {
-      if (params.isGray) {
-        processedImg = processedImg.cvtColor(cv.COLOR_BGR2GRAY)
-      }
-    } catch (e) {
-      console.error(e)
-    }
-    try {
-      if (params.isGray && params.equalizeHist) {
-        processedImg = processedImg.equalizeHist()
-      }
-    } catch (e) {
-      console.error(e)
+    if (params.isGray) {
+      processedImg = processedImg.cvtColor(cv.COLOR_BGR2GRAY)
     }
 
-    try {
-      if (params.gaussian) {
-        processedImg = processedImg.gaussianBlur(new cv.Size(params.gaussian[0], params.gaussian[0]), params.gaussian[1])
-        // processedImg = processedImg.addWeighted(1.0 + params.gaussian[2], processedImg, -params.gaussian[2], 0, 0)
-      }
-    } catch (e) {
-      console.error(e)
+    if (params.isGray && params.equalizeHist) {
+      processedImg = processedImg.equalizeHist()
     }
 
-    try {
-      if (params.laplace) {
-        processedImg = processedImg.laplacian(cv.CV_8U, params.laplace[0], params.laplace[1])
-      }
-    } catch (e) {
-      console.error(e)
+    if (params.blur && params.blur[0] === 'gaussian') {
+      processedImg = processedImg.gaussianBlur(new cv.Size(params.blur[1], params.blur[2]), 0)
+    }
+
+    if (params.blur && params.blur[0] === 'median') {
+      processedImg = processedImg.medianBlur(params.blur[3])
+    }
+
+    if (params.blur && params.blur[0] === 'bilateral') {
+      processedImg = processedImg.bilateralFilter(params.blur[4], params.blur[5], params.blur[6])
+    }
+
+    if (params.blur && params.blur[0] == 'avg') {
+      processedImg = processedImg.blur(new cv.Size(params.blur[1], params.blur[2]))
+    }
+
+    if (params.blur && params.blur[0] === 'adaptive') {
+      // processedImg = processedImg.adaptiveThreshold(params.blur[3], params.blur[4], params.blur[5], params.blur[6], params.blur[7])
+    }
+
+    if (params.filter && params.filter[0] === 'sobel') {
+      processedImg = processedImg.sobel(processedImg.depth, params.filter[1], params.filter[2], params.filter[3] as any)
+    }
+
+    if (params.filter && params.filter[0] == 'scharr') {
+      processedImg = processedImg.scharr(processedImg.depth, params.filter[1], params.filter[2], params.filter[3] as any)
+    }
+
+    if (params.filter && params.filter[0] === 'laplacian') {
+      processedImg = processedImg.laplacian(processedImg.depth, params.filter[3])
     }
 
     try {

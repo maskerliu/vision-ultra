@@ -1,8 +1,10 @@
+import { drawCVObjectTrack } from './DrawUtils'
 import { FaceDetector } from './FaceDetector'
 import { ImageProcessor } from './ImageProcessor'
+import Hls from 'hls.js'
 
-
-export class Camera {
+export class VideoPlayer {
+  private hls: Hls
 
   private preVideo: HTMLVideoElement
 
@@ -29,6 +31,8 @@ export class Camera {
   // private faces: Array<Face> = []
 
   constructor(video: HTMLVideoElement, priview: HTMLCanvasElement, offscreen: HTMLCanvasElement, flip: boolean = true) {
+    this.hls = new Hls()
+
     this.preVideo = video
     this.preview = priview
     this.offscreen = offscreen
@@ -59,16 +63,24 @@ export class Camera {
 
     this.offscreenCtx.drawImage(this.preVideo, 0, 0, this.offscreen.width, this.offscreen.height)
     this.frame.data.set(this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data)
-    // this.frame.data = this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data
     this.imgProcessor?.process(this.frame)
     this.offscreenCtx.putImageData(this.frame, 0, 0)
     this.previewCtx.drawImage(this.offscreen,
       0, 0, this.frame.width, this.frame.height,
       0, 0, this.frame.width, this.frame.height)
 
-    await this.faceDetector.detect(this.frame)
+    if (this._frames == 2) {
+      await this.faceDetector.detect(this.frame)
+      this._frames = 0
+    } else {
+      this._frames++
+    }
 
-    this.previewCtx.fillStyle = '#c0392b'
+    this.faceDetector.updateUI()
+
+    drawCVObjectTrack(this.previewCtx, this.imgProcessor.objectRects)
+
+    this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '14px sans-serif'
     this.previewCtx.fillText(`Slope: ${this.faceDetector.faceAngle}\n Time: ${this.faceDetector.time}`, 10, 20)
 
@@ -94,20 +106,31 @@ export class Camera {
     return this.preVideo.srcObject != null
   }
 
-  async open() {
-    if (window.isWeb) return
-
-    if (this.preVideo.srcObject) {
+  async open(url?: string) {
+    if (this.preVideo.srcObject && url == null) {
       this.close()
       this.preVideo.srcObject = null
       return
     }
 
-    this.faceDetector?.reset()
+    // this.faceDetector?.reset()
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      this.preVideo.srcObject = stream
+      if (url == null) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        this.preVideo.srcObject = stream
+      } else {
+        this.preVideo.srcObject = null
+        this.close()
+        if (Hls.isSupported()) {
+          this.hls.loadSource(url)
+          this.hls.attachMedia(this.preVideo)
+          this.flip = false
+          this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            this.preVideo.play()
+          })
+        }
+      }
       var loop = () => {
         this.processFrame()
         this.animationId = requestAnimationFrame(loop)
