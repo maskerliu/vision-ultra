@@ -62,5 +62,5 @@ export function updateBaseDomain(domain: string) {
 }
 
 export function baseDomain() {
-  return BASE_DOMAIN
+  return BASE_DOMAIN? BASE_DOMAIN : '//127.0.0.1:8884'
 }

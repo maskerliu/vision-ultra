@@ -53,6 +53,53 @@ export default {
       title: 'Virtual Client'
     }
   },
+  imgProcess: {
+    Gray: 'Gray',
+    Brightness: 'Brightness', // 亮度
+    BrightnessDesc: 'Gamma correction',
+    Rotate: 'Rotate',
+    ColorMap: 'Color Map',
+
+    Contrast: 'Contrast', // 对比度
+    EqualizeHist: 'EqualizeHist', // 直方图均衡
+    CLAHE: 'CLAHE', // CLAHE
+
+    Saturation: 'Saturation', // 饱和度
+    SaturationDesc: 'HSV', // 
+    Hue: 'Hue', // 色调
+
+    Sharpness: 'Sharpen',
+    Blur: 'Blur',
+    GaussianBlur: 'Gaussian', // 高斯模糊
+    AvgBlur: 'Average', // 均值滤波
+    MedianBlur: 'Median', // 中值滤波
+    BilateralBlur: 'Bilateral', // 双边滤波
+
+    Laplace: 'Laplace',
+    LaplaceDesc: 'Laplace operator',
+    Sobel: 'Sobel',
+    SobelDesc: 'Discrete differential operator',
+    Scharr: 'Scharr',
+    ScharrDesc: 'Enhanced version of Sobel operator',
+
+
+    FeatExtract: 'Feature Extract', // 特征提取
+    Canny: 'Canny',
+    CannyDesc: 'Effective edge detection',
+    HoughTransform: 'Hough Transform',
+    Hough: '霍夫变换',
+    HoughCircle: '霍夫圆变换',
+    HoughLine: '霍夫直线变换',
+
+    ObjectDetect: 'Object Detect',
+    ColorTrack: 'Color Track',
+    ContourTrack: 'Contour Track',
+    BackgroundSub: 'Background Subtract',
+  },
+  faceRec: {
+    nameInput: 'Please enter name',
+    nameInputError: 'Name cannot be empty',
+  },
   faceDbMgr: {
     delPersonConfirmTitle: 'delete person',
     delPersonConfirmTip: 'Deleting will render the person unrecognizable, please proceed with caution',

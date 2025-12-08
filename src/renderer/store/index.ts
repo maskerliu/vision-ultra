@@ -4,7 +4,7 @@ import { BizConfig, CommonApi, updateBaseDomain, updateClientUID } from '../../c
 import { generateUid, PushClient } from '../common'
 
 
-let pushClient: PushClient = null
+let pushClient: PushClient
 
 export const CommonStore = defineStore('Common', {
   state: () => {
@@ -21,11 +21,10 @@ export const CommonStore = defineStore('Common', {
     },
     async init(config?: BizConfig) {
       pushClient = new PushClient()
-      
       if (config) {
         updateBaseDomain(`${config.protocol}://${config.ip}:${config.port}`)
       } else {
-        if (__DEV__ || !window.isWeb) {
+        if (__DEV__) {
           updateBaseDomain(SERVER_BASE_URL)
         }
       }

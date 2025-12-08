@@ -4,5 +4,6 @@
   "editor.dropIntoEditor.preferences": [],
   "editor.codeActionsOnSave": {
   },
-  "prettier.semi": false
+  "prettier.semi": false,
+  "Codegeex.RepoIndex": true
 }

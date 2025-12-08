@@ -114,7 +114,6 @@ class WebConfig extends BaseConfig {
     new NoEmitOnErrorsPlugin(),
     // new NodePolyfillPlugin(),
     new DefinePlugin({
-      __IS_WEB__: true,
       __VUE_OPTIONS_API__: false,
       __VUE_PROD_DEVTOOLS__: false,
       __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
@@ -210,6 +209,7 @@ class WebConfig extends BaseConfig {
 
     if (process.env.NODE_ENV !== 'production') {
       this.plugins.push(new DefinePlugin({
+        __DEV__: true,
         SERVER_BASE_URL: `'${pkg.config.protocol}://${localServer}:${pkg.config.port}'`,
       }))
 

@@ -12,7 +12,7 @@ import { MainServer } from './MainServer'
 
 const BUILD_CONFIG = JSON.parse(process.env.BUILD_CONFIG)
 
-const VUE_PLUGIN = os.platform() == 'darwin' ? '~/Downloads/vue-devtools/7.6.8_0' : 'D:/vue-devtools/7.6.5_0'
+const VUE_PLUGIN = os.platform() == 'darwin' ? '/Users/chris/Downloads/vue-devtools/7.6.8_0' : 'D:/vue-devtools/7.6.5_0'
 
 if (!IS_DEV) {
   process.env.OPENCV_BIN_DIR = path.join(__dirname, '../../')
