@@ -105,7 +105,7 @@
 
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { baseDomain } from '../../../common'
-import { Camera } from '../../common/Camera'
+import { VideoPlayer } from '../../common/VideoPlayer'
 import { FaceDetector } from '../../common/FaceDetector'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VisionStore } from '../../store'
@@ -134,7 +134,7 @@ let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let imgProcessor: ImageProcessor = new ImageProcessor()
 let faceDetector: FaceDetector
-let camera: Camera = null
+let camera: VideoPlayer = null
 let scanTask: any
 let count = 0
 let hls: Hls
@@ -166,7 +166,7 @@ onMounted(async () => {
     console.log(err)
   }
 
-  camera = new Camera(preVideo.value, preview.value, offscreen.value)
+  camera = new VideoPlayer(preVideo.value, preview.value, offscreen.value)
   camera.imgProcessor = imgProcessor
   camera.faceDetector = faceDetector
 

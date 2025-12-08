@@ -3,7 +3,7 @@ import { FaceDetector } from './FaceDetector'
 import { ImageProcessor } from './ImageProcessor'
 import Hls from 'hls.js'
 
-export class Camera {
+export class VideoPlayer {
   private hls: Hls
 
   private preVideo: HTMLVideoElement
@@ -107,7 +107,7 @@ export class Camera {
   }
 
   async open(url?: string) {
-    if (this.preVideo.srcObject) {
+    if (this.preVideo.srcObject && url == null) {
       this.close()
       this.preVideo.srcObject = null
       return
@@ -120,11 +120,13 @@ export class Camera {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
         this.preVideo.srcObject = stream
       } else {
+        this.preVideo.srcObject = null
+        this.close()
         if (Hls.isSupported()) {
           this.hls.loadSource(url)
           this.hls.attachMedia(this.preVideo)
           this.flip = false
-          this.hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
             this.preVideo.play()
           })
         }
