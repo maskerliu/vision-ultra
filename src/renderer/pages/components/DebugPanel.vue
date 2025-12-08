@@ -31,30 +31,30 @@ onUnmounted(() => {
 })
 
 async function registerSSE() {
-  await fetchEventSource(`${baseDomain()}/_/sse/${commonStore.uid}`, {
-    headers: {
-      'x-mock-uid': commonStore.uid
-    },
-    async onopen(resp) {
-      if (resp.ok && resp.headers.get('content-type') === EventStreamContentType) {
-        return // everything's good
-      } else if (resp.status >= 400 && resp.status < 500 && resp.status !== 429) {
-        // client-side errors are usually non-retriable:
-        throw new Error('Fatal')
-      } else {
-        throw new Error('Retriable')
-      }
-    },
-    onmessage(ev) {
-      sseData.value = ev.data
-    },
-    onclose() {
-      console.log('closed')
-    },
-    onerror(err) {
-      console.log(err)
-    },
-  })
+  // await fetchEventSource(`${baseDomain()}/_/sse/${commonStore.uid}`, {
+  //   headers: {
+  //     'x-mock-uid': commonStore.uid
+  //   },
+  //   async onopen(resp) {
+  //     if (resp.ok && resp.headers.get('content-type') === EventStreamContentType) {
+  //       return // everything's good
+  //     } else if (resp.status >= 400 && resp.status < 500 && resp.status !== 429) {
+  //       // client-side errors are usually non-retriable:
+  //       throw new Error('Fatal')
+  //     } else {
+  //       throw new Error('Retriable')
+  //     }
+  //   },
+  //   onmessage(ev) {
+  //     sseData.value = ev.data
+  //   },
+  //   onclose() {
+  //     console.log('closed')
+  //   },
+  //   onerror(err) {
+  //     console.log(err)
+  //   },
+  // })
 }
 
 function toNew() {

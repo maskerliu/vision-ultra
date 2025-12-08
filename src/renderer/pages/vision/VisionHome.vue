@@ -2,7 +2,10 @@
   <van-row>
     <van-col class="border-bg left-panel">
       <van-row justify="space-between">
-        <van-row></van-row>
+        <van-row style="color: #c0392b;">
+          <van-icon class="iconfont icon-sjtu-logo" style="font-size: 1.6rem; margin-left: 10px;" />
+          <van-icon class="iconfont icon-sjtu-name" style="font-size: 1.4rem; margin: 2px 10px;" />
+        </van-row>
         <div style="padding: 1px 0;">
           <van-icon class="iconfont icon-apm left-panel-icon" @click="commonStore.showApm = !commonStore.showApm" />
           <van-icon class="iconfont icon-data left-panel-icon" @click="openFaceDbMgr" />
@@ -16,14 +19,14 @@
         <img-params-panel />
       </OverlayScrollbarsComponent>
     </van-col>
-    <OverlayScrollbarsComponent class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }"
-      defer style="text-align: center;">
+    <van-col class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }" defer
+      style="text-align: center;">
       <div class="drag-bar" v-if="!isWeb"></div>
       <apm-panel v-if="commonStore.showApm" />
       <face-rec />
-    </OverlayScrollbarsComponent>
+    </van-col>
 
-    <van-popup v-model:show="showPopup" position="right" :closeable="isWeb" close-icon="close">
+    <van-popup v-model:show="showPopup" position="right" close-icon="close">
       <settings v-if="showSettings" />
       <face-db-mgr v-else-if="showFaceDbMgr" />
     </van-popup>
@@ -38,6 +41,7 @@ import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
 import FaceDbMgr from './FaceDbMgr.vue'
 import ImgParamsPanel from './ImgParamsPanel.vue'
+// import FaceRec from './FaceRec.vue'
 
 const FaceRec = defineAsyncComponent({
   loader: () => import('./FaceRec.vue'),
@@ -47,7 +51,7 @@ const FaceRec = defineAsyncComponent({
   }
 })
 
-const isWeb = __IS_WEB__
+const isWeb = window.isWeb
 const theme = inject<Ref<ConfigProviderTheme>>('theme')
 
 const showSettings = ref<boolean>(false)
@@ -59,9 +63,7 @@ const commonStore = CommonStore()
 provide('showSettings', showSettings)
 
 onMounted(() => {
-  if (!__IS_WEB__) {
-    window.mainApi?.onOpenSettings(() => { openSettings() })
-  }
+  window.mainApi?.onOpenSettings(() => { openSettings() })
 })
 
 watch(() => theme.value, () => {
@@ -98,14 +100,15 @@ function openSettings() {
 .left-panel {
   flex-grow: 1;
   min-width: 340px;
-  height: calc(100% - 10px);
+  height: calc(100vh - 10px);
   margin: 5px;
 }
 
 .right-panel {
+  position: relative;
   flex-grow: 19;
   flex-basis: 50%;
-  min-width: 375px;
+  min-width: 620px;
   height: calc(100vh - 10px);
   margin: 5px 2px;
   overflow: hidden;
@@ -120,10 +123,9 @@ function openSettings() {
 
 .snap-panel {
   width: 100%;
-  height: calc(100vh - 54px);
+  height: calc(100vh - 45px);
   overflow-y: auto;
   overflow-x: hidden;
-  margin: 5px 0 0 0;
 }
 
 .param-desc {

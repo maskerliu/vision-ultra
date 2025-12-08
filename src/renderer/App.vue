@@ -6,8 +6,13 @@
       </transition>
     </router-view>
 
-    <van-floating-bubble v-if="enableDebug" :offset="{ x: 10, y: 500 }" axis="xy" :gap="10" magnetic="x" icon="fire-o"
-      @click="onOpenDebugPanel" />
+    <van-floating-bubble v-if="enableDebug" :offset="{ x: 1040, y: 450 }" axis="xy" :gap="10" magnetic="x"
+      @click="onOpenDebugPanel">
+
+      <template #default>
+        <van-icon class="iconfont icon-debug" style="font-size: 1.6rem;" />
+      </template>
+    </van-floating-bubble>
 
     <van-popup v-model:show="showDebugPanel" position="left" closeable close-icon="close">
       <debug-panel />
@@ -29,7 +34,7 @@ const theme = ref<ConfigProviderTheme>('light')
 const lang = ref<string>('zh-CN')
 const active = ref<number>(0)
 const showDebugPanel = ref<boolean>(false)
-const enableDebug = true // !__IS_WEB__
+const enableDebug = true
 
 provide('theme', theme)
 provide('lang', lang)
@@ -37,7 +42,7 @@ provide('showDebugPanel', showDebugPanel)
 
 onMounted(async () => {
 
-  window.isWeb = __IS_WEB__
+  window.isWeb = window.mainApi == null
   useRouter().beforeEach((to: any, from: any) => {
     return true
   })
@@ -52,15 +57,15 @@ onMounted(async () => {
   lang.value = wrapLang != null ? wrapLang : 'zh-CN'
   i18n.locale.value = lang.value
 
-  if (!window.isWeb) {
+  window.mainApi?.setAppTheme(theme.value)
+  if (window.mainApi) {
     window.mainApi?.getSysSettings(async (result) => {
       await CommonStore().init(result)
     })
-
-    window.mainApi?.setAppTheme(theme.value)
   } else {
     await CommonStore().init()
   }
+
   canRender.value = true
 })
 
@@ -138,8 +143,8 @@ function onOpenDebugPanel() {
 .border-bg {
   margin: 5px;
   padding: 0;
-  /* border-radius: 8px; */
-  /* border: 1px solid #e1e1e1; */
+  /* border-radius: 8px;
+  border: 1px solid #e1e1e1; */
   box-shadow: 0px 12px 8px -12px #000;
 }
 

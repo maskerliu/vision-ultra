@@ -1,5 +1,5 @@
 <template>
-  <van-row class="full-row">
+  <van-row class="full-row" style="position: relative;">
     <van-cell-group ref="previewParent" inset style="width: 100%; text-align: center; margin: 30px 0 0 0;">
       <van-cell>
         <template #title>
@@ -19,16 +19,21 @@
               </van-checkbox>
               <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;">
                 <template #default>
-                  <van-icon class="iconfont icon-face-mesh"
+                  <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+                </template>
+              </van-checkbox>
+              <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;">
+                <template #default>
+                  <van-icon class="iconfont icon-eigen"
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
             </van-row>
             <van-radio-group v-model="visionStore.faceRecMode" direction="horizontal">
-              <van-radio name="1">
+              <van-radio name="opencv" :disabled="isWeb">
                 <van-icon class="iconfont icon-opencv" style="font-size: 1.5rem;" />
               </van-radio>
-              <van-radio name="2">
+              <van-radio name="tfjs">
                 <van-icon class="iconfont icon-tensorflow" style="font-size: 1.5rem;" />
               </van-radio>
             </van-radio-group>
@@ -48,14 +53,15 @@
               <van-icon class="iconfont icon-capture" />
             </template>
           </van-button>
-          <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;" @click="onFaceScan">
+          <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;"
+            @click="onFaceScan">
             <template #icon>
-              <van-icon class="iconfont icon-scan" />
+              <van-icon class="iconfont icon-face-rec" />
             </template>
           </van-button>
-          <van-button plain size="small" type="success" style="margin-left: 15px;" @click="onCollect">
+          <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="showLiveStreamInput = true">
             <template #icon>
-              <van-icon class="iconfont icon-collect" />
+              <van-icon class="iconfont icon-live-stream" />
             </template>
           </van-button>
           <van-button plain size="small" type="default" style="margin-left: 15px;" @click="onClickCamera">
@@ -68,72 +74,70 @@
 
       <canvas ref="preview" style="margin-top: 15px;"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
-      <canvas ref="capture" style="display: none;"></canvas>
-      <canvas ref="masklayer" style="display: none;"></canvas>
+      <div ref="eigenFace" class="eigen-face">
+        <canvas ref="capture" width="120" height="140"></canvas>
+        <canvas ref="masklayer" width="120" height="140"
+          style="position: absolute; top: 5px; left: 5px; z-index: 3000; display: none;"></canvas>
+      </div>
+
       <video ref="preVideo" autoplay style="display: none;"></video>
     </van-cell-group>
 
-    <van-dialog v-model:show="showNameInputDialog" title="请输入姓名" show-cancel-button @confirm="onConfirmName">
-      <van-field v-model="eigenName" placeholder="请输入姓名" />
+    <van-dialog v-model:show="showNameInputDialog" :title="$t('faceRec.nameInput')" show-cancel-button
+      @confirm="onConfirmName">
+      <van-field v-model="eigenName" :placeholder="$t('faceRec.nameInput')"
+        :error-message="$t('faceRec.nameInputError')" :error="!isEigenNameValid" />
     </van-dialog>
+
+    <van-popup v-model:show="showLiveStreamInput" position="center" :style="{ width: '50%' }" round>
+      <van-field center v-model="liveStreamUrl">
+        <template #left-icon>
+          <van-icon class="iconfont icon-stream-url" />
+        </template>
+        <template #right-icon>
+          <van-button type="primary" plain size="small" @click="onLiveStream">确认</van-button>
+        </template>
+      </van-field>
+    </van-popup>
   </van-row>
 </template>
 <script lang="ts" setup>
 
-import { VERSION } from '@mediapipe/face_mesh'
-import { createDetector, SupportedModels } from '@tensorflow-models/face-landmarks-detection'
-import * as tf from '@tensorflow/tfjs'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { baseDomain } from '../../../common'
-import { Camera } from '../../common/Camera'
+import { VideoPlayer } from '../../common/VideoPlayer'
 import { FaceDetector } from '../../common/FaceDetector'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VisionStore } from '../../store'
-import { showNotify } from 'vant'
+import Hls from 'hls.js'
+import { drawCVObjectTrack } from '../../common/DrawUtils'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
 const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
+const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
 const showNameInputDialog = ref(false)
+const showLiveStreamInput = ref(false)
 const eigenName = ref('')
+const liveStreamUrl = ref(`https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8`)
 const recFace = ref<string>()
 const isScan = ref(false)
+const isEigenNameValid = ref(true)
+const isWeb = window.isWeb
 
 let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let imgProcessor: ImageProcessor = new ImageProcessor()
 let faceDetector: FaceDetector
-let camera: Camera = null
+let camera: VideoPlayer = null
 let scanTask: any
 let count = 0
-
-function tensorTest() {
-  let angle = 90 * Math.PI / 180
-  let cos = Math.cos(angle)
-  let sin = Math.sin(angle)
-  let martix = tf.tensor([[cos, -sin], [sin, cos]])
-
-  let tmp = tf.tensor2d([[1, 0], [3, 0]])
-  tmp.print()
-  tf.matMul(tmp, martix).print()
-}
-
-function test() {
-  let data = '0.3476848006248474, 0.7408292293548584, 0.374585896730423, 0.6007864475250244, 0.36658036708831787, 0.6411869525909424'
-  let arr = data.split(',')
-
-  let arr2d = []
-  for (let i = 0; i < arr.length; i += 2) {
-    arr2d.push(Uint32Array.from(arr))
-  }
-
-  console.log(arr2d)
-}
+let hls: Hls
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
@@ -147,39 +151,42 @@ onMounted(async () => {
 
   imgProcessor.imgEnhance = visionStore.imgEnhance
   imgProcessor.imgProcessMode = visionStore.imgProcessMode
-  imgProcessor.imgProcessParams = visionStore.imgParams.getParams()
+  imgProcessor.imgProcessParams = visionStore.imgParams.value
+
+  // capture.value.width = eigenFace.value.clientWidth
+  // capture.value.height = eigenFace.value.clientHeight
 
   faceDetector = new FaceDetector(previewCtx, capture.value, masklayer.value)
   faceDetector.drawFace = visionStore.drawFaceMesh
   faceDetector.faceDetect = visionStore.faceDetect
   faceDetector.faceRecMode = visionStore.faceRecMode as any
   faceDetector.imgProcessor = imgProcessor
-  faceDetector.dector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
-    runtime: 'mediapipe',
-    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${VERSION}`,
-    refineLandmarks: true,
-    maxFaces: 1
-  })
 
-  camera = new Camera(preVideo.value, preview.value, offscreen.value)
+  try { await faceDetector.init() } catch (err) {
+    console.log(err)
+  }
+
+  camera = new VideoPlayer(preVideo.value, preview.value, offscreen.value)
   camera.imgProcessor = imgProcessor
   camera.faceDetector = faceDetector
 
-  if (!__IS_WEB__) {
-    window.cvNativeApi?.init()
-    window.tfApi?.init('mediapipe-gpu')
-  }
+  hls = new Hls()
+
+  window.cvNativeApi?.init()
+  window.tfApi?.init('mediapipe-gpu')
+
 })
 
 async function onFaceScan() {
-  if (isScan.value) {
-    showNotify({ type: 'warning', message: '正在扫描中，请稍后' })
-    return
-  }
+  // if (isScan.value) {
+  //   showNotify({ type: 'warning', message: '正在扫描中，请稍后' })
+  //   return
+  // }
   isScan.value = true
   scanTask = setInterval(() => {
     drawImage()
     faceDetector?.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
+    faceDetector?.updateUI()
     count++
     if (count > 10) {
       clearInterval(scanTask)
@@ -195,8 +202,13 @@ async function onCollect() {
   if (recResult == null) {
     recFace.value = null
   } else {
-    recFace.value = baseDomain() + recResult.snap
+    recFace.value = baseDomain() + recResult?.snap
   }
+}
+
+async function onLiveStream() {
+  camera?.open(liveStreamUrl.value)
+  showLiveStreamInput.value = false
 }
 
 async function onClickCamera() {
@@ -220,7 +232,8 @@ async function openFolder() {
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
       drawImage()
-      faceDetector.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
+      faceDetector?.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
+      faceDetector?.updateUI()
     }
     img.src = file
   })
@@ -232,7 +245,12 @@ async function onCapture() {
 }
 
 function onConfirmName() {
-  faceDetector?.faceCapture(offscreenCtx, eigenName.value)
+  if (eigenName.value == null || eigenName.value.length == 0) {
+    isEigenNameValid.value = false
+    showNameInputDialog.value = true
+    return
+  }
+  faceDetector?.faceCapture(previewCtx, eigenName.value)
   eigenName.value = null
   showNameInputDialog.value = false
 }
@@ -242,6 +260,8 @@ function drawImage() {
   imgProcessor.process(imgData)
   previewCtx.clearRect(0, 0, imgData.width, imgData.height)
   previewCtx.putImageData(imgData, 0, 0)
+  drawCVObjectTrack(previewCtx, imgProcessor.objectRects)
+
 }
 
 watch(() => visionStore.faceDetect, async (val) => {
@@ -251,6 +271,10 @@ watch(() => visionStore.faceDetect, async (val) => {
 
 watch(() => visionStore.drawFaceMesh, (val) => {
   faceDetector.drawFace = val
+})
+
+watch(() => visionStore.drawEigen, (val) => {
+  faceDetector.drawEigen = val
 })
 
 watch(() => visionStore.faceRecMode, (val) => {
@@ -267,7 +291,7 @@ watch(() => visionStore.imgProcessMode, (val) => {
 
 watch(() => visionStore.imgParams,
   (val) => {
-    imgProcessor.imgProcessParams = visionStore.imgParams.getParams()
+    imgProcessor.imgProcessParams = visionStore.imgParams.value
     if (!camera.isOpen) { drawImage() }
   },
   { deep: true }
@@ -279,4 +303,17 @@ watch(() => visionStore.imgEnhance, (val) => {
 })
 
 </script>
-<style lang="css"></style>
+<style lang="css">
+.eigen-face {
+  height: 140px;
+  object-fit: contain;
+  position: absolute;
+  top: 100px;
+  right: 15px;
+  padding: 5px;
+  border-radius: 12px;
+  border: 2px solid #f1f2f699;
+  background-color: #2f3542;
+  z-index: 2000;
+}
+</style>
