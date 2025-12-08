@@ -32,11 +32,18 @@ export type cvFilter = [
   number, // size
 ]
 
+export type cvTracker = [
+  string, // type meanShift, camShift
+  number, // threshold
+  number, // minSize
+]
+
 class ImageParams {
   isGray: boolean = false
   equalizeHist: boolean = false
   clahe: boolean = false // 自适应直方图均衡化
   rotate: number = 0
+  colorMap: number = 0
 
   enableGamma: boolean = false
   gamma: number = 1 // 伽马校正
@@ -55,6 +62,9 @@ class ImageParams {
   enableFilter: boolean = false
   filter: cvFilter = ['sobel', 1, 1, 1, 1]
 
+  enableTrack: boolean = false
+  tracker: cvTracker = ['contour', 50, 100]
+
   enableCanny: boolean = false
   canny: [number, number] = [80, 100]
 
@@ -64,6 +74,8 @@ class ImageParams {
     params['equalizeHist'] = this.equalizeHist
     params['clahe'] = this.clahe
     params['rotate'] = this.rotate
+    params['colorMap'] = this.colorMap
+    
     if (this.enableGamma) params['gamma'] = this.gamma
     else delete params['gamma']
 
@@ -82,6 +94,10 @@ class ImageParams {
     if (this.enableFilter)
       params['filter'] = [this.filter[0], this.filter[1], this.filter[2], this.filter[3], this.filter[4]]
     else delete params['filter']
+
+    if (this.enableTrack)
+      params['tracker'] = [this.tracker[0], this.tracker[1], this.tracker[2]]
+    else delete params['tracker']
 
     if (this.enableCanny)
       params['canny'] = [this.canny[0], this.canny[1]]

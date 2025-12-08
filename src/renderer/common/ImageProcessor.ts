@@ -1,11 +1,14 @@
 import { showNotify } from "vant"
 import { imgProcess } from "./CVApi"
+import { drawCVObjectTrack } from "./DrawUtils"
 
 
 export class ImageProcessor {
   public imgEnhance: boolean = false
   public imgProcessMode: '1' | '2' | '3' = '1'
   public imgProcessParams: any = {}
+  public objectRects: Array<{ x: number, y: number, width: number, height: number }>
+  
 
   process(image: ImageData) {
     if (!this.imgEnhance) return
@@ -16,7 +19,7 @@ export class ImageProcessor {
     switch (this.imgProcessMode) {
       case '1': {
         try {
-          imgProcess(image, image.width, image.height, this.imgProcessParams)
+          this.objectRects = imgProcess(image, image.width, image.height, this.imgProcessParams)
         } catch (err) {
           console.error(err)
         }

@@ -92,6 +92,18 @@ function drawMutliLine(context: CanvasRenderingContext2D,
   context.closePath()
 }
 
+export function drawCVObjectTrack(context: CanvasRenderingContext2D,
+  boxs: Array<{ x: number, y: number, width: number, height: number }>) {
+  if (boxs == null || boxs.length == 0) return
+  context.strokeStyle = GREEN
+  context.lineWidth = 2
+  boxs.forEach((box) => {
+    context.beginPath()
+    context.strokeRect(box.x, box.y, box.width, box.height)
+    context.closePath()
+  })
+}
+
 export function drawCVFaceResult(context: CanvasRenderingContext2D,
   face: any, eyes: Array<any>, landmarks?: Array<any>) {
   if (face == null) return
@@ -140,7 +152,7 @@ export function drawCVFaceResult(context: CanvasRenderingContext2D,
   })
 }
 
-function drawRectCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
+function drawFaceCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
   ctx.strokeStyle = SILVERY
   ctx.lineWidth = 5
 
@@ -227,7 +239,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   let originY = scale ? 0 : face.box.yMin
 
   if (boundingBox && face.box != null) {
-    drawRectCorner(ctx, face.box)
+    drawFaceCorner(ctx, face.box)
   }
 
   switch (mesh) {

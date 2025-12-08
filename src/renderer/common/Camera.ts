@@ -1,3 +1,4 @@
+import { drawCVObjectTrack } from './DrawUtils'
 import { FaceDetector } from './FaceDetector'
 import { ImageProcessor } from './ImageProcessor'
 import Hls from 'hls.js'
@@ -76,6 +77,8 @@ export class Camera {
     }
 
     this.faceDetector.updateUI()
+
+    drawCVObjectTrack(this.previewCtx, this.imgProcessor.objectRects)
 
     this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '14px sans-serif'

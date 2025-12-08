@@ -110,6 +110,7 @@ import { FaceDetector } from '../../common/FaceDetector'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VisionStore } from '../../store'
 import Hls from 'hls.js'
+import { drawCVObjectTrack } from '../../common/DrawUtils'
 
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
@@ -123,7 +124,7 @@ const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 const showNameInputDialog = ref(false)
 const showLiveStreamInput = ref(false)
 const eigenName = ref('')
-const liveStreamUrl = ref(`https://scpull04.scjtonline.cn/scgro4/8B4800E59656CB0B83233981CCF7A01F.m3u8`)
+const liveStreamUrl = ref(`https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8`)
 const recFace = ref<string>()
 const isScan = ref(false)
 const isEigenNameValid = ref(true)
@@ -164,7 +165,6 @@ onMounted(async () => {
   try { await faceDetector.init() } catch (err) {
     console.log(err)
   }
-
 
   camera = new Camera(preVideo.value, preview.value, offscreen.value)
   camera.imgProcessor = imgProcessor
@@ -260,6 +260,8 @@ function drawImage() {
   imgProcessor.process(imgData)
   previewCtx.clearRect(0, 0, imgData.width, imgData.height)
   previewCtx.putImageData(imgData, 0, 0)
+  drawCVObjectTrack(previewCtx, imgProcessor.objectRects)
+
 }
 
 watch(() => visionStore.faceDetect, async (val) => {
