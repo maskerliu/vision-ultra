@@ -244,8 +244,8 @@ function objectTrack(type: string, src: OpenCV.Mat, threshold: number, minSize: 
         upper = new cv.Mat(tmpImg.rows, tmpImg.cols, tmpImg.type())
       }
       // 定义颜色范围
-      lower.setTo([0, 100, 100 - threshold])
-      upper.setTo([10 + threshold, 255, 255])
+      lower.setTo([0, 100, 100 - threshold, 255])
+      upper.setTo([10 + threshold, 255, 255, 255])
 
       // 创建颜色掩码
       cv.inRange(tmpImg, lower, upper, tmpImg)
@@ -254,21 +254,16 @@ function objectTrack(type: string, src: OpenCV.Mat, threshold: number, minSize: 
       kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(5, 5))
       cv.morphologyEx(tmpImg, tmpImg, cv.MORPH_OPEN, kernel)
       cv.morphologyEx(tmpImg, tmpImg, cv.MORPH_CLOSE, kernel)
-
-      // 高斯模糊
       cv.GaussianBlur(tmpImg, tmpImg, new cv.Size(5, 5), 0)
       break
     case 'contour':
-      // 转换为灰度图
       cv.cvtColor(src, tmpImg, cv.COLOR_RGBA2GRAY)
       cv.GaussianBlur(tmpImg, tmpImg, new cv.Size(5, 5), 0)
       cv.Canny(tmpImg, tmpImg, threshold, threshold * 2)
       break
     case 'bgSub':
-      // 转换为灰度图
-      cv.cvtColor(src, processedImg, cv.COLOR_RGBA2GRAY)
-      bgSubtractor.apply(processedImg, tmpImg)
-      // 阈值处理
+      cv.cvtColor(src, tmpImg, cv.COLOR_RGBA2GRAY)
+      bgSubtractor.apply(tmpImg, tmpImg)
       cv.threshold(tmpImg, tmpImg, threshold * 2.55, 255, cv.THRESH_BINARY)
       // 形态学操作（去除噪声）
       kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3))
@@ -276,8 +271,6 @@ function objectTrack(type: string, src: OpenCV.Mat, threshold: number, minSize: 
       break
   }
 
-
-  // 查找轮廓
   let contours = new cv.MatVector()
   let hierarchy = new cv.Mat()
   cv.findContours(tmpImg, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
