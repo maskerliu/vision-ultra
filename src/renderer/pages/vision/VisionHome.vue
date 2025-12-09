@@ -44,7 +44,7 @@ import ImgParamsPanel from './ImgParamsPanel.vue'
 // import FaceRec from './FaceRec.vue'
 
 const FaceRec = defineAsyncComponent({
-  loader: () => import('./FaceRec.vue'),
+  loader: () => import('./DetectRec.vue'),
   loadingComponent: Loading,
   hydrate: () => {
     console.info('loaded')

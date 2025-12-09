@@ -107,6 +107,10 @@ class MainConfig extends BaseConfig {
           {
             from: path.join(dirname, `../data/face_landmarker.task`),
             to: path.join(dirname, '../dist/electron/static/face_landmarker.task'),
+          },
+          {
+            from: path.join(dirname, `../data/yolov8n_web/`),
+            to: path.join(dirname, '../dist/electron/static/yolov8n_web/'),
           }
         ]
       }),
