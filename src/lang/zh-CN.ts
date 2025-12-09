@@ -92,10 +92,12 @@ export default {
     HoughCircle: '霍夫圆变换',
     HoughLine: '霍夫直线变换',
 
-    ObjectDetect: '物体检测',
+    ObjectDetect: '目标跟踪',
     ColorTrack: '颜色追踪',
     ContourTrack: '轮廓跟踪',
-    BackgroundSub: '背景减除'
+    BackgroundSub: '背景减除',
+    MeanShit: 'MeanShift',
+    CamShift: 'CamShift'
   },
   faceRec: {
     nameInput: '请输入姓名',

@@ -341,6 +341,9 @@
         <van-radio name="bgSub" icon-size="1rem" style="font-size: 0.8rem;">
           {{ $t('imgProcess.BackgroundSub') }}
         </van-radio>
+        <van-radio name="camShift" icon-size="1rem" style="font-size: 0.8rem;">
+          {{ $t('imgProcess.CamShift') }}
+        </van-radio>
       </van-radio-group>
       <van-field label="threshold" label-align="right" type="number" input-align="right" label-width="5rem"
         v-if="visionStore.imgParams.enableTrack">
