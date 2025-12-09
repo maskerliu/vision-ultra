@@ -84,11 +84,9 @@ export class FaceDetector {
 
 
   updateUI() {
-
     if (!this.face.valid) return
-
+    
     drawTFFaceResult(this.previewCtx, this.face, 'none', this.drawFace, true)
-
     if (this.drawEigen) {
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
       drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.height)

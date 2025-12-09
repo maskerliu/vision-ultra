@@ -95,6 +95,8 @@ export default {
     ColorTrack: 'Color Track',
     ContourTrack: 'Contour Track',
     BackgroundSub: 'Background Subtract',
+    MeanShit: 'MeanShift',
+    CamShift: 'CamShift'
   },
   faceRec: {
     nameInput: 'Please enter name',
