@@ -20,8 +20,16 @@ export class VideoPlayer {
   private flip: boolean = true
   private frame: ImageData
 
-  public imgProcessor: ImageProcessor = null
-  public faceDetector: FaceDetector = null
+  private _imgProcessor: ImageProcessor = null
+  set imgProcessor(value: ImageProcessor) {
+    this._imgProcessor = value
+  }
+
+  private _faceDetector: FaceDetector = null
+  set faceDetector(value: FaceDetector) {
+    this._faceDetector = value
+  }
+
   public objDetector: ObjectDetector = null
   public objTracker: ObjectTracker = null
   private mediaRecorder: MediaRecorder
@@ -67,27 +75,27 @@ export class VideoPlayer {
 
     this.offscreenCtx.drawImage(this.preVideo, 0, 0, this.offscreen.width, this.offscreen.height)
     this.frame.data.set(this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data)
-    this.imgProcessor?.process(this.frame)
+    this._imgProcessor?.process(this.frame)
     this.offscreenCtx.putImageData(this.frame, 0, 0)
     this.previewCtx.drawImage(this.offscreen,
       0, 0, this.frame.width, this.frame.height,
       0, 0, this.frame.width, this.frame.height)
 
     if (this._frames == 2) {
-      await this.faceDetector.detect(this.frame)
-      await this.objDetector.detect(this.frame)
+      await this._faceDetector.detect(this.frame)
+      await this.objDetector?.detect(this.frame)
       this._frames = 0
     } else {
       this._frames++
     }
 
-    this.faceDetector.updateUI()
+    this._faceDetector.updateUI()
 
-    drawCVObjectTrack(this.previewCtx, this.imgProcessor.objectRects)
+    drawCVObjectTrack(this.previewCtx, this._imgProcessor?.objectRects)
 
     this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '14px sans-serif'
-    this.previewCtx.fillText(`Slope: ${this.faceDetector.faceAngle}\n Time: ${this.faceDetector.time}`, 10, 20)
+    this.previewCtx.fillText(`Slope: ${this._faceDetector.faceAngle}\n Time: ${this._faceDetector.time}`, 10, 20)
 
     // if (Math.abs(this.faceDetector.faceAngle) > 5) {
     //   this.faceDetector.enableFaceAngle = false

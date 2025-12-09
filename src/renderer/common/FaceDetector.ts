@@ -8,13 +8,23 @@ import { ImageProcessor } from "./ImageProcessor"
 export class FaceDetector {
   private faceLandmarker: FaceLandmarker = null
   public faceDetect: boolean = false
-  public faceRecMode: 'opencv' | 'tfjs' = 'tfjs' // opencv or tfjs
+
+  private _faceRecMode: 'opencv' | 'tfjs' = 'tfjs' // opencv or tfjs
+  set faceRecMode(val: 'opencv' | 'tfjs') {
+    this._faceRecMode = val
+  }
   private face: FaceResult = null
 
-  public imgProcessor: ImageProcessor = null
+  private _drawFace: boolean = true
 
-  public drawFace: boolean = true
-  public drawEigen: boolean = true
+  set drawFace(val:boolean) {
+    this._drawFace = val
+  }
+
+  private _drawEigen: boolean = true
+  set drawEigen(val:boolean) {
+    this._drawEigen = val
+  }
 
   private previewCtx: CanvasRenderingContext2D
 
@@ -86,8 +96,8 @@ export class FaceDetector {
   updateUI() {
     if (!this.face.valid) return
 
-    drawTFFaceResult(this.previewCtx, this.face, 'none', this.drawFace, true)
-    if (this.drawEigen) {
+    drawTFFaceResult(this.previewCtx, this.face, 'none', this._drawFace, true)
+    if (this._drawEigen) {
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
       drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.height)
     }
@@ -100,7 +110,7 @@ export class FaceDetector {
       return
     }
 
-    switch (this.faceRecMode) {
+    switch (this._faceRecMode) {
       case 'opencv': {
         const result = window.cvNativeApi?.faceRecognize(frame, frame.width, frame.height)
         this.face = result?.face
