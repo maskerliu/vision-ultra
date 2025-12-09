@@ -20,3 +20,5 @@ UserData/**/*
 out/
 resources/*
 log.txt
+
+*.npy

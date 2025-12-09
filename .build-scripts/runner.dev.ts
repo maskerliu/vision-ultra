@@ -64,7 +64,7 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
         },
         {
           directory: path.join(dirname, '../data/'), 
-          publicPath: '/data/', 
+          publicPath: '/static/', 
           staticOptions: {
             etag: true,
             cacheControl: true,

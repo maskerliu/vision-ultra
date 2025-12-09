@@ -13,6 +13,12 @@ OverlayScrollbars.plugin(ClickScrollPlugin)
 
 const pinia = createPinia()
 const app = createApp(App)
+
+// app.config.compilerOptions.isCustomElement = tag => {
+//   console.log(tag)
+//   return !tag.startsWith('media-')
+// }
+
 app.use(i18n)
 app.use(router)
 app.use(pinia)

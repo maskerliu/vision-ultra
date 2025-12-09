@@ -82,7 +82,7 @@ export function imgProcess(frame: ImageData, width: number, height: number,
 
   if (tmpImg.cols !== width || tmpImg.rows !== height) {
     tmpImg.delete()
-    hsvVec.delete()
+    hsvVec?.delete()
     tmpImg = new cv.Mat(height, width, cv.CV_8UC3)
     hsvVec = new cv.MatVector()
     hsvVec.push_back(tmpImg)

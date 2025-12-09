@@ -50,7 +50,7 @@ export class FaceDetector {
       __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
     this.faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
       baseOptions: {
-        modelAssetPath: baseDomain() + '/static/face_landmarker.task',
+        modelAssetPath: `${__DEV__ ? '' : baseDomain()}/static/face_landmarker.task`,
         delegate: 'GPU'
       },
       numFaces: 1,
@@ -85,7 +85,7 @@ export class FaceDetector {
 
   updateUI() {
     if (!this.face.valid) return
-    
+
     drawTFFaceResult(this.previewCtx, this.face, 'none', this.drawFace, true)
     if (this.drawEigen) {
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)

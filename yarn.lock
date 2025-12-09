@@ -2168,6 +2168,7 @@ __metadata:
     json-bigint: "npm:^1.0.0"
     level-transcoder: "npm:1.0.1"
     md5: "npm:^2.3.0"
+    media-chrome: "npm:^4.16.1"
     minimist: "npm:^1.2.8"
     node-loader: "npm:^2.1.0"
     node-polyfill-webpack-plugin: "npm:^4.1.0"
@@ -3122,6 +3123,15 @@ __metadata:
   version: 2.1.1
   resolution: "catering@npm:2.1.1"
   checksum: 10c0/a69f946f82cba85509abcb399759ed4c39d2cc9e33ba35674f242130c1b3c56673da3c3e85804db6898dfd966c395aa128ba484b31c7b906cc2faca6a581e133
+  languageName: node
+  linkType: hard
+
+"ce-la-react@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "ce-la-react@npm:0.3.2"
+  peerDependencies:
+    react: ">=17.0.0"
+  checksum: 10c0/cbee7602c1e4efc1278e5c0847b8201fa291ad3a5bde4137da139a7b6a2b7b8de029530fb2c474e62fcc544e62669003e4a34fd1abafac8110d89ffade588c37
   languageName: node
   linkType: hard
 
@@ -6650,6 +6660,15 @@ __metadata:
     crypt: "npm:0.0.2"
     is-buffer: "npm:~1.1.6"
   checksum: 10c0/14a21d597d92e5b738255fbe7fe379905b8cb97e0a49d44a20b58526a646ec5518c337b817ce0094ca94d3e81a3313879c4c7b510d250c282d53afbbdede9110
+  languageName: node
+  linkType: hard
+
+"media-chrome@npm:^4.16.1":
+  version: 4.16.1
+  resolution: "media-chrome@npm:4.16.1"
+  dependencies:
+    ce-la-react: "npm:^0.3.2"
+  checksum: 10c0/65ebca242da563ef982ea24cdf05f5f29874b9b4d867eab47059f95ab6eab2ca22a8f4db28dba502ab979fe62b1d1bb8a16f5d05d8bcd8ba14e6f2326475617f
   languageName: node
   linkType: hard
 
