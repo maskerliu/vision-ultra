@@ -106,6 +106,12 @@
           <van-button type="primary" plain size="small" @click="onLiveStream">确认</van-button>
         </template>
       </van-field>
+      <van-row style="padding: 15px 5px 5px 15px;">
+        <van-tag plain round closeable size="large" v-for="value in urlHistories" style="margin: 0 10px 10px 0; max-width: calc(50% - 30px);">
+          <div style="max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ value }}
+          </div>
+        </van-tag>
+      </van-row>
     </van-popup>
   </van-row>
 </template>
@@ -141,6 +147,13 @@ const showNameInputDialog = ref(false)
 const showLiveStreamInput = ref(false)
 const eigenName = ref('')
 const liveStreamUrl = ref(`https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8`)
+const urlHistories = ref<Array<string>>([
+  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
+  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
+  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
+  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
+  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
+])
 const recFace = ref<string>()
 const isScan = ref(false)
 const isEigenNameValid = ref(true)
@@ -178,21 +191,20 @@ onMounted(async () => {
   faceDetector.drawFace = visionStore.drawFaceMesh
   faceDetector.faceDetect = visionStore.faceDetect
   faceDetector.faceRecMode = visionStore.faceRecMode as any
-  faceDetector.imgProcessor = imgProcessor
 
   objTracker = new ObjectTracker()
 
   const filesetResolver = await FilesetResolver.forVisionTasks(
     __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
-  objDetector = await ObjectDetector.createFromOptions(filesetResolver, {
-    baseOptions: {
-      // TODO change task to object detector
-      modelAssetPath: `${__DEV__ ? '' : baseDomain()}/static/face_landmarker.task`,
-      delegate: 'GPU'
-    },
-    maxResults: 5,
-    scoreThreshold: 0.5
-  })
+  // objDetector = await ObjectDetector.createFromOptions(filesetResolver, {
+  //   baseOptions: {
+  //     // TODO change task to object detector
+  //     modelAssetPath: `${__DEV__ ? '' : baseDomain()}/static/face_landmarker.task`,
+  //     delegate: 'GPU'
+  //   },
+  //   maxResults: 5,
+  //   scoreThreshold: 0.5
+  // })
 
   try {
     await faceDetector.init()
