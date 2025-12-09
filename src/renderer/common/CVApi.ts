@@ -1,5 +1,6 @@
 import { loadOpenCV, type OpenCV } from '@opencvjs/web'
 import { cvBlur, cvEqualizeHist, cvFilter, cvSharpen, cvTracker } from '../store'
+import { Open } from 'webpack-dev-server'
 
 const cv: typeof OpenCV = await loadOpenCV()
 let gammaTable = new Uint8Array(256)
@@ -11,8 +12,28 @@ let dsize = new cv.Size(0, 0)
 let center = new cv.Point(0, 0)
 let rotateMat = new cv.Mat()
 
-let upper = new cv.Mat()
-let lower = new cv.Mat()
+let termCrit = new cv.TermCriteria(cv.TermCriteria_EPS | cv.TermCriteria_COUNT, 10, 1)
+let trackWindow = new cv.Rect(150, 60, 63, 125)
+let roi = new cv.Mat(trackWindow.width, trackWindow.height, cv.CV_8UC3, new cv.Scalar(0, 0, 0))
+let upper = new cv.Mat(roi.rows, roi.cols, roi.type(), new cv.Scalar(30, 30, 0))
+let lower = new cv.Mat(roi.rows, roi.cols, roi.type(), new cv.Scalar(180, 180, 180))
+let mask = new cv.Mat()
+cv.inRange(roi, lower, upper, mask)
+
+
+let roiHist = new cv.Mat()
+let roiVec = new cv.MatVector()
+roiVec.push_back(roi)
+cv.calcHist(roiVec, [0], mask, roiHist, [180], [0, 180])
+cv.normalize(roiHist, roiHist, 0, 255, cv.NORM_MINMAX)
+
+roi.delete()
+mask.delete()
+lower.delete()
+upper.delete()
+roiVec.delete()
+
+let hsvVec: OpenCV.MatVector
 
 const bgSubtractor = new cv.BackgroundSubtractorMOG2(500, 16, true)
 
@@ -61,7 +82,10 @@ export function imgProcess(frame: ImageData, width: number, height: number,
 
   if (tmpImg.cols !== width || tmpImg.rows !== height) {
     tmpImg.delete()
+    hsvVec.delete()
     tmpImg = new cv.Mat(height, width, cv.CV_8UC3)
+    hsvVec = new cv.MatVector()
+    hsvVec.push_back(tmpImg)
   }
 
 
@@ -111,14 +135,18 @@ export function imgProcess(frame: ImageData, width: number, height: number,
 
   if (params.isGray && params.filter) filtering(params.filter)
 
-  if (params.isGray && params.cannyThreshold) {
-    cv.Canny(processedImg, processedImg, params.cannyThreshold[0], params.cannyThreshold[1])
-  }
-
-
   let rects: Array<{ x: number, y: number, width: number, height: number }>
   if (params.tracker) {
-    rects = objectTrack(params.tracker[0], processedImg, params.tracker[1], params.tracker[2])
+    try {
+      rects = objectTrack(params.tracker[0], processedImg, params.tracker[1], params.tracker[2])
+    } catch (err) {
+      console.error(err)
+    }
+
+  }
+
+  if (params.isGray && params.cannyThreshold) {
+    cv.Canny(processedImg, processedImg, params.cannyThreshold[0], params.cannyThreshold[1])
   }
 
   if (params.isGray) {
@@ -237,15 +265,15 @@ function objectTrack(type: string, src: OpenCV.Mat, threshold: number, minSize: 
       cv.cvtColor(processedImg, tmpImg, cv.COLOR_BGR2HSV)
       if (lower.rows !== tmpImg.rows || lower.cols !== tmpImg.cols) {
         lower.delete()
-        lower = new cv.Mat(tmpImg.rows, tmpImg.cols, tmpImg.type())
+        lower = new cv.Mat(tmpImg.rows, tmpImg.cols, cv.CV_8UC3)
       }
       if (upper.rows !== tmpImg.rows || upper.cols !== tmpImg.cols) {
         upper.delete()
-        upper = new cv.Mat(tmpImg.rows, tmpImg.cols, tmpImg.type())
+        upper = new cv.Mat(tmpImg.rows, tmpImg.cols, cv.CV_8UC3)
       }
       // 定义颜色范围
-      lower.setTo([0, 100, 100 - threshold, 255])
-      upper.setTo([10 + threshold, 255, 255, 255])
+      lower.setTo([30, 30, 100 - threshold, 255])
+      upper.setTo([180, 180, 100 + threshold, 255])
 
       // 创建颜色掩码
       cv.inRange(tmpImg, lower, upper, tmpImg)
@@ -268,6 +296,12 @@ function objectTrack(type: string, src: OpenCV.Mat, threshold: number, minSize: 
       // 形态学操作（去除噪声）
       kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3))
       cv.morphologyEx(tmpImg, tmpImg, cv.MORPH_OPEN, kernel)
+      break
+    case 'camShift':
+      cv.cvtColor(processedImg, tmpImg, cv.COLOR_BGR2HSV)
+      cv.calcBackProject(hsvVec, [0], roiHist, tmpImg, [0, 180], 1)
+      let result = cv.CamShift(tmpImg, trackWindow, termCrit)
+      let pts = cv.boxPoints(result).map((p) => ({ x: p.x, y: p.y }))
       break
   }
 
