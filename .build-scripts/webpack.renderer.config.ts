@@ -10,6 +10,7 @@ import { VueLoaderPlugin } from 'vue-loader'
 import webpack, { Configuration } from 'webpack'
 import pkg from '../package.json' assert { type: "json" }
 import { BaseConfig } from './webpack.base.config'
+import { getDefaultCompilerOptions } from 'typescript'
 
 const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
 
@@ -39,7 +40,10 @@ class RendererConfig extends BaseConfig {
           fullySpecified: false,
         },
         options: {
-          reactivityTransform: true
+          reactivityTransform: true,
+          compilerOptions: {
+            isCustomElement: (tag) => tag.startsWith('media-')
+          }
         }
       },
       {

@@ -2,6 +2,8 @@ import { drawCVObjectTrack } from './DrawUtils'
 import { FaceDetector } from './FaceDetector'
 import { ImageProcessor } from './ImageProcessor'
 import Hls from 'hls.js'
+import { ObjectTracker } from './ObjectTracker'
+import { ObjectDetector } from '@mediapipe/tasks-vision'
 
 export class VideoPlayer {
   private hls: Hls
@@ -20,6 +22,8 @@ export class VideoPlayer {
 
   public imgProcessor: ImageProcessor = null
   public faceDetector: FaceDetector = null
+  public objDetector: ObjectDetector = null
+  public objTracker: ObjectTracker = null
   private mediaRecorder: MediaRecorder
 
   private _frames = 0
@@ -71,6 +75,7 @@ export class VideoPlayer {
 
     if (this._frames == 2) {
       await this.faceDetector.detect(this.frame)
+      await this.objDetector.detect(this.frame)
       this._frames = 0
     } else {
       this._frames++
@@ -122,13 +127,19 @@ export class VideoPlayer {
       } else {
         this.preVideo.srcObject = null
         this.close()
-        if (Hls.isSupported()) {
+
+        if (url.endsWith('.m3u8') && Hls.isSupported()) {
           this.hls.loadSource(url)
           this.hls.attachMedia(this.preVideo)
           this.flip = false
           this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
             this.preVideo.play()
           })
+        }
+
+        if (url.endsWith('.mp4')) {
+          this.preVideo.src = url
+          this.preVideo.play()
         }
       }
       var loop = () => {
