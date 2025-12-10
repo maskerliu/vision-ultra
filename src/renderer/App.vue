@@ -105,7 +105,8 @@ function onOpenDebugPanel() {
 }
 
 #app {
-  /* font-family: "Consolas"; */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   background: var(--van-gray-1);
   letter-spacing: 1px;
   /* -moz-user-select: none;

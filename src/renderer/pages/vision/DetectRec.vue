@@ -107,7 +107,8 @@
         </template>
       </van-field>
       <van-row style="padding: 15px 5px 5px 15px;">
-        <van-tag plain round closeable size="large" v-for="value in urlHistories" style="margin: 0 10px 10px 0; max-width: calc(50% - 30px);">
+        <van-tag plain round closeable size="large" v-for="value in urlHistories"
+          style="margin: 0 10px 10px 0; max-width: calc(50% - 30px);">
           <div style="max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ value }}
           </div>
         </van-tag>
@@ -189,10 +190,11 @@ onMounted(async () => {
 
   faceDetector = new FaceDetector(previewCtx, capture.value, masklayer.value)
   faceDetector.drawFace = visionStore.drawFaceMesh
-  faceDetector.faceDetect = visionStore.faceDetect
+  faceDetector.enable = visionStore.faceDetect
   faceDetector.faceRecMode = visionStore.faceRecMode as any
 
-  objTracker = new ObjectTracker()
+  objTracker = new ObjectTracker(previewCtx)
+  objTracker.enable = visionStore.enableYolo
 
   const filesetResolver = await FilesetResolver.forVisionTasks(
     __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
@@ -278,8 +280,11 @@ async function openFolder() {
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
       drawImage()
-      faceDetector?.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
+      let imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+      faceDetector?.detect(imgData)
       faceDetector?.updateUI()
+      objTracker?.detect(imgData)
+      objTracker?.updateUI()
     }
     img.src = file
   })
@@ -311,8 +316,11 @@ function drawImage() {
 }
 
 watch(() => visionStore.faceDetect, async (val) => {
-  faceDetector.faceDetect = val
+  faceDetector.enable = val
   faceDetector.faceRecMode = visionStore.faceRecMode as any
+
+  if (val) await faceDetector.init()
+  else faceDetector.dispose()
 })
 
 watch(() => visionStore.drawFaceMesh, (val) => {
@@ -342,6 +350,21 @@ watch(() => visionStore.imgParams,
   },
   { deep: true }
 )
+
+watch(() => visionStore.enableYolo, async (val, _) => {
+  objTracker.enable = val
+  if (val) {
+    await objTracker?.init(visionStore.yoloModel)
+  } else {
+    objTracker?.dispose()
+  }
+})
+
+watch(() => visionStore.yoloModel, async () => {
+  if (visionStore.enableYolo) {
+    await objTracker?.init(visionStore.yoloModel)
+  }
+})
 
 watch(() => visionStore.imgEnhance, (val) => {
   if (!videoPlayer.isOpen) { drawImage() }
