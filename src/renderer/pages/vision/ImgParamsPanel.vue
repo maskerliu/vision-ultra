@@ -18,6 +18,30 @@
       </van-cell>
     </van-cell-group>
 
+    <!-- YOLO object detect -->
+    <van-cell-group :border="false" style="padding: 5px;">
+      <template #title>
+        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableYolo">
+          {{ $t('imgProcess.YOLODetect') }} <span class="param-desc">{{ $t('imgProcess.YOLODesc') }}</span>
+        </van-checkbox>
+      </template>
+      <van-radio-group direction="vertical" :disabled="!visionStore.enableYolo" v-if="visionStore.enableYolo"
+        style="width: 80%; padding: 5px 10px;" v-model="visionStore.yoloModel" @change="onParamChange">
+        <van-radio name="yolov6n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
+          {{ $t('imgProcess.yolov6') }}
+        </van-radio>
+        <van-radio name="yolov8n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
+          {{ $t('imgProcess.yolov8') }}
+        </van-radio>
+        <van-radio name="yolov10n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
+          {{ $t('imgProcess.yolov10') }}
+        </van-radio>
+        <van-radio name="yolo11n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
+          {{ $t('imgProcess.yolo11') }}
+        </van-radio>
+      </van-radio-group>
+    </van-cell-group>
+
     <van-cell-group title=" ">
       <van-field :label="$t('imgProcess.Gray')" label-align="right" type="number" input-align="right"
         label-width="4rem">
@@ -39,8 +63,8 @@
       <van-collapse v-model="activeCollapse">
         <van-collapse-item :title="$t('imgProcess.ColorMap')" name="1" style="padding-left: 5px;">
           <van-radio-group v-model="visionStore.imgParams.colorMap">
-            <van-radio :name="idx" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;" v-for="(val, idx) in ColorMaps"
-              :key="idx" @click="onParamChange">
+            <van-radio :name="idx" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;"
+              v-for="(val, idx) in ColorMaps" :key="idx" @click="onParamChange">
               <van-row justify="space-between">
                 <van-col span="6">{{ val }}</van-col>
                 <van-col span="11">
@@ -323,15 +347,15 @@
       </van-field>
     </van-cell-group>
 
-    <!-- object track -->
+    <!-- cv object detect -->
     <van-cell-group :border="false" style="padding: 5px;">
       <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableTrack">
+        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableDetect">
           {{ $t('imgProcess.ObjectDetect') }}
         </van-checkbox>
       </template>
-      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableTrack" style="padding: 5px 10px;"
-        v-model="tracker[0]" @change="onParamChange">
+      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableDetect" style="padding: 5px 10px;"
+        v-model="detector[0]" @change="onParamChange">
         <van-radio name="color" icon-size="1rem" style="font-size: 0.8rem;">
           {{ $t('imgProcess.ColorTrack') }}
         </van-radio>
@@ -346,28 +370,30 @@
         </van-radio>
       </van-radio-group>
       <van-field label="threshold" label-align="right" type="number" input-align="right" label-width="5rem"
-        v-if="visionStore.imgParams.enableTrack">
+        v-if="visionStore.imgParams.enableDetect">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="1" max="100" step="1" v-model="tracker[1]"
+          <van-slider bar-height="4px" button-size="1.2rem" min="1" max="100" step="1" v-model="detector[1]"
             @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ tracker[1] }}</van-button>
+              <van-button plain size="small"> {{ detector[1] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
       <van-field label="minArea" label-align="right" type="number" input-align="right" label-width="5rem"
-        v-if="visionStore.imgParams.enableTrack">
+        v-if="visionStore.imgParams.enableDetect">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="5" v-model="tracker[2]"
+          <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="5" v-model="detector[2]"
             @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ tracker[2] }}</van-button>
+              <van-button plain size="small"> {{ detector[2] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
     </van-cell-group>
+
+    
 
     <van-cell-group :title="$t('imgProcess.FeatExtract')" :border="false">
       <van-cell center :title="$t('imgProcess.Canny')" :label="'[ ' + visionStore.imgParams.canny.toString() + ' ]'">
@@ -400,7 +426,7 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
-import { cvBlur, cvEqualizeHist, cvFilter, cvSharpen, cvTracker, VisionStore } from '../../store'
+import { cvBlur, cvEqualizeHist, cvFilter, cvSharpen, cvDetector, VisionStore } from '../../store'
 
 const activeCollapse = ref(['0'])
 const ColorMaps = ['NONE', 'AUTUMN', 'BONE', 'JET', 'WINTER', 'RAINBOW', 'OCEAN', 'SUMMER',
@@ -414,7 +440,7 @@ const gamma = ref(1)
 const equalization = ref<cvEqualizeHist>(['', 0, 0, 0])
 const blur = ref<cvBlur>(['', 0, 0, 0, 0, 0, 0])
 const sharpen = ref<cvSharpen>(['', 0, 0, 0])
-const tracker = ref<cvTracker>(['', 0, 0])
+const detector = ref<cvDetector>(['', 0, 0])
 const filter = ref<cvFilter>(['', 0, 0, 0, 0])
 
 
@@ -446,9 +472,9 @@ onMounted(() => {
   filter.value[3] = visionStore.imgParams.filter[3]
   filter.value[4] = visionStore.imgParams.filter[4]
 
-  tracker.value[0] = visionStore.imgParams.tracker[0]
-  tracker.value[1] = visionStore.imgParams.tracker[1]
-  tracker.value[2] = visionStore.imgParams.tracker[2]
+  detector.value[0] = visionStore.imgParams.detector[0]
+  detector.value[1] = visionStore.imgParams.detector[1]
+  detector.value[2] = visionStore.imgParams.detector[2]
 
   canny.value[0] = visionStore.imgParams.canny[0]
   canny.value[1] = visionStore.imgParams.canny[1]
@@ -475,17 +501,16 @@ function onParamChange() {
     filter.value[0], filter.value[1], filter.value[2], filter.value[3], filter.value[4]
   ]
 
-  visionStore.imgParams.tracker = [
-    tracker.value[0], tracker.value[1], tracker.value[2]
+  visionStore.imgParams.detector = [
+    detector.value[0], detector.value[1], detector.value[2]
   ]
 
   visionStore.imgParams.canny = [canny.value[0], canny.value[1]]
 }
 
 </script>
-<style >
-.van-radio__label{
+<style>
+.van-radio__label {
   width: 100%;
 }
-
 </style>

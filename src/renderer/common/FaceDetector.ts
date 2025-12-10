@@ -7,7 +7,10 @@ import { ImageProcessor } from "./ImageProcessor"
 
 export class FaceDetector {
   private faceLandmarker: FaceLandmarker = null
-  public faceDetect: boolean = false
+  public _enable: boolean = false
+  set enable(val: boolean) {
+    this._enable = val
+  }
 
   private _faceRecMode: 'opencv' | 'tfjs' = 'tfjs' // opencv or tfjs
   set faceRecMode(val: 'opencv' | 'tfjs') {
@@ -17,12 +20,12 @@ export class FaceDetector {
 
   private _drawFace: boolean = true
 
-  set drawFace(val:boolean) {
+  set drawFace(val: boolean) {
     this._drawFace = val
   }
 
   private _drawEigen: boolean = true
-  set drawEigen(val:boolean) {
+  set drawEigen(val: boolean) {
     this._drawEigen = val
   }
 
@@ -50,6 +53,7 @@ export class FaceDetector {
   }
 
   async init() {
+    if (!this._enable) return
     this.face = {
       landmarks: new Float16Array(478 * FACE_DIMS),
       box: { xMin: 0, yMin: 0, xMax: 0, yMax: 0, width: 0, height: 0 },
@@ -66,11 +70,9 @@ export class FaceDetector {
       numFaces: 1,
       outputFaceBlendshapes: true
     })
-
-
   }
 
-  reset() {
+  dispose() {
     this.face.valid = false
     this.faceLandmarker?.close()
   }
@@ -94,9 +96,10 @@ export class FaceDetector {
 
 
   updateUI() {
-    if (!this.face.valid) return
+    if (!this.face.valid || !this._enable) return
 
     drawTFFaceResult(this.previewCtx, this.face, 'none', this._drawFace, true)
+
     if (this._drawEigen) {
       this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
       drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false, this.capture.height)
@@ -105,7 +108,7 @@ export class FaceDetector {
 
 
   async detect(frame: ImageData) {
-    if (!this.faceDetect) {
+    if (!this._enable) {
       this.face.valid = false
       return
     }

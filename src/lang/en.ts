@@ -96,7 +96,15 @@ export default {
     ContourTrack: 'Contour Track',
     BackgroundSub: 'Background Subtract',
     MeanShit: 'MeanShift',
-    CamShift: 'CamShift'
+    CamShift: 'CamShift',
+
+    YOLODetect: 'YOLO Object Detect',
+    YOLODesc: 'you only look once',
+    yolov6: 'YOLOv6 (via meituan)',
+    yolov8: 'YOLOv8 (via Ultralytics)',
+    yolov10: 'YOLOv10(via qinghua university)',
+    yolo11: 'YOLO11(lastest)',
+
   },
   faceRec: {
     nameInput: 'Please enter name',

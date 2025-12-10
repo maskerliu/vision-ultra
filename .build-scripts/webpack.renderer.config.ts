@@ -160,22 +160,25 @@ class RendererConfig extends BaseConfig {
         // }),
       )
     } else {
-      this.optimization.minimize = true
-      this.optimization.minimizer = [
-        new TerserPlugin({
-          terserOptions: {
-            keep_classnames: true,
-            keep_fnames: true,
-            ecma: 2020,
-            compress: {
-              comparisons: false,
-              drop_console: true
+      this.optimization = {
+        minimize: true,
+        minimizer: [
+          new TerserPlugin({
+            terserOptions: {
+              keep_classnames: true,
+              keep_fnames: true,
+              ecma: 2020,
+              compress: {
+                comparisons: false,
+                drop_console: true
+              },
+              mangle: false, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
             },
-            mangle: false, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
-          },
-          exclude: /[\\/]node_modules[\\/]/
-        }),
-      ]
+            exclude: /[\\/]node_modules[\\/]/
+          }),
+        ]
+      }
+
       this.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {

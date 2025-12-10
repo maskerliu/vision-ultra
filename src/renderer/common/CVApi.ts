@@ -1,5 +1,5 @@
 import { loadOpenCV, type OpenCV } from '@opencvjs/web'
-import { cvBlur, cvEqualizeHist, cvFilter, cvSharpen, cvTracker } from '../store'
+import { cvBlur, cvEqualizeHist, cvFilter, cvSharpen, cvDetector} from '../store'
 import { Open } from 'webpack-dev-server'
 
 const cv: typeof OpenCV = await loadOpenCV()
@@ -64,7 +64,7 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     blur: cvBlur,
     sharpen: cvSharpen,
     filter: cvFilter,
-    tracker: cvTracker,
+    detector: cvDetector,
     cannyThreshold: [number, number],
   }>) {
 
@@ -136,9 +136,9 @@ export function imgProcess(frame: ImageData, width: number, height: number,
   if (params.isGray && params.filter) filtering(params.filter)
 
   let rects: Array<{ x: number, y: number, width: number, height: number }>
-  if (params.tracker) {
+  if (params.detector) {
     try {
-      rects = objectTrack(params.tracker[0], processedImg, params.tracker[1], params.tracker[2])
+      rects = detect(params.detector[0], processedImg, params.detector[1], params.detector[2])
     } catch (err) {
       console.error(err)
     }
@@ -256,7 +256,7 @@ function filtering(filter: cvFilter) {
 }
 
 // 使用背景减除方法
-function objectTrack(type: string, src: OpenCV.Mat, threshold: number, minSize: number) {
+function detect(type: string, src: OpenCV.Mat, threshold: number, minSize: number) {
 
   let kernel: OpenCV.Mat
 
