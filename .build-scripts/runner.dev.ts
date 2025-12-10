@@ -50,8 +50,8 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
       static: [
         { directory: path.join(dirname, '../src/'), publicPath: '/' },
         {
-          directory: path.join(dirname, '../node_modules/'), 
-          publicPath: '/node_modules/', 
+          directory: path.join(dirname, '../node_modules/'),
+          publicPath: '/node_modules/',
           staticOptions: {
             etag: true,
             cacheControl: true,
@@ -63,8 +63,8 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
           },
         },
         {
-          directory: path.join(dirname, '../data/'), 
-          publicPath: '/static/', 
+          directory: path.join(dirname, '../data/'),
+          publicPath: '/static/',
           staticOptions: {
             etag: true,
             cacheControl: true,
@@ -76,8 +76,44 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
           },
         },
         {
-          directory: path.join(dirname, '../icons/colormaps'), 
-          publicPath: '/static/', 
+          directory: path.join(dirname, '../model-train/models/yolo11n_web_model/'),
+          publicPath: '/static/yolo11n_web_model/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+        },
+        {
+          directory: path.join(dirname, '../model-train/models/yolov10n_web_model/'),
+          publicPath: '/static/yolov10n_web_model/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+        },
+        {
+          directory: path.join(dirname, '../model-train/models/yolov8n_web_model/'),
+          publicPath: '/static/yolov8n_web_model/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+        },
+        {
+          directory: path.join(dirname, '../model-train/models/yolov6n_web_model/'),
+          publicPath: '/static/yolov6n_web_model/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+        },
+        {
+          directory: path.join(dirname, '../icons/colormaps'),
+          publicPath: '/static/',
           staticOptions: {
             etag: true,
             cacheControl: true,

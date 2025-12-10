@@ -32,7 +32,7 @@ export type cvFilter = [
   number, // size
 ]
 
-export type cvTracker = [
+export type cvDetector = [
   string, // type meanShift, camShift
   number, // threshold
   number, // minSize
@@ -62,8 +62,8 @@ class ImageParams {
   enableFilter: boolean = false
   filter: cvFilter = ['sobel', 1, 1, 1, 1]
 
-  enableTrack: boolean = false
-  tracker: cvTracker = ['contour', 50, 100]
+  enableDetect: boolean = false
+  detector: cvDetector = ['contour', 50, 100]
 
   enableCanny: boolean = false
   canny: [number, number] = [80, 100]
@@ -75,7 +75,7 @@ class ImageParams {
     params['clahe'] = this.clahe
     params['rotate'] = this.rotate
     params['colorMap'] = this.colorMap
-    
+
     if (this.enableGamma) params['gamma'] = this.gamma
     else delete params['gamma']
 
@@ -95,9 +95,9 @@ class ImageParams {
       params['filter'] = [this.filter[0], this.filter[1], this.filter[2], this.filter[3], this.filter[4]]
     else delete params['filter']
 
-    if (this.enableTrack)
-      params['tracker'] = [this.tracker[0], this.tracker[1], this.tracker[2]]
-    else delete params['tracker']
+    if (this.enableDetect)
+      params['detector'] = [this.detector[0], this.detector[1], this.detector[2]]
+    else delete params['detector']
 
     if (this.enableCanny)
       params['canny'] = [this.canny[0], this.canny[1]]
@@ -112,7 +112,7 @@ export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
       faceRecMode: 'tfjs' as 'tfjs' | 'opencv',  // 1: opencv 2: tensorflow
-      faceDetect: true,
+      faceDetect: false,
       drawFaceMesh: true,
       drawEigen: true,
       landmark: false,
@@ -120,6 +120,8 @@ export const VisionStore = defineStore('VisionStore', {
       imgEnhance: true,
       imgProcessMode: '1' as '1' | '2' | '3', // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
       imgParams: new ImageParams(),
+      enableYolo: false,
+      yoloModel: 'yolov8n',
       showQrCode: false
     }
   },

@@ -21,4 +21,6 @@ out/
 resources/*
 log.txt
 
-*.npy
+*.pb
+*.onnx
+*_saved_model

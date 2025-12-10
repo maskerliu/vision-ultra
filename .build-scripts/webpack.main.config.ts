@@ -109,8 +109,16 @@ class MainConfig extends BaseConfig {
             to: path.join(dirname, '../dist/electron/static/face_landmarker.task'),
           },
           {
-            from: path.join(dirname, `../data/yolov8n_web/`),
-            to: path.join(dirname, '../dist/electron/static/yolov8n_web/'),
+            from: path.posix.join(dirname, `../model-train/models/yolo11n_web_model`),
+            to: path.join(dirname, '../dist/electron/static/yolo11n_web_model/'),
+          },
+          {
+            from: path.posix.join(dirname, `../model-train/models/yolov10n_web_model`),
+            to: path.join(dirname, '../dist/electron/static/yolov10n_web_model/'),
+          },
+          {
+            from: path.posix.join(dirname, `../model-train/models/yolov6n_web_model`),
+            to: path.join(dirname, '../dist/electron/static/yolov6n_web_model/'),
           }
         ]
       }),

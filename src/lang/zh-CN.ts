@@ -92,12 +92,19 @@ export default {
     HoughCircle: '霍夫圆变换',
     HoughLine: '霍夫直线变换',
 
-    ObjectDetect: '目标跟踪',
+    ObjectDetect: '目标检测',
     ColorTrack: '颜色追踪',
     ContourTrack: '轮廓跟踪',
     BackgroundSub: '背景减除',
     MeanShit: 'MeanShift',
-    CamShift: 'CamShift'
+    CamShift: 'CamShift',
+
+    YOLODetect: 'YOLO目标检测',
+    YOLODesc: 'you only look once',
+    yolov6: 'YOLOv6 (via 美团)',
+    yolov8: 'YOLOv8 (via Ultralytics 2023年1月10日发布)',
+    yolov10: 'YOLOv10(清华大学)',
+    yolo11: 'YOLO11(lastest)',
   },
   faceRec: {
     nameInput: '请输入姓名',

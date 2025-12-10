@@ -31,7 +31,11 @@ export class VideoPlayer {
   }
 
   public objDetector: ObjectDetector = null
-  public objTracker: ObjectTracker = null
+  public _objTracker: ObjectTracker = null
+  set objTracker(value: ObjectTracker) {
+    this._objTracker = value
+  }
+
   private mediaRecorder: MediaRecorder
 
   private _frames = 0
@@ -76,22 +80,22 @@ export class VideoPlayer {
     this.offscreenCtx.drawImage(this.preVideo, 0, 0, this.offscreen.width, this.offscreen.height)
     this.frame.data.set(this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data)
     this._imgProcessor?.process(this.frame)
-    this.offscreenCtx.putImageData(this.frame, 0, 0)
     this.previewCtx.drawImage(this.offscreen,
       0, 0, this.frame.width, this.frame.height,
       0, 0, this.frame.width, this.frame.height)
 
     if (this._frames == 2) {
       await this._faceDetector.detect(this.frame)
-      await this.objDetector?.detect(this.frame)
+      await this._objTracker?.detect(this.frame)
       this._frames = 0
     } else {
       this._frames++
     }
 
-    this._faceDetector.updateUI()
+    this._faceDetector?.updateUI()
+    this._objTracker?.updateUI()
 
-    drawCVObjectTrack(this.previewCtx, this._imgProcessor?.objectRects)
+    // drawCVObjectTrack(this.previewCtx, this._imgProcessor?.objectRects)
 
     this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '14px sans-serif'
