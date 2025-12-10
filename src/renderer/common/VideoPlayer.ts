@@ -80,9 +80,7 @@ export class VideoPlayer {
     this.offscreenCtx.drawImage(this.preVideo, 0, 0, this.offscreen.width, this.offscreen.height)
     this.frame.data.set(this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data)
     this._imgProcessor?.process(this.frame)
-    this.previewCtx.drawImage(this.offscreen,
-      0, 0, this.frame.width, this.frame.height,
-      0, 0, this.frame.width, this.frame.height)
+    this.previewCtx.putImageData(this.frame, 0, 0)
 
     if (this._frames == 2) {
       await this._faceDetector.detect(this.frame)
@@ -123,19 +121,18 @@ export class VideoPlayer {
     return this.preVideo.srcObject != null
   }
 
-  async open(url?: string) {
+  async open(url?: string, flip: boolean = true) {
     if (this.preVideo.srcObject && url == null) {
       this.close()
       this.preVideo.srcObject = null
       return
     }
 
-    // this.faceDetector?.reset()
-
     try {
       if (url == null) {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
         this.preVideo.srcObject = stream
+        this.flip = flip
       } else {
         this.preVideo.srcObject = null
         this.close()

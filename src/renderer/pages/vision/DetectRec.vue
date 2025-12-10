@@ -17,12 +17,14 @@
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
-              <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;">
+              <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;"
+                :disabled="!visionStore.faceDetect">
                 <template #default>
                   <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
                 </template>
               </van-checkbox>
-              <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;">
+              <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;"
+                :disabled="!visionStore.faceDetect">
                 <template #default>
                   <van-icon class="iconfont icon-eigen"
                     style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
@@ -53,8 +55,7 @@
               <van-icon class="iconfont icon-capture" />
             </template>
           </van-button>
-          <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;"
-            @click="onFaceScan">
+          <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;" @click="onScan">
             <template #icon>
               <van-icon class="iconfont icon-face-rec" />
             </template>
@@ -71,7 +72,7 @@
           </van-button>
         </template>
       </van-cell>
-      <div ref="eigenFace" class="eigen-face">
+      <div ref="eigenFace" class="eigen-face" v-show="visionStore.drawEigen && visionStore.faceDetect">
         <canvas ref="capture" width="120" height="140"></canvas>
         <canvas ref="masklayer" width="120" height="140"
           style="position: absolute; top: 5px; left: 5px; z-index: 3000; display: none;"></canvas>
@@ -169,6 +170,7 @@ let objTracker: ObjectTracker
 let videoPlayer: VideoPlayer = null
 let scanTask: any
 let count = 0
+let imgData: ImageData = null
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
@@ -185,9 +187,6 @@ onMounted(async () => {
   imgProcessor.imgProcessMode = visionStore.imgProcessMode
   imgProcessor.imgProcessParams = visionStore.imgParams.value
 
-  // capture.value.width = eigenFace.value.clientWidth
-  // capture.value.height = eigenFace.value.clientHeight
-
   faceDetector = new FaceDetector(previewCtx, capture.value, masklayer.value)
   faceDetector.drawFace = visionStore.drawFaceMesh
   faceDetector.enable = visionStore.faceDetect
@@ -196,8 +195,8 @@ onMounted(async () => {
   objTracker = new ObjectTracker(previewCtx)
   objTracker.enable = visionStore.enableYolo
 
-  const filesetResolver = await FilesetResolver.forVisionTasks(
-    __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
+  // const filesetResolver = await FilesetResolver.forVisionTasks(
+  //   __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
   // objDetector = await ObjectDetector.createFromOptions(filesetResolver, {
   //   baseOptions: {
   //     // TODO change task to object detector
@@ -225,37 +224,21 @@ onMounted(async () => {
 
 })
 
-async function onFaceScan() {
-  // if (isScan.value) {
-  //   showNotify({ type: 'warning', message: '正在扫描中，请稍后' })
-  //   return
-  // }
+async function onScan() {
   isScan.value = true
-  scanTask = setInterval(() => {
-    drawImage()
-    faceDetector?.detect(offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height))
-    faceDetector?.updateUI()
-    count++
-    if (count > 10) {
-      clearInterval(scanTask)
-      count = 0
-      isScan.value = false
-    }
-  }, 100)
 
-}
+  let frame = drawImage()
+  faceDetector?.detect(frame)
+  faceDetector?.updateUI()
 
-async function onCollect() {
-  let recResult = await faceDetector?.faceRec()
-  if (recResult == null) {
-    recFace.value = null
-  } else {
-    recFace.value = baseDomain() + recResult?.snap
-  }
+  objTracker?.detect(frame)
+  objTracker?.updateUI()
+
+  isScan.value = false
 }
 
 async function onLiveStream() {
-  videoPlayer?.open(liveStreamUrl.value)
+  videoPlayer?.open(liveStreamUrl.value, false)
   showLiveStreamInput.value = false
 }
 
@@ -276,15 +259,9 @@ async function openFolder() {
       }
       offscreen.value.width = preview.value.width = w
       offscreen.value.height = preview.value.height = h
-      previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
-      drawImage()
-      let imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-      faceDetector?.detect(imgData)
-      faceDetector?.updateUI()
-      objTracker?.detect(imgData)
-      objTracker?.updateUI()
+      onScan()
     }
     img.src = file
   })
@@ -307,12 +284,11 @@ function onConfirmName() {
 }
 
 function drawImage() {
-  const imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+  let imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
   imgProcessor.process(imgData)
   previewCtx.clearRect(0, 0, imgData.width, imgData.height)
   previewCtx.putImageData(imgData, 0, 0)
-  drawCVObjectTrack(previewCtx, imgProcessor.objectRects)
-
+  return imgData
 }
 
 watch(() => visionStore.faceDetect, async (val) => {

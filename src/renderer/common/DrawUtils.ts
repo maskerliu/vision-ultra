@@ -1,6 +1,91 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
 
+
+
+const Labels = [
+  "person",
+  "bicycle",
+  "car",
+  "motorcycle",
+  "airplane",
+  "bus",
+  "train",
+  "truck",
+  "boat",
+  "traffic light",
+  "fire hydrant",
+  "stop sign",
+  "parking meter",
+  "bench",
+  "bird",
+  "cat",
+  "dog",
+  "horse",
+  "sheep",
+  "cow",
+  "elephant",
+  "bear",
+  "zebra",
+  "giraffe",
+  "backpack",
+  "umbrella",
+  "handbag",
+  "tie",
+  "suitcase",
+  "frisbee",
+  "skis",
+  "snowboard",
+  "sports ball",
+  "kite",
+  "baseball bat",
+  "baseball glove",
+  "skateboard",
+  "surfboard",
+  "tennis racket",
+  "bottle",
+  "wine glass",
+  "cup",
+  "fork",
+  "knife",
+  "spoon",
+  "bowl",
+  "banana",
+  "apple",
+  "sandwich",
+  "orange",
+  "broccoli",
+  "carrot",
+  "hot dog",
+  "pizza",
+  "donut",
+  "cake",
+  "chair",
+  "couch",
+  "potted plant",
+  "bed",
+  "dining table",
+  "toilet",
+  "tv",
+  "laptop",
+  "mouse",
+  "remote",
+  "keyboard",
+  "cell phone",
+  "microwave",
+  "oven",
+  "toaster",
+  "sink",
+  "refrigerator",
+  "book",
+  "clock",
+  "vase",
+  "scissors",
+  "teddy bear",
+  "hair drier",
+  "toothbrush"
+]
+
 class Colors {
   // ultralytics color palette https://ultralytics.com/
   private palette: string[]
@@ -277,19 +362,15 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
 
 export function drawObjectDetectResult(ctx: CanvasRenderingContext2D, boxes_data, scores_data, classes_data, ratios) {
   if (scores_data == null || scores_data.length === 0) return
-  // font configs
-  const font = `${Math.max(
-    Math.round(Math.max(ctx.canvas.width, ctx.canvas.height) / 50),
-    10
-  )}px Arial`
+
+  const font = `${Math.max(Math.round(Math.max(ctx.canvas.width, ctx.canvas.height) / 50), 10)}px Arial`
   ctx.font = font
   ctx.textBaseline = "top"
-  
+
   for (let i = 0; i < scores_data.length; ++i) {
-    // filter based on class threshold
-    // const klass = labels[classes_data[i]]
+    const klass = Labels[classes_data[i]]
     const color = colors.get(classes_data[i])
-    if (scores_data[i] * 100 < 50) continue
+    if (scores_data[i] * 100 < 20) continue
     const score = (scores_data[i] * 100).toFixed(1)
     let [y1, x1, y2, x2] = boxes_data.slice(i * 4, (i + 1) * 4)
     x1 *= ratios[0] * ctx.canvas.width / 640
@@ -299,30 +380,15 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D, boxes_data
     const width = x2 - x1
     const height = y2 - y1
 
-    // draw box.
     ctx.fillStyle = Colors.hexToRgba(color, 0.2)
     ctx.fillRect(x1, y1, width, height)
 
-    // draw border box.
-    ctx.strokeStyle = color
+    ctx.strokeStyle = Colors.hexToRgba(color, 0.6)
     ctx.lineWidth = Math.max(Math.min(ctx.canvas.width, ctx.canvas.height) / 200, 2.5)
     ctx.strokeRect(x1, y1, width, height)
 
-    // Draw the label background.
     ctx.fillStyle = color
-    // const textWidth = ctx.measureText(klass + " - " + score + "%").width
-    const textHeight = parseInt(font, 10) // base 10
-    const yText = y1 - (textHeight + ctx.lineWidth)
-    ctx.fillRect(
-      x1 - 1,
-      yText < 0 ? 0 : yText, // handle overflow label box
-      ctx.lineWidth, // textWidth + ctx.lineWidth,
-      textHeight + ctx.lineWidth
-    )
-
-    // Draw labels
-    ctx.fillStyle = "#ffffff"
-    ctx.fillText('klass' + " - " + score + "%", x1 - 1, yText < 0 ? 0 : yText)
+    ctx.fillText(`${klass}-${score}%`, x1 + 5, y1 + 5)
   }
 }
 
