@@ -44,7 +44,6 @@ export class ObjectTracker {
   }
 
   async dispose() {
-    tf.engine().endScope()
     this.model?.dispose()
   }
 
