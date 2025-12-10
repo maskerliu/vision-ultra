@@ -73,7 +73,7 @@ export class FaceDetector {
   }
 
   dispose() {
-    this.face.valid = false
+    if (this.face) this.face.valid = false
     this.faceLandmarker?.close()
   }
 
@@ -96,7 +96,7 @@ export class FaceDetector {
 
 
   updateUI() {
-    if (!this.face.valid || !this._enable) return
+    if (!this.face?.valid || !this._enable) return
 
     drawTFFaceResult(this.previewCtx, this.face, 'none', this._drawFace, true)
 
@@ -109,7 +109,7 @@ export class FaceDetector {
 
   async detect(frame: ImageData) {
     if (!this._enable) {
-      this.face.valid = false
+      if (this.face) this.face.valid = false
       return
     }
 

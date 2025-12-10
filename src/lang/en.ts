@@ -92,9 +92,9 @@ export default {
     HoughLine: '霍夫直线变换',
 
     ObjectDetect: 'Object Detect',
-    ColorTrack: 'Color Track',
-    ContourTrack: 'Contour Track',
-    BackgroundSub: 'Background Subtract',
+    ColorTrack: 'Color',
+    ContourTrack: 'Contour',
+    BackgroundSub: 'Bg Subtract',
     MeanShit: 'MeanShift',
     CamShift: 'CamShift',
 
@@ -102,7 +102,7 @@ export default {
     YOLODesc: 'you only look once',
     yolov6: 'YOLOv6 (via meituan)',
     yolov8: 'YOLOv8 (via Ultralytics)',
-    yolov10: 'YOLOv10(via qinghua university)',
+    yolov10: 'YOLOv10(via Tsinghua university)',
     yolo11: 'YOLO11(lastest)',
 
   },

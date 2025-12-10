@@ -18,30 +18,6 @@
       </van-cell>
     </van-cell-group>
 
-    <!-- YOLO object detect -->
-    <van-cell-group :border="false" style="padding: 5px;">
-      <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableYolo">
-          {{ $t('imgProcess.YOLODetect') }} <span class="param-desc">{{ $t('imgProcess.YOLODesc') }}</span>
-        </van-checkbox>
-      </template>
-      <van-radio-group direction="vertical" :disabled="!visionStore.enableYolo" v-if="visionStore.enableYolo"
-        style="width: 80%; padding: 5px 10px;" v-model="visionStore.yoloModel" @change="onParamChange">
-        <van-radio name="yolov6n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
-          {{ $t('imgProcess.yolov6') }}
-        </van-radio>
-        <van-radio name="yolov8n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
-          {{ $t('imgProcess.yolov8') }}
-        </van-radio>
-        <van-radio name="yolov10n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
-          {{ $t('imgProcess.yolov10') }}
-        </van-radio>
-        <van-radio name="yolo11n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
-          {{ $t('imgProcess.yolo11') }}
-        </van-radio>
-      </van-radio-group>
-    </van-cell-group>
-
     <van-cell-group title=" ">
       <van-field :label="$t('imgProcess.Gray')" label-align="right" type="number" input-align="right"
         label-width="4rem">
@@ -393,7 +369,29 @@
       </van-field>
     </van-cell-group>
 
-    
+    <!-- YOLO object detect -->
+    <van-cell-group :border="false" style="padding: 5px;">
+      <template #title>
+        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableYolo">
+          {{ $t('imgProcess.YOLODetect') }} <span class="param-desc">{{ $t('imgProcess.YOLODesc') }}</span>
+        </van-checkbox>
+      </template>
+      <van-radio-group direction="vertical" :disabled="!visionStore.enableYolo" v-if="visionStore.enableYolo"
+        style="width: 80%; padding: 5px 10px;" v-model="visionStore.yoloModel" @change="onParamChange">
+        <van-radio name="yolov6n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
+          {{ $t('imgProcess.yolov6') }}
+        </van-radio>
+        <van-radio name="yolov8n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
+          {{ $t('imgProcess.yolov8') }}
+        </van-radio>
+        <van-radio name="yolov10n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
+          {{ $t('imgProcess.yolov10') }}
+        </van-radio>
+        <van-radio name="yolo11n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
+          {{ $t('imgProcess.yolo11') }}
+        </van-radio>
+      </van-radio-group>
+    </van-cell-group>
 
     <van-cell-group :title="$t('imgProcess.FeatExtract')" :border="false">
       <van-cell center :title="$t('imgProcess.Canny')" :label="'[ ' + visionStore.imgParams.canny.toString() + ' ]'">
