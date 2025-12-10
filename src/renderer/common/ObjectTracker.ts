@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 import { baseDomain } from '../../common'
 import { drawObjectDetectResult } from './DrawUtils'
-
+import { Float } from 'apache-arrow'
 
 export class ObjectTracker {
 
@@ -16,9 +16,9 @@ export class ObjectTracker {
   private previewCtx: CanvasRenderingContext2D
 
 
-  private boxes_data
-  private scores_data
-  private classes_data
+  private boxes_data: any
+  private scores_data: Float32Array
+  private classes_data: Uint8Array
   private xRatio: number = 1
   private yRatio: number = 1
 
@@ -52,16 +52,11 @@ export class ObjectTracker {
   }
 
   async detect(image: ImageData) {
-    if (!this._enable) return 
-    if (!this.model) {
-      console.log('模型未加载，请先加载模型。')
-      return
-    }
+    if (!this.model || !this._enable) return
+    
     tf.engine().startScope()
-    // 1. 预处理
     const input = this.preprocess(image)
-    // 2. 执行预测
-    const res = await this.model.executeAsync(input)
+    const res = this.model.execute(input)
     const transRes = (res as tf.Tensor).transpose([0, 2, 1])
 
     const boxes = tf.tidy(() => {
@@ -75,24 +70,23 @@ export class ObjectTracker {
     })
 
     const [scores, classes] = tf.tidy(() => {
-      // class scores
       const rawScores = transRes.slice([0, 0, 4], [-1, -1, 80]).squeeze([0]) // #6 only squeeze axis 0 to handle only 1 class models
       return [rawScores.max(1), rawScores.argMax(1)]
     })
     const nms = await tf.image.nonMaxSuppressionAsync(boxes as any, scores, 500, 0.45, 0.2) // NMS to filter boxes
-    this.boxes_data = boxes.gather(nms, 0).dataSync() // indexing boxes by nms index
-    this.scores_data = scores.gather(nms, 0).dataSync() // indexing scores by nms index
-    this.classes_data = classes.gather(nms, 0).dataSync() // indexing classes by nms index
-    tf.dispose([res, transRes, boxes, scores, classes, nms])
-    // 5. 返回解析结果
-    tf.engine().endScope()
+    
+    if (boxes.isDisposed && nms.isDisposed) {
+      this.boxes_data = boxes?.gather(nms, 0)?.dataSync() // indexing boxes by nms index
+      this.scores_data = scores?.gather(nms, 0)?.dataSync() // indexing scores by nms index
+      this.classes_data = classes?.gather(nms, 0)?.dataSync() // indexing classes by nms index
+      tf.dispose([res, transRes, boxes, scores, classes, nms])
+      tf.engine().endScope()
+    }
   }
 
   private preprocess(image: ImageData) {
     const input = tf.tidy(() => {
       const img = tf.browser.fromPixels(image)
-
-      // padding image to square => [n, m] to [n, n], n > m
       const [h, w] = img.shape.slice(0, 2) // get source width and height
       const maxSize = Math.max(w, h) // get max size
       const imgPadded = img.pad([
