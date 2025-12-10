@@ -1,15 +1,58 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
 
-export const NUM_KEYPOINTS = 468
-export const NUM_IRIS_KEYPOINTS = 5
-export const GREEN = '#32EEDB'
-export const RED = '#FF2C35'
-export const BLUE = '#157AB3'
-export const YELLOW = '#F8E16C'
-export const WHITE = '#ffffff'
-export const SILVERY = '#f1f2f6'
-export const PURPLE = '#7F00FF'
+class Colors {
+  // ultralytics color palette https://ultralytics.com/
+  private palette: string[]
+  private n: number
+
+  constructor() {
+    this.palette = [
+      "#FF3838",
+      "#FF9D97",
+      "#FF701F",
+      "#FFB21D",
+      "#CFD231",
+      "#48F90A",
+      "#92CC17",
+      "#3DDB86",
+      "#1A9334",
+      "#00D4BB",
+      "#2C99A8",
+      "#00C2FF",
+      "#344593",
+      "#6473FF",
+      "#0018EC",
+      "#8438FF",
+      "#520085",
+      "#CB38FF",
+      "#FF95C8",
+      "#FF37C7",
+    ]
+    this.n = this.palette.length
+  }
+
+  get = (i) => this.palette[Math.floor(i) % this.n];
+
+  static hexToRgba = (hex, alpha) => {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result
+      ? `rgba(${[parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)].join(
+        ", "
+      )}, ${alpha})`
+      : null
+  };
+}
+
+const NUM_KEYPOINTS = 468
+const NUM_IRIS_KEYPOINTS = 5
+const GREEN = '#32EEDB'
+const RED = '#FF2C35'
+const BLUE = '#157AB3'
+const YELLOW = '#F8E16C'
+const WHITE = '#ffffff'
+const SILVERY = '#f1f2f6'
+const PURPLE = '#7F00FF'
 
 export const LABEL_TO_COLOR = {
   lips: PURPLE,
@@ -45,6 +88,8 @@ export type KeyPoint = {
 }
 
 export const FACE_DIMS: number = 2
+
+const colors = new Colors()
 
 const SharedPaths = {
   lips: new Float16Array(FACEMESH_CONTOUR.lips.length * FACE_DIMS),
@@ -228,6 +273,57 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
   }
 
   face.valid = true
+}
+
+export function drawObjectDetectResult(ctx: CanvasRenderingContext2D, boxes_data, scores_data, classes_data, ratios) {
+  if (scores_data == null || scores_data.length === 0) return
+  // font configs
+  const font = `${Math.max(
+    Math.round(Math.max(ctx.canvas.width, ctx.canvas.height) / 50),
+    10
+  )}px Arial`
+  ctx.font = font
+  ctx.textBaseline = "top"
+  
+  for (let i = 0; i < scores_data.length; ++i) {
+    // filter based on class threshold
+    // const klass = labels[classes_data[i]]
+    const color = colors.get(classes_data[i])
+    if (scores_data[i] * 100 < 50) continue
+    const score = (scores_data[i] * 100).toFixed(1)
+    let [y1, x1, y2, x2] = boxes_data.slice(i * 4, (i + 1) * 4)
+    x1 *= ratios[0] * ctx.canvas.width / 640
+    x2 *= ratios[0] * ctx.canvas.width / 640
+    y1 *= ratios[1] * ctx.canvas.height / 640
+    y2 *= ratios[1] * ctx.canvas.height / 640
+    const width = x2 - x1
+    const height = y2 - y1
+
+    // draw box.
+    ctx.fillStyle = Colors.hexToRgba(color, 0.2)
+    ctx.fillRect(x1, y1, width, height)
+
+    // draw border box.
+    ctx.strokeStyle = color
+    ctx.lineWidth = Math.max(Math.min(ctx.canvas.width, ctx.canvas.height) / 200, 2.5)
+    ctx.strokeRect(x1, y1, width, height)
+
+    // Draw the label background.
+    ctx.fillStyle = color
+    // const textWidth = ctx.measureText(klass + " - " + score + "%").width
+    const textHeight = parseInt(font, 10) // base 10
+    const yText = y1 - (textHeight + ctx.lineWidth)
+    ctx.fillRect(
+      x1 - 1,
+      yText < 0 ? 0 : yText, // handle overflow label box
+      ctx.lineWidth, // textWidth + ctx.lineWidth,
+      textHeight + ctx.lineWidth
+    )
+
+    // Draw labels
+    ctx.fillStyle = "#ffffff"
+    ctx.fillText('klass' + " - " + score + "%", x1 - 1, yText < 0 ? 0 : yText)
+  }
 }
 
 export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
