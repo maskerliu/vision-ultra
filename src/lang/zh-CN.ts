@@ -8,6 +8,7 @@ export default {
     save: '保存',
     upload: '上传',
     search: '搜索',
+    componetLoading: '组件加载中...'
   },
   settings: {
     sys: {
