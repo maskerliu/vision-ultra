@@ -1,89 +1,16 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
 
-
-
-const Labels = [
-  "person",
-  "bicycle",
-  "car",
-  "motorcycle",
-  "airplane",
-  "bus",
-  "train",
-  "truck",
-  "boat",
-  "traffic light",
-  "fire hydrant",
-  "stop sign",
-  "parking meter",
-  "bench",
-  "bird",
-  "cat",
-  "dog",
-  "horse",
-  "sheep",
-  "cow",
-  "elephant",
-  "bear",
-  "zebra",
-  "giraffe",
-  "backpack",
-  "umbrella",
-  "handbag",
-  "tie",
-  "suitcase",
-  "frisbee",
-  "skis",
-  "snowboard",
-  "sports ball",
-  "kite",
-  "baseball bat",
-  "baseball glove",
-  "skateboard",
-  "surfboard",
-  "tennis racket",
-  "bottle",
-  "wine glass",
-  "cup",
-  "fork",
-  "knife",
-  "spoon",
-  "bowl",
-  "banana",
-  "apple",
-  "sandwich",
-  "orange",
-  "broccoli",
-  "carrot",
-  "hot dog",
-  "pizza",
-  "donut",
-  "cake",
-  "chair",
-  "couch",
-  "potted plant",
-  "bed",
-  "dining table",
-  "toilet",
-  "tv",
-  "laptop",
-  "mouse",
-  "remote",
-  "keyboard",
-  "cell phone",
-  "microwave",
-  "oven",
-  "toaster",
-  "sink",
-  "refrigerator",
-  "book",
-  "clock",
-  "vase",
-  "scissors",
-  "teddy bear",
-  "hair drier",
-  "toothbrush"
+const Object_Labels = [
+  "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+  "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+  "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+  "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+  "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+  "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+  "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+  "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
+  "hair drier", "toothbrush"
 ]
 
 class Colors {
@@ -129,7 +56,7 @@ class Colors {
   };
 }
 
-const NUM_KEYPOINTS = 468
+export const NUM_KEYPOINTS = 468
 const NUM_IRIS_KEYPOINTS = 5
 const GREEN = '#32EEDB'
 const RED = '#FF2C35'
@@ -360,23 +287,22 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
   face.valid = true
 }
 
-export function drawObjectDetectResult(ctx: CanvasRenderingContext2D, boxes_data, scores_data, classes_data, ratios) {
+export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
+  boxes_data: Float32Array, scores_data: Float16Array, classes_data: Uint8Array, objNum: number, scale: [number, number]) {
   if (scores_data == null || scores_data.length === 0) return
 
-  const font = `${Math.max(Math.round(Math.max(ctx.canvas.width, ctx.canvas.height) / 50), 10)}px Arial`
-  ctx.font = font
+  ctx.font = `10px Arial`
   ctx.textBaseline = "top"
+  for (let i = 0; i < objNum; ++i) {
+    let score = (scores_data[i] * 100).toFixed(1)
+    if (scores_data[i] * 100 < 30) continue
 
-  for (let i = 0; i < scores_data.length; ++i) {
-    const klass = Labels[classes_data[i]]
+    const klass = Object_Labels[classes_data[i]]
     const color = colors.get(classes_data[i])
-    if (scores_data[i] * 100 < 20) continue
-    const score = (scores_data[i] * 100).toFixed(1)
-    let [y1, x1, y2, x2] = boxes_data.slice(i * 4, (i + 1) * 4)
-    x1 *= ratios[0] * ctx.canvas.width / 640
-    x2 *= ratios[0] * ctx.canvas.width / 640
-    y1 *= ratios[1] * ctx.canvas.height / 640
-    y2 *= ratios[1] * ctx.canvas.height / 640
+    let y1 = boxes_data[i * 4] * scale[1]
+    let x1 = boxes_data[i * 4 + 1] * scale[0]
+    let y2 = boxes_data[i * 4 + 2] * scale[1]
+    let x2 = boxes_data[i * 4 + 3] * scale[0]
     const width = x2 - x1
     const height = y2 - y1
 
@@ -384,7 +310,7 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D, boxes_data
     ctx.fillRect(x1, y1, width, height)
 
     ctx.strokeStyle = Colors.hexToRgba(color, 0.6)
-    ctx.lineWidth = Math.max(Math.min(ctx.canvas.width, ctx.canvas.height) / 200, 2.5)
+    ctx.lineWidth = 2.5
     ctx.strokeRect(x1, y1, width, height)
 
     ctx.fillStyle = color

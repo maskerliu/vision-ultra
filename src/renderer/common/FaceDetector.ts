@@ -1,7 +1,7 @@
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
 import { showNotify } from "vant"
 import { baseDomain, FaceRec } from "../../common"
-import { drawCVFaceResult, drawTFFaceResult, FACE_DIMS, FaceResult, getFaceContour, getFaceSlope, landmarksToFace } from "./DrawUtils"
+import { drawCVFaceResult, drawTFFaceResult, FACE_DIMS, FaceResult, getFaceContour, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from "./DrawUtils"
 import { ImageProcessor } from "./ImageProcessor"
 
 
@@ -55,7 +55,7 @@ export class FaceDetector {
   async init() {
     if (!this._enable) return
     this.face = {
-      landmarks: new Float16Array(478 * FACE_DIMS),
+      landmarks: new Float16Array(NUM_KEYPOINTS * FACE_DIMS),
       box: { xMin: 0, yMin: 0, xMax: 0, yMax: 0, width: 0, height: 0 },
       valid: false
     }
@@ -74,7 +74,7 @@ export class FaceDetector {
 
   dispose() {
     if (this.face) this.face.valid = false
-    this.faceLandmarker?.close()
+    // this.faceLandmarker?.close()
   }
 
   set enableFaceAngle(enable: boolean) {
