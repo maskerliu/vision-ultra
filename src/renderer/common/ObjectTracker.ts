@@ -112,7 +112,7 @@ export class ObjectTracker {
     this.boxesTF = tf.concat([y1, x1, y2, x2,], 2).squeeze()
     tf.dispose([x1, y1, x2, y2])
     this.scoresTF = transRes.slice([0, 0, 4], [-1, -1, 1]).squeeze()
-    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxes as any, this.scores as any, 50, 0.45, 0.2)
+    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxesTF as any, this.scoresTF as any, 50, 0.45, 0.2)
     if (this.nms.size > MAX_OBJECTS_NUM) {
       let tmp = this.nms.slice(0, MAX_OBJECTS_NUM)
       this.nms.dispose()
@@ -129,7 +129,7 @@ export class ObjectTracker {
     this.boxesTF = tf.concat([y1, x1, y2, x2,], 2).squeeze()
     tf.dispose([x1, y1, x2, y2])
     this.scoresTF = res[0].squeeze()
-    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxes as any, this.scores as any, 500, 0.45, 0.2)
+    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxesTF as any, this.scoresTF as any, 500, 0.45, 0.2)
   }
 
   private async yoyoCommon(res: tf.Tensor) {
@@ -149,7 +149,7 @@ export class ObjectTracker {
     this.classesTF = rawScores.argMax(1)
     rawScores.dispose()
 
-    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxes as any, this.scores as any, 50, 0.45, 0.2)
+    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxesTF as any, this.scoresTF as any, 50, 0.45, 0.2)
     if (this.nms.size > MAX_OBJECTS_NUM) {
       let tmp = this.nms.slice(0, MAX_OBJECTS_NUM)
       this.nms.dispose()
