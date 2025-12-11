@@ -288,17 +288,18 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
 }
 
 export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
-  boxes_data: Float32Array, scores_data: Float16Array, classes_data: Uint8Array, objNum: number, scale: [number, number]) {
-  if (scores_data == null || scores_data.length === 0) return
+  boxes_data: Float32Array, scores: Float16Array, classes: Uint8Array, 
+  objNum: number, scale: [number, number]) {
+  if (scores == null || scores.length === 0) return
 
   ctx.font = `10px Arial`
   ctx.textBaseline = "top"
   for (let i = 0; i < objNum; ++i) {
-    let score = (scores_data[i] * 100).toFixed(1)
-    if (scores_data[i] * 100 < 30) continue
+    let score = (scores[i] * 100).toFixed(1)
+    if (scores[i] * 100 < 30) continue
 
-    const klass = Object_Labels[classes_data[i]]
-    const color = colors.get(classes_data[i])
+    const klass = Object_Labels[classes[i]]
+    const color = colors.get(classes[i])
     let y1 = boxes_data[i * 4] * scale[1]
     let x1 = boxes_data[i * 4 + 1] * scale[0]
     let y2 = boxes_data[i * 4 + 2] * scale[1]

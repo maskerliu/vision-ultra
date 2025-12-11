@@ -121,7 +121,7 @@ export const VisionStore = defineStore('VisionStore', {
       imgProcessMode: '1' as '1' | '2' | '3', // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
       imgParams: new ImageParams(),
       enableYolo: false,
-      yoloModel: 'yolov10n',
+      yoloModel: 'yolov6n',
       showQrCode: false
     }
   },
