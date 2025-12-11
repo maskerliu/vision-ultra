@@ -13,6 +13,7 @@ export class ObjectTracker {
     this._enable = val
   }
 
+  private modelName: string
   private model: tf.GraphModel
   private modelWidth: number
   private modelHeight: number
@@ -20,14 +21,18 @@ export class ObjectTracker {
   private _width: number
   private _height: number
 
-  private boxes_data: Float32Array<ArrayBufferLike>
-  private scores_data: Float16Array
-  private classes_data: Uint8Array
+  private boxes: Float32Array<ArrayBufferLike>
+  private scores: Float16Array
+  private classes: Uint8Array
   private objectNum: number = 0
   private xRatio: number = 1
   private yRatio: number = 1
   private scaleX: number = 1
   private scaleY: number = 1
+  private nms: tf.Tensor
+  private boxesTF: tf.Tensor
+  private scoresTF: tf.Tensor
+  private classesTF: tf.Tensor
 
   constructor(context: CanvasRenderingContext2D) {
     this.previewCtx = context
@@ -35,16 +40,15 @@ export class ObjectTracker {
     this._height = context.canvas.height
   }
 
-
   async init(yolo: string = 'yolov6n') {
     if (!this._enable) return
 
+    this.modelName = yolo
     this.model?.dispose()
 
-
-    this.boxes_data = new Float32Array(MAX_OBJECTS_NUM * 4) // 100 boxes, 4 coordinates
-    this.scores_data = new Float16Array(MAX_OBJECTS_NUM) // 100 boxes, 1 score
-    this.classes_data = new Uint8Array(MAX_OBJECTS_NUM) // 100 boxes, 1 class
+    this.boxes = new Float32Array(MAX_OBJECTS_NUM * 4) // 100 boxes, 4 coordinates
+    this.scores = new Float16Array(MAX_OBJECTS_NUM) // 100 boxes, 1 score
+    this.classes = new Uint8Array(MAX_OBJECTS_NUM) // 100 boxes, 1 class
 
     await tf.ready()
     this.model = await tf.loadGraphModel(`${__DEV__ ? '' : baseDomain()}/static/${yolo}_web_model/model.json`)
@@ -62,7 +66,7 @@ export class ObjectTracker {
   }
 
   updateUI() {
-    drawObjectDetectResult(this.previewCtx, this.boxes_data, this.scores_data, this.classes_data,this.objectNum, [this.scaleX, this.scaleY])
+    drawObjectDetectResult(this.previewCtx, this.boxes, this.scores, this.classes, this.objectNum, [this.scaleX, this.scaleY])
   }
 
   async detect(image: ImageData) {
@@ -70,70 +74,87 @@ export class ObjectTracker {
     tf.engine().startScope()
     let input = this.preprocess(image)
     let res = this.model.execute(input)
-    let nms: tf.Tensor
-    let boxes: tf.Tensor
-    let scores: tf.Tensor
-    let classes: tf.Tensor
     let transRes: tf.Tensor
-    console.log(res)
-    if (Array.isArray(res)) {
-      res[1].print()
 
-      let x1 = res[1].slice([0, 0, 0], [-1, -1, 1]) // x1
-      let y1 = res[1].slice([0, 0, 1], [-1, -1, 1]) // y1
-      let x2 = res[1].slice([0, 0, 2], [-1, -1, 1]) // x2
-      let y2 = res[1].slice([0, 0, 3], [-1, -1, 1]) // y2
-      classes = res[1].slice([0, 0, 5], [-1, -1, 1]).squeeze()
-      boxes = tf.concat([y1, x1, y2, x2,], 2).squeeze()
-      tf.dispose([x1, y1, x2, y2])
-      scores = res[0].squeeze()
-      nms = await tf.image.nonMaxSuppressionAsync(boxes as any, scores as any, 500, 0.45, 0.2)
-      nms.print()
-    } else {
-      transRes = res.transpose([0, 2, 1])
-      console.log('transRes', transRes.rank, transRes.shape)
-      transRes.print()
-
-      boxes = tf.tidy(() => {
-        const w = transRes.slice([0, 0, 2], [-1, -1, 1]) // get width
-        const h = transRes.slice([0, 0, 3], [-1, -1, 1]) // get height
-        const x1 = tf.sub(transRes.slice([0, 0, 0], [-1, -1, 1]), tf.div(w, 2)) // x1
-        const y1 = tf.sub(transRes.slice([0, 0, 1], [-1, -1, 1]), tf.div(h, 2)) // y1
-        console.log('w', w.size, w.rank, w.shape)
-        w.print()
-        console.log('h', h.size, h.rank, h.shape)
-        h.print()
-        console.log('x1', x1.size, x1.rank, x1.shape)
-        x1.print()
-        console.log('y1', y1.size, y1.rank, y1.shape)
-        y1.print()
-        return tf
-          .concat([y1, x1, tf.add(y1, h), tf.add(x1, w),], 2)
-          .squeeze()
-      })
-
-      const rawScores = transRes.slice([0, 0, 4], [-1, -1, 80]).squeeze([0])
-      scores = rawScores.max(1)
-      classes = rawScores.argMax(1)
-      rawScores.dispose()
-
-      nms = await tf.image.nonMaxSuppressionAsync(boxes as any, scores as any, 500, 0.45, 0.2) // NMS to filter boxes
-      if (nms.size > MAX_OBJECTS_NUM) {
-        let tmp = nms.slice(0, MAX_OBJECTS_NUM)
-        nms.dispose()
-        nms = tmp
-      }
-      nms.print()
+    switch (this.modelName) {
+      case 'yolov6n':
+        await this.yolov6n(res as tf.Tensor)
+        break
+      case 'yolov8n':
+      case 'yolo11n':
+        await this.yoyoCommon(res as tf.Tensor)
+        break
+      case 'yolov10n':
+        await this.yolov10n(res as tf.Tensor[])
+        break
     }
 
-    if (!boxes.isDisposed && !nms.isDisposed) {
-      this.objectNum = Math.min(nms.size, MAX_OBJECTS_NUM)
-      this.boxes_data.set(boxes?.gather(nms, 0)?.dataSync().slice(0, MAX_OBJECTS_NUM * 4))  // indexing boxes by nms index
-      this.scores_data.set(scores?.gather(nms, 0)?.dataSync().slice(0, MAX_OBJECTS_NUM)) // indexing scores by nms index
-      this.classes_data.set(classes?.gather(nms, 0)?.dataSync().slice(0, MAX_OBJECTS_NUM)) // indexing classes by nms index
+    // if (!this.boxes?.isDisposed) this.boxes?.print()
+    // if (!this.scores?.isDisposed) this.scores?.print()
+    // if (!this.nms?.isDisposed) this.nms?.print()
+
+    if (!this.boxesTF?.isDisposed && !this.nms?.isDisposed) {
+      this.objectNum = Math.min(this.nms?.size, MAX_OBJECTS_NUM)
+      this.boxes.set(this.boxesTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objectNum * 4))
+      this.scores.set(this.scoresTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objectNum))
+      this.classes.set(this.classesTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objectNum))
     }
-    tf.dispose([res, transRes, boxes, scores, classes, nms])
+    tf.dispose([res, transRes, this.boxesTF, this.scoresTF, this.classesTF, this.nms])
     tf.engine().endScope()
+  }
+
+  private async yolov6n(res: tf.Tensor) {
+    let transRes = res.transpose([0, 2, 1])
+    let x1 = transRes.slice([0, 0, 0], [-1, -1, 1]) // x1
+    let y1 = transRes.slice([0, 0, 1], [-1, -1, 1]) // y1
+    let x2 = transRes.slice([0, 0, 2], [-1, -1, 1]) // x2
+    let y2 = transRes.slice([0, 0, 3], [-1, -1, 1]) // y2
+    this.boxesTF = tf.concat([y1, x1, y2, x2,], 2).squeeze()
+    tf.dispose([x1, y1, x2, y2])
+    this.scoresTF = transRes.slice([0, 0, 4], [-1, -1, 1]).squeeze()
+    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxes as any, this.scores as any, 50, 0.45, 0.2)
+    if (this.nms.size > MAX_OBJECTS_NUM) {
+      let tmp = this.nms.slice(0, MAX_OBJECTS_NUM)
+      this.nms.dispose()
+      this.nms = tmp
+    }
+  }
+
+  private async yolov10n(res: tf.Tensor[]) {
+    let x1 = res[1].slice([0, 0, 0], [-1, -1, 1]) // x1
+    let y1 = res[1].slice([0, 0, 1], [-1, -1, 1]) // y1
+    let x2 = res[1].slice([0, 0, 2], [-1, -1, 1]) // x2
+    let y2 = res[1].slice([0, 0, 3], [-1, -1, 1]) // y2
+    this.classesTF = res[1].slice([0, 0, 5], [-1, -1, 1]).squeeze()
+    this.boxesTF = tf.concat([y1, x1, y2, x2,], 2).squeeze()
+    tf.dispose([x1, y1, x2, y2])
+    this.scoresTF = res[0].squeeze()
+    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxes as any, this.scores as any, 500, 0.45, 0.2)
+  }
+
+  private async yoyoCommon(res: tf.Tensor) {
+    let transRes = res.transpose([0, 2, 1])
+    this.boxesTF = tf.tidy(() => {
+      const w = transRes.slice([0, 0, 2], [-1, -1, 1]) // get width
+      const h = transRes.slice([0, 0, 3], [-1, -1, 1]) // get height
+      const x1 = tf.sub(transRes.slice([0, 0, 0], [-1, -1, 1]), tf.div(w, 2)) // x1
+      const y1 = tf.sub(transRes.slice([0, 0, 1], [-1, -1, 1]), tf.div(h, 2)) // y1
+      return tf
+        .concat([y1, x1, tf.add(y1, h), tf.add(x1, w),], 2)
+        .squeeze()
+    })
+
+    const rawScores = transRes.slice([0, 0, 4], [-1, -1, 80]).squeeze()
+    this.scoresTF = rawScores.max(1)
+    this.classesTF = rawScores.argMax(1)
+    rawScores.dispose()
+
+    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxes as any, this.scores as any, 50, 0.45, 0.2)
+    if (this.nms.size > MAX_OBJECTS_NUM) {
+      let tmp = this.nms.slice(0, MAX_OBJECTS_NUM)
+      this.nms.dispose()
+      this.nms = tmp
+    }
   }
 
   private preprocess(image: ImageData) {
