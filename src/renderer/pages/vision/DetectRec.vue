@@ -1,96 +1,90 @@
 <template>
-  <van-row class="full-row" style="position: relative;">
-    <van-cell-group ref="previewParent" inset style="width: 100%; text-align: center; margin: 30px 0 0 0;">
-      <van-cell>
-        <template #title>
-          <van-row justify="space-between">
-            <van-row>
-              <van-checkbox v-model="visionStore.imgEnhance" style="margin-left: 15px;">
-                <template #default>
-                  <van-icon class="iconfont icon-clarity-enhance"
-                    style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
-                </template>
-              </van-checkbox>
-              <van-checkbox v-model="visionStore.faceDetect" style="margin-left: 15px;">
-                <template #default>
-                  <van-icon class="iconfont icon-face-enhance"
-                    style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
-                </template>
-              </van-checkbox>
-              <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;"
-                :disabled="!visionStore.faceDetect">
-                <template #default>
-                  <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
-                </template>
-              </van-checkbox>
-              <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;"
-                :disabled="!visionStore.faceDetect">
-                <template #default>
-                  <van-icon class="iconfont icon-eigen"
-                    style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
-                </template>
-              </van-checkbox>
-            </van-row>
-            <van-radio-group v-model="visionStore.faceRecMode" direction="horizontal">
-              <van-radio name="opencv" :disabled="isWeb">
-                <van-icon class="iconfont icon-opencv" style="font-size: 1.5rem;" />
-              </van-radio>
-              <van-radio name="tfjs">
-                <van-icon class="iconfont icon-tensorflow" style="font-size: 1.5rem;" />
-              </van-radio>
-            </van-radio-group>
-          </van-row>
-        </template>
-        <template #right-icon>
-          <van-image fit="cover" radius="10" width="32" height="32" :src="recFace" />
+  <van-row ref="previewParent" style="position: relative; height: calc(100% - 30px); margin-top: 30px;">
 
-          <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="openFolder">
-            <template #icon>
-              <van-icon class="iconfont icon-open" />
-            </template>
-          </van-button>
+    <van-row justify="space-between" style="width: 100%; height: 50px; background-color: white;">
+      <van-row style="flex-direction: row;">
+        <van-checkbox v-model="visionStore.imgEnhance" style="margin-left: 15px;">
+          <template #default>
+            <van-icon class="iconfont icon-clarity-enhance"
+              style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+          </template>
+        </van-checkbox>
+        <van-checkbox v-model="visionStore.faceDetect" style="margin-left: 15px;">
+          <template #default>
+            <van-icon class="iconfont icon-face-enhance"
+              style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+          </template>
+        </van-checkbox>
+        <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;" :disabled="!visionStore.faceDetect">
+          <template #default>
+            <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+          </template>
+        </van-checkbox>
+        <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;" :disabled="!visionStore.faceDetect">
+          <template #default>
+            <van-icon class="iconfont icon-eigen" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
+          </template>
+        </van-checkbox>
+      </van-row>
+      <van-radio-group v-model="visionStore.faceRecMode" direction="horizontal">
+        <van-radio name="opencv" :disabled="isWeb">
+          <van-icon class="iconfont icon-opencv" style="font-size: 1.5rem;" />
+        </van-radio>
+        <van-radio name="tfjs">
+          <van-icon class="iconfont icon-tensorflow" style="font-size: 1.5rem;" />
+        </van-radio>
+      </van-radio-group>
+      <van-row style="padding: 10px 10px 0 0;">
+        <van-image fit="cover" radius="10" width="32" height="32" :src="recFace" />
 
-          <van-button plain size="small" type="danger" style="margin-left: 15px;" @click="onCapture">
-            <template #icon>
-              <van-icon class="iconfont icon-capture" />
-            </template>
-          </van-button>
-          <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;" @click="onScan">
-            <template #icon>
-              <van-icon class="iconfont icon-face-rec" />
-            </template>
-          </van-button>
-          <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="showLiveStreamInput = true">
-            <template #icon>
-              <van-icon class="iconfont icon-live-stream" />
-            </template>
-          </van-button>
-          <van-button plain size="small" type="default" style="margin-left: 15px;" @click="onClickCamera">
-            <template #icon>
-              <van-icon class="iconfont icon-camera" />
-            </template>
-          </van-button>
-        </template>
-      </van-cell>
-      <div ref="eigenFace" class="eigen-face" v-show="visionStore.drawEigen && visionStore.faceDetect">
-        <canvas ref="capture" width="120" height="140"></canvas>
-        <canvas ref="masklayer" width="120" height="140"
-          style="position: absolute; top: 5px; left: 5px; z-index: 3000; display: none;"></canvas>
-      </div>
-      <media-controller audio style="position: relative; text-align: center; margin-top: 15px;">
-        <canvas ref="preview"></canvas>
-        <canvas ref="offscreen" style="display: none;"></canvas>
-        <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
-        <media-control-bar style="position: absolute; bottom: 0px; left: 0px; right: 0px;">
-          <media-play-button></media-play-button>
-          <media-time-display showduration></media-time-display>
-          <media-time-range></media-time-range>
-          <media-playback-rate-button></media-playback-rate-button>
-          <media-mute-button></media-mute-button>
-          <media-volume-range></media-volume-range>
-        </media-control-bar>
-      </media-controller>
-    </van-cell-group>
+        <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="openFolder">
+          <template #icon>
+            <van-icon class="iconfont icon-open" />
+          </template>
+        </van-button>
+
+        <van-button plain size="small" type="danger" style="margin-left: 15px;" @click="showNameInputDialog = true">
+          <template #icon>
+            <van-icon class="iconfont icon-capture" />
+          </template>
+        </van-button>
+        <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;" @click="onScan">
+          <template #icon>
+            <van-icon class="iconfont icon-face-rec" />
+          </template>
+        </van-button>
+        <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="showLiveStreamInput = true">
+          <template #icon>
+            <van-icon class="iconfont icon-live-stream" />
+          </template>
+        </van-button>
+        <van-button plain size="small" type="default" style="margin-left: 15px;" @click="onClickCamera">
+          <template #icon>
+            <van-icon class="iconfont icon-camera" />
+          </template>
+        </van-button>
+      </van-row>
+    </van-row>
+
+    <media-controller audio class="media-controller">
+      <canvas ref="preview"></canvas>
+      <canvas ref="offscreen" style="display: none;"></canvas>
+      <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
+      <media-control-bar style="position: absolute; bottom: 0px; left: 0px; right: 0px;" v-if="showControlBar">
+        <media-play-button></media-play-button>
+        <media-time-display showduration></media-time-display>
+        <media-time-range></media-time-range>
+        <media-playback-rate-button></media-playback-rate-button>
+        <media-mute-button></media-mute-button>
+        <media-volume-range></media-volume-range>
+      </media-control-bar>
+    </media-controller>
+
+    <div ref="eigenFace" class="eigen-face" v-show="visionStore.drawEigen && visionStore.faceDetect">
+      <canvas ref="capture" width="120" height="140"></canvas>
+      <canvas ref="masklayer" width="120" height="140"
+        style="position: absolute; top: 5px; left: 5px; z-index: 3000; display: none;"></canvas>
+    </div>
 
     <van-dialog v-model:show="showNameInputDialog" :title="$t('faceRec.nameInput')" show-cancel-button
       @confirm="onConfirmName">
@@ -120,7 +114,7 @@
 <script lang="ts" setup>
 
 import 'media-chrome'
-import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { baseDomain } from '../../../common'
 import { drawCVObjectTrack } from '../../common/DrawUtils'
 import { FaceDetector } from '../../common/FaceDetector'
@@ -156,10 +150,13 @@ const urlHistories = ref<Array<string>>([
   'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
   'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
 ])
+const showControlBar = ref(false)
 const recFace = ref<string>()
 const isScan = ref(false)
 const isEigenNameValid = ref(true)
 const isWeb = window.isWeb
+
+const showLoading = inject<Ref<boolean>>('showLoading')
 
 let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
@@ -208,8 +205,10 @@ onMounted(async () => {
   // })
 
   try {
+    showLoading.value = true
     await faceDetector.init()
     await objTracker.init()
+    showLoading.value = false
   } catch (err) {
     console.log(err)
   }
@@ -228,10 +227,10 @@ async function onScan() {
   isScan.value = true
 
   let frame = drawImage()
-  faceDetector?.detect(frame)
+  await faceDetector?.detect(frame)
   faceDetector?.updateUI()
 
-  objTracker?.detect(frame)
+  await objTracker?.detect(frame)
   objTracker?.updateUI()
 
   isScan.value = false
@@ -240,20 +239,23 @@ async function onScan() {
 async function onLiveStream() {
   videoPlayer?.open(liveStreamUrl.value, false)
   showLiveStreamInput.value = false
+  showControlBar.value = true
 }
 
 async function onClickCamera() {
   videoPlayer?.open()
+  showControlBar.value = true
 }
 
 async function openFolder() {
 
   window.mainApi?.openFile((file: string) => {
+    showControlBar.value = false
     var img = new Image()
     img.onload = function () {
       let w = img.width, h = img.height
-      if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 82)) {
-        const ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 82) / h)
+      if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 50)) {
+        const ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 50) / h)
         w = img.width * ratio
         h = img.height * ratio
       }
@@ -267,18 +269,13 @@ async function openFolder() {
   })
 }
 
-async function onCapture() {
-  showNameInputDialog.value = true
-  // faceDetector?.faceCapture(offscreenCtx)
-}
-
-function onConfirmName() {
+async function onConfirmName() {
   if (eigenName.value == null || eigenName.value.length == 0) {
     isEigenNameValid.value = false
     showNameInputDialog.value = true
     return
   }
-  faceDetector?.faceCapture(previewCtx, eigenName.value)
+  await faceDetector?.faceCapture(previewCtx, eigenName.value)
   eigenName.value = null
   showNameInputDialog.value = false
 }
@@ -291,28 +288,33 @@ function drawImage() {
   return imgData
 }
 
-watch(() => visionStore.faceDetect, async (val) => {
+watch(() => visionStore.imgEnhance, (val) => {
+  if (!videoPlayer.isOpen) { drawImage() }
+  imgProcessor.imgEnhance = val
+})
+
+watch(() => visionStore.faceDetect, async (val, _) => {
   faceDetector.enable = val
   faceDetector.faceRecMode = visionStore.faceRecMode as any
 
-  if (val) await faceDetector.init()
+  if (val) {
+    showLoading.value = true
+    await faceDetector.init()
+    showLoading.value = false
+  }
   else faceDetector.dispose()
 })
 
 watch(() => visionStore.drawFaceMesh, (val) => {
-  faceDetector.drawFace = val
+  if (faceDetector) faceDetector.drawFace = val
 })
 
 watch(() => visionStore.drawEigen, (val) => {
-  faceDetector.drawEigen = val
+  if (faceDetector) faceDetector.drawEigen = val
 })
 
 watch(() => visionStore.faceRecMode, (val) => {
-  faceDetector.faceRecMode = val as any
-})
-
-watch(() => visionStore.imgEnhance, (val) => {
-  imgProcessor.imgEnhance = val
+  if (faceDetector) faceDetector.faceRecMode = val as any
 })
 
 watch(() => visionStore.imgProcessMode, (val) => {
@@ -320,7 +322,7 @@ watch(() => visionStore.imgProcessMode, (val) => {
 })
 
 watch(() => visionStore.imgParams,
-  (val) => {
+  () => {
     imgProcessor.imgProcessParams = visionStore.imgParams.value
     if (!videoPlayer.isOpen) { drawImage() }
   },
@@ -330,25 +332,36 @@ watch(() => visionStore.imgParams,
 watch(() => visionStore.enableYolo, async (val, _) => {
   objTracker.enable = val
   if (val) {
+    showLoading.value = true
     await objTracker?.init(visionStore.yoloModel)
+    showLoading.value = false
   } else {
     objTracker?.dispose()
   }
 })
 
 watch(() => visionStore.yoloModel, async () => {
-  if (visionStore.enableYolo) {
-    await objTracker?.init(visionStore.yoloModel)
-  }
+  showLoading.value = true
+  await objTracker?.init(visionStore.yoloModel)
+  showLoading.value = false
 })
 
-watch(() => visionStore.imgEnhance, (val) => {
-  if (!videoPlayer.isOpen) { drawImage() }
-  imgProcessor.imgEnhance = val
-})
+
 
 </script>
 <style lang="css">
+.media-controller {
+  width: 100%;
+  height: calc(100% - 50px);
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  background-color: #2f3542;
+  border-radius: 0 0 10px 10px;
+}
+
 .eigen-face {
   height: 140px;
   object-fit: contain;

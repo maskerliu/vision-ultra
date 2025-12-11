@@ -6,6 +6,7 @@ export default {
     save: 'Save',
     upload: 'Upload',
     search: 'Search',
+    componetLoading: 'Component Loading...'
   },
   settings: {
     sys: {
@@ -75,6 +76,7 @@ export default {
     MedianBlur: 'Median', // 中值滤波
     BilateralBlur: 'Bilateral', // 双边滤波
 
+    Filter: 'Filter',
     Laplace: 'Laplace',
     LaplaceDesc: 'Laplace operator',
     Sobel: 'Sobel',

@@ -63,7 +63,7 @@ function toNew() {
 
 function openDevTools() {
   window.mainApi?.openDevTools()
-    showDebugPanel.value = false
+  showDebugPanel.value = false
 }
 
 async function onSSE() {

@@ -17,6 +17,13 @@
     <van-popup v-model:show="showDebugPanel" position="left" closeable close-icon="close">
       <debug-panel />
     </van-popup>
+
+    <van-overlay :show="showLoading" style="display: flex; align-items: center; flex-direction: column;">
+      <van-row justify="center" class="loading">
+        <van-loading />
+        <div style="margin: 5px 15px;">{{ $t('common.componetLoading') }}</div>
+      </van-row>
+    </van-overlay>
   </van-config-provider>
 </template>
 
@@ -35,10 +42,12 @@ const lang = ref<string>('zh-CN')
 const active = ref<number>(0)
 const showDebugPanel = ref<boolean>(false)
 const enableDebug = true
+const showLoading = ref<boolean>(false)
 
 provide('theme', theme)
 provide('lang', lang)
 provide('showDebugPanel', showDebugPanel)
+provide('showLoading', showLoading)
 
 onMounted(async () => {
 
@@ -176,5 +185,15 @@ function onOpenDebugPanel() {
   margin: 0;
   border: var(--van-border-width) solid var(--van-tabs-default-color);
   border-radius: var(--van-radius-sm);
+}
+
+.loading {
+  width: 20%;
+  padding: 10px 5px;
+  margin-top: 20%;
+  background-color: #2c3e50e0;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: #bdc3c7;
 }
 </style>
