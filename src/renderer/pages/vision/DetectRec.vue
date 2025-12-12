@@ -1,39 +1,7 @@
 <template>
   <van-row ref="previewParent" style="position: relative; height: calc(100% - 30px); margin-top: 30px;">
 
-    <van-row justify="space-between" style="width: 100%; height: 50px; background-color: white;">
-      <van-row style="flex-direction: row;">
-        <van-checkbox v-model="visionStore.imgEnhance" style="margin-left: 15px;">
-          <template #default>
-            <van-icon class="iconfont icon-clarity-enhance"
-              style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
-          </template>
-        </van-checkbox>
-        <van-checkbox v-model="visionStore.faceDetect" style="margin-left: 15px;">
-          <template #default>
-            <van-icon class="iconfont icon-face-enhance"
-              style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
-          </template>
-        </van-checkbox>
-        <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;" :disabled="!visionStore.faceDetect">
-          <template #default>
-            <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
-          </template>
-        </van-checkbox>
-        <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;" :disabled="!visionStore.faceDetect">
-          <template #default>
-            <van-icon class="iconfont icon-eigen" style="font-size: 1.2rem; font-weight: blod; margin-top: 4px;" />
-          </template>
-        </van-checkbox>
-      </van-row>
-      <van-radio-group v-model="visionStore.faceRecMode" direction="horizontal">
-        <van-radio name="opencv" :disabled="isWeb">
-          <van-icon class="iconfont icon-opencv" style="font-size: 1.5rem;" />
-        </van-radio>
-        <van-radio name="tfjs">
-          <van-icon class="iconfont icon-tensorflow" style="font-size: 1.5rem;" />
-        </van-radio>
-      </van-radio-group>
+    <van-row justify="end" style="width: 100%; height: 50px; background-color: white;">
       <van-row style="padding: 10px 10px 0 0;">
         <van-image fit="cover" radius="10" width="32" height="32" :src="recFace" />
 
@@ -288,8 +256,8 @@ function drawImage() {
 }
 
 watch(() => visionStore.imgEnhance, (val) => {
-  if (!videoPlayer.isOpen) { drawImage() }
   imgProcessor.imgEnhance = val
+  if (!videoPlayer.isOpen) { drawImage() }
 })
 
 watch(() => visionStore.faceDetect, async (val, _) => {

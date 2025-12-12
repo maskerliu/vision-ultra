@@ -57,6 +57,7 @@ export default {
     }
   },
   imgProcess: {
+    ImgEnhance: '图像增强',
     Gray: '灰度',
     Brightness: '亮度', // 亮度
     BrightnessDesc: 'Gamma增强',
@@ -102,10 +103,12 @@ export default {
 
     YOLODetect: 'YOLO',
     YOLODesc: 'you only look once',
-    yolov6: 'YOLOv6 (via 美团)',
-    yolov8: 'YOLOv8 (via Ultralytics 2023年1月10日发布)',
-    yolov10: 'YOLOv10(清华大学)',
-    yolo11: 'YOLO11(lastest)',
+    yolov6n: 'YOLOv6 (via 美团)',
+    yolov8n: 'YOLOv8 (via Ultralytics 2023年1月10日发布)',
+    yolov10n: 'YOLOv10(清华大学)',
+    yolo11n: 'YOLO11(lastest)',
+
+    FaceRec: '人脸识别'
   },
   faceRec: {
     nameInput: '请输入姓名',

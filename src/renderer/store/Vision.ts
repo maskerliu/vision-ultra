@@ -69,38 +69,31 @@ class ImageParams {
   canny: [number, number] = [80, 100]
 
   get value() {
-    let params = {}
-    params['isGray'] = this.isGray
-    params['equalizeHist'] = this.equalizeHist
-    params['clahe'] = this.clahe
-    params['rotate'] = this.rotate
-    params['colorMap'] = this.colorMap
+    let params = {
+      isGray: this.isGray,
+      rotate: this.rotate,
+      colorMap: this.colorMap,
+    }
 
     if (this.enableGamma) params['gamma'] = this.gamma
     else delete params['gamma']
 
-    if (this.enableContrast)
-      params['equalization'] = [this.equalization[0], this.equalization[1], this.equalization[2], this.equalization[3]]
+    if (this.enableContrast) params['equalization'] = this.equalization.map(val => val)
     else delete params['equalization']
 
-    if (this.enableSharpen)
-      params['sharpen'] = [this.sharpen[0], this.sharpen[1], this.sharpen[2], this.sharpen[3]]
+    if (this.enableSharpen) params['sharpen'] = this.sharpen.map(val => val)
     else delete params['sharpen']
 
-    if (this.enableBlur)
-      params['blur'] = [this.blur[0], this.blur[1], this.blur[2], this.blur[3], this.blur[4], this.blur[5], this.blur[6]]
+    if (this.enableBlur) params['blur'] = this.blur.map(val => val)
     else delete params['blur']
 
-    if (this.enableFilter)
-      params['filter'] = [this.filter[0], this.filter[1], this.filter[2], this.filter[3], this.filter[4]]
+    if (this.enableFilter) params['filter'] = this.filter.map(val => val)
     else delete params['filter']
 
-    if (this.enableDetect)
-      params['detector'] = [this.detector[0], this.detector[1], this.detector[2]]
+    if (this.enableDetect) params['detector'] = this.detector.map(val => val)
     else delete params['detector']
 
-    if (this.enableCanny)
-      params['canny'] = [this.canny[0], this.canny[1]]
+    if (this.enableCanny) params['canny'] = [this.canny[0], this.canny[1]]
     else delete params['canny']
 
     return params

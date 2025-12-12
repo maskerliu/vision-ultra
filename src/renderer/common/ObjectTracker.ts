@@ -33,6 +33,11 @@ export class ObjectTracker {
   private scoresTF: tf.Tensor
   private classesTF: tf.Tensor
 
+  private _expire: number = 0
+  get expire(): number {
+    return this._expire
+  }
+
   constructor(context: CanvasRenderingContext2D) {
     this.previewCtx = context
     this._width = context.canvas.width
@@ -85,6 +90,7 @@ export class ObjectTracker {
   }
 
   async detect(image: ImageData) {
+    let time = Date.now()
     if (!this.model || !this._enable) return
     tf.engine().startScope()
     let input = this.preprocess(image)
@@ -124,7 +130,6 @@ export class ObjectTracker {
     tf.tidy(() => {
       if (this.boxesTF?.isDisposed || this.nms?.isDisposed || this.scoresTF?.isDisposed || this.classesTF?.isDisposed || this.nms?.size == 0) return
       this.objectNum = Math.min(this.nms?.size, MAX_OBJECTS_NUM)
-      console.log('hello')
       this.boxes.set(this.boxesTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objectNum * 4))
       this.scores.set(this.scoresTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objectNum))
       this.classes.set(this.classesTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objectNum))
@@ -133,6 +138,8 @@ export class ObjectTracker {
 
     tf.dispose([res, this.boxesTF, this.scoresTF, this.classesTF, this.nms])
     tf.engine().endScope()
+
+    this._expire = Date.now() - time
   }
 
   private async yolov6n(res: tf.Tensor) {

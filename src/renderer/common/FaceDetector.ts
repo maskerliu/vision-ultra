@@ -37,8 +37,21 @@ export class FaceDetector {
   private masklayerCtx: CanvasRenderingContext2D
 
   private _enableFaceAngle: boolean = false
+  get enableFaceAngle() {
+    return this._enableFaceAngle
+  }
+
   private _faceAngle: number = 0
-  private _time = 0
+  get faceAngle() {
+    return this._faceAngle
+  }
+
+  private _isInited: boolean = false
+
+  private _expire: number = 0
+  get expire(): number {
+    return this._expire
+  }
 
   constructor(context: CanvasRenderingContext2D, capture: HTMLCanvasElement, masklayer: HTMLCanvasElement) {
 
@@ -53,6 +66,7 @@ export class FaceDetector {
 
   async init() {
     if (!this._enable) return
+    this._isInited = false
     this.face = {
       landmarks: new Float16Array(NUM_KEYPOINTS * FACE_DIMS),
       box: { xMin: 0, yMin: 0, xMax: 0, yMax: 0, width: 0, height: 0 },
@@ -69,11 +83,14 @@ export class FaceDetector {
       numFaces: 1,
       outputFaceBlendshapes: true
     })
+
+    this._isInited = true
   }
 
   dispose() {
     if (this.face) this.face.valid = false
     this.faceLandmarker?.close()
+    this._isInited = false
     if (this.face) this.face.landmarks = null
     this.face = null
   }
@@ -83,17 +100,6 @@ export class FaceDetector {
     this._faceAngle = 0
   }
 
-  get enableFaceAngle() {
-    return this._enableFaceAngle
-  }
-
-  get faceAngle() {
-    return this._faceAngle
-  }
-
-  get time() {
-    return this._time
-  }
 
 
   updateUI() {
@@ -109,7 +115,7 @@ export class FaceDetector {
 
 
   async detect(frame: ImageData) {
-    if (!this._enable) {
+    if (!this._enable || !this._isInited) {
       if (this.face) this.face.valid = false
       return
     }
@@ -125,7 +131,7 @@ export class FaceDetector {
         let time = Date.now()
         let result = this.faceLandmarker?.detect(frame)
         landmarksToFace(result?.faceLandmarks[0], this.face, frame.width, frame.height)
-        this._time = Date.now() - time
+        this._expire = Date.now() - time
         this.calacleFaceAngle()
         break
       }

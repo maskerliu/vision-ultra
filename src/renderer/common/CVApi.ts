@@ -56,16 +56,15 @@ export function release() {
 export function imgProcess(frame: ImageData, width: number, height: number,
   params: Partial<{
     isGray: boolean,
-    equalizeHist: boolean,
     rotate: number,
     colorMap: number,
     gamma: number,
     equalization: cvEqualizeHist,
-    blur: cvBlur,
     sharpen: cvSharpen,
+    blur: cvBlur,
     filter: cvFilter,
     detector: cvDetector,
-    cannyThreshold: [number, number],
+    canny: [number, number],
   }>) {
 
   if (processedImg == null) {
@@ -87,7 +86,6 @@ export function imgProcess(frame: ImageData, width: number, height: number,
     hsvVec = new cv.MatVector()
     hsvVec.push_back(tmpImg)
   }
-
 
   processedImg.data.set(frame.data, 0)
   cv.cvtColor(processedImg, processedImg, cv.COLOR_RGBA2BGR)
@@ -145,8 +143,8 @@ export function imgProcess(frame: ImageData, width: number, height: number,
 
   }
 
-  if (params.isGray && params.cannyThreshold) {
-    cv.Canny(processedImg, processedImg, params.cannyThreshold[0], params.cannyThreshold[1])
+  if (params.isGray && params.canny) {
+    cv.Canny(processedImg, processedImg, params.canny[0], params.canny[1])
   }
 
   if (params.isGray) {

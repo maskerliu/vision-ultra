@@ -92,7 +92,7 @@ export class VideoPlayer {
 
     this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '14px sans-serif'
-    this.previewCtx.fillText(`Slope: ${this._faceDetector.faceAngle}\n Time: ${this._faceDetector.time}`, 10, 20)
+    this.previewCtx.fillText(`Slope: ${this._faceDetector.faceAngle}\n Time: ${this._faceDetector.expire} \t ${this._objTracker.expire}`, 10, 20)
 
     // if (Math.abs(this.faceDetector.faceAngle) > 5) {
     //   this.faceDetector.enableFaceAngle = false
