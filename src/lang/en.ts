@@ -55,6 +55,7 @@ export default {
     }
   },
   imgProcess: {
+    ImgEnhance: 'Image Enhancement',
     Gray: 'Gray',
     Brightness: 'Brightness', // 亮度
     BrightnessDesc: 'Gamma correction',
@@ -89,9 +90,9 @@ export default {
     Canny: 'Canny',
     CannyDesc: 'Effective edge detection',
     HoughTransform: 'Hough Transform',
-    Hough: '霍夫变换',
-    HoughCircle: '霍夫圆变换',
-    HoughLine: '霍夫直线变换',
+    Hough: 'Hogh Cvt',
+    HoughCircle: 'Hough Circle Cvt',
+    HoughLine: 'Hough Line Cvt',
 
     ObjectDetect: 'Object Detect',
     ColorTrack: 'Color',
@@ -102,10 +103,12 @@ export default {
 
     YOLODetect: 'YOLO',
     YOLODesc: 'you only look once',
-    yolov6: 'YOLOv6 (via meituan)',
-    yolov8: 'YOLOv8 (via Ultralytics)',
-    yolov10: 'YOLOv10(via Tsinghua university)',
-    yolo11: 'YOLO11(lastest)',
+    yolov6n: 'YOLOv6 (via meituan)',
+    yolov8n: 'YOLOv8 (via Ultralytics)',
+    yolov10n: 'YOLOv10(via Tsinghua university)',
+    yolo11n: 'YOLO11(lastest)',
+
+    FaceRec: 'Face Recognition'
 
   },
   faceRec: {
