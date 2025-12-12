@@ -1,8 +1,7 @@
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
 import { showNotify } from "vant"
 import { baseDomain, FaceRec } from "../../common"
-import { drawCVFaceResult, drawTFFaceResult, FACE_DIMS, FaceResult, getFaceContour, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from "./DrawUtils"
-import { ImageProcessor } from "./ImageProcessor"
+import { drawTFFaceResult, FACE_DIMS, FaceResult, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from "./DrawUtils"
 
 
 export class FaceDetector {
@@ -10,6 +9,7 @@ export class FaceDetector {
   public _enable: boolean = false
   set enable(val: boolean) {
     this._enable = val
+    if (!val) this.dispose()
   }
 
   private _faceRecMode: 'opencv' | 'tfjs' = 'tfjs' // opencv or tfjs
@@ -19,7 +19,6 @@ export class FaceDetector {
   private face: FaceResult = null
 
   private _drawFace: boolean = true
-
   set drawFace(val: boolean) {
     this._drawFace = val
   }
@@ -74,7 +73,9 @@ export class FaceDetector {
 
   dispose() {
     if (this.face) this.face.valid = false
-    // this.faceLandmarker?.close()
+    this.faceLandmarker?.close()
+    if (this.face) this.face.landmarks = null
+    this.face = null
   }
 
   set enableFaceAngle(enable: boolean) {
@@ -167,40 +168,6 @@ export class FaceDetector {
     // if (Math.abs(tmpAngle - this._faceAngle) > 20 && Math.abs(tmpAngle) > 5) {
     //   this._faceAngle = tmpAngle
     // }
-  }
-
-
-  private genFaceTensor(face: FaceResult) {
-    if (face == null || face.landmarks == null) return null
-    let slope = getFaceSlope(face)
-    let angle = Math.atan(slope) * 180 / Math.PI
-    let tmpAngle = 0
-    if (angle > 0) {
-      tmpAngle = 90 - angle
-    }
-    if (angle < 0) {
-      tmpAngle = -(90 + angle)
-    }
-
-    let cos = Math.cos(tmpAngle)
-    let sin = Math.sin(tmpAngle)
-    // let martix = tf.tensor([[cos, -sin], [sin, cos]])
-    // let tmp = face.landmarks.map((p) => [
-    //   p.x - face.box.xMin,
-    //   p.y - face.box.yMin
-    // ])
-
-    // let tensor = tf.tensor(tmp)
-    // let result = tf.matMul(tensor, martix)
-
-    // let min = tensor.min()
-    // let max = tensor.max()
-    // tensor = tensor.sub(min).div(max.sub(min)) // normilize
-    // tensor.dispose()
-    // min.dispose()
-    // max.dispose()
-    // martix.dispose()
-    return null
   }
 
   async faceCapture(context: CanvasRenderingContext2D, name: string) {

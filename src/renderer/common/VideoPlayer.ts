@@ -40,11 +40,6 @@ export class VideoPlayer {
 
   private _frames = 0
   private _step = 0
-  // private face: Rect = null
-  // private eyes: Array<Rect> = null
-  // private landmarks: Array<Point2> = null
-  // public faceDector: FaceLandmarksDetector = null
-  // private faces: Array<Face> = []
 
   constructor(video: HTMLVideoElement, priview: HTMLCanvasElement, offscreen: HTMLCanvasElement, flip: boolean = true) {
     this.hls = new Hls()
