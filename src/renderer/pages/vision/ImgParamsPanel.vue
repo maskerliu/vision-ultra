@@ -19,30 +19,50 @@
     </van-cell-group>
 
     <!-- YOLO object detect -->
-    <van-cell-group :border="false" style="padding: 5px;">
+    <van-cell-group :border="false">
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableYolo">
           {{ $t('imgProcess.YOLODetect') }} <span class="param-desc">{{ $t('imgProcess.YOLODesc') }}</span>
         </van-checkbox>
       </template>
-      <van-radio-group direction="vertical" :disabled="!visionStore.enableYolo" v-if="visionStore.enableYolo"
-        style="width: 95%; padding: 5px 10px;" v-model="visionStore.yoloModel" @change="onParamChange">
-        <van-radio name="yolov6n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;" disabled>
-          {{ $t('imgProcess.yolov6') }}
-        </van-radio>
-        <van-radio name="yolov8n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
-          {{ $t('imgProcess.yolov8') }}
-        </van-radio>
-        <van-radio name="yolov10n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
-          {{ $t('imgProcess.yolov10') }}
-        </van-radio>
-        <van-radio name="yolo11n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
-          {{ $t('imgProcess.yolo11') }}
+      <van-radio-group direction="vertical" :disabled="!visionStore.enableYolo" style="width: 95%; padding: 5px 15px;"
+        v-model="visionStore.yoloModel" @change="onParamChange">
+        <van-radio :name="model" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 8px;"
+          v-for="model in YOLOModels">
+          {{ $t(`imgProcess.${model}`) }}
         </van-radio>
       </van-radio-group>
     </van-cell-group>
 
-    <van-cell-group title=" ">
+    <van-cell-group>
+      <template #title>
+        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.faceDetect">
+          <van-icon class="iconfont icon-tensorflow" style="font-size: 1rem; color: orange;" />
+          <span>{{ $t('imgProcess.FaceRec') }}</span>
+        </van-checkbox>
+      </template>
+      <van-row style="padding: 10px 15px;">
+        <van-checkbox v-model="visionStore.drawFaceMesh" :disabled="!visionStore.faceDetect">
+          <template #default>
+            <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 1px;" />
+          </template>
+        </van-checkbox>
+
+        <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;" :disabled="!visionStore.faceDetect">
+          <template #default>
+            <van-icon class="iconfont icon-eigen" style="font-size: 1.2rem; font-weight: blod; margin-top: 1px;" />
+          </template>
+        </van-checkbox>
+      </van-row>
+    </van-cell-group>
+
+    <van-cell-group>
+      <template #title>
+        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgEnhance">
+          <van-icon class="iconfont icon-opencv" style="font-size: 1rem; color: green;" />
+          {{ $t('imgProcess.ImgEnhance') }}
+        </van-checkbox>
+      </template>
       <van-field :label="$t('imgProcess.Gray')" label-align="right" type="number" input-align="right"
         label-width="4rem">
         <template #input>
@@ -61,7 +81,7 @@
         </template>
       </van-field>
       <van-collapse v-model="activeCollapse">
-        <van-collapse-item :title="$t('imgProcess.ColorMap')" name="1" style="padding-left: 5px;">
+        <van-collapse-item :title="$t('imgProcess.ColorMap')" name="1" :value="ColorMaps[visionStore.imgParams.colorMap]" style="padding-left: 5px;">
           <van-radio-group v-model="visionStore.imgParams.colorMap">
             <van-radio :name="idx" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;"
               v-for="(val, idx) in ColorMaps" :key="idx" @click="onParamChange">
@@ -423,6 +443,8 @@
 import { onMounted, ref } from 'vue'
 import { cvBlur, cvEqualizeHist, cvFilter, cvSharpen, cvDetector, VisionStore } from '../../store'
 
+
+const YOLOModels = ['yolov6n', 'yolov8n', 'yolov10n', 'yolo11n']
 const activeCollapse = ref(['0'])
 const ColorMaps = ['NONE', 'AUTUMN', 'BONE', 'JET', 'WINTER', 'RAINBOW', 'OCEAN', 'SUMMER',
   'SPRING', 'COOL', 'HSV', 'PINK', 'HOT', 'PARULA', 'MAGMA',
@@ -443,33 +465,23 @@ onMounted(() => {
 
   rotate.value = visionStore.imgParams.rotate
 
-  equalization.value[0] = visionStore.imgParams.equalization[0]
-  equalization.value[1] = visionStore.imgParams.equalization[1]
-  equalization.value[2] = visionStore.imgParams.equalization[2]
-  equalization.value[3] = visionStore.imgParams.equalization[3]
+  for (let i = 0; i < visionStore.imgParams.equalization.length; ++i) {
+    equalization.value[i] = visionStore.imgParams.equalization[i]
+  }
 
-  blur.value[0] = visionStore.imgParams.blur[0]
-  blur.value[1] = visionStore.imgParams.blur[1]
-  blur.value[2] = visionStore.imgParams.blur[2]
-  blur.value[3] = visionStore.imgParams.blur[3]
-  blur.value[4] = visionStore.imgParams.blur[4]
-  blur.value[5] = visionStore.imgParams.blur[5]
-  blur.value[6] = visionStore.imgParams.blur[6]
+  for (let i = 0; i < visionStore.imgParams.blur.length; ++i) {
+    blur.value[i] = visionStore.imgParams.blur[i]
+  }
+  for (let i = 0; i < visionStore.imgParams.sharpen.length; ++i) {
+    sharpen.value[i] = visionStore.imgParams.sharpen[i]
+  }
 
-  sharpen.value[0] = visionStore.imgParams.sharpen[0]
-  sharpen.value[1] = visionStore.imgParams.sharpen[1]
-  sharpen.value[2] = visionStore.imgParams.sharpen[2]
-  sharpen.value[3] = visionStore.imgParams.sharpen[3]
-
-  filter.value[0] = visionStore.imgParams.filter[0]
-  filter.value[1] = visionStore.imgParams.filter[1]
-  filter.value[2] = visionStore.imgParams.filter[2]
-  filter.value[3] = visionStore.imgParams.filter[3]
-  filter.value[4] = visionStore.imgParams.filter[4]
-
-  detector.value[0] = visionStore.imgParams.detector[0]
-  detector.value[1] = visionStore.imgParams.detector[1]
-  detector.value[2] = visionStore.imgParams.detector[2]
+  for (let i = 0; i < visionStore.imgParams.filter.length; ++i) {
+    filter.value[i] = visionStore.imgParams.filter[i]
+  }
+  for (let i = 0; i < visionStore.imgParams.detector.length; ++i) {
+    detector.value[i] = visionStore.imgParams.detector[i]
+  }
 
   canny.value[0] = visionStore.imgParams.canny[0]
   canny.value[1] = visionStore.imgParams.canny[1]
@@ -479,28 +491,12 @@ function onParamChange() {
   visionStore.imgParams.rotate = rotate.value
   visionStore.imgParams.gamma = gamma.value
 
-  visionStore.imgParams.equalization = [
-    equalization.value[0], equalization.value[1], equalization.value[2], equalization.value[3]
-  ]
-
-  visionStore.imgParams.sharpen = [
-    sharpen.value[0], sharpen.value[1], sharpen.value[2], sharpen.value[3]
-  ]
-
-  visionStore.imgParams.blur = [
-    blur.value[0], blur.value[1], blur.value[2], blur.value[3],
-    Number(blur.value[4]), Number(blur.value[5]), Number(blur.value[6])
-  ]
-
-  visionStore.imgParams.filter = [
-    filter.value[0], filter.value[1], filter.value[2], filter.value[3], filter.value[4]
-  ]
-
-  visionStore.imgParams.detector = [
-    detector.value[0], detector.value[1], detector.value[2]
-  ]
-
-  visionStore.imgParams.canny = [canny.value[0], canny.value[1]]
+  visionStore.imgParams.equalization = equalization.value.map(val => val) as cvEqualizeHist
+  visionStore.imgParams.sharpen = sharpen.value.map(val => val) as cvSharpen
+  visionStore.imgParams.blur = blur.value.map(val => val) as cvBlur
+  visionStore.imgParams.filter = filter.value.map(val => val) as cvFilter
+  visionStore.imgParams.detector = detector.value.map(val => val) as cvDetector
+  visionStore.imgParams.canny = canny.value.map(val => val) as any
 }
 
 </script>

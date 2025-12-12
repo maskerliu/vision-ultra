@@ -331,7 +331,7 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
     ctx.strokeRect(x1, y1, width, height)
 
     ctx.fillStyle = color
-    // ctx.fillText(`${klass}-${score}%`, x1 + 5, y1 + 5)
+    ctx.fillText(`${score}%`, x1 + 5, y1 + 5)
   }
 }
 
