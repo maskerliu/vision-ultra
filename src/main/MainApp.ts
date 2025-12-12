@@ -89,6 +89,10 @@ export default class MainApp {
         app.quit()
       })
 
+      globalShortcut.register('CommandOrControl+r', () => {
+        BrowserWindow.getFocusedWindow()?.reload()
+      })
+
       let lock = app.requestSingleInstanceLock()
       if (!lock) app.quit()
 

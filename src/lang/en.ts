@@ -100,7 +100,7 @@ export default {
     MeanShit: 'MeanShift',
     CamShift: 'CamShift',
 
-    YOLODetect: 'YOLO Object Detect',
+    YOLODetect: 'YOLO',
     YOLODesc: 'you only look once',
     yolov6: 'YOLOv6 (via meituan)',
     yolov8: 'YOLOv8 (via Ultralytics)',

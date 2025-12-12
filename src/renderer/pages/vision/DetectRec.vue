@@ -113,16 +113,14 @@
 </template>
 <script lang="ts" setup>
 
+import { ObjectDetector } from '@mediapipe/tasks-vision'
 import 'media-chrome'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { baseDomain } from '../../../common'
-import { drawCVObjectTrack } from '../../common/DrawUtils'
 import { FaceDetector } from '../../common/FaceDetector'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { ObjectTracker } from '../../common/ObjectTracker'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { VisionStore } from '../../store'
-import { FilesetResolver, ObjectDetector } from '@mediapipe/tasks-vision'
 // import {
 //   MediaController, MediaControlBar, MediaPlayButton,
 //   MediaTimeDisplay, MediaTimeRange, MediaPlaybackRateButton,
@@ -250,6 +248,7 @@ async function onClickCamera() {
 async function openFolder() {
 
   window.mainApi?.openFile((file: string) => {
+    videoPlayer.close()
     showControlBar.value = false
     var img = new Image()
     img.onload = function () {

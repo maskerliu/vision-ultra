@@ -27,7 +27,7 @@
       </template>
       <van-radio-group direction="vertical" :disabled="!visionStore.enableYolo" v-if="visionStore.enableYolo"
         style="width: 95%; padding: 5px 10px;" v-model="visionStore.yoloModel" @change="onParamChange">
-        <van-radio name="yolov6n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
+        <van-radio name="yolov6n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;" disabled>
           {{ $t('imgProcess.yolov6') }}
         </van-radio>
         <van-radio name="yolov8n" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;">
