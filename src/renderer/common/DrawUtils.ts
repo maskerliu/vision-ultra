@@ -102,18 +102,35 @@ export type KeyPoint = {
 export const FACE_DIMS: number = 2
 
 const colors = new Colors()
+const SharedPaths: {
+  lips?: Float16Array,
+  leftEye?: Float16Array,
+  leftEyebrow?: Float16Array,
+  rightEye?: Float16Array,
+  rightEyebrow?: Float16Array,
+  leftIris?: Float16Array,
+  rightIris?: Float16Array,
+  faceOval?: Float16Array,
+  mesh?: Float16Array,
+  corner?: Float16Array
+  isInited: boolean
+} = {
+  isInited: false
+}
 
-const SharedPaths = {
-  lips: new Float16Array(FACEMESH_CONTOUR.lips.length * FACE_DIMS),
-  leftEye: new Float16Array(FACEMESH_CONTOUR.leftEye.length * FACE_DIMS),
-  leftEyebrow: new Float16Array(FACEMESH_CONTOUR.leftEyebrow.length * FACE_DIMS),
-  rightEye: new Float16Array(FACEMESH_CONTOUR.rightEye.length * FACE_DIMS),
-  rightEyebrow: new Float16Array(FACEMESH_CONTOUR.rightEyebrow.length * FACE_DIMS),
-  leftIris: new Float16Array(FACEMESH_CONTOUR.leftIris.length * FACE_DIMS),
-  rightIris: new Float16Array(FACEMESH_CONTOUR.rightIris.length * FACE_DIMS),
-  faceOval: new Float16Array(FACEMESH_CONTOUR.faceOval.length * FACE_DIMS),
-  mesh: new Float16Array(TRIANGULATION.length * FACE_DIMS),
-  corner: new Float16Array(12 * FACE_DIMS)
+export function CREATE_SHARE_PATHS() {
+  if (SharedPaths.isInited) return
+  SharedPaths.lips = new Float16Array(FACEMESH_CONTOUR.lips.length * FACE_DIMS)
+  SharedPaths.leftEye = new Float16Array(FACEMESH_CONTOUR.leftEye.length * FACE_DIMS)
+  SharedPaths.leftEyebrow = new Float16Array(FACEMESH_CONTOUR.leftEyebrow.length * FACE_DIMS)
+  SharedPaths.rightEye = new Float16Array(FACEMESH_CONTOUR.rightEye.length * FACE_DIMS)
+  SharedPaths.rightEyebrow = new Float16Array(FACEMESH_CONTOUR.rightEyebrow.length * FACE_DIMS)
+  SharedPaths.leftIris = new Float16Array(FACEMESH_CONTOUR.leftIris.length * FACE_DIMS)
+  SharedPaths.rightIris = new Float16Array(FACEMESH_CONTOUR.rightIris.length * FACE_DIMS)
+  SharedPaths.faceOval = new Float16Array(FACEMESH_CONTOUR.faceOval.length * FACE_DIMS)
+  SharedPaths.mesh = new Float16Array(TRIANGULATION.length * FACE_DIMS)
+  SharedPaths.corner = new Float16Array(12 * FACE_DIMS)
+  SharedPaths.isInited = true
 }
 
 function distance(a: number[], b: number[]) {
@@ -288,15 +305,14 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
 }
 
 export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
-  boxes_data: Float32Array, scores: Float16Array, classes: Uint8Array, 
+  boxes_data: Float32Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number]) {
   if (scores == null || scores.length === 0) return
-
   ctx.font = `10px Arial`
   ctx.textBaseline = "top"
   for (let i = 0; i < objNum; ++i) {
     let score = (scores[i] * 100).toFixed(1)
-    if (scores[i] * 100 < 30) continue
+    // if (scores[i] * 100 < 30) continue
 
     const klass = Object_Labels[classes[i]]
     const color = colors.get(classes[i])
@@ -315,13 +331,14 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
     ctx.strokeRect(x1, y1, width, height)
 
     ctx.fillStyle = color
-    ctx.fillText(`${klass}-${score}%`, x1 + 5, y1 + 5)
+    // ctx.fillText(`${klass}-${score}%`, x1 + 5, y1 + 5)
   }
 }
 
 export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   face: FaceResult, mesh: 'mesh' | 'dot' | 'none' = 'none',
   eigen = false, boundingBox = false, scale?: number) {
+  CREATE_SHARE_PATHS()
   if (face.landmarks == null || face.landmarks?.length === 0) return
   let normilize = scale ? scale : Math.max(face.box.width, face.box.height)
   let orginX = scale ? 0 : face.box.xMin

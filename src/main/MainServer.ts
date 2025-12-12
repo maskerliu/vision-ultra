@@ -85,11 +85,12 @@ export class MainServer {
     this.httpApp.use(/.*/, (req, resp, next) => {
       resp.header('Cross-Origin-Opener-Policy', 'same-origin')
       resp.header('Cross-Origin-Resource-Policy', 'cross-origin')
+      resp.header('Access-Control-Allow-Origin', '*')
       next()
     })
 
     if (IS_DEV) this.httpApp.use('/static', express.static(path.join(__dirname, '../../data')))
-    this.httpApp.use('/static', express.static(path.resolve(__dirname, '../static')))
+    this.httpApp.use('/static', express.static(path.resolve(__dirname, `${IS_DEV ? '../../static' : './static'}`)))
     this.httpApp.use('/_res', express.static(path.join(USER_DATA_DIR, './static')))
 
     this.httpApp.use(cors(this.corsOpt))

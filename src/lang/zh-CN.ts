@@ -100,7 +100,7 @@ export default {
     MeanShit: 'MeanShift',
     CamShift: 'CamShift',
 
-    YOLODetect: 'YOLO目标检测',
+    YOLODetect: 'YOLO',
     YOLODesc: 'you only look once',
     yolov6: 'YOLOv6 (via 美团)',
     yolov8: 'YOLOv8 (via Ultralytics 2023年1月10日发布)',
