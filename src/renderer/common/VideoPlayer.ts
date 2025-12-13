@@ -1,9 +1,10 @@
-import { drawCVObjectTrack } from './DrawUtils'
+import { drawCVObjectTrack, drawObjectDetectResult } from './DrawUtils'
 import { FaceDetector } from './FaceDetector'
 import { ImageProcessor } from './ImageProcessor'
 import Hls from 'hls.js'
-import { ObjectTracker } from './ObjectTracker'
+import { MAX_OBJECTS_NUM, ObjectTracker } from './ObjectTracker'
 import { ObjectDetector } from '@mediapipe/tasks-vision'
+import { webworker } from 'webpack'
 
 export class VideoPlayer {
   private hls: Hls
@@ -31,14 +32,35 @@ export class VideoPlayer {
   }
 
   public objDetector: ObjectDetector = null
-  public _objTracker: ObjectTracker = null
-  set objTracker(value: ObjectTracker) {
+
+  public _objTracker: Worker = null
+
+  private objBoxes: Float32Array = new Float32Array(MAX_OBJECTS_NUM * 4)
+  private objScores: Float16Array = new Float16Array(MAX_OBJECTS_NUM)
+  private objClasses: Uint8Array = new Uint8Array(MAX_OBJECTS_NUM)
+  private objNum: number = 0
+  private objScale: number[] = [1, 1]
+
+  set objTracker(value: Worker) {
     this._objTracker = value
+
+    this._objTracker.addEventListener("message", (event) => {
+      this.objBoxes.set(event.data.boxes)
+      this.objScores.set(event.data.scores)
+      this.objClasses.set(event.data.classes)
+      this.objNum = event.data.objNum
+      this.objScale = [event.data.scaleX, event.data.scaleY]
+
+      drawObjectDetectResult(this.previewCtx,
+        event.data.boxes, event.data.scores, event.data.classes,
+        event.data.objNum, [event.data.scaleX, event.data.scaleY])
+    })
   }
 
   private mediaRecorder: MediaRecorder
 
-  private _frames = 0
+  private _faceFrames = 0
+  private _objFrames = 0
   private _step = 0
 
   constructor(video: HTMLVideoElement, priview: HTMLCanvasElement, offscreen: HTMLCanvasElement, flip: boolean = true) {
@@ -77,22 +99,28 @@ export class VideoPlayer {
     this._imgProcessor?.process(this.frame)
     this.previewCtx.putImageData(this.frame, 0, 0)
 
-    if (this._frames == 2) {
+    if (this._faceFrames == 2) {
       await this._faceDetector.detect(this.frame)
-      await this._objTracker?.detect(this.frame)
-      this._frames = 0
+      this._faceFrames = 0
     } else {
-      this._frames++
+      this._faceFrames++
+    }
+
+    if (this._objFrames == 25) {
+      this._objTracker?.postMessage({ type: 'detect', image: this.frame })
+      this._objFrames = 0
+    } else {
+      this._objFrames++
     }
 
     this._faceDetector?.updateUI()
-    this._objTracker?.updateUI()
-
-    // drawCVObjectTrack(this.previewCtx, this._imgProcessor?.objectRects)
+    drawObjectDetectResult(this.previewCtx,
+      this.objBoxes, this.objScores, this.objClasses,
+      this.objNum, this.objScale as any)
 
     this.previewCtx.fillStyle = '#ff4757'
-    this.previewCtx.font = '14px sans-serif'
-    this.previewCtx.fillText(`Slope: ${this._faceDetector.faceAngle}\n Time: ${this._faceDetector.expire} \t ${this._objTracker.expire}`, 10, 20)
+    this.previewCtx.font = '12px Arial'
+    this.previewCtx.fillText(`Slope: ${this._faceDetector.faceAngle}\n Time: ${this._faceDetector.expire}`, 10, 20)
 
     // if (Math.abs(this.faceDetector.faceAngle) > 5) {
     //   this.faceDetector.enableFaceAngle = false
