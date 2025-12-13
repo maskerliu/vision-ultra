@@ -1,10 +1,7 @@
-import { drawCVObjectTrack, drawObjectDetectResult } from './DrawUtils'
-import { FaceDetector } from './FaceDetector'
-import { ImageProcessor } from './ImageProcessor'
 import Hls from 'hls.js'
-import { MAX_OBJECTS_NUM, ObjectTracker } from './ObjectTracker'
-import { ObjectDetector } from '@mediapipe/tasks-vision'
-import { webworker } from 'webpack'
+import { drawObjectDetectResult, drawTFFaceResult, FACE_DIMS, FaceResult, NUM_KEYPOINTS } from './DrawUtils'
+import { ImageProcessor } from './ImageProcessor'
+import { MAX_OBJECTS_NUM } from './ObjectTracker'
 
 export class VideoPlayer {
   private hls: Hls
@@ -17,53 +14,58 @@ export class VideoPlayer {
   private offscreen: HTMLCanvasElement
   private offscreenCtx: CanvasRenderingContext2D
 
+  private captureCtx: CanvasRenderingContext2D
+
   private animationId: number
   private flip: boolean = true
   private frame: ImageData
+
+  private _trackerWorker: Worker = null
+  set trackerWorker(value: Worker) {
+    this._trackerWorker = value
+  }
+
+  private _face :FaceResult
+  set face(value: FaceResult) {
+    this._face = value
+  }
 
   private _imgProcessor: ImageProcessor = null
   set imgProcessor(value: ImageProcessor) {
     this._imgProcessor = value
   }
 
-  private _faceDetector: FaceDetector = null
-  set faceDetector(value: FaceDetector) {
-    this._faceDetector = value
+  private _faceRec: boolean = false
+  set faceRec(val: boolean) {
+    this._faceRec = val
   }
 
-  public objDetector: ObjectDetector = null
-
-  public _objTracker: Worker = null
-
-  private objBoxes: Float32Array = new Float32Array(MAX_OBJECTS_NUM * 4)
-  private objScores: Float16Array = new Float16Array(MAX_OBJECTS_NUM)
-  private objClasses: Uint8Array = new Uint8Array(MAX_OBJECTS_NUM)
-  private objNum: number = 0
-  private objScale: number[] = [1, 1]
-
-  set objTracker(value: Worker) {
-    this._objTracker = value
-
-    this._objTracker.addEventListener("message", (event) => {
-      this.objBoxes.set(event.data.boxes)
-      this.objScores.set(event.data.scores)
-      this.objClasses.set(event.data.classes)
-      this.objNum = event.data.objNum
-      this.objScale = [event.data.scaleX, event.data.scaleY]
-
-      drawObjectDetectResult(this.previewCtx,
-        event.data.boxes, event.data.scores, event.data.classes,
-        event.data.objNum, [event.data.scaleX, event.data.scaleY])
-    })
+  private _faceRecMode: 'opencv' | 'tfjs' = 'tfjs' // opencv or tfjs
+  set faceRecMode(val: 'opencv' | 'tfjs') {
+    this._faceRecMode = val
   }
+
+  private _drawFace: boolean = true
+  set drawFace(val: boolean) {
+    this._drawFace = val
+  }
+
+  private _drawEigen: boolean = true
+  set drawEigen(val: boolean) {
+    this._drawEigen = val
+  }
+
 
   private mediaRecorder: MediaRecorder
 
   private _faceFrames = 0
   private _objFrames = 0
-  private _step = 0
 
-  constructor(video: HTMLVideoElement, priview: HTMLCanvasElement, offscreen: HTMLCanvasElement, flip: boolean = true) {
+  constructor(video: HTMLVideoElement,
+    priview: HTMLCanvasElement,
+    offscreen: HTMLCanvasElement,
+    capture: HTMLCanvasElement,
+    flip: boolean = true) {
     this.hls = new Hls()
 
     this.preVideo = video
@@ -72,6 +74,7 @@ export class VideoPlayer {
 
     this.previewCtx = this.preview.getContext('2d', { willReadFrequently: true })
     this.offscreenCtx = this.offscreen.getContext('2d', { willReadFrequently: true })
+    this.captureCtx = capture.getContext('2d', { willReadFrequently: true })
 
     this.previewCtx.imageSmoothingEnabled = true
     this.previewCtx.imageSmoothingQuality = 'high'
@@ -100,43 +103,23 @@ export class VideoPlayer {
     this.previewCtx.putImageData(this.frame, 0, 0)
 
     if (this._faceFrames == 2) {
-      await this._faceDetector.detect(this.frame)
+      this._trackerWorker?.postMessage({ type: 'faceDetect', image: this.frame })
       this._faceFrames = 0
     } else {
       this._faceFrames++
     }
 
     if (this._objFrames == 25) {
-      this._objTracker?.postMessage({ type: 'detect', image: this.frame })
+      this._trackerWorker?.postMessage({ type: 'objDetect', image: this.frame })
       this._objFrames = 0
     } else {
       this._objFrames++
     }
 
-    this._faceDetector?.updateUI()
-    drawObjectDetectResult(this.previewCtx,
-      this.objBoxes, this.objScores, this.objClasses,
-      this.objNum, this.objScale as any)
-
-    this.previewCtx.fillStyle = '#ff4757'
-    this.previewCtx.font = '12px Arial'
-    this.previewCtx.fillText(`Slope: ${this._faceDetector.faceAngle}\n Time: ${this._faceDetector.expire}`, 10, 20)
-
-    // if (Math.abs(this.faceDetector.faceAngle) > 5) {
-    //   this.faceDetector.enableFaceAngle = false
-    //   let size = Math.floor(500 / this.faceDetector.time)
-    //   this._step = this.faceDetector.faceAngle / 15
-    //   this._frames = 15
-    // }
-
-    // if (this._frames > 0) {
-    //   this._frames--
-    //   this.imgProcessor.imgProcessParams['rotate'] = this._step * (15 - this._frames)
-    // } else {
-    //   this.faceDetector.enableFaceAngle = true
-    //   this._step = 0
-    //   this._frames = 0
-    // }
+    drawTFFaceResult(this.previewCtx, this._face, 'none', true, true)
+    // this.previewCtx.fillStyle = '#ff4757'
+    // this.previewCtx.font = '12px Arial'
+    // this.previewCtx.fillText(`Slope: ${this._faceDetector.faceAngle}\n Time: ${this._faceDetector.expire}`, 10, 20)
   }
 
 
