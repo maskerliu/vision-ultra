@@ -56,8 +56,7 @@ class Colors {
   };
 }
 
-export const NUM_KEYPOINTS = 468
-const NUM_IRIS_KEYPOINTS = 5
+export const NUM_KEYPOINTS = 478
 const GREEN = '#32EEDB'
 const RED = '#FF2C35'
 const BLUE = '#157AB3'
@@ -133,10 +132,6 @@ export function CREATE_SHARE_PATHS() {
   SharedPaths.isInited = true
 }
 
-function distance(a: number[], b: number[]) {
-  return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2))
-}
-
 function drawPath(ctx: CanvasRenderingContext2D, points: Float16Array, start: number, end: number, closedPath = false) {
   const region = new Path2D()
   region.moveTo(points[start], points[start + 1])
@@ -148,82 +143,6 @@ function drawPath(ctx: CanvasRenderingContext2D, points: Float16Array, start: nu
   if (closedPath) region.closePath()
 
   ctx.stroke(region)
-}
-
-function drawMutliLine(context: CanvasRenderingContext2D,
-  points: Array<any>, start: number, end: number, closed: boolean = false) {
-  context.beginPath()
-  context.strokeStyle = BLUE
-  context.lineWidth = 4
-  context.moveTo(points[start].x, points[start].y)
-  for (let i = start; i < end; ++i) {
-    context.lineTo(points[i].x, points[i].y)
-  }
-  if (closed) {
-    context.lineTo(points[start].x, points[start].y)
-  }
-  context.stroke()
-  context.closePath()
-}
-
-export function drawCVObjectTrack(context: CanvasRenderingContext2D,
-  boxs: Array<{ x: number, y: number, width: number, height: number }>) {
-  if (boxs == null || boxs.length == 0) return
-  context.strokeStyle = GREEN
-  context.lineWidth = 2
-  boxs.forEach((box) => {
-    context.beginPath()
-    context.strokeRect(box.x, box.y, box.width, box.height)
-    context.closePath()
-  })
-}
-
-export function drawCVFaceResult(context: CanvasRenderingContext2D,
-  face: any, eyes: Array<any>, landmarks?: Array<any>) {
-  if (face == null) return
-  context.beginPath()
-  context.strokeStyle = GREEN
-  context.lineWidth = 3
-  context.strokeRect(face.x, face.y, face.width, face.height)
-  context.closePath()
-
-  eyes?.forEach((eye) => {
-    context.beginPath()
-    context.strokeStyle = RED
-    context.lineWidth = 2
-    context.ellipse(eye.x + face.x + eye.width / 2, eye.y + face.y + eye.height / 2,
-      eye.width / 2, eye.height / 2, 0, 0, Math.PI * 2)
-    context.stroke()
-    context.closePath()
-  })
-
-
-  if (landmarks.length == 68) {
-    drawMutliLine(context, landmarks, 0, 17) // Jaw
-    drawMutliLine(context, landmarks, 17, 22) // Left brow
-    drawMutliLine(context, landmarks, 22, 27) // Right brow
-    drawMutliLine(context, landmarks, 27, 31) // Nose
-    drawMutliLine(context, landmarks, 31, 36) // Nose bottom
-    drawMutliLine(context, landmarks, 36, 42, true) // Left eye
-    drawMutliLine(context, landmarks, 42, 48, true) // Right eye
-    drawMutliLine(context, landmarks, 48, 60, true) // Outer lip
-    drawMutliLine(context, landmarks, 60, 68, true) // Inner lip
-  } else {
-    landmarks?.forEach((landmark) => {
-      context.beginPath()
-      context.fillStyle = PURPLE
-      context.arc(landmark.x, landmark.y, 2, 0, Math.PI * 2)
-      context.fill()
-      context.closePath()
-    })
-  }
-  landmarks?.forEach((landmark) => {
-    context.beginPath()
-    context.fillStyle = PURPLE
-    context.arc(landmark.x, landmark.y, 2, 0, Math.PI * 2)
-    context.fill()
-    context.closePath()
-  })
 }
 
 function drawFaceCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {

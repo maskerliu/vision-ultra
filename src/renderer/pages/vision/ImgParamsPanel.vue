@@ -1,7 +1,7 @@
 <template>
   <van-col>
-    <van-cell-group :border="false">
-      <van-cell title="图像处理引擎">
+    <van-cell-group>
+      <van-cell :title="$t('imgProcess.ProcessMode')">
         <template #right-icon>
           <van-radio-group v-model="visionStore.imgProcessMode" direction="horizontal">
             <van-radio name="1" size="1rem">
@@ -19,13 +19,13 @@
     </van-cell-group>
 
     <!-- YOLO object detect -->
-    <van-cell-group :border="false">
+    <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableYolo">
           {{ $t('imgProcess.YOLODetect') }} <span class="param-desc">{{ $t('imgProcess.YOLODesc') }}</span>
         </van-checkbox>
       </template>
-      <van-radio-group direction="vertical" :disabled="!visionStore.enableYolo" style="width: 95%; padding: 5px 15px;"
+      <van-radio-group direction="vertical" :disabled="!visionStore.enableYolo" style="padding: 5px 15px;"
         v-model="visionStore.yoloModel" @change="onParamChange">
         <van-radio :name="model" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 8px;"
           v-for="model in YOLOModels">
@@ -34,6 +34,7 @@
       </van-radio-group>
     </van-cell-group>
 
+    <!-- face recognize -->
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.faceDetect">
@@ -42,13 +43,14 @@
         </van-checkbox>
       </template>
       <van-row style="padding: 10px 15px;">
-        <van-checkbox v-model="visionStore.drawFaceMesh" :disabled="!visionStore.faceDetect">
+        <van-checkbox icon-size="1rem" v-model="visionStore.drawFaceMesh" :disabled="!visionStore.faceDetect">
           <template #default>
             <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 1px;" />
           </template>
         </van-checkbox>
 
-        <van-checkbox v-model="visionStore.drawEigen" style="margin-left: 15px;" :disabled="!visionStore.faceDetect">
+        <van-checkbox icon-size="1rem" v-model="visionStore.drawEigen" style="margin-left: 15px;"
+          :disabled="!visionStore.faceDetect">
           <template #default>
             <van-icon class="iconfont icon-eigen" style="font-size: 1.2rem; font-weight: blod; margin-top: 1px;" />
           </template>
@@ -81,7 +83,8 @@
         </template>
       </van-field>
       <van-collapse v-model="activeCollapse">
-        <van-collapse-item :title="$t('imgProcess.ColorMap')" name="1" :value="ColorMaps[visionStore.imgParams.colorMap]" style="padding-left: 5px;">
+        <van-collapse-item :title="$t('imgProcess.ColorMap')" name="1"
+          :value="ColorMaps[visionStore.imgParams.colorMap]" style="padding-left: 5px;">
           <van-radio-group v-model="visionStore.imgParams.colorMap">
             <van-radio :name="idx" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 5px;"
               v-for="(val, idx) in ColorMaps" :key="idx" @click="onParamChange">
@@ -99,17 +102,16 @@
     </van-cell-group>
 
     <!-- brightness -->
-    <van-cell-group :border="false" style="padding: 5px;">
+    <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableGamma">
           {{ $t('imgProcess.Brightness') }}
         </van-checkbox>
       </template>
-      <van-field label="gamma" label-align="right" type="number" input-align="right" label-width="4rem"
-        v-if="visionStore.imgParams.enableGamma">
+      <van-field label="gamma" label-align="right" type="number" input-align="right" label-width="4rem">
         <template #input>
           <van-slider bar-height="4px" button-size="1.2rem" min="-1" max="2" step="0.1" v-model="gamma"
-            @change="onParamChange">
+            :disabled="!visionStore.imgParams.enableGamma" @change="onParamChange">
             <template #button>
               <van-button plain size="small"> {{ gamma }}</van-button>
             </template>
@@ -119,7 +121,7 @@
     </van-cell-group>
 
     <!-- contrast -->
-    <van-cell-group :border="false" style="padding: 5px;">
+    <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableContrast"
           :disabled="!visionStore.imgParams.isGray">
@@ -127,7 +129,7 @@
         </van-checkbox>
       </template>
       <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableContrast"
-        style="padding: 5px 10px;" v-model="equalization[0]" @change="onParamChange">
+        style="padding: 10px 15px;" v-model="equalization[0]" @change="onParamChange">
         <van-radio name="equalizeHist" icon-size="1rem" style="font-size: 0.8rem;">
           {{ $t('imgProcess.EqualizeHist') }}
         </van-radio>
@@ -171,14 +173,14 @@
     </van-cell-group>
 
     <!-- blur -->
-    <van-cell-group :border="false" style="padding: 5px;">
+    <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableBlur">
           {{ $t('imgProcess.Blur') }}
         </van-checkbox>
       </template>
 
-      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableBlur" style="padding: 5px 10px;"
+      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableBlur" style="padding: 10px 15px;"
         v-model="blur[0]" @change="onParamChange">
         <van-radio name="gaussian" icon-size="1rem">
           <van-icon class="iconfont icon-gaussian-filter" style="font-size: 1.4rem; margin-top: 2px;" />
@@ -262,14 +264,14 @@
     </van-cell-group>
 
     <!-- sharpness -->
-    <van-cell-group :border="false" style="padding: 5px;">
+    <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableSharpen">
           {{ $t('imgProcess.Sharpness') }}
         </van-checkbox>
       </template>
       <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableSharpen"
-        style="padding: 5px 10px;" v-model="sharpen[0]" @change="onParamChange">
+        style="padding: 10px 15px;" v-model="sharpen[0]" @change="onParamChange">
         <van-radio name="laplace" icon-size="1rem" style="font-size: 0.8rem;">
           laplacian
         </van-radio>
@@ -302,15 +304,15 @@
     </van-cell-group>
 
     <!-- filter -->
-    <van-cell-group :border="false" style="padding: 5px;">
+    <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableFilter"
           :disabled="!visionStore.imgParams.isGray">
           {{ $t('imgProcess.Filter') }}
         </van-checkbox>
       </template>
-      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableFilter" style="padding: 5px 10px;"
-        v-model="filter[0]" @change="onParamChange">
+      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableFilter"
+        style="padding: 10px 15px;" v-model="filter[0]" @change="onParamChange">
         <van-radio name="sobel" icon-size="1rem" style="font-size: 0.8rem;">
           {{ $t('imgProcess.Sobel') }}
         </van-radio>
@@ -368,14 +370,14 @@
     </van-cell-group>
 
     <!-- cv object detect -->
-    <van-cell-group :border="false" style="padding: 5px;">
+    <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableDetect">
           {{ $t('imgProcess.ObjectDetect') }}
         </van-checkbox>
       </template>
-      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableDetect" style="padding: 5px 10px;"
-        v-model="detector[0]" @change="onParamChange">
+      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableDetect"
+        style="padding: 10px 15px;" v-model="detector[0]" @change="onParamChange">
         <van-radio name="color" icon-size="1rem" style="font-size: 0.8rem;">
           {{ $t('imgProcess.ColorTrack') }}
         </van-radio>
@@ -410,7 +412,7 @@
       </van-field>
     </van-cell-group>
 
-    <van-cell-group :title="$t('imgProcess.FeatExtract')" :border="false">
+    <van-cell-group :title="$t('imgProcess.FeatExtract')">
       <van-cell center :title="$t('imgProcess.Canny')" :label="'[ ' + visionStore.imgParams.canny.toString() + ' ]'">
         <template #title>
           <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableCanny">

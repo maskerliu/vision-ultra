@@ -14,7 +14,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   switch (event.data.type) {
     case 'initObjTracker':
       await objTracker.init(event.data.modelName)
-      ctx.postMessage({ loading: true })
+      ctx.postMessage({ loading: false })
       break
     case 'initFaceDetector':
       console.log('initFaceDetector')

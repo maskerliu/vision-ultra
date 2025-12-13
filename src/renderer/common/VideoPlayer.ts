@@ -25,7 +25,7 @@ export class VideoPlayer {
     this._trackerWorker = value
   }
 
-  private _face :FaceResult
+  private _face: FaceResult
   set face(value: FaceResult) {
     this._face = value
   }
@@ -34,27 +34,6 @@ export class VideoPlayer {
   set imgProcessor(value: ImageProcessor) {
     this._imgProcessor = value
   }
-
-  private _faceRec: boolean = false
-  set faceRec(val: boolean) {
-    this._faceRec = val
-  }
-
-  private _faceRecMode: 'opencv' | 'tfjs' = 'tfjs' // opencv or tfjs
-  set faceRecMode(val: 'opencv' | 'tfjs') {
-    this._faceRecMode = val
-  }
-
-  private _drawFace: boolean = true
-  set drawFace(val: boolean) {
-    this._drawFace = val
-  }
-
-  private _drawEigen: boolean = true
-  set drawEigen(val: boolean) {
-    this._drawEigen = val
-  }
-
 
   private mediaRecorder: MediaRecorder
 
@@ -88,7 +67,9 @@ export class VideoPlayer {
     this.offscreen.width = this.preview.width = this.preVideo.videoWidth
     this.offscreen.height = this.preview.height = this.preVideo.videoHeight
 
-    if (this.frame == null || this.frame.width != this.offscreen.width || this.frame.height != this.offscreen.height) {
+    if (this.frame == null ||
+      this.frame.width != this.offscreen.width ||
+      this.frame.height != this.offscreen.height) {
       this.frame = new ImageData(this.offscreen.width, this.offscreen.height)
     }
 
@@ -119,7 +100,7 @@ export class VideoPlayer {
     drawTFFaceResult(this.previewCtx, this._face, 'none', true, true)
     // this.previewCtx.fillStyle = '#ff4757'
     // this.previewCtx.font = '12px Arial'
-    // this.previewCtx.fillText(`Slope: ${this._faceDetector.faceAngle}\n Time: ${this._faceDetector.expire}`, 10, 20)
+    // this.previewCtx.fillText(`Slope: ${this._face.faceAngle}\n Time: ${this._face.expire}`, 10, 20)
   }
 
 
