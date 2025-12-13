@@ -94,8 +94,10 @@ import { VisionStore } from '../../store'
 //   MediaTimeDisplay, MediaTimeRange, MediaPlaybackRateButton,
 //   MediaMuteButton, MediaVolumeRange
 // } from 'media-chrome'
+import TrackerWorker from '../../tracker.worker'
+import { drawObjectDetectResult } from '../../common/DrawUtils'
 
-
+const trackerWorker = new TrackerWorker()
 const visionStore = VisionStore()
 const previewParent = useTemplateRef<any>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
@@ -128,12 +130,7 @@ let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let imgProcessor: ImageProcessor
 let faceDetector: FaceDetector
-let objDetector: ObjectDetector
-let objTracker: ObjectTracker
 let videoPlayer: VideoPlayer = null
-let scanTask: any
-let count = 0
-let imgData: ImageData = null
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
@@ -145,6 +142,11 @@ onMounted(async () => {
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
 
+  trackerWorker.addEventListener("message", (event) => {
+    drawObjectDetectResult(previewCtx,
+      event.data.boxes, event.data.scores, event.data.classes,
+      event.data.objNum, [event.data.scaleX, event.data.scaleY])
+  })
   imgProcessor = new ImageProcessor()
   imgProcessor.imgEnhance = visionStore.imgEnhance
   imgProcessor.imgProcessMode = visionStore.imgProcessMode
@@ -154,9 +156,6 @@ onMounted(async () => {
   faceDetector.drawFace = visionStore.drawFaceMesh
   faceDetector.enable = visionStore.faceDetect
   faceDetector.faceRecMode = visionStore.faceRecMode as any
-
-  objTracker = new ObjectTracker(previewCtx)
-  objTracker.enable = visionStore.enableYolo
 
   // const filesetResolver = await FilesetResolver.forVisionTasks(
   //   __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
@@ -173,7 +172,6 @@ onMounted(async () => {
   try {
     showLoading.value = true
     await faceDetector.init()
-    await objTracker.init()
     showLoading.value = false
   } catch (err) {
     console.log(err)
@@ -182,7 +180,7 @@ onMounted(async () => {
   videoPlayer = new VideoPlayer(preVideo.value, preview.value, offscreen.value)
   videoPlayer.imgProcessor = imgProcessor
   videoPlayer.faceDetector = faceDetector
-  videoPlayer.objTracker = objTracker
+  videoPlayer.objTracker = trackerWorker
 
   window.cvNativeApi?.init()
   window.tfApi?.init('mediapipe-gpu')
@@ -195,9 +193,14 @@ async function onScan() {
   let frame = drawImage()
   await faceDetector?.detect(frame)
   faceDetector?.updateUI()
-
-  await objTracker?.detect(frame)
-  objTracker?.updateUI()
+  trackerWorker.postMessage({
+    type: 'initAndDetect',
+    modelName: visionStore.yoloModel,
+    image: frame
+  })
+  // worker.postMessage({ type: 'detect', image: frame })
+  // await objTracker?.detect(frame)
+  // objTracker?.updateUI(previewCtx)
 
   isScan.value = false
 }
@@ -219,7 +222,8 @@ async function openFolder() {
     videoPlayer.close()
     showControlBar.value = false
     var img = new Image()
-    img.onload = function () {
+    img.onload = async function () {
+
       let w = img.width, h = img.height
       if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 50)) {
         const ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 50) / h)
@@ -230,6 +234,7 @@ async function openFolder() {
       offscreen.value.height = preview.value.height = h
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
+      // worker.postMessage({ type: 'init', width: previewCtx.canvas.width, height: previewCtx.canvas.height })
       onScan()
     }
     img.src = file
@@ -297,19 +302,18 @@ watch(() => visionStore.imgParams,
 )
 
 watch(() => visionStore.enableYolo, async (val, _) => {
-  objTracker.enable = val
   if (val) {
     showLoading.value = true
-    await objTracker?.init(visionStore.yoloModel)
+    trackerWorker.postMessage({ type: 'init', modelName: visionStore.yoloModel })
     showLoading.value = false
   } else {
-    objTracker?.dispose()
+    trackerWorker.postMessage({ type: 'dispose' })
   }
 })
 
 watch(() => visionStore.yoloModel, async () => {
   showLoading.value = true
-  await objTracker?.init(visionStore.yoloModel)
+  trackerWorker.postMessage({ type: 'init', modelName: visionStore.yoloModel })
   showLoading.value = false
 })
 

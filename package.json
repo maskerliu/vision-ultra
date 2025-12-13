@@ -158,6 +158,7 @@
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2",
     "webpack-hot-middleware": "^2.25.4",
+    "worker-loader": "^3.0.8",
     "yaml": "^2.8.1"
   },
   "packageManager": "yarn@4.11.0"

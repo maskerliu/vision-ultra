@@ -51,6 +51,10 @@ class RendererConfig extends BaseConfig {
         use: ['vue-style-loader', 'css-loader']
       },
       {
+        test: /\.worker\.ts$/,
+        loader: "worker-loader",
+      },
+      {
         test: /\.tsx?$/,
         loader: 'ts-loader',
         exclude: /node_modules/,
@@ -114,7 +118,7 @@ class RendererConfig extends BaseConfig {
     alias: {
       '@': path.join(dirname, '../src/renderer'),
     },
-    extensions: ['.js', '.ts', '.vue', '.json', '.css', '.wasm']
+    extensions: ['.ts', '.js', '.vue', '.json', '.css', '.wasm']
   }
 
   optimization: Configuration['optimization'] = {
