@@ -55,6 +55,7 @@ export default {
     }
   },
   imgProcess: {
+    ProcessMode: 'Process Mode',
     ImgEnhance: 'Image Enhancement',
     Gray: 'Gray',
     Brightness: 'Brightness', // 亮度

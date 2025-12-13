@@ -57,6 +57,7 @@ export default {
     }
   },
   imgProcess: {
+    ProcessMode: '处理引擎',
     ImgEnhance: '图像增强',
     Gray: '灰度',
     Brightness: '亮度', // 亮度
@@ -80,7 +81,7 @@ export default {
     BilateralBlur: '双边滤波', // 双边滤波
 
     Filter: '滤波',
-    Laplace: '拉普拉斯算子',
+    Laplace: '拉普拉斯',
     LaplaceDesc: '通常用于特征提取和特征检测',
     Sobel: 'Sobel算子',
     SobelDesc: '离散的微分算子',
@@ -104,7 +105,7 @@ export default {
     YOLODetect: 'YOLO',
     YOLODesc: 'you only look once',
     yolov6n: 'YOLOv6 (via 美团)',
-    yolov8n: 'YOLOv8 (via Ultralytics 2023年1月10日发布)',
+    yolov8n: 'YOLOv8 (via Ultralytics 2023年1月10日)',
     yolov10n: 'YOLOv10(清华大学)',
     yolo11n: 'YOLO11(lastest)',
 

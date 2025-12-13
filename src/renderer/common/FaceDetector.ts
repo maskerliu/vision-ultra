@@ -17,12 +17,6 @@ export class FaceDetector {
   private _face: FaceResult = null
   get face() { return this._face }
 
-  private _drawFace: boolean = true
-  set drawFace(val: boolean) { this._drawFace = val }
-
-  private _drawEigen: boolean = true
-  set drawEigen(val: boolean) { this._drawEigen = val }
-
   private _enableFaceAngle: boolean = false
   get enableFaceAngle() { return this._enableFaceAngle }
 

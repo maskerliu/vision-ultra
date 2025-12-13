@@ -48,7 +48,7 @@
       </media-control-bar>
     </media-controller>
 
-    <div ref="eigenFace" class="eigen-face">
+    <div ref="eigenFace" class="eigen-face" v-show="visionStore.faceDetect">
       <canvas ref="capture" width="120" height="140"></canvas>
       <canvas ref="masklayer" width="120" height="140"
         style="position: absolute; top: 5px; left: 5px; z-index: 3000; display: none;"></canvas>
@@ -122,7 +122,6 @@ let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let captureCtx: CanvasRenderingContext2D
 let imgProcessor: ImageProcessor
-// let faceDetector: FaceDetector
 let videoPlayer: VideoPlayer = null
 
 let workerListener: any = null
@@ -139,6 +138,7 @@ onMounted(async () => {
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
 
   workerListener = (event: MessageEvent) => {
+    showLoading.value = event.data.loading
     switch (event.data.type) {
       case 'obj':
         drawObjectDetectResult(previewCtx,
@@ -146,8 +146,11 @@ onMounted(async () => {
           event.data.objNum, [event.data.scaleX, event.data.scaleY])
         break
       case 'face':
-        videoPlayer.face = event.data.face
-        // drawTFFaceResult(previewCtx, event.data.face, 'none', true, true)
+        if (videoPlayer.isOpen) {
+          videoPlayer.face = visionStore.faceDetect ? event.data.face : null
+        } else {
+          drawTFFaceResult(previewCtx, event.data.face, 'none', true, true)
+        }
         if (visionStore.drawEigen) {
           captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
           drawTFFaceResult(captureCtx, event.data.face, 'mesh', false, false, capture.value.height)
@@ -241,32 +244,36 @@ function drawImage() {
   return imgData
 }
 
+watch(() => visionStore.enableYolo, async (val, _) => {
+  if (val) {
+    showLoading.value = true
+    trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.yoloModel })
+  } else {
+    trackerWorker.postMessage({ type: 'objDispose' })
+  }
+})
+
+watch(() => visionStore.yoloModel, async () => {
+  showLoading.value = true
+  trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.yoloModel })
+})
+
+watch(() => visionStore.faceDetect, async (val, _) => {
+  if (val) {
+    showLoading.value = true
+    trackerWorker.postMessage({ type: 'initFaceDetector' })
+  } else {
+    trackerWorker.postMessage({ type: 'faceDispose' })
+    videoPlayer.face = null
+  }
+})
+
 watch(() => visionStore.imgEnhance, (val) => {
   imgProcessor.imgEnhance = val
   if (!videoPlayer.isOpen) { drawImage() }
 })
 
-watch(() => visionStore.faceDetect, async (val, _) => {
-  videoPlayer.faceRecMode = visionStore.faceRecMode as any
 
-  if (val) {
-    showLoading.value = true
-    trackerWorker.postMessage({ type: 'initFaceDetector' })
-    showLoading.value = false
-  } else trackerWorker.postMessage({ type: 'faceDispose' })
-})
-
-watch(() => visionStore.drawFaceMesh, (val) => {
-  if (videoPlayer) videoPlayer.drawFace = val
-})
-
-watch(() => visionStore.drawEigen, (val) => {
-  if (videoPlayer) videoPlayer.drawEigen = val
-})
-
-watch(() => visionStore.faceRecMode, (val) => {
-  if (videoPlayer) videoPlayer.faceRecMode = val as any
-})
 
 watch(() => visionStore.imgProcessMode, (val) => {
   imgProcessor.imgProcessMode = val
@@ -280,21 +287,6 @@ watch(() => visionStore.imgParams,
   { deep: true }
 )
 
-watch(() => visionStore.enableYolo, async (val, _) => {
-  if (val) {
-    showLoading.value = true
-    trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.yoloModel })
-    showLoading.value = false
-  } else {
-    trackerWorker.postMessage({ type: 'objDispose' })
-  }
-})
-
-watch(() => visionStore.yoloModel, async () => {
-  showLoading.value = true
-  trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.yoloModel })
-  showLoading.value = false
-})
 
 </script>
 <style lang="css">
