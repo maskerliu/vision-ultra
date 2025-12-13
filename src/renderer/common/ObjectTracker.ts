@@ -2,7 +2,7 @@ import * as tf from '@tensorflow/tfjs'
 import { baseDomain } from '../../common'
 import { drawObjectDetectResult } from './DrawUtils'
 
-const MAX_OBJECTS_NUM: number = 20
+export const MAX_OBJECTS_NUM: number = 20
 
 export class ObjectTracker {
 
@@ -16,18 +16,16 @@ export class ObjectTracker {
   private model: tf.GraphModel
   private modelWidth: number
   private modelHeight: number
-  private previewCtx: CanvasRenderingContext2D
-  private _width: number
-  private _height: number
+  private _width: number = 0
+  private _height: number = 0
 
-  private boxes: Float32Array<ArrayBufferLike>
-  private scores: Float16Array
-  private classes: Uint8Array
-  private objectNum: number = MAX_OBJECTS_NUM
-  private xRatio: number = 1
-  private yRatio: number = 1
-  private scaleX: number = 1
-  private scaleY: number = 1
+  public boxes: Float32Array<ArrayBufferLike>
+  public scores: Float16Array
+  public classes: Uint8Array
+  public objNum: number = MAX_OBJECTS_NUM
+  public scaleX: number = 1
+  public scaleY: number = 1
+  private maxSize: number = 0
   private nms: tf.Tensor
   private boxesTF: tf.Tensor
   private scoresTF: tf.Tensor
@@ -38,28 +36,26 @@ export class ObjectTracker {
     return this._expire
   }
 
-  constructor(context: CanvasRenderingContext2D) {
-    this.previewCtx = context
-    this._width = context.canvas.width
-    this._height = context.canvas.height
-  }
+  private _isInited: boolean = false
 
-  async init(yolo: string = 'yolov6n') {
-    if (!this._enable) return
+  async init(yolo: string = 'yolov8n',) {
+    // if (!this._enable) return
 
-    this.modelName = yolo
+    if (this.modelName == yolo) return
+
     this.dispose()
 
-    if (this.boxes == null) this.boxes = new Float32Array(MAX_OBJECTS_NUM * 4) // 100 boxes, 4 coordinates
-    if (this.scores == null) this.scores = new Float16Array(MAX_OBJECTS_NUM) // 100 boxes, 1 score
-    if (this.classes == null) this.classes = new Uint8Array(MAX_OBJECTS_NUM) // 100 boxes, 1 class
+    this.modelName = yolo
+
+    if (this.boxes == null) this.boxes = new Float32Array(MAX_OBJECTS_NUM * 4)
+    if (this.scores == null) this.scores = new Float16Array(MAX_OBJECTS_NUM)
+    if (this.classes == null) this.classes = new Uint8Array(MAX_OBJECTS_NUM)
 
     await tf.ready()
     let modelPath = `static/${yolo}_web_model/model.json`
     try {
       this.model = await tf.loadGraphModel(`indexeddb://${modelPath}`)
     } catch (e) {
-      console.log('failed to load model from indexeddb', e)
       this.model = await tf.loadGraphModel(`${__DEV__ ? '' : baseDomain()}/${modelPath}`, {
         requestInit: {
           cache: 'force-cache'
@@ -73,25 +69,34 @@ export class ObjectTracker {
     this.modelWidth = this.model.inputs[0].shape[1]
     this.modelHeight = this.model.inputs[0].shape[2]
 
-    // const dummyInput = tf.ones(this.model.inputs[0].shape)
-    // const warmupResults = this.model.execute(dummyInput)
-    // tf.dispose([warmupResults, dummyInput])
+    this._isInited = true
   }
 
   async dispose() {
     this.model?.dispose()
+    this._isInited = false
+    this.model = null
     this.boxes = null
     this.scores = null
     this.classes = null
   }
 
-  updateUI() {
-    drawObjectDetectResult(this.previewCtx, this.boxes, this.scores, this.classes, this.objectNum, [this.scaleX, this.scaleY])
+  updateUI(context: CanvasRenderingContext2D) {
+    drawObjectDetectResult(context, this.boxes, this.scores, this.classes, this.objNum, [this.scaleX, this.scaleY])
   }
 
   async detect(image: ImageData) {
+    let maxSize = Math.max(image.width, image.height)
+    if (this.maxSize != maxSize) {
+      this._width = image.width
+      this._height = image.height
+      this.scaleX = maxSize / this.modelWidth
+      this.scaleY = maxSize / this.modelHeight
+      this.maxSize = maxSize
+    }
+
+    if (!this._isInited || this.model == null) return
     let time = Date.now()
-    if (!this.model || !this._enable) return
     tf.engine().startScope()
     let input = this.preprocess(image)
     let res = this.model.execute(input)
@@ -126,13 +131,12 @@ export class ObjectTracker {
     // if (!this.nms?.isDisposed) {
     //   console.log('nms', this.nms?.dataSync())
     // }
-
     tf.tidy(() => {
       if (this.boxesTF?.isDisposed || this.nms?.isDisposed || this.scoresTF?.isDisposed || this.classesTF?.isDisposed || this.nms?.size == 0) return
-      this.objectNum = Math.min(this.nms?.size, MAX_OBJECTS_NUM)
-      this.boxes.set(this.boxesTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objectNum * 4))
-      this.scores.set(this.scoresTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objectNum))
-      this.classes.set(this.classesTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objectNum))
+      this.objNum = Math.min(this.nms?.size, MAX_OBJECTS_NUM)
+      this.boxes.set(this.boxesTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objNum * 4))
+      this.scores.set(this.scoresTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objNum))
+      this.classes.set(this.classesTF?.gather(this.nms, 0)?.dataSync().slice(0, this.objNum))
       return
     })
 
@@ -187,22 +191,12 @@ export class ObjectTracker {
   }
 
   private preprocess(image: ImageData) {
-    const maxSize = Math.max(image.width, image.height)
-    if (this._width != this.previewCtx.canvas.width || this._height == this.previewCtx.canvas.height) {
-      this._width = this.previewCtx.canvas.width
-      this._height = this.previewCtx.canvas.height
-      this.xRatio = maxSize / image.width // update xRatio
-      this.yRatio = maxSize / image.height // update yRatio
-      this.scaleX = this.xRatio * this.previewCtx.canvas.width / this.modelWidth
-      this.scaleY = this.yRatio * this.previewCtx.canvas.height / this.modelHeight
-    }
-
 
     const input = tf.tidy(() => {
       const img = tf.browser.fromPixels(image)
       const imgPadded = img.pad([
-        [0, maxSize - image.height],
-        [0, maxSize - image.width],
+        [0, this.maxSize - image.height],
+        [0, this.maxSize - image.width],
         [0, 0],
       ])
       return tf.image

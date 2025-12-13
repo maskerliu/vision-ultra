@@ -305,7 +305,7 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
 }
 
 export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
-  boxes_data: Float32Array, scores: Float16Array, classes: Uint8Array,
+  boxes: Float32Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number]) {
   if (scores == null || scores.length === 0) return
   ctx.font = `10px Arial`
@@ -316,18 +316,18 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
 
     const klass = Object_Labels[classes[i]]
     const color = colors.get(classes[i])
-    let y1 = boxes_data[i * 4] * scale[1]
-    let x1 = boxes_data[i * 4 + 1] * scale[0]
-    let y2 = boxes_data[i * 4 + 2] * scale[1]
-    let x2 = boxes_data[i * 4 + 3] * scale[0]
+    let y1 = boxes[i * 4] * scale[1]
+    let x1 = boxes[i * 4 + 1] * scale[0]
+    let y2 = boxes[i * 4 + 2] * scale[1]
+    let x2 = boxes[i * 4 + 3] * scale[0]
     const width = x2 - x1
     const height = y2 - y1
 
     ctx.fillStyle = Colors.hexToRgba(color, 0.2)
     ctx.fillRect(x1, y1, width, height)
 
-    ctx.strokeStyle = Colors.hexToRgba(color, 0.6)
-    ctx.lineWidth = 2.5
+    ctx.strokeStyle = Colors.hexToRgba(color, 0.8)
+    ctx.lineWidth = 1
     ctx.strokeRect(x1, y1, width, height)
 
     ctx.fillStyle = color
