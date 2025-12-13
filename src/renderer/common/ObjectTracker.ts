@@ -16,8 +16,6 @@ export class ObjectTracker {
   private model: tf.GraphModel
   private modelWidth: number
   private modelHeight: number
-  private _width: number = 0
-  private _height: number = 0
 
   public boxes: Float32Array<ArrayBufferLike>
   public scores: Float16Array
@@ -32,9 +30,7 @@ export class ObjectTracker {
   private classesTF: tf.Tensor
 
   private _expire: number = 0
-  get expire(): number {
-    return this._expire
-  }
+  get expire(): number { return this._expire }
 
   private _isInited: boolean = false
 
@@ -81,15 +77,9 @@ export class ObjectTracker {
     this.classes = null
   }
 
-  updateUI(context: CanvasRenderingContext2D) {
-    drawObjectDetectResult(context, this.boxes, this.scores, this.classes, this.objNum, [this.scaleX, this.scaleY])
-  }
-
   async detect(image: ImageData) {
     let maxSize = Math.max(image.width, image.height)
     if (this.maxSize != maxSize) {
-      this._width = image.width
-      this._height = image.height
       this.scaleX = maxSize / this.modelWidth
       this.scaleY = maxSize / this.modelHeight
       this.maxSize = maxSize

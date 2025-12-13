@@ -228,7 +228,7 @@ export function drawCVFaceResult(context: CanvasRenderingContext2D,
 
 function drawFaceCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
   ctx.strokeStyle = SILVERY
-  ctx.lineWidth = 5
+  ctx.lineWidth = 3
 
   const w = box.width / 6
   //   [box.xMin + w, box.yMin], [box.xMin, box.yMin], [box.xMin, box.yMin + w]
@@ -339,7 +339,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   face: FaceResult, mesh: 'mesh' | 'dot' | 'none' = 'none',
   eigen = false, boundingBox = false, scale?: number) {
   CREATE_SHARE_PATHS()
-  if (face.landmarks == null || face.landmarks?.length === 0) return
+  if (face?.landmarks == null || face?.landmarks?.length === 0) return
   let normilize = scale ? scale : Math.max(face.box.width, face.box.height)
   let orginX = scale ? 0 : face.box.xMin
   let originY = scale ? 0 : face.box.yMin
