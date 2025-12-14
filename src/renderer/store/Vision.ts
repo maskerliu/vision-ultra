@@ -115,12 +115,16 @@ export const VisionStore = defineStore('VisionStore', {
       imgParams: new ImageParams(),
       enableYolo: false,
       yoloModel: 'yolov8n',
-      showQrCode: false
+      showQrCode: false,
+      liveStreamHistories: [] as string[],
     }
   },
   actions: {
     updateShowQrCode(show: boolean) {
       this.showQrCode = show
     },
+    updateLiveStreamHistories(url: string) {
+      this.liveStreamHistories = [url, ...this.liveStreamHistories]
+    }
   }
 })

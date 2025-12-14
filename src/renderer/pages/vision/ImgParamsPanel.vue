@@ -43,13 +43,13 @@
         </van-checkbox>
       </template>
       <van-row style="padding: 10px 15px;">
-        <van-checkbox icon-size="1rem" v-model="visionStore.drawFaceMesh" :disabled="!visionStore.faceDetect">
+        <van-checkbox icon-size="1rem" v-model="visionStore.drawEigen" :disabled="!visionStore.faceDetect">
           <template #default>
             <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 1px;" />
           </template>
         </van-checkbox>
 
-        <van-checkbox icon-size="1rem" v-model="visionStore.drawEigen" style="margin-left: 15px;"
+        <van-checkbox icon-size="1rem" v-model="visionStore.drawFaceMesh" style="margin-left: 15px;"
           :disabled="!visionStore.faceDetect">
           <template #default>
             <van-icon class="iconfont icon-eigen" style="font-size: 1.2rem; font-weight: blod; margin-top: 1px;" />

@@ -1,6 +1,6 @@
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
 import { baseDomain } from "../../common"
-import { FACE_DIMS, FaceResult, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from "./DrawUtils"
+import { FACE_DIMS, FaceDetectResult, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from "./DrawUtils"
 
 
 export class FaceDetector {
@@ -14,7 +14,7 @@ export class FaceDetector {
   private _faceRecMode: 'opencv' | 'tfjs' = 'tfjs' // opencv or tfjs
   set faceRecMode(val: 'opencv' | 'tfjs') { this._faceRecMode = val }
 
-  private _face: FaceResult = null
+  private _face: FaceDetectResult = null
   get face() { return this._face }
 
   private _enableFaceAngle: boolean = false
@@ -23,9 +23,6 @@ export class FaceDetector {
   private _faceAngle: number = 0
   get faceAngle() { return this._faceAngle }
 
-  private _expire: number = 0
-  get expire(): number { return this._expire }
-
   private _isInited: boolean = false
 
   async init() {
@@ -33,7 +30,8 @@ export class FaceDetector {
     this._face = {
       landmarks: new Float16Array(NUM_KEYPOINTS * FACE_DIMS),
       box: { xMin: 0, yMin: 0, xMax: 0, yMax: 0, width: 0, height: 0 },
-      valid: false
+      valid: false,
+      expire: 0,
     }
 
     const filesetResolver = await FilesetResolver.forVisionTasks(
@@ -52,7 +50,7 @@ export class FaceDetector {
 
   dispose() {
     if (this.face) this.face.valid = false
-    this.faceLandmarker?.close()
+    // this.faceLandmarker?.close()
     this._isInited = false
     if (this._face) this._face.landmarks = null
     this._face = null
@@ -64,10 +62,10 @@ export class FaceDetector {
   }
 
   async detect(frame: ImageData) {
-    // if (!this._enable || !this._isInited) {
-    //   if (this.face) this.face.valid = false
-    //   return
-    // }
+    if (!this._isInited) {
+      if (this.face) this.face.valid = false
+      return
+    }
 
     switch (this._faceRecMode) {
       case 'opencv': {
@@ -80,7 +78,7 @@ export class FaceDetector {
         let time = Date.now()
         let result = this.faceLandmarker?.detect(frame)
         landmarksToFace(result?.faceLandmarks[0], this._face, frame.width, frame.height)
-        this._expire = Date.now() - time
+        this._face.expire = Date.now() - time
         this.calacleFaceAngle()
         break
       }

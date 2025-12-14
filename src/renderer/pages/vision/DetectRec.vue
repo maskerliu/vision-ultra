@@ -69,9 +69,9 @@
           <van-button type="primary" plain size="small" @click="onLiveStream">确认</van-button>
         </template>
       </van-field>
-      <van-row style="padding: 15px 5px 5px 15px;">
-        <van-tag plain round closeable size="large" v-for="value in urlHistories"
-          style="margin: 0 10px 10px 0; max-width: calc(50% - 30px);">
+      <van-row style="padding: 10px 5px 5px 15px;">
+        <van-tag plain closeable size="large" v-for="(value, idx) in visionStore.liveStreamHistories"
+          style="margin: 0 10px 10px 0; max-width: calc(50% - 30px);" @close="onDeleteHistory(idx)">
           <div style="max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ value }}
           </div>
         </van-tag>
@@ -88,6 +88,7 @@ import { ImageProcessor } from '../../common/ImageProcessor'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { VisionStore } from '../../store'
 import TrackerWorker from '../../tracker.worker?worker'
+import { showNotify } from 'vant'
 
 const trackerWorker = new TrackerWorker() as Worker
 const visionStore = VisionStore()
@@ -124,7 +125,38 @@ let captureCtx: CanvasRenderingContext2D
 let imgProcessor: ImageProcessor
 let videoPlayer: VideoPlayer = null
 
-let workerListener: any = null
+let workerListener = (event: MessageEvent) => {
+  showLoading.value = event.data.loading
+  isScan.value = false
+
+  if (event.data.error) {
+    showNotify({ type: 'danger', message: event.data.error, duration: 1500 })
+    return
+  }
+
+  switch (event.data.type) {
+    case 'obj':
+      if (videoPlayer.isOpen) {
+        videoPlayer.objects = visionStore.enableYolo ? event.data : null
+      } else {
+        drawObjectDetectResult(previewCtx,
+          event.data.boxes, event.data.scores, event.data.classes,
+          event.data.objNum, event.data.scale)
+      }
+      break
+    case 'face':
+      if (videoPlayer.isOpen) {
+        videoPlayer.face = visionStore.faceDetect ? event.data.face : null
+      } else {
+        drawTFFaceResult(previewCtx, event.data.face, 'none', visionStore.drawEigen, true)
+      }
+      captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
+      if (visionStore.drawFaceMesh) {
+        drawTFFaceResult(captureCtx, event.data.face, 'mesh', false, false, capture.value.height)
+      }
+      break
+  }
+}
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
@@ -137,27 +169,6 @@ onMounted(async () => {
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
 
-  workerListener = (event: MessageEvent) => {
-    showLoading.value = event.data.loading
-    switch (event.data.type) {
-      case 'obj':
-        drawObjectDetectResult(previewCtx,
-          event.data.boxes, event.data.scores, event.data.classes,
-          event.data.objNum, [event.data.scaleX, event.data.scaleY])
-        break
-      case 'face':
-        if (videoPlayer.isOpen) {
-          videoPlayer.face = visionStore.faceDetect ? event.data.face : null
-        } else {
-          drawTFFaceResult(previewCtx, event.data.face, 'none', true, true)
-        }
-        if (visionStore.drawEigen) {
-          captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
-          drawTFFaceResult(captureCtx, event.data.face, 'mesh', false, false, capture.value.height)
-        }
-        break
-    }
-  }
   trackerWorker.addEventListener("message", workerListener)
 
   imgProcessor = new ImageProcessor()
@@ -182,18 +193,19 @@ async function onScan() {
     trackerWorker.postMessage({ type: 'faceDetect', image: frame })
 
   if (visionStore.enableYolo)
-    trackerWorker.postMessage({
-      type: 'initAndDetect',
-      modelName: visionStore.yoloModel,
-      image: frame
-    })
-  isScan.value = false
+    trackerWorker.postMessage({ type: 'objDetect', image: frame })
 }
 
 async function onLiveStream() {
+  visionStore.updateLiveStreamHistories(liveStreamUrl.value)
   videoPlayer?.open(liveStreamUrl.value, false)
   showLiveStreamInput.value = false
   showControlBar.value = true
+}
+
+function onDeleteHistory(idx: number) {
+  console.log(idx)
+  // visionStore.deleteLiveStreamHistory(idx)
 }
 
 async function onClickCamera() {
@@ -245,6 +257,7 @@ function drawImage() {
 }
 
 watch(() => visionStore.enableYolo, async (val, _) => {
+  videoPlayer.enableObject = val
   if (val) {
     showLoading.value = true
     trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.yoloModel })
@@ -259,6 +272,7 @@ watch(() => visionStore.yoloModel, async () => {
 })
 
 watch(() => visionStore.faceDetect, async (val, _) => {
+  videoPlayer.enableFace = val
   if (val) {
     showLoading.value = true
     trackerWorker.postMessage({ type: 'initFaceDetector' })

@@ -1,5 +1,5 @@
 import Hls from 'hls.js'
-import { drawObjectDetectResult, drawTFFaceResult, FACE_DIMS, FaceResult, NUM_KEYPOINTS } from './DrawUtils'
+import { drawObjectDetectResult, drawTFFaceResult, FACE_DIMS, FaceDetectResult, NUM_KEYPOINTS, ObjectDetectResult } from './DrawUtils'
 import { ImageProcessor } from './ImageProcessor'
 import { MAX_OBJECTS_NUM } from './ObjectTracker'
 
@@ -25,9 +25,24 @@ export class VideoPlayer {
     this._trackerWorker = value
   }
 
-  private _face: FaceResult
-  set face(value: FaceResult) {
+  private _enableFace = false
+  set enableFace(value: boolean) {
+    this._enableFace = value
+  }
+
+  private _enableObject = false
+  set enableObject(value: boolean) {
+    this._enableObject = value
+  }
+
+  private _face: FaceDetectResult
+  set face(value: FaceDetectResult) {
     this._face = value
+  }
+
+  private _objects: ObjectDetectResult
+  set objects(value: ObjectDetectResult) {
+    this._objects = value
   }
 
   private _imgProcessor: ImageProcessor = null
@@ -83,29 +98,36 @@ export class VideoPlayer {
     this._imgProcessor?.process(this.frame)
     this.previewCtx.putImageData(this.frame, 0, 0)
 
-    if (this._faceFrames == 2) {
-      this._trackerWorker?.postMessage({ type: 'faceDetect', image: this.frame })
+    if (this._faceFrames == 3) {
+      if (this._enableFace) this._trackerWorker?.postMessage({ type: 'faceDetect', image: this.frame })
       this._faceFrames = 0
     } else {
       this._faceFrames++
     }
 
-    if (this._objFrames == 25) {
-      this._trackerWorker?.postMessage({ type: 'objDetect', image: this.frame })
+    if (this._objFrames == 5) {
+      if (this._enableObject) this._trackerWorker?.postMessage({ type: 'objDetect', image: this.frame })
       this._objFrames = 0
     } else {
       this._objFrames++
     }
 
-    drawTFFaceResult(this.previewCtx, this._face, 'none', true, true)
-    // this.previewCtx.fillStyle = '#ff4757'
-    // this.previewCtx.font = '12px Arial'
-    // this.previewCtx.fillText(`Slope: ${this._face.faceAngle}\n Time: ${this._face.expire}`, 10, 20)
+    if (this._face && this._face.valid && this._enableFace)
+      drawTFFaceResult(this.previewCtx, this._face, 'none', true, true)
+    if (this._objects && this._enableObject)
+      drawObjectDetectResult(this.previewCtx,
+        this._objects.boxes, this._objects.scores, this._objects.classes,
+        this._objects.objNum, this._objects.scale)
+
+    this.previewCtx.fillStyle = '#ff4757'
+    this.previewCtx.font = '12px Arial'
+    this.previewCtx.fillText(`Face: ${this._face ? this._face.expire : '-'}\n 
+      Object: ${this._objects ? this._objects.expire : '-'}`, 10, 20)
   }
 
 
   get isOpen(): boolean {
-    return this.preVideo.srcObject != null
+    return this.preVideo.srcObject != null || this.preVideo.src != null
   }
 
   async open(url?: string, flip: boolean = true) {
