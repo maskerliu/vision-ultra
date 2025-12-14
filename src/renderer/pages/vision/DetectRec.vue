@@ -187,7 +187,7 @@ onMounted(async () => {
 
 async function onScan() {
   isScan.value = true
-
+  console.log(videoPlayer.isOpen)
   let frame = drawImage()
   if (visionStore.faceDetect)
     trackerWorker.postMessage({ type: 'faceDetect', image: frame })
