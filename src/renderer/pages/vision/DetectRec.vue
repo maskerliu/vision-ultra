@@ -104,13 +104,6 @@ const showNameInputDialog = ref(false)
 const showLiveStreamInput = ref(false)
 const eigenName = ref('')
 const liveStreamUrl = ref(`https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8`)
-const urlHistories = ref<Array<string>>([
-  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
-  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
-  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
-  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
-  'https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8',
-])
 const showControlBar = ref(false)
 const recFace = ref<string>()
 const isScan = ref(false)
@@ -204,8 +197,7 @@ async function onLiveStream() {
 }
 
 function onDeleteHistory(idx: number) {
-  console.log(idx)
-  // visionStore.deleteLiveStreamHistory(idx)
+  visionStore.deleteLiveStreamHistory(idx)
 }
 
 async function onClickCamera() {
