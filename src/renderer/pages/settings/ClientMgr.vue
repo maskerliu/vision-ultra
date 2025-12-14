@@ -14,7 +14,7 @@
           <span class="single-line">{{ item.uid }}</span>
         </template>
         <template #icon>
-          <van-icon class="iconfont icon-network-data" size="30"
+          <van-icon class="iconfont icon-terminal" size="30"
             :style="{ color: commonStore.uid == item.uid ? 'green' : 'gray' }" />
         </template>
       </van-grid-item>

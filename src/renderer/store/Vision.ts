@@ -38,6 +38,57 @@ export type cvDetector = [
   number, // minSize
 ]
 
+class ImgParams {
+  // 0: isGray
+  // 1: equalizeHist
+  // 2: rotate
+  // 3: colorMap
+  // 4: enableGamma
+  // 5: gamma
+  // 6: enableContrast
+  // 7: equalization[0]
+  // 8: equalization[1]
+  // 9: equalization[2]
+  // 10: enableBlur
+  // 11: blur[0]
+  // 12: blur[1]
+  // 13: blur[2]
+  // 14: blur[3]
+  // 15: blur[4]
+  // 16: blur[5]
+  // 17: blur[6]
+  // 18: enableSharpen
+  // 19: sharpen[0]
+  // 20: sharpen[1]
+  // 21: sharpen[2]
+  // 22: sharpen[3]
+  // 23: enableFilter
+  // 24: filter[0]
+  // 25: filter[1]  
+  // 26: filter[2]
+  // 27: filter[3]
+  // 28: enableDetect
+  // 29: detector[0]
+  // 30: detector[1]
+  // 31: detector[2]
+  // 32: enableCanny
+  // 33: canny[0]
+  // 34: canny[1]
+  params: Uint8Array = new Uint8Array(34)
+
+  isGray() {
+    return this.params[0] === 1
+  }
+
+  setGray(val: boolean) {
+    this.params[0] = val ? 1 : 0
+  }
+
+  equalizeHist() {
+    return this.params[1] === 1
+  }
+}
+
 class ImageParams {
   isGray: boolean = false
   equalizeHist: boolean = false
@@ -116,7 +167,14 @@ export const VisionStore = defineStore('VisionStore', {
       enableYolo: false,
       yoloModel: 'yolov8n',
       showQrCode: false,
-      liveStreamHistories: [] as string[],
+      streamHistories: [] as string[],
+    }
+  },
+  getters: {
+    liveStreamHistories: (state) => {
+      let data = window.localStorage.getItem('liveStreamHistories')
+      state.streamHistories = data === null ? [] : window.localStorage.getItem('liveStreamHistories').split(',')
+      return state.streamHistories
     }
   },
   actions: {
@@ -124,7 +182,12 @@ export const VisionStore = defineStore('VisionStore', {
       this.showQrCode = show
     },
     updateLiveStreamHistories(url: string) {
-      this.liveStreamHistories = [url, ...this.liveStreamHistories]
+      this.streamHistories = [url, ...this.streamHistories]
+      window.localStorage.setItem('liveStreamHistories', this.streamHistories)
+    },
+    deleteLiveStreamHistory(idx: number) {
+      this.liveStreamHistories.splice(idx, 1)
+      window.localStorage.setItem('liveStreamHistories', this.streamHistories)
     }
   }
 })
