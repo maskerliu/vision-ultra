@@ -17,10 +17,10 @@ export class ObjectTracker {
   private modelWidth: number
   private modelHeight: number
 
-  public boxes: Float32Array<ArrayBufferLike>
+  public boxes: Float16Array<ArrayBufferLike>
   public scores: Float16Array
   public classes: Uint8Array
-  public objNum: number = MAX_OBJECTS_NUM
+  public objNum: number = 0
   public scaleX: number = 1
   public scaleY: number = 1
   private maxSize: number = 0
@@ -35,15 +35,11 @@ export class ObjectTracker {
   private _isInited: boolean = false
 
   async init(yolo: string = 'yolov8n',) {
-    // if (!this._enable) return
-
-    if (this.modelName == yolo) return
-
     this.dispose()
 
     this.modelName = yolo
 
-    if (this.boxes == null) this.boxes = new Float32Array(MAX_OBJECTS_NUM * 4)
+    if (this.boxes == null) this.boxes = new Float16Array(MAX_OBJECTS_NUM * 4)
     if (this.scores == null) this.scores = new Float16Array(MAX_OBJECTS_NUM)
     if (this.classes == null) this.classes = new Uint8Array(MAX_OBJECTS_NUM)
 
@@ -85,7 +81,11 @@ export class ObjectTracker {
       this.maxSize = maxSize
     }
 
-    if (!this._isInited || this.model == null) return
+    if (!this._isInited || this.model == null) {
+      this.objNum = 0
+      return
+    }
+
     let time = Date.now()
     tf.engine().startScope()
     let input = this.preprocess(image)
@@ -104,7 +104,7 @@ export class ObjectTracker {
         break
     }
 
-    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxesTF as any, this.scoresTF as any, 50, 0.45, 0.2)
+    this.nms = await tf.image.nonMaxSuppressionAsync(this.boxesTF as any, this.scoresTF as any, 50, 0.45, 0.35)
     if (this.nms.size > MAX_OBJECTS_NUM && !this.nms.isDisposed) {
       let tmp = this.nms.slice(0, MAX_OBJECTS_NUM)
       this.nms.dispose()

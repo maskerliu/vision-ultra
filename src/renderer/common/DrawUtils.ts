@@ -76,10 +76,20 @@ export const LABEL_TO_COLOR = {
   faceOval: SILVERY,
 }
 
-export type FaceResult = {
+export type FaceDetectResult = {
   landmarks: Float16Array,
   box: BoundingBox,
-  valid: boolean
+  valid: boolean,
+  expire: number,
+}
+
+export type ObjectDetectResult = {
+  classes: Uint8Array,
+  scores: Float16Array,
+  boxes: Float16Array,
+  objNum: number,
+  scale: [number, number],
+  expire: number,
 }
 
 export type BoundingBox = {
@@ -185,7 +195,7 @@ function drawFaceCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
   drawPath(ctx, SharedPaths.corner, 9 * FACE_DIMS, 12 * FACE_DIMS)
 }
 
-export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResult, width: number, height: number) {
+export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceDetectResult, width: number, height: number) {
   if (landmarks == null || landmarks.length == 0) {
     face.valid = false
     return
@@ -224,9 +234,9 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceResul
 }
 
 export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
-  boxes: Float32Array, scores: Float16Array, classes: Uint8Array,
+  boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number]) {
-  if (scores == null || scores.length === 0) return
+  if (objNum == 0) return
   ctx.font = `10px Arial`
   ctx.textBaseline = "top"
   for (let i = 0; i < objNum; ++i) {
@@ -255,7 +265,7 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
 }
 
 export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
-  face: FaceResult, mesh: 'mesh' | 'dot' | 'none' = 'none',
+  face: FaceDetectResult, mesh: 'mesh' | 'dot' | 'none' = 'none',
   eigen = false, boundingBox = false, scale?: number) {
   CREATE_SHARE_PATHS()
   if (face?.landmarks == null || face?.landmarks?.length === 0) return
@@ -305,7 +315,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   }
 }
 
-export function getFaceContour(face: FaceResult, scale: number = 1, orginX: number = 0, originY: number = 0) {
+export function getFaceContour(face: FaceDetectResult, scale: number = 1, orginX: number = 0, originY: number = 0) {
   FACEMESH_CONTOUR.faceOval.forEach((val, idx) => {
     SharedPaths.faceOval[idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * scale + orginX
     SharedPaths.faceOval[idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * scale + originY
@@ -315,7 +325,7 @@ export function getFaceContour(face: FaceResult, scale: number = 1, orginX: numb
   return SharedPaths.faceOval
 }
 
-export function getFaceSlope(face: FaceResult) {
+export function getFaceSlope(face: FaceDetectResult) {
   if (face == null) return 0
   FACEMESH_CONTOUR.leftIris.forEach((val, idx) => {
     SharedPaths.leftIris[idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS]
