@@ -127,7 +127,7 @@ export class VideoPlayer {
 
 
   get isOpen(): boolean {
-    return this.preVideo.srcObject != null || this.preVideo.src != null
+    return this.preVideo.srcObject != null ||( this.preVideo.src != '' && this.preVideo.src != null)
   }
 
   async open(url?: string, flip: boolean = true) {
