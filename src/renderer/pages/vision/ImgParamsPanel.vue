@@ -445,8 +445,7 @@
 import { onMounted, ref } from 'vue'
 import { cvBlur, cvEqualizeHist, cvFilter, cvSharpen, cvDetector, VisionStore } from '../../store'
 
-
-const YOLOModels = ['yolov6n', 'yolov8n', 'yolov10n', 'yolo11n']
+const YOLOModels = ['yolov8n', 'yolov10n', 'yolo11n']
 const activeCollapse = ref(['0'])
 const ColorMaps = ['NONE', 'AUTUMN', 'BONE', 'JET', 'WINTER', 'RAINBOW', 'OCEAN', 'SUMMER',
   'SPRING', 'COOL', 'HSV', 'PINK', 'HOT', 'PARULA', 'MAGMA',
