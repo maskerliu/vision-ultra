@@ -104,6 +104,7 @@ function onOpenDebugPanel() {
   --van-tag-font-size: 0.6rem;
   --van-tag-padding: 2px 5px;
   --van-tag-border-radius: 5px;
+  --van-cell-vertical-padding: 5px;
   --van-cell-horizontal-padding: 10px;
   --van-popup-round-radius: 8px;
   --van-popup-close-icon-margin: 23px;
