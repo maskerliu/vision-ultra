@@ -1,7 +1,7 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
 
-const Object_Labels = [
+export const Object_Labels = [
   "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
   "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
   "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
@@ -14,7 +14,6 @@ const Object_Labels = [
 ]
 
 class Colors {
-  // ultralytics color palette https://ultralytics.com/
   private palette: string[]
   private n: number
 
@@ -110,7 +109,7 @@ export type KeyPoint = {
 
 export const FACE_DIMS: number = 2
 
-const colors = new Colors()
+export const MARK_COLORS = new Colors()
 const SharedPaths: {
   lips?: Float16Array,
   leftEye?: Float16Array,
@@ -237,14 +236,14 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
   boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number]) {
   if (objNum == 0) return
-  ctx.font = `10px Arial`
+  ctx.font = `8px Arial`
   ctx.textBaseline = "top"
   for (let i = 0; i < objNum; ++i) {
     let score = (scores[i] * 100).toFixed(1)
     // if (scores[i] * 100 < 30) continue
 
     const klass = Object_Labels[classes[i]]
-    const color = colors.get(classes[i])
+    const color = MARK_COLORS.get(classes[i])
     let y1 = boxes[i * 4] * scale[1]
     let x1 = boxes[i * 4 + 1] * scale[0]
     let y2 = boxes[i * 4 + 2] * scale[1]
@@ -259,8 +258,11 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
     ctx.lineWidth = 1
     ctx.strokeRect(x1, y1, width, height)
 
-    ctx.fillStyle = color
-    ctx.fillText(`${score}%`, x1 + 5, y1 + 5)
+    ctx.fillStyle = Colors.hexToRgba(color, 0.8)
+    ctx.fillRect(x1 + width / 2 - 20, y1 + height / 2 - 7, 40, 10)
+
+    ctx.fillStyle = WHITE
+    ctx.fillText(`${score}%`, x1 + width / 2 - 18, y1 + height / 2 - 5)
   }
 }
 

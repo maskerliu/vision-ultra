@@ -22,6 +22,7 @@
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableYolo">
+          <van-icon class="iconfont icon-object-detect" style="font-size: 1rem; color: #2980b9;" />
           {{ $t('imgProcess.YOLODetect') }} <span class="param-desc">{{ $t('imgProcess.YOLODesc') }}</span>
         </van-checkbox>
       </template>
@@ -38,7 +39,7 @@
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.faceDetect">
-          <van-icon class="iconfont icon-tensorflow" style="font-size: 1rem; color: orange;" />
+          <van-icon class="iconfont icon-tensorflow" style="font-size: 1rem; color: #d35400;" />
           <span>{{ $t('imgProcess.FaceRec') }}</span>
         </van-checkbox>
       </template>
@@ -61,7 +62,7 @@
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgEnhance">
-          <van-icon class="iconfont icon-opencv" style="font-size: 1rem; color: green;" />
+          <van-icon class="iconfont icon-opencv" style="font-size: 1rem; color: #27ae60;" />
           {{ $t('imgProcess.ImgEnhance') }}
         </van-checkbox>
       </template>
