@@ -1,7 +1,13 @@
 <template>
   <van-row ref="previewParent" style="position: relative; height: calc(100% - 30px); margin-top: 30px;">
 
-    <van-row justify="end" style="width: 100%; height: 50px; background-color: white;">
+    <van-row justify="space-between" style="width: 100%; height: 50px; background-color: white;">
+      <van-row style="margin-left: 10px;">
+        <van-checkbox v-model="showMakerPanel">
+          <van-icon class="iconfont icon-mark" />
+        </van-checkbox>
+
+      </van-row>
       <van-row style="padding: 10px 10px 0 0;">
         <van-image fit="cover" radius="10" width="32" height="32" :src="recFace" />
 
@@ -33,6 +39,8 @@
         </van-button>
       </van-row>
     </van-row>
+
+    <marker-panel v-show="showMakerPanel" />
 
     <media-controller audio class="media-controller">
       <canvas ref="preview"></canvas>
@@ -82,13 +90,14 @@
 <script lang="ts" setup>
 
 import 'media-chrome'
+import { showNotify } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { drawObjectDetectResult, drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { VisionStore } from '../../store'
 import TrackerWorker from '../../tracker.worker?worker'
-import { showNotify } from 'vant'
+import MarkerPanel from './MarkerPanel.vue'
 
 const trackerWorker = new TrackerWorker() as Worker
 const visionStore = VisionStore()
@@ -100,6 +109,7 @@ const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
+const showMakerPanel = ref(false)
 const showNameInputDialog = ref(false)
 const showLiveStreamInput = ref(false)
 const eigenName = ref('')
