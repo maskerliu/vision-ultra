@@ -4,6 +4,29 @@
   "editor.dropIntoEditor.preferences": [],
   "editor.codeActionsOnSave": {
   },
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "typescript.format.semicolons": "remove",
+  "javascript.format.semicolons": "remove",
   "prettier.semi": false,
-  "Codegeex.RepoIndex": true
+  "Codegeex.RepoIndex": true,
+  "terminal.integrated.env.windows": {
+    "ELECTRON_MIRROR": "https://npmmirror.com/mirrors/electron/",
+    "ELECTRON_BUILDER_BINARIES_MIRROR": "https://npmmirror.com/mirrors/electron-builder-binaries/",
+    "OPENCV_BIN_DIR": "D:\\Opencv\\test\\install\\x64\\vc17\\bin",
+    "OPENCV_LIB_DIR": "D:\\Opencv\\test\\install\\x64\\vc17\\lib",
+    "OPENCV_INCLUDE_DIR": "D:\\Opencv\\test\\install\\include"
+  },
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell",
+      "path": "D:\\Program\\PowerShell\\7\\pwsh.exe"
+    }
+  },
+  "files.watcherExclude": {
+    "**/build": true,
+    "**/node_modules": true
+  },
 }

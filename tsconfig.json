@@ -36,8 +36,8 @@
   },
   "include": [
     "src/**/*",
-    "src/**/*.vue",
-    ".build-scripts/**/*"
+    "cv-desktop/src/**/*.vue",
+    "cv-desktop/.build-scripts/**/*"
   ],
   "exclude": [
     "node_modules"
