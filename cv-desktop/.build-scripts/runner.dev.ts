@@ -1,0 +1,284 @@
+
+import chalk from 'chalk'
+import { ChildProcess, exec, spawn } from 'child_process'
+import fse from 'fs-extra'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import webpack from 'webpack'
+import WebpackDevServer from 'webpack-dev-server'
+import WebpackHotMiddleware from 'webpack-hot-middleware'
+import pkg from '../package.json' assert { type: "json" }
+import { getLocalIPs } from './misc'
+import { BaseConfig } from './webpack.base.config.js'
+import mainConfig from './webpack.main.config'
+import rendererConfig from './webpack.renderer.config'
+
+const Run_Mode_DEV = 'development'
+const dirname = path.dirname(fileURLToPath(import.meta.url))
+
+process.env.NODE_ENV = Run_Mode_DEV
+process.env.BUILD_CONFIG = JSON.stringify(pkg.config)
+
+let electronProc: ChildProcess | null = null
+let manualRestart = false
+let hotMiddleware: any
+let rendererDevServer: WebpackDevServer | null = null
+
+function startDevServer(config: BaseConfig, host: string, port: number): Promise<void> {
+  return new Promise<void>(async (resolve, reject) => {
+    config.mode = Run_Mode_DEV
+    const compiler = webpack(config)
+    compiler.watch({}, (err, stats) => {
+      if (err) {
+        console.log(config.name, err, 'red')
+        reject()
+        return
+      } else if (stats?.hasErrors()) {
+        console.log(config.name, stats.toString({ colors: true, errors: true }), 'red')
+        reject()
+        return
+      }
+      // console.log(config.name, stats)
+    })
+
+    let serverConfig: WebpackDevServer.Configuration = {
+      host, port, hot: true,
+      liveReload: true,
+      allowedHosts: "all",
+      compress: true,
+      client: { logging: 'none', overlay: false, progress: true },
+      static: [
+        { directory: path.join(dirname, '../src/'), publicPath: '/' },
+        {
+          directory: path.join(dirname, '../../node_modules/'),
+          publicPath: '/node_modules/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+          watch: {
+            ignored: '*.txt',
+            usePolling: false,
+          },
+        },
+        {
+          directory: path.join(dirname, '../../data/'),
+          publicPath: '/static/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+          watch: {
+            ignored: '*.txt',
+            usePolling: false,
+          },
+        },
+        {
+          directory: path.join(dirname, '../../model-train/models/yolo11n_web_model/'),
+          publicPath: '/static/yolo11n_web_model/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+        },
+        {
+          directory: path.join(dirname, '../../model-train/models/yolov10n_web_model/'),
+          publicPath: '/static/yolov10n_web_model/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+        },
+        {
+          directory: path.join(dirname, '../../model-train/models/yolov8n_web_model/'),
+          publicPath: '/static/yolov8n_web_model/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+        },
+        {
+          directory: path.join(dirname, '../../model-train/models/yolov6n_web_model/'),
+          publicPath: '/static/yolov6n_web_model/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+        },
+        {
+          directory: path.join(dirname, '../icons/colormaps'),
+          publicPath: '/static/',
+          staticOptions: {
+            etag: true,
+            cacheControl: true,
+            maxAge: '30d',
+          },
+          watch: {
+            ignored: '*.txt',
+            usePolling: false,
+          },
+        }
+      ],
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'unsafe-none',
+      },
+      setupMiddlewares(middlewares, devServer) {
+        devServer.middleware?.waitUntilValid(() => { resolve() })
+        return middlewares
+      },
+    }
+
+    if (pkg.config.protocol == 'https') {
+      serverConfig.server = {
+        type: 'https',
+        options: {
+          key: fse.readFileSync('../cert/server.key'),
+          cert: fse.readFileSync('../cert/server.crt'),
+          requestCert: true,
+          rejectUnauthorized: false
+        }
+      }
+    }
+
+    const server = new WebpackDevServer(serverConfig, compiler)
+
+    if (config.name == 'renderer') rendererDevServer = server
+
+    rendererDevServer?.getClientEntry
+    try {
+      await server.start()
+      resolve()
+    } catch (err) {
+      console.log(config.name, chalk.redBright(`fail to start ${config.target} server`, err))
+      reject()
+      return
+    }
+  })
+}
+
+async function startMain1() {
+  mainConfig.mode = Run_Mode_DEV
+  const compiler = webpack(mainConfig)
+
+}
+
+function startMain(): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    mainConfig.mode = Run_Mode_DEV
+    const compiler = webpack(mainConfig)
+    hotMiddleware = WebpackHotMiddleware(compiler, { log: false, heartbeat: 2500 })
+    compiler.hooks.watchRun.tapAsync("watch-run", (_, done) => {
+      hotMiddleware.publish({ action: "compiling" })
+
+      // rendererDevServer?.sockets?.forEach(socket => {
+      //   setTimeout(() => { socket?.emit('reload') }, 5000)
+      // })
+      done()
+    })
+
+    compiler.watch({}, (err, stats) => {
+      if (err) {
+        console.log("Main", err, 'red')
+        reject()
+        return
+      }
+
+      // console.log("Main", stats)
+
+      if (electronProc && electronProc.kill()) {
+        manualRestart = true
+
+        if (process.platform === 'win32') {
+          const pid = electronProc.pid
+          exec(`TASKKILL /F /IM electron.exe`, (err, data) => {
+            if (err) console.log(chalk.bgRed.white(err))
+            else console.log(chalk.bgRedBright.whiteBright(`    kill pid: ${pid} success!`.padEnd(process.stdout.columns - 20, ' ')))
+            electronProc = null
+            startElectron()
+            // setTimeout(() => {
+            //   rendererDevServer?.sockets?.forEach(socket => {
+            //     console.log('try to reload renderer')
+            //     socket?.emit('reload')
+            //   })
+            // }, 5000)
+            manualRestart = false
+          })
+        } else {
+          process.kill(electronProc.pid!)
+          electronProc = null
+          startElectron()
+          setTimeout(() => {
+            manualRestart = false
+            rendererDevServer?.sockets?.forEach(socket => {
+              socket?.emit('reload')
+            })
+          }, 5000)
+        }
+      }
+      resolve()
+    })
+  })
+}
+
+function startElectron() {
+
+  let args = [
+    path.join(dirname, '../dist/electron/main.cjs')
+  ]
+
+  if (process.platform !== 'linux') {
+    // args.push('--remote-debugging-port=9223', '--experimental-wasm-bulk-memory')
+  } else {
+    args.push('--no-sandbox')
+  }
+
+  args.push(`--unhandled-rejections=strict`)
+  // detect yarn or npm and process commandline args accordingly
+  if (process.env.npm_execpath?.endsWith('yarn.js')) {
+    args = args.concat(process.argv.slice(3))
+  } else if (process.env.npm_execpath?.endsWith('npm-cli.js')) {
+    args = args.concat(process.argv.slice(2))
+  }
+
+  electronProc = spawn('electron', args, {
+    detached: false,
+    stdio: 'inherit',
+    shell: process.platform === 'win32'
+  })
+  // electronProc.stdout.on('data', data => { consoleLog('Electron', data, 'blue') })
+  // electronProc.stderr.on('data', data => { consoleLog('Electron', data, 'red') })
+  electronProc.on('close', (code, signal) => {
+    console.log(chalk.bgYellow.blue(`    Electron Process Closed[${signal}]`.padEnd(process.stdout.columns - 20, ' ')))
+    if (!manualRestart) process.exit()
+  })
+}
+
+async function start() {
+  console.log(chalk.bgGreen.yellowBright(
+    '    getting ready...'.padEnd(process.stdout.columns - 20, ' '))
+  )
+
+  let ips = getLocalIPs()
+  let localIPv4 = ips[0].address
+
+  await Promise.all([
+    startDevServer(rendererConfig.init(localIPv4), 'localhost', 9080),
+    startMain()
+  ])
+
+  startElectron()
+}
+
+try {
+  await start()
+} catch (err) {
+  console.log(err)
+}

@@ -1,0 +1,125 @@
+productName: VisionUltra
+appId: com.github.maskerliu.VisionUltra
+directories:
+  output: build/${version}
+
+asarUnpack:
+  - "node_modules/@u4/opencv4nodejs/**/*"
+  - "node_modules/@u4/opencv-build/**/*"
+  - "node_modules/@tensorflow/**"
+  - "node_modules/@lancedb/**"
+
+publish:
+  - provider: "generic"
+    url: ""
+
+files:
+  - "dist/**/*"
+  - "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+  - "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}"
+  - "!**/node_modules/*/{LICENSE,README,readme,.eslintignore,.nycrc,COPYING,UNLICENSE,LICENSE-MIT}"
+  - "!node_modules/@tensorflow/tfjs-node/**"
+  - "!node_modules/@tensorflow/**/*.html"
+  - "node_modules/@tensorflow/tfjs-node/dist/**"
+  - "node_modules/@tensorflow/tfjs-node/lib/**"
+  - "node_modules/@tensorflow/tfjs-node/node_modules/**"
+  - "node_modules/@tensorflow/tfjs-node/package.json"
+  - "!node_modules/seedrandom/coverage/**"
+  - "!**/node_modules/**/*LICENSE*"
+  - "!**/node_modules/**/*.md"
+  - "!**/node_modules/**/*.py"
+  - "!**/node_modules/**/*.markdown"
+  - "!**/node_modules/**/*.ts"
+  - "!**/node_modules/**/scripts/**"
+  - "!**/node_modules/**/python/"
+  - "!**/node_modules/**/build/**/*"
+  - "!**/node_modules/**/bin/**"
+  - "!**/node_modules/**/bench/**"
+  - "!**/node_modules/**/test/**"
+  - "!**/node_modules/**/tests/**"
+  # - "!**/node_modules/**/*test.js"
+  # - "**/node_modules/**/chunking-test.js"
+  - "!**/node_modules/**/doc/**"
+  - "!**/node_modules/**/docs/**"
+  - "!**/node_modules/**/example/**"
+  - "!**/node_modules/**/examples/**"
+  - "!**/node_modules/**/.github/**"
+  - "!**/node_modules/**/deps/**"
+  - "!**/node_modules/**/prebuilds/**"
+  - "!**/node_modules/**/src/**"
+  - "!**/node_modules/**/browser/**"
+  - "!**/node_modules/**/*.min.js"
+  - "!**/node_modules/**/*.fesm.js"
+  - "!**/node_modules/**/*.es2017.js"
+  - "!**/node_modules/**/.rollup.cache/**"
+  - "!**/node_modules/**/*browser*"
+  - "!**/node_modules/**/tsconfig.json"
+  - "**/node_modules/**/prebuilds/${platform}-${arch}/**/*"
+  - "node_modules/debug/src/**"
+  - "**/node_modules/**/cuid2/src/**"
+  - "!node_modules/@u4/opencv4nodejs/**"
+  - "node_modules/@u4/opencv4nodejs/package.json"
+  - "node_modules/@u4/opencv4nodejs/cjs/**"
+  # - "node_modules/@u4/opencv4nodejs/src/**"
+  - "node_modules/@u4/opencv4nodejs/build/Release/*.node"
+  - "node_modules/@u4/opencv-build/script/**"
+  - "node_modules/@denodnt/logger/**"
+  - "!**/node_modules/**/*.map"
+  - "!**/node_modules/**/umd/**"
+  - "!**/node_modules/**/esm/**"
+  - "!**/node_modules/**/esm-*/**"
+
+electronLanguages:
+  - en-US
+  - zh-CN
+
+extraFiles:
+  - from: "../data/lbfmodel.yaml"
+    to: "./resources/data/lbfmodel.yaml"
+  - from: "../node_modules/@u4/opencv4nodejs/src/lib"
+    to: "./resources/data/"
+  
+win:
+  icon: icons/icon.ico
+  extraFiles:
+    - from: "./update.exe"
+      to: "./resources/"
+    - from: "D:\\Opencv\\test\\install\\x64\\vc17\\bin"
+      to: "./"
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  artifactName: ${productName}-Setup-${version}.${ext}
+  oneClick: true
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: false
+  allowToChangeInstallationDirectory: false
+  uninstallDisplayName: ${productName}
+
+mac:
+  icon: icons/icon.icns
+  extraFiles:
+    - from: "./update.sh"
+      to: "./resources/"
+    - from: "../../../../../../${env.OPENCV_LIB_DIR}/libopencv_world.4.12.0.dylib"
+      to: "./libopencv_world.dylib"
+    - from: "../../../../../../${env.OPENCV_LIB_DIR}/libopencv_img_hash.4.12.0.dylib"
+      to: "./libopencv_img_hash.dylib"
+  target:
+    - target: dmg
+      arch: x64
+
+pkg:
+  installLocation: /Applications
+
+linux:
+  icon: icons/icon.png
+  category: "Utils"
+  extraFiles:
+    - from: "./update.sh"
+      to: "./resources/"
+  target:
+    - target: appImage
