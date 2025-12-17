@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 import vant from 'vant'
 import 'vant/lib/index.css'
 import { createApp } from 'vue'
+import VueKonva from 'vue-konva'
 import i18n from '../lang'
 import App from './App.vue'
 import router from './router'
@@ -24,5 +25,6 @@ app.use(i18n)
 app.use(router)
 app.use(pinia)
 app.use(vant)
+app.use(VueKonva)
 app.mount('#app')
 
