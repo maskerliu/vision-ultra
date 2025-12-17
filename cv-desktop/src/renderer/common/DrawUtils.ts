@@ -1,5 +1,7 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
+import * as fabric from 'fabric'
+import { edit } from 'ace-builds'
 
 export const Object_Labels = [
   "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
@@ -19,26 +21,26 @@ class Colors {
 
   constructor() {
     this.palette = [
-      "#FF3838",
-      "#FF9D97",
-      "#FF701F",
-      "#FFB21D",
-      "#CFD231",
-      "#48F90A",
-      "#92CC17",
-      "#3DDB86",
-      "#1A9334",
-      "#00D4BB",
-      "#2C99A8",
-      "#00C2FF",
-      "#344593",
-      "#6473FF",
-      "#0018EC",
-      "#8438FF",
-      "#520085",
-      "#CB38FF",
-      "#FF95C8",
-      "#FF37C7",
+      "#FEA47F",
+      "#25CCF7",
+      "#EAB543",
+      "#55E6C1",
+      "#CAD3C8",
+      "#F97F51",
+      "#1B9CFC",
+      "#F8EFBA",
+      "#58B19F",
+      "#2C3A47",
+      "#B33771",
+      "#3B3B98",
+      "#FD7272",
+      "#9AECDB",
+      "#D6A2E8",
+      "#6D214F",
+      "#182C61",
+      "#FC427B",
+      "#BDC581",
+      "#82589F",
     ]
     this.n = this.palette.length
   }
@@ -233,36 +235,99 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceDetec
 }
 
 export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
+  canvas: fabric.Canvas,
   boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number]) {
   if (objNum == 0) return
   ctx.font = `8px Arial`
   ctx.textBaseline = "top"
+  let score = '0.0', x1 = 0, y1 = 0, x2 = 0, y2 = 0, width = 0, height = 0, color = '', klass = ''
+  canvas.clear()
   for (let i = 0; i < objNum; ++i) {
-    let score = (scores[i] * 100).toFixed(1)
+    score = (scores[i] * 100).toFixed(1)
     // if (scores[i] * 100 < 30) continue
 
-    const klass = Object_Labels[classes[i]]
-    const color = MARK_COLORS.get(classes[i])
-    let y1 = boxes[i * 4] * scale[1]
-    let x1 = boxes[i * 4 + 1] * scale[0]
-    let y2 = boxes[i * 4 + 2] * scale[1]
-    let x2 = boxes[i * 4 + 3] * scale[0]
-    const width = x2 - x1
-    const height = y2 - y1
+    klass = Object_Labels[classes[i]]
+    color = MARK_COLORS.get(classes[i])
+    y1 = boxes[i * 4] * scale[1]
+    x1 = boxes[i * 4 + 1] * scale[0]
+    y2 = boxes[i * 4 + 2] * scale[1]
+    x2 = boxes[i * 4 + 3] * scale[0]
+    width = x2 - x1
+    height = y2 - y1
 
-    ctx.fillStyle = Colors.hexToRgba(color, 0.2)
-    ctx.fillRect(x1, y1, width, height)
+    if (canvas) {
 
-    ctx.strokeStyle = Colors.hexToRgba(color, 0.8)
-    ctx.lineWidth = 1
-    ctx.strokeRect(x1, y1, width, height)
+      const rect = new fabric.Rect({
+        left: x1,
+        top: y1,
+        width,
+        height,
+        fill: Colors.hexToRgba(color, 0.2),
+        strokeWidth: 1.5,
+        stroke: color,
+        scaleX: 1,
+        scaleY: 1,
+        objectCaching: false,
+        ornerStyle: 'round',
+        cornerStrokeColor: 'blue',
+        cornerColor: 'lightblue',
+        cornerStyle: 'circle',
+        transparentCorners: false,
+        cornerDashArray: [2, 2],
+        borderColor: 'orange',
+        borderDashArray: [3, 1, 3],
+        borderScaleFactor: 5,
+      })
+      canvas.viewportTransform = [1, 0, 0, 1, 0, 0]
+      canvas.add(rect)
+      rect.on('mouseover', () => {
+        rect.set({ strokeWidth: 2.5 })
+        canvas.renderAll()
+      })
 
-    ctx.fillStyle = Colors.hexToRgba(color, 0.8)
-    ctx.fillRect(x1 + width / 2 - 20, y1 + height / 2 - 7, 40, 10)
+      rect.on('mousedown', () => {
+        rect.set({ strokeWidth: 0,  editing: true })
+        canvas.setActiveObject(rect)
+      })
 
-    ctx.fillStyle = WHITE
-    ctx.fillText(`${score}%`, x1 + width / 2 - 18, y1 + height / 2 - 5)
+      rect.on('mouseout', () => {
+        rect.set({ strokeWidth: 1.5, editing: false })
+      })
+
+      // const poly = new fabric.Polygon(
+      //   [{ x: x1, y: y1 }, { x: x1, y: y2 }, { x: x2, y: y2 }, { x: x2, y: y1 }],
+      //   {
+      //     left: x1,
+      //     top: y1,
+      //     fill: Colors.hexToRgba(color, 0.2),
+      //     strokeWidth: 1,
+      //     stroke: 'white',
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     objectCaching: false,
+      //     transparentCorners: false,
+      //     cornerColor: Colors.hexToRgba(color, 0.8),
+      //     cornerSize: 8,
+      //     cornerStrokeColor: color,
+      //   })
+      // canvas.add(poly)
+    }
+
+    canvas.requestRenderAll()
+
+    // ctx.fillStyle = Colors.hexToRgba(color, 0.2)
+    // ctx.fillRect(x1, y1, width, height)
+
+    // ctx.strokeStyle = Colors.hexToRgba(color, 1)
+    // ctx.lineWidth = 1
+    // ctx.strokeRect(x1, y1, width, height)
+
+    // ctx.fillStyle = Colors.hexToRgba(color, 0.8)
+    // ctx.fillRect(x1 + width / 2 - 20, y1 + height / 2 - 7, 40, 10)
+
+    // ctx.fillStyle = WHITE
+    // ctx.fillText(`${score}%`, x1 + width / 2 - 18, y1 + height / 2 - 5)
   }
 }
 

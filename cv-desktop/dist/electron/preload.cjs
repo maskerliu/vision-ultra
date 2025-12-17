@@ -123,7 +123,6 @@ electron__WEBPACK_IMPORTED_MODULE_0__.contextBridge.exposeInMainWorld('mainApi',
 electron__WEBPACK_IMPORTED_MODULE_0__.contextBridge.exposeInMainWorld('cvWasmApi', _ipc_CVApi_wasm__WEBPACK_IMPORTED_MODULE_2__["default"]);
 electron__WEBPACK_IMPORTED_MODULE_0__.contextBridge.exposeInMainWorld('cvNativeApi', _ipc_CVApi_native__WEBPACK_IMPORTED_MODULE_1__["default"]);
 electron__WEBPACK_IMPORTED_MODULE_0__.contextBridge.exposeInMainWorld('tfApi', _ipc_TFApi__WEBPACK_IMPORTED_MODULE_3__["default"]);
-console.log('try to load native api');
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });

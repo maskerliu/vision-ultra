@@ -8,5 +8,3 @@ contextBridge.exposeInMainWorld('mainApi', mainApi)
 contextBridge.exposeInMainWorld('cvWasmApi', cvWasmApi)
 contextBridge.exposeInMainWorld('cvNativeApi', cvNativeApi)
 contextBridge.exposeInMainWorld('tfApi', tfApi)
-
-console.log('try to load native api')
