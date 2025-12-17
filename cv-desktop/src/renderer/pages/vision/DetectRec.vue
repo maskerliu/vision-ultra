@@ -3,7 +3,7 @@
 
     <van-row justify="space-between" style="width: 100%; height: 50px; background-color: white;">
       <van-row style="margin-left: 10px;">
-        <van-checkbox v-model="showMakerPanel">
+        <van-checkbox v-model="showAnnotationPanel">
           <van-icon class="iconfont icon-mark" />
         </van-checkbox>
 
@@ -40,9 +40,10 @@
       </van-row>
     </van-row>
 
-    <marker-panel v-show="showMakerPanel" />
+    
 
     <media-controller audio class="media-controller">
+      <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-w="canvasW" :canvas-h="canvasH" />
       <canvas ref="preview"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
       <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
@@ -90,14 +91,15 @@
 <script lang="ts" setup>
 
 import 'media-chrome'
+import * as fabric from 'fabric'
 import { showNotify } from 'vant'
-import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
+import { inject, onMounted, provide, Ref, ref, useTemplateRef, watch } from 'vue'
 import { drawObjectDetectResult, drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { VisionStore } from '../../store'
 import TrackerWorker from '../../tracker.worker?worker'
-import MarkerPanel from './MarkerPanel.vue'
+import AnnotationPanel from './AnnotationPanel.vue'
 
 const trackerWorker = new TrackerWorker() as Worker
 const visionStore = VisionStore()
@@ -109,7 +111,7 @@ const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
-const showMakerPanel = ref(false)
+const showAnnotationPanel = ref(true)
 const showNameInputDialog = ref(false)
 const showLiveStreamInput = ref(false)
 const eigenName = ref('')
@@ -119,6 +121,10 @@ const recFace = ref<string>()
 const isScan = ref(false)
 const isEigenNameValid = ref(true)
 const isWeb = window.isWeb
+
+const canvasW = ref(640)
+const canvasH = ref(480)
+const annotationPanel = ref<any>('annotationPanel')
 
 const showLoading = inject<Ref<boolean>>('showLoading')
 
@@ -142,7 +148,8 @@ let workerListener = (event: MessageEvent) => {
       if (videoPlayer.isOpen) {
         videoPlayer.objects = visionStore.enableYolo ? event.data : null
       } else {
-        drawObjectDetectResult(previewCtx,
+        console.log(annotationPanel.value.fabricCanvas)
+        drawObjectDetectResult(previewCtx, annotationPanel.value.fabricCanvas,
           event.data.boxes, event.data.scores, event.data.classes,
           event.data.objNum, event.data.scale)
       }
@@ -167,7 +174,6 @@ onMounted(async () => {
   })
   // test()
   // tensorTest()
-
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
@@ -230,6 +236,10 @@ async function openFolder() {
       }
       offscreen.value.width = preview.value.width = w
       offscreen.value.height = preview.value.height = h
+      
+      canvasW.value = w
+      canvasH.value = h
+
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
       onScan()
