@@ -4403,7 +4403,7 @@ __metadata:
     express: "npm:^5.1.0"
     express-fileupload: "npm:^1.5.2"
     express-http-proxy: "npm:^2.1.2"
-    fabric: "npm:^6.9.1"
+    fabric: "npm:6.9.0"
     file-loader: "npm:^6.2.0"
     formidable: "npm:^3.5.4"
     hls.js: "npm:^1.6.15"
@@ -4411,7 +4411,6 @@ __metadata:
     http2-express: "npm:^1.1.0"
     inversify: "npm:^7.10.4"
     json-bigint: "npm:^1.0.0"
-    konva: "npm:^10.0.12"
     level-transcoder: "npm:1.0.1"
     md5: "npm:^2.3.0"
     media-chrome: "npm:^4.16.1"
@@ -4440,10 +4439,10 @@ __metadata:
     tsx: "npm:^4.20.6"
     typescript: "npm:^5.9.3"
     url-loader: "npm:^4.1.1"
+    uuid: "npm:^13.0.0"
     vant: "npm:^4.9.21"
     vue: "npm:^3.5.22"
     vue-i18n: "npm:^11.1.12"
-    vue-konva: "npm:^3.2.6"
     vue-loader: "npm:^17.4.2"
     vue-router: "npm:^4.6.3"
     vue-style-loader: "npm:^4.1.3"
@@ -5670,9 +5669,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fabric@npm:^6.9.1":
-  version: 6.9.1
-  resolution: "fabric@npm:6.9.1"
+"fabric@npm:6.9.0":
+  version: 6.9.0
+  resolution: "fabric@npm:6.9.0"
   dependencies:
     canvas: "npm:^2.11.2"
     jsdom: "npm:^20.0.1"
@@ -5681,7 +5680,7 @@ __metadata:
       optional: true
     jsdom:
       optional: true
-  checksum: 10c0/50d1a29b806a164382c8a51d95e4ad2bd39822fd1049160f49a8c084bbe76f51d4f5bec5da8a7e0ce998fc558fda466589899adf9bf3b29f7f7cc2c05fd12d2c
+  checksum: 10c0/0aea35c61f46da461d65f3224f6fa39563eeda5b3b64cb2a57bc76d4d8e7b7e48f096e498b4fa7072c141514963e0c6a05bc7171a601d2afef64f924007de39a
   languageName: node
   linkType: hard
 
@@ -7440,13 +7439,6 @@ __metadata:
   version: 6.0.3
   resolution: "kind-of@npm:6.0.3"
   checksum: 10c0/61cdff9623dabf3568b6445e93e31376bee1cdb93f8ba7033d86022c2a9b1791a1d9510e026e6465ebd701a6dd2f7b0808483ad8838341ac52f003f512e0b4c4
-  languageName: node
-  linkType: hard
-
-"konva@npm:^10.0.12":
-  version: 10.0.12
-  resolution: "konva@npm:10.0.12"
-  checksum: 10c0/3d8846908a6286937825ac45a5c2e06f7c1fdb891eb1b76b0ccf858d7b7388c4eba62f73de7acc3e1426e28b3fb9bf29af944d2b19ae65a76c9120a24366e7e5
   languageName: node
   linkType: hard
 
@@ -11813,6 +11805,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uuid@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "uuid@npm:13.0.0"
+  bin:
+    uuid: dist-node/bin/uuid
+  checksum: 10c0/950e4c18d57fef6c69675344f5700a08af21e26b9eff2bf2180427564297368c538ea11ac9fb2e6528b17fc3966a9fd2c5049361b0b63c7d654f3c550c9b3d67
+  languageName: node
+  linkType: hard
+
 "vant@npm:^4.9.21":
   version: 4.9.21
   resolution: "vant@npm:4.9.21"
@@ -11946,16 +11947,6 @@ __metadata:
   peerDependencies:
     vue: ^3.0.0
   checksum: 10c0/f9b4dfedac707427dc50a5708fe575914084a2ef31df232cbea83d0b1ba929c59fdb7ef3f8b02a4158fb3a167bd0df3d44722f9cf83bd9f5ae515fba7328b032
-  languageName: node
-  linkType: hard
-
-"vue-konva@npm:^3.2.6":
-  version: 3.2.6
-  resolution: "vue-konva@npm:3.2.6"
-  peerDependencies:
-    konva: ">7"
-    vue: ^3
-  checksum: 10c0/8d8ee44cc18162a3b9df6aafd25bb46ea85f59e97d210fcb8fa6b5baab3c1081701b682dad0b0a759d146950b1b0ae0d93516b6cc92dc3af64c48c915e5f5bf3
   languageName: node
   linkType: hard
 

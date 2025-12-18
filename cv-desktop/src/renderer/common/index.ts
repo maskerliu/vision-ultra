@@ -15,15 +15,15 @@ export function generateUid(): string {
 }
 
 export function throttle(fn: Function, delay: number) {
-  let timer = null;
+  let timer = null
   return (...args: any) => {
     if (!timer) {
       timer = setTimeout(() => {
-        fn.apply(this, args);
-        timer = null;
-      }, delay);
+        fn.apply(this, args)
+        timer = null
+      }, delay)
     }
-  };
+  }
 }
 
 

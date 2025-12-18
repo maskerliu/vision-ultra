@@ -40,10 +40,8 @@
       </van-row>
     </van-row>
 
-    
-
     <media-controller audio class="media-controller">
-      <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-w="canvasW" :canvas-h="canvasH" />
+      <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-size="[canvasW, canvasH]" />
       <canvas ref="preview"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
       <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
@@ -91,9 +89,8 @@
 <script lang="ts" setup>
 
 import 'media-chrome'
-import * as fabric from 'fabric'
 import { showNotify } from 'vant'
-import { inject, onMounted, provide, Ref, ref, useTemplateRef, watch } from 'vue'
+import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { drawObjectDetectResult, drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VideoPlayer } from '../../common/VideoPlayer'
@@ -148,10 +145,11 @@ let workerListener = (event: MessageEvent) => {
       if (videoPlayer.isOpen) {
         videoPlayer.objects = visionStore.enableYolo ? event.data : null
       } else {
-        console.log(annotationPanel.value.fabricCanvas)
-        drawObjectDetectResult(previewCtx, annotationPanel.value.fabricCanvas,
-          event.data.boxes, event.data.scores, event.data.classes,
+        annotationPanel.value.drawAnnotations(event.data.boxes, event.data.scores, event.data.classes,
           event.data.objNum, event.data.scale)
+        // drawObjectDetectResult(previewCtx,
+        //   event.data.boxes, event.data.scores, event.data.classes,
+        //   event.data.objNum, event.data.scale)
       }
       break
     case 'face':
@@ -236,7 +234,7 @@ async function openFolder() {
       }
       offscreen.value.width = preview.value.width = w
       offscreen.value.height = preview.value.height = h
-      
+
       canvasW.value = w
       canvasH.value = h
 
