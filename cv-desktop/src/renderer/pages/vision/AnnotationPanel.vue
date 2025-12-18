@@ -1,12 +1,8 @@
 <template>
   <van-row class="marker-layer" justify="center" style="align-items: center;">
     <van-col class="marker-panel" justify="start">
-      <van-button square block @click="showLabels = !showLabels; labelModel = 0;">
-        <van-icon :class="`iconfont icon-marker`" style="font-size: 1.2rem;" />
-      </van-button>
       <van-button square block @click="showMarkers = !showMarkers">
-        <van-icon class="iconfont" :class="`icon-expand-${showMarkers ? 'left' : 'right'}`"
-          style="font-size: 1.2rem;" />
+        <van-icon :class="`iconfont icon-marker`" style="font-size: 1.2rem;" />
       </van-button>
       <van-popover v-model:show="showMagic" placement="right-start">
         <template #reference>
@@ -32,46 +28,17 @@
       </van-popover>
 
 
+
       <van-button :plain="activeMarker == idx" square block v-for="(type, idx) in MarkerTypes" :key="idx"
         @click="onMarkerSelected(idx)">
         <van-icon :class="`iconfont icon-mark-${type}`" style="font-size: 1.2rem;" />
       </van-button>
     </van-col>
-    <v-stage ref="stage" :config="{ width: canvasW, height: canvasH }" @dragstart="handleDragstart"
-      @dragend="handleDragend" style="background-color: #5555;">
 
-      <v-layer ref="layer">
-        <v-rect :config="{
-          x: 20,
-          y: 50,
-          width: 100,
-          height: 100,
-          fill: 'red',
-          shadowBlur: 10
-        }" />
-        <v-rect v-for="item in list" :key="item.id" :config="{
-          x: item.x,
-          y: item.y,
-          width: item.width,
-          height: item.height,
-          rotation: item.rotation,
-          id: item.id,
-          numPoints: 5,
-          innerRadius: 30,
-          outerRadius: 50,
-          fill: '#89b717',
-          opacity: 0.8,
-          draggable: true,
-          shadowColor: 'black',
-          shadowBlur: 10,
-          shadowOpacity: 0.6
-        }" />
-      </v-layer>
-    </v-stage>
+    <!-- <annotation-canvas :canvas-size="canvasSize"></annotation-canvas> -->
+    <canvas ref="annotation-canvas" style="display: block;"></canvas>
 
-    <canvas ref="annotation-canvas"></canvas>
-
-    <van-popup v-model:show="showMarkers" position="right" :overlay="false"
+    <van-popup :show="showMarkers" position="right" :overlay="false"
       style="height: calc(100vh - 90px); margin-top: 40px; overflow-y: hidden; border-radius: 0 0 10px 0;">
       <van-tabs v-model:active="activeTab" sticky>
         <van-tab title="物体">
@@ -149,23 +116,9 @@
 </template>
 <script lang="ts" setup>
 import * as fabric from 'fabric'
-import Konva from 'konva'
+import { v4 as uuidv4 } from 'uuid'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
-import { MARK_COLORS, Object_Labels } from '../../common/DrawUtils'
-
-const handleDragstart = (e) => {
-  // save drag element:
-  dragItemId.value = e.target.id()
-  // move current element to the top:
-  const item = list.value.find(i => i.id === dragItemId.value)
-  const index = list.value.indexOf(item)
-  list.value.splice(index, 1)
-  list.value.push(item)
-}
-
-const handleDragend = () => {
-  dragItemId.value = null
-}
+import { MARK_COLORS, MarkColors, Object_Labels } from '../../common/DrawUtils'
 
 const MarkerTypes = [
   'rect', 'circle', 'polygon', 'line', 'multi-line'
@@ -196,6 +149,7 @@ type CVLabel = {
 }
 
 type CVMarker = {
+  id: string,
   label: number,
   points: number[], // [x, y]
 }
@@ -207,109 +161,53 @@ const groupedMarkers = ref<Map<number, CVMarker[]>>(new Map())
 const curLabel = ref(-1)
 const curMarker = ref<CVMarker>(null)
 
-const fabricCanvas = ref<fabric.Canvas>(null)
+let fabricCanvas: fabric.Canvas
+const selectedObject = ref<fabric.Object | null>(null)
+let defCtrl = fabric.controlsUtils.createObjectDefaultControls()
 
-defineExpose({ fabricCanvas, labels })
+defineExpose({ labels, drawAnnotations })
 
-let {
-  canvasW = 640,
-  canvasH = 480,
+const {
+  canvasSize = [640, 480],
 } = defineProps<{
-  canvasW: number,
-  canvasH: number,
+  canvasSize: [number, number],
 }>()
 
 // const emit = defineEmits<{
 //   resize: [w: number, h: number]
 // }>()
 
-watch(() => canvasW, (val, old) => {
-  fabricCanvas.value.setDimensions({ width: val, height: canvasH })
+watch(() => canvasSize, (val, _) => {
+  fabricCanvas.setDimensions({ width: val[0], height: val[1] })
+  fabricCanvas.clear()
+  addGrid()
+  fabricCanvas.requestRenderAll()
 })
 
-watch(() => canvasH, (val, old) => {
-  fabricCanvas.value.setDimensions({ width: canvasW, height: val })
-})
-
-const list = ref([])
-const dragItemId = ref(null)
 
 onMounted(() => {
 
-  for (let n = 0; n < 30; n++) {
-    list.value.push({
-      id: Math.round(Math.random() * 10000).toString(),
-      x: Math.random() * canvasW,
-      y: Math.random() * canvasH,
-      width: Math.random() * 100,
-      height: Math.random() * 200,
-      rotation: Math.random() * 180,
-      scale: Math.random()
-    })
-  }
-
-  fabricCanvas.value = new fabric.Canvas(annotationCanvas.value, {
-    width: canvasW,
-    height: canvasH,
-    selection: false,
-    backgroundColor: '#55555520'
+  fabricCanvas = new fabric.Canvas(annotationCanvas.value!, {
+    width: canvasSize[0],
+    height: canvasSize[1],
+    backgroundColor: '#55555520',
+    selection: true,
+    interactive: true
   })
 
-  fabricCanvas.value.viewportTransform = [1, 0, 0, 1, 0, 50]
-  const rect = new fabric.Rect({
-    left: 100,
-    top: 0,
-    width: 100,
-    height: 200,
-    scaleX: 1,
-    scaleY: 1,
-    fill: 'green',
-    strokeWidth: 2,
-    stroke: 'white',
-    objectCaching: false,
-    ornerStyle: 'round',
-    cornerStrokeColor: 'blue',
-    cornerColor: 'lightblue',
-    cornerStyle: 'circle',
-    transparentCorners: false,
-    cornerDashArray: [2, 2],
-    borderColor: 'orange',
-    borderDashArray: [3, 1, 3],
-    borderScaleFactor: 2,
+  addGrid()
+
+  fabricCanvas.on('selection:created', (e) => {
+    selectedObject.value = e.selected?.[0] || null
   })
 
-  rect.on('mouseover', () => {
-    rect.set({ strokeWidth: 0, editing: true })
-    fabricCanvas.value.setActiveObject(rect)
-    fabricCanvas.value.renderAll()
-  })
-  rect.on('mousedblclick', () => {
-    rect.controls = rect.controls == null ? fabric.InteractiveFabricObject.ownDefaults.controls : null
-  })
-  rect.on('mouseout', () => {
-    rect.set({ strokeWidth: 1.5, editing: false })
-    fabricCanvas.value.discardActiveObject()
-    fabricCanvas.value.renderAll()
+  fabricCanvas.on('selection:updated', (e) => {
+    selectedObject.value = e.selected?.[0] || null
   })
 
-  fabricCanvas.value.add(rect)
-
-
-
-  // fabric.InteractiveFabricObject.createControls = () => {
-  //   return {}
-  // }
-  const controls = fabric.controlsUtils.createObjectDefaultControls()
-  const resizeCtrl = fabric.controlsUtils.createResizeControls()
-
-  fabric.InteractiveFabricObject.ownDefaults.controls = {
-    ...controls,
-    ...resizeCtrl,
-    mySpecialControl: new fabric.Control({
-      x: -0.5,
-      y: 0.25,
-    }),
-  }
+  fabricCanvas.on('selection:cleared', () => {
+    selectedObject.value = null
+  })
 
   const points = [
     {
@@ -361,78 +259,173 @@ onMounted(() => {
       y: 20,
     },
   ]
-  const poly = new fabric.Polygon(points, {
-    left: 200,
-    top: 50,
-    fill: '#EAB54355',
-    strokeWidth: 1,
-    stroke: 'white',
-    scaleX: 1,
-    scaleY: 1,
-    objectCaching: false,
-    transparentCorners: false,
-    cornerColor: '#EAB543',
-    cornerSize: 8,
-    cornerStrokeColor: '#EAB543',
-  })
-  fabricCanvas.value.viewportTransform = [0.7, 0, 0, 0.7, -50, 50]
-  fabricCanvas.value.add(poly)
 
-  let editing = false
-  poly.on('mousedblclick', () => {
-    editing = !editing
-    if (editing) {
-      poly.cornerStyle = 'circle'
-      poly.cornerStrokeColor = 'white'
-      poly.cornerSize = 8
-      poly.cornerColor = 'rgba(255,255,255,0.5)'
-      poly.hasBorders = true
-      poly.controls = fabric.controlsUtils.createPolyControls(poly)
-    } else {
-      poly.cornerColor = 'blue'
-      poly.cornerStyle = 'rect'
-      poly.hasBorders = true
-      poly.controls = fabric.controlsUtils.createObjectDefaultControls()
-    }
-    poly.setCoords()
-    fabricCanvas.value.requestRenderAll()
-  })
+  addRect(0, 0, 100, 100, '#EAB543')
+  addPoly(points, '#EAB543')
 
   Object_Labels.forEach((object, idx) => {
     labels.value.push({ id: idx, name: object, color: MARK_COLORS.get(idx) })
   })
 
   groupedMarkers.value.set(0, [
-    { label: 0, points: [0, 0] },
-    { label: 1, points: [0, 0] },
-    { label: 2, points: [0, 0] },
-    { label: 3, points: [0, 0] },
-    { label: 2, points: [0, 0] },
-    { label: 1, points: [0, 0] },
-    { label: 1, points: [0, 0] },
-    { label: 0, points: [0, 0] },
-    { label: 1, points: [0, 0] },
-    { label: 2, points: [0, 0] },
-    { label: 3, points: [0, 0] },
-    { label: 2, points: [0, 0] },
-    { label: 1, points: [0, 0] },
-    { label: 1, points: [0, 0] },
-    { label: 3, points: [0, 0] },
-    { label: 2, points: [0, 0] },
+    { id: uuidv4(), label: 0, points: [0, 0] },
+    { id: uuidv4(), label: 1, points: [0, 0] },
+    { id: uuidv4(), label: 2, points: [0, 0] },
+    { id: uuidv4(), label: 3, points: [0, 0] },
+    { id: uuidv4(), label: 2, points: [0, 0] },
+    { id: uuidv4(), label: 1, points: [0, 0] },
+    { id: uuidv4(), label: 1, points: [0, 0] },
+    { id: uuidv4(), label: 0, points: [0, 0] },
+    { id: uuidv4(), label: 1, points: [0, 0] },
+    { id: uuidv4(), label: 2, points: [0, 0] },
+    { id: uuidv4(), label: 3, points: [0, 0] },
+    { id: uuidv4(), label: 2, points: [0, 0] },
+    { id: uuidv4(), label: 1, points: [0, 0] },
+    { id: uuidv4(), label: 1, points: [0, 0] },
+    { id: uuidv4(), label: 3, points: [0, 0] },
+    { id: uuidv4(), label: 2, points: [0, 0] },
   ])
   groupedMarkers.value.set(1, [
-    { label: 0, points: [0, 0] },
-    { label: 1, points: [0, 0] },
-    { label: 2, points: [0, 0] },
-    { label: 3, points: [0, 0] },
-    { label: 2, points: [0, 0] },
-    { label: 1, points: [0, 0] },
-    { label: 5, points: [0, 0] },
+    { id: uuidv4(), label: 0, points: [0, 0] },
+    { id: uuidv4(), label: 1, points: [0, 0] },
+    { id: uuidv4(), label: 2, points: [0, 0] },
+    { id: uuidv4(), label: 3, points: [0, 0] },
+    { id: uuidv4(), label: 2, points: [0, 0] },
+    { id: uuidv4(), label: 1, points: [0, 0] },
+    { id: uuidv4(), label: 5, points: [0, 0] },
   ])
   groupedMarkers.value.set(2, [])
   groupedMarkers.value.set(3, [])
   groupedMarkers.value.set(4, [])
 })
+
+function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
+  objNum: number, scale: [number, number]) {
+  groupedMarkers.value.clear()
+
+  if (objNum == 0) return
+  let score = '0.0', x1 = 0, y1 = 0, x2 = 0, y2 = 0, width = 0, height = 0, color = '', klass = ''
+
+  for (let i = 0; i < objNum; ++i) {
+
+    let markers = groupedMarkers.value.get(classes[i])
+    markers = markers || []
+    markers.push({ id: '', label: classes[i], points: [boxes[i * 4], boxes[i * 4 + 1], boxes[i * 4 + 2], boxes[i * 4 + 3]] })
+    score = (scores[i] * 100).toFixed(1)
+    // if (scores[i] * 100 < 30) continue
+
+    klass = Object_Labels[classes[i]]
+    color = MARK_COLORS.get(classes[i])
+    y1 = boxes[i * 4] * scale[1]
+    x1 = boxes[i * 4 + 1] * scale[0]
+    y2 = boxes[i * 4 + 2] * scale[1]
+    x2 = boxes[i * 4 + 3] * scale[0]
+    addRect(x1, y1, x2, y2, color)
+  }
+  fabricCanvas.requestRenderAll()
+}
+
+function addRect(x1: number, y1: number, x2: number, y2: number, color: string) {
+  const rect = new fabric.Rect({
+    left: x1,
+    top: y1,
+    width: x2 - x1,
+    height: y2 - y1,
+    fill: MarkColors.hexToRgba(color, 0.2),
+    strokeWidth: 2,
+    stroke: color,
+    objectCaching: false,
+    cornerSize: 10,
+    cornerColor: MarkColors.hexToRgba(color, 0.6),
+    cornerStrokeColor: MarkColors.hexToRgba(color, 0.8),
+    hasBorders: false,
+    borderColor: color,
+    borderScaleFactor: 2
+  })
+  rect.setCoords()
+  rect.on('mouseover', () => {
+    rect.set({ hasBorders: true, })
+    fabricCanvas.setActiveObject(rect)
+    fabricCanvas.requestRenderAll()
+  })
+
+  rect.on('mouseout', () => {
+    rect.set({ hasBorders: true, })
+    // fabricCanvas.discardActiveObject()
+    fabricCanvas.requestRenderAll()
+  })
+  fabricCanvas.add(rect)
+}
+
+function addPoly(points: fabric.XY[], color: string) {
+  const poly = new fabric.Polygon(points,
+    {
+      fill: MarkColors.hexToRgba(color, 0.2),
+      strokeWidth: 1,
+      stroke: 'white',
+      scaleX: 1,
+      scaleY: 1,
+      objectCaching: false,
+      transparentCorners: false,
+      cornerColor: MarkColors.hexToRgba(color, 0.8),
+      cornerSize: 8,
+      cornerStrokeColor: color,
+    })
+  fabricCanvas.add(poly)
+
+  let editing = false
+  let polyCtrl = fabric.controlsUtils.createPolyControls(poly)
+  poly.on('mousedblclick', () => {
+    editing = !editing
+    if (editing) {
+      poly.cornerStyle = 'circle'
+      poly.hasBorders = false
+      poly.controls = polyCtrl
+    } else {
+      poly.cornerStyle = 'rect'
+      poly.hasBorders = true
+      poly.controls = defCtrl
+    }
+    poly.setCoords()
+    fabricCanvas.requestRenderAll()
+  })
+
+  poly.on('mouseover', () => {
+    poly.set({ strokeWidth: 2.5, cornerStrokeColor: color })
+    fabricCanvas.setActiveObject(poly)
+    fabricCanvas.renderAll()
+  })
+
+}
+
+function addGrid() {
+  if (!fabricCanvas) return
+
+  const gridSize = 40
+  const gridColor = 'rgba(200, 200, 200, 0.5)'
+
+  // 垂直网格线
+  for (let x = 0; x <= canvasSize[0]; x += gridSize) {
+    const line = new fabric.Line([x, 0, x, canvasSize[1]], {
+      stroke: gridColor,
+      strokeWidth: 1,
+      selectable: false,
+      evented: false,
+    })
+    fabricCanvas.add(line)
+  }
+
+  // 水平网格线
+  for (let y = 0; y <= canvasSize[1]; y += gridSize) {
+    const line = new fabric.Line([0, y, canvasSize[0], y], {
+      stroke: gridColor,
+      strokeWidth: 1,
+      selectable: false,
+      evented: false,
+    })
+    fabricCanvas.add(line)
+  }
+}
 
 function onMarkerSelected(idx: number) {
   activeMarker.value = idx
@@ -451,6 +444,8 @@ function onLabelAdd() {
 function randomColor(idx: number) {
   labels.value[idx].color = '#' + Math.floor(Math.random() * 16777215).toString(16)
 }
+
+
 </script>
 
 <style lang="css" scoped>
