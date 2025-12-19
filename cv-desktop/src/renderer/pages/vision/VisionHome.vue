@@ -99,7 +99,7 @@ function openSettings() {
 
 .left-panel {
   flex-grow: 1;
-  min-width: 340px;
+  min-width: 300px;
   height: calc(100vh - 10px);
   margin: 5px;
 }
