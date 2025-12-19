@@ -172,6 +172,7 @@ onMounted(async () => {
   })
   // test()
   // tensorTest()
+
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
