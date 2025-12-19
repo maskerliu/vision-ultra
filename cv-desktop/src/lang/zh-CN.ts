@@ -83,9 +83,9 @@ export default {
     Filter: '滤波',
     Laplace: '拉普拉斯',
     LaplaceDesc: '通常用于特征提取和特征检测',
-    Sobel: 'Sobel算子',
+    Sobel: 'Sobel',
     SobelDesc: '离散的微分算子',
-    Scharr: 'Scharr算子',
+    Scharr: 'Scharr',
     ScharrDesc: 'Sobel算子的增强版本',
 
     FeatExtract: '特征提取',
@@ -96,8 +96,8 @@ export default {
     HoughLine: '霍夫直线变换',
 
     ObjectDetect: '目标检测',
-    ColorTrack: '颜色追踪',
-    ContourTrack: '轮廓跟踪',
+    ColorTrack: '颜色',
+    ContourTrack: '轮廓',
     BackgroundSub: '背景减除',
     MeanShit: 'MeanShift',
     CamShift: 'CamShift',
@@ -105,7 +105,7 @@ export default {
     YOLODetect: 'YOLO',
     YOLODesc: 'you only look once',
     yolov6n: 'YOLOv6 (via 美团)',
-    yolov8n: 'YOLOv8 (via Ultralytics 2023年1月10日)',
+    yolov8n: 'YOLOv8 (via Ultralytics)',
     yolov10n: 'YOLOv10(清华大学)',
     yolo11n: 'YOLO11(lastest)',
 

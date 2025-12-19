@@ -1,7 +1,7 @@
 <template>
   <van-row class="marker-layer" justify="center" style="align-items: center;">
-    <van-col class="marker-panel" justify="start">
-      <van-button square block @click="showMarkers = !showMarkers">
+    <van-col class="left-bar" justify="start">
+      <van-button square block @click="showRightBar = !showRightBar">
         <van-icon :class="`iconfont icon-marker`" style="font-size: 1.2rem;" />
       </van-button>
       <van-popover v-model:show="showMagic" placement="right-start">
@@ -27,90 +27,14 @@
         </van-row>
       </van-popover>
 
-
-
-      <van-button :plain="activeMarker == idx" square block v-for="(type, idx) in MarkerTypes" :key="idx"
-        @click="onMarkerSelected(idx)">
+      <van-button square block v-for="(type, idx) in MarkerTypes" :key="idx">
         <van-icon :class="`iconfont icon-mark-${type}`" style="font-size: 1.2rem;" />
       </van-button>
     </van-col>
 
-    <!-- <annotation-canvas :canvas-size="canvasSize"></annotation-canvas> -->
-    <canvas ref="annotation-canvas" style="display: block;"></canvas>
-
-    <van-popup :show="showMarkers" position="right" :overlay="false"
-      style="height: calc(100vh - 90px); margin-top: 40px; overflow-y: hidden; border-radius: 0 0 10px 0;">
-      <van-tabs v-model:active="activeTab" sticky>
-        <van-tab title="物体">
-          <van-collapse v-model="activeResult" accordion style="width: 15rem; overflow: hidden scroll;">
-            <van-collapse-item :name="key" :title="MarkerTypes[key]" v-for="key of groupedMarkers.keys()">
-              <van-list style="max-height: calc(100vh - 250px); overflow: hidden scroll;">
-                <van-popover v-for="marker in groupedMarkers.get(key)" size="normal" v-model="showLabelPopover"
-                  style="box-shadow: outset 0 10px 20px 14px 0 rgba(125, 125, 125, 0.5);" placement="bottom-start">
-                  <template #reference>
-                    <van-field center v-if="marker != null && labels[marker.label] != null"
-                      v-model="labels[marker.label].name" @focus="curMarker = marker">
-                      <template #left-icon>
-                        <div style="width: 2rem; height: 1rem; border: 2px solid;"
-                          :style="{ borderColor: labels[marker.label]?.color }"></div>
-                      </template>
-                      <template #right-icon>
-                        <van-button square plain size="mini" style="margin-left: 10px;">
-                          <van-icon class="iconfont icon-eye-close" style="font-size: 1rem;" />
-                        </van-button>
-                        <van-button square plain type="danger" size="mini" style="margin-left: 10px;">
-                          <van-icon class="iconfont icon-delete" style="font-size: 0.8rem;" />
-                        </van-button>
-                      </template>
-                    </van-field>
-                  </template>
-                  <van-empty description="未找到该标签" v-if="searchLabels == null || searchLabels.length == 0" />
-                  <van-list v-else style="min-width: 10rem; height: 100px;">
-                    <van-cell :title="label.name" center clickable v-for="label in searchLabels">
-                      <template #right-icon>
-                        <van-icon v-if="label.id == curMarker.label" name="success" />
-                      </template>
-                    </van-cell>
-
-                  </van-list>
-                </van-popover>
-              </van-list>
-            </van-collapse-item>
-          </van-collapse>
-        </van-tab>
-        <van-tab title="标签">
-          <van-list style="width: 15rem; height: calc(100vh - 174px); overflow-y: scroll;">
-            <van-field placeholder="输入标签名" center v-model="label.name" :readonly="labelModel == 1"
-              :clickable="labelModel == 1" v-for="(label, idx) in labels" @click="onLabelChanged(idx)">
-              <template #left-icon>
-                <div class="color-block" :style="{ backgroundColor: label.color }" @click="randomColor(idx)">
-                  <van-icon class="iconfont icon-random" style="font-size: 1.2rem; color: white;" />
-                </div>
-              </template>
-              <template #right-icon>
-                <van-button square plain type="danger" size="mini" v-if="labelModel == 0">
-                  <van-icon class="iconfont icon-delete" style="font-size: 1rem;" />
-                </van-button>
-                <van-icon name="success" style="font-size: 1rem;" v-if="labelModel == 1 && curLabel == idx" />
-              </template>
-            </van-field>
-          </van-list>
-
-          <van-field placeholder="输入标签名" v-model="labelName" center style="width: 15rem;">
-            <template #left-icon>
-              <div class="color-block" :style="{ backgroundColor: labelColor }">
-                <van-icon class="iconfont icon-random" style="font-size: 1.2rem; color: white;" />
-              </div>
-            </template>
-            <template #right-icon>
-              <van-button square plain type="primary" size="mini" @click="onLabelAdd">
-                <van-icon class="iconfont icon-add" style="font-size: 1rem;" />
-              </van-button>
-            </template>
-          </van-field>
-        </van-tab>
-      </van-tabs>
-    </van-popup>
+    <canvas ref="annotationCanvas" style="display: block;"></canvas>
+    <annotation-right-panel ref="rightBar" :show="showRightBar" @marker-selected="updateActiveMarker"
+      @update-marker="updateMarker" />
   </van-row>
 
 </template>
@@ -118,54 +42,21 @@
 import * as fabric from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { MarkerTypes } from '../../common/Annotations'
 import { MARK_COLORS, MarkColors, Object_Labels } from '../../common/DrawUtils'
+import AnnotationRightPanel from './AnnotationRightPanel.vue'
+import TestPanel from './TestPanel.vue'
 
-const MarkerTypes = [
-  'rect', 'circle', 'polygon', 'line', 'multi-line'
-]
-
-const activeTab = ref(0)
-const showLabelPopover = ref(false)
-
-const activeMarker = ref(1)
-const activeResult = ref(1)
-const showLabels = ref(false)
-const labelModel = ref(0) // 0: edit 1: select
-const searchLabels = ref<Array<any>>([{ id: 0, name: 'person' }, { id: 2, name: 'car' }, { id: 5, name: 'bus' }])
-
-const showMarkers = ref(false)
-const labelName = ref('')
-const labelColor = ref('#ff0000')
-const annotationCanvas = useTemplateRef<HTMLCanvasElement>('annotation-canvas')
-
+const showRightBar = ref(true)
+const rightBar = useTemplateRef<typeof AnnotationRightPanel>('rightBar')
+const testPanel = ref('test-panel')
+const annotationCanvas = useTemplateRef<HTMLCanvasElement>('annotationCanvas')
 const showMagic = ref(false)
 
-const searchText = ref<string>(null)
-
-type CVLabel = {
-  id: number,
-  name: string,
-  color: string,
-}
-
-type CVMarker = {
-  id: string,
-  label: number,
-  points: number[], // [x, y]
-}
-
-const labels = ref<CVLabel[]>([])
-
-const groupedMarkers = ref<Map<number, CVMarker[]>>(new Map())
-
-const curLabel = ref(-1)
-const curMarker = ref<CVMarker>(null)
-
 let fabricCanvas: fabric.Canvas
-const selectedObject = ref<fabric.Object | null>(null)
+let selectedObject: fabric.Object
 let defCtrl = fabric.controlsUtils.createObjectDefaultControls()
-
-defineExpose({ labels, drawAnnotations })
+let labelText: fabric.FabricText
 
 const {
   canvasSize = [640, 480],
@@ -173,17 +64,22 @@ const {
   canvasSize: [number, number],
 }>()
 
-// const emit = defineEmits<{
-//   resize: [w: number, h: number]
-// }>()
+defineExpose({ drawAnnotations })
 
 watch(() => canvasSize, (val, _) => {
   fabricCanvas.setDimensions({ width: val[0], height: val[1] })
   fabricCanvas.clear()
-  addGrid()
+  // addGrid()
   fabricCanvas.requestRenderAll()
 })
 
+function updateActiveMarker(shape: fabric.Object) {
+  fabricCanvas.setActiveObject(shape)
+}
+
+function updateMarker(shape: fabric.Object) {
+  fabricCanvas.requestRenderAll()
+}
 
 onMounted(() => {
 
@@ -197,17 +93,7 @@ onMounted(() => {
 
   addGrid()
 
-  fabricCanvas.on('selection:created', (e) => {
-    selectedObject.value = e.selected?.[0] || null
-  })
-
-  fabricCanvas.on('selection:updated', (e) => {
-    selectedObject.value = e.selected?.[0] || null
-  })
-
-  fabricCanvas.on('selection:cleared', () => {
-    selectedObject.value = null
-  })
+  registeCanvasEvent()
 
   const points = [
     {
@@ -263,54 +149,73 @@ onMounted(() => {
   addRect(0, 0, 100, 100, '#EAB543')
   addPoly(points, '#EAB543')
 
-  Object_Labels.forEach((object, idx) => {
-    labels.value.push({ id: idx, name: object, color: MARK_COLORS.get(idx) })
+  labelText = new fabric.FabricText(`person 90.4%`, {
+    fontSize: 12,
+    fontFamily: 'Comic Sans',
+    stroke: '#ecf0f1',
+    shadow: new fabric.Shadow({
+      color: 'rgb(0,0,0)',
+      blur: 2,
+      offsetX: 4,
+      offsetY: 4,
+      affectStroke: true,
+      includeDefaultValues: true,
+      nonScaling: false
+    }),
+    lineHeight: 1.2,
+    strokeWidth: 1,
+    selectable: false,
+    visible: false
+  })
+  fabricCanvas.add(labelText)
+})
+
+function updateLabelText() {
+  labelText.set('text', `${selectedObject?.get('label')} ${selectedObject?.get('score')}% \n${selectedObject?.get('uuid')}`)
+  labelText.left = selectedObject.left + selectedObject.width * selectedObject.scaleX + 10
+  labelText.top = selectedObject.top
+  labelText.visible = true
+
+  fabricCanvas.bringObjectToFront(labelText)
+}
+
+function registeCanvasEvent() {
+  fabricCanvas.on('object:moving', (e) => {
+    updateLabelText()
   })
 
-  groupedMarkers.value.set(0, [
-    { id: uuidv4(), label: 0, points: [0, 0] },
-    { id: uuidv4(), label: 1, points: [0, 0] },
-    { id: uuidv4(), label: 2, points: [0, 0] },
-    { id: uuidv4(), label: 3, points: [0, 0] },
-    { id: uuidv4(), label: 2, points: [0, 0] },
-    { id: uuidv4(), label: 1, points: [0, 0] },
-    { id: uuidv4(), label: 1, points: [0, 0] },
-    { id: uuidv4(), label: 0, points: [0, 0] },
-    { id: uuidv4(), label: 1, points: [0, 0] },
-    { id: uuidv4(), label: 2, points: [0, 0] },
-    { id: uuidv4(), label: 3, points: [0, 0] },
-    { id: uuidv4(), label: 2, points: [0, 0] },
-    { id: uuidv4(), label: 1, points: [0, 0] },
-    { id: uuidv4(), label: 1, points: [0, 0] },
-    { id: uuidv4(), label: 3, points: [0, 0] },
-    { id: uuidv4(), label: 2, points: [0, 0] },
-  ])
-  groupedMarkers.value.set(1, [
-    { id: uuidv4(), label: 0, points: [0, 0] },
-    { id: uuidv4(), label: 1, points: [0, 0] },
-    { id: uuidv4(), label: 2, points: [0, 0] },
-    { id: uuidv4(), label: 3, points: [0, 0] },
-    { id: uuidv4(), label: 2, points: [0, 0] },
-    { id: uuidv4(), label: 1, points: [0, 0] },
-    { id: uuidv4(), label: 5, points: [0, 0] },
-  ])
-  groupedMarkers.value.set(2, [])
-  groupedMarkers.value.set(3, [])
-  groupedMarkers.value.set(4, [])
-})
+  fabricCanvas.on('object:scaling', (e) => {
+    updateLabelText()
+  })
+
+  fabricCanvas.on('selection:created', (e) => {
+    selectedObject = e.selected?.[0] || null
+
+    updateLabelText()
+  })
+
+  fabricCanvas.on('selection:updated', (e) => {
+    selectedObject = e.selected?.[0] || null
+
+    fabricCanvas.bringObjectToFront(selectedObject)
+    updateLabelText()
+  })
+
+  fabricCanvas.on('selection:cleared', () => {
+    fabricCanvas.discardActiveObject()
+    labelText.visible = false
+    selectedObject = null
+  })
+}
 
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number]) {
-  groupedMarkers.value.clear()
-
+  rightBar.value?.clearMarkers()
+  fabricCanvas.add(labelText)
   if (objNum == 0) return
   let score = '0.0', x1 = 0, y1 = 0, x2 = 0, y2 = 0, width = 0, height = 0, color = '', klass = ''
 
   for (let i = 0; i < objNum; ++i) {
-
-    let markers = groupedMarkers.value.get(classes[i])
-    markers = markers || []
-    markers.push({ id: '', label: classes[i], points: [boxes[i * 4], boxes[i * 4 + 1], boxes[i * 4 + 2], boxes[i * 4 + 3]] })
     score = (scores[i] * 100).toFixed(1)
     // if (scores[i] * 100 < 30) continue
 
@@ -320,8 +225,13 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
     x1 = boxes[i * 4 + 1] * scale[0]
     y2 = boxes[i * 4 + 2] * scale[1]
     x2 = boxes[i * 4 + 3] * scale[0]
-    addRect(x1, y1, x2, y2, color)
+    let rect = addRect(x1, y1, x2, y2, color)
+    rect.set('label', klass)
+    rect.set('score', score)
+    rect.set('uuid', uuidv4())
+    rect.set('color', color)
   }
+  rightBar.value?.addMarkers(0, fabricCanvas.getObjects(fabric.Rect.type))
   fabricCanvas.requestRenderAll()
 }
 
@@ -332,7 +242,7 @@ function addRect(x1: number, y1: number, x2: number, y2: number, color: string) 
     width: x2 - x1,
     height: y2 - y1,
     fill: MarkColors.hexToRgba(color, 0.2),
-    strokeWidth: 2,
+    strokeWidth: 1.5,
     stroke: color,
     objectCaching: false,
     cornerSize: 10,
@@ -340,21 +250,17 @@ function addRect(x1: number, y1: number, x2: number, y2: number, color: string) 
     cornerStrokeColor: MarkColors.hexToRgba(color, 0.8),
     hasBorders: false,
     borderColor: color,
-    borderScaleFactor: 2
+    borderScaleFactor: 1.5
   })
-  rect.setCoords()
+
   rect.on('mouseover', () => {
     rect.set({ hasBorders: true, })
     fabricCanvas.setActiveObject(rect)
     fabricCanvas.requestRenderAll()
   })
 
-  rect.on('mouseout', () => {
-    rect.set({ hasBorders: true, })
-    // fabricCanvas.discardActiveObject()
-    fabricCanvas.requestRenderAll()
-  })
   fabricCanvas.add(rect)
+  return rect
 }
 
 function addPoly(points: fabric.XY[], color: string) {
@@ -427,25 +333,6 @@ function addGrid() {
   }
 }
 
-function onMarkerSelected(idx: number) {
-  activeMarker.value = idx
-}
-
-function onLabelChanged(idx: number) {
-  curLabel.value = -1
-  // markers.value[activeResult.value][curMarker.value].label = idx
-}
-
-function onLabelAdd() {
-  labels.value.push({ id: labels.value.length, name: labelName.value, color: labelColor.value })
-  labelName.value = ''
-}
-
-function randomColor(idx: number) {
-  labels.value[idx].color = '#' + Math.floor(Math.random() * 16777215).toString(16)
-}
-
-
 </script>
 
 <style lang="css" scoped>
@@ -458,7 +345,7 @@ function randomColor(idx: number) {
   z-index: 500;
 }
 
-.marker-panel {
+.left-bar {
   position: absolute;
   top: 0;
   left: 0;
@@ -467,21 +354,5 @@ function randomColor(idx: number) {
   height: 100%;
   border-radius: 0 0 0 8px;
   background-color: #44444488;
-}
-
-.result-panel {
-  position: relative;
-  width: 20rem;
-  height: calc(100vh - 90px);
-  /* background-color: #44444488; */
-  overflow-y: scroll;
-  overflow-x: hidden;
-}
-
-.color-block {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-right: 10px;
-  border-radius: 5px;
 }
 </style>
