@@ -111,6 +111,12 @@ export default {
 
     FaceRec: '人脸识别'
   },
+  anno: {
+    object: '物体',
+    label: '标签',
+    noMatch: '未找到匹配的标签',
+    labelPlaceholder: '请输入标签',
+  },
   faceRec: {
     nameInput: '请输入姓名',
     nameInputError: '姓名不能为空',
