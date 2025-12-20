@@ -112,6 +112,12 @@ export default {
     FaceRec: 'Face Recognition'
 
   },
+  anno: {
+    object: 'Object',
+    label: 'Label',
+    noMatch: 'no match label',
+    labelPlaceholder: 'input label name',
+  },
   faceRec: {
     nameInput: 'Please enter name',
     nameInputError: 'Name cannot be empty',

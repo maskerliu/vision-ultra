@@ -6,7 +6,7 @@
       </transition>
     </router-view>
 
-    <van-floating-bubble v-if="enableDebug" :offset="{ x: 1040, y: 450 }" axis="xy" :gap="10" magnetic="x"
+    <van-floating-bubble v-if="enableDebug" :offset="offset" axis="xy" :gap="10" magnetic="x"
       @click="onOpenDebugPanel">
 
       <template #default>
@@ -34,6 +34,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import DebugPanel from './pages/components/DebugPanel.vue'
 import { CommonStore } from './store'
+import { windowWidth } from 'vant/lib/utils'
 
 const i18n = useI18n()
 const canRender = ref(true)
@@ -43,6 +44,10 @@ const active = ref<number>(0)
 const showDebugPanel = ref<boolean>(false)
 const enableDebug = true
 const showLoading = ref<boolean>(false)
+const offset = {
+  x: window.innerWidth - 60,
+  y: window.innerHeight - 100
+}
 
 provide('theme', theme)
 provide('lang', lang)
@@ -57,6 +62,12 @@ onMounted(async () => {
     return true
   })
 
+
+  window.onresize = () => {
+    offset.x = window.innerWidth - 60
+    offset.y = window.innerHeight - 100
+  
+  }
   useRouter().replace("/visionHome")
   active.value = 1
 
@@ -101,6 +112,7 @@ function onOpenDebugPanel() {
 }
 
 :root {
+  --van-collapse-item-content-padding: 0px;
   --van-dialog-border-radius: 6px;
   --van-tag-font-size: 0.6rem;
   --van-tag-padding: 2px 5px;
