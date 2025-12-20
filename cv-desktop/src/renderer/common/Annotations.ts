@@ -13,5 +13,5 @@ export type CVMarker = Partial<{
 }>
 
 export const MarkerTypes = [
-  'rect', 'circle', 'polygon', 'line', 'multi-line'
+  'select', 'Rect', 'Circle', 'Polygon', 'Line', 'multi-line'
 ]

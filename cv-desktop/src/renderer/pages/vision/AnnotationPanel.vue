@@ -4,6 +4,12 @@
       <van-button square block @click="showRightBar = !showRightBar">
         <van-icon :class="`iconfont icon-marker`" style="font-size: 1.2rem;" />
       </van-button>
+
+      <van-button square block plain :type="curDrawType == idx ? 'primary' : 'default'"
+        v-for="(type, idx) in MarkerTypes" :key="idx" @click="onDrawSelect(idx)">
+        <van-icon :class="`iconfont icon-mark-${type.toLocaleLowerCase()}`" style="font-size: 1.2rem;" />
+      </van-button>
+
       <van-popover v-model:show="showMagic" placement="right-start">
         <template #reference>
           <van-button square block style="width: 2.5rem;">
@@ -27,9 +33,6 @@
         </van-row>
       </van-popover>
 
-      <van-button square block v-for="(type, idx) in MarkerTypes" :key="idx">
-        <van-icon :class="`iconfont icon-mark-${type}`" style="font-size: 1.2rem;" />
-      </van-button>
     </van-col>
 
     <canvas ref="annotationCanvas" style="display: block;"></canvas>
@@ -43,15 +46,14 @@ import * as fabric from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { MarkerTypes } from '../../common/Annotations'
-import { MARK_COLORS, MarkColors, Object_Labels } from '../../common/DrawUtils'
+import { MarkColors } from '../../common/DrawUtils'
 import AnnotationRightPanel from './AnnotationRightPanel.vue'
-import TestPanel from './TestPanel.vue'
 
 const showRightBar = ref(true)
 const rightBar = useTemplateRef<typeof AnnotationRightPanel>('rightBar')
-const testPanel = ref('test-panel')
 const annotationCanvas = useTemplateRef<HTMLCanvasElement>('annotationCanvas')
 const showMagic = ref(false)
+const curDrawType = ref(0)
 
 let fabricCanvas: fabric.Canvas
 let selectedObject: fabric.Object
@@ -73,13 +75,7 @@ watch(() => canvasSize, (val, _) => {
   fabricCanvas.requestRenderAll()
 })
 
-function updateActiveMarker(shape: fabric.Object) {
-  fabricCanvas.setActiveObject(shape)
-}
 
-function updateMarker(shape: fabric.Object) {
-  fabricCanvas.requestRenderAll()
-}
 
 onMounted(() => {
 
@@ -96,6 +92,7 @@ onMounted(() => {
   registeCanvasEvent()
 
   const points = [
+
     {
       x: 3,
       y: 4,
@@ -146,8 +143,17 @@ onMounted(() => {
     },
   ]
 
-  addRect(0, 0, 100, 100, '#EAB543')
-  addPoly(points, '#EAB543')
+  let rect = addRect(120, 200, 220, 280, '#EAB543')
+  rect.set('label', 'person')
+  rect.set('score', '90.4')
+  rect.set('uuid', uuidv4())
+  rect.set('color', '#EAB543')
+
+  let poly = addPoly(points, '#EAB543')
+  poly.set('label', 'person')
+  poly.set('score', '90.4')
+  poly.set('uuid', uuidv4())
+  poly.set('color', '#EAB543')
 
   labelText = new fabric.FabricText(`person 90.4%`, {
     fontSize: 12,
@@ -168,7 +174,33 @@ onMounted(() => {
     visible: false
   })
   fabricCanvas.add(labelText)
+
+  syncObject2RightBar()
 })
+
+function onDrawSelect(type: number) {
+  curDrawType.value = type
+  console.log(type)
+}
+
+function updateActiveMarker(shape: fabric.Object) {
+  if (!shape.visible) return
+  fabricCanvas.setActiveObject(shape)
+  fabricCanvas.requestRenderAll()
+}
+
+function updateMarker(shape: fabric.Object) {
+  if (!shape.visible && fabricCanvas.getActiveObject() == shape) {
+    fabricCanvas.discardActiveObject()
+  }
+  fabricCanvas.requestRenderAll()
+}
+
+function syncObject2RightBar() {
+  for (let i = 1; i < MarkerTypes.length; ++i) {
+    rightBar.value?.addMarkers(i, fabricCanvas.getObjects(MarkerTypes[i]))
+  }
+}
 
 function updateLabelText() {
   labelText.set('text', `${selectedObject?.get('label')} ${selectedObject?.get('score')}% \n${selectedObject?.get('uuid')}`)
@@ -219,20 +251,19 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
     score = (scores[i] * 100).toFixed(1)
     // if (scores[i] * 100 < 30) continue
 
-    klass = Object_Labels[classes[i]]
-    color = MARK_COLORS.get(classes[i])
+    let label = rightBar.value.getLabel(classes[i])
     y1 = boxes[i * 4] * scale[1]
     x1 = boxes[i * 4 + 1] * scale[0]
     y2 = boxes[i * 4 + 2] * scale[1]
     x2 = boxes[i * 4 + 3] * scale[0]
-    let rect = addRect(x1, y1, x2, y2, color)
-    rect.set('label', klass)
+    let rect = addRect(x1, y1, x2, y2, label.color)
+    rect.set('label', label.name)
     rect.set('score', score)
     rect.set('uuid', uuidv4())
-    rect.set('color', color)
+    rect.set('color', label.color)
   }
-  rightBar.value?.addMarkers(0, fabricCanvas.getObjects(fabric.Rect.type))
   fabricCanvas.requestRenderAll()
+  syncObject2RightBar()
 }
 
 function addRect(x1: number, y1: number, x2: number, y2: number, color: string) {
@@ -246,7 +277,7 @@ function addRect(x1: number, y1: number, x2: number, y2: number, color: string) 
     stroke: color,
     objectCaching: false,
     cornerSize: 10,
-    cornerColor: MarkColors.hexToRgba(color, 0.6),
+    cornerColor: MarkColors.hexToRgba(color, 0.8),
     cornerStrokeColor: MarkColors.hexToRgba(color, 0.8),
     hasBorders: false,
     borderColor: color,
@@ -302,6 +333,7 @@ function addPoly(points: fabric.XY[], color: string) {
     fabricCanvas.renderAll()
   })
 
+  return poly
 }
 
 function addGrid() {
@@ -310,6 +342,10 @@ function addGrid() {
   const gridSize = 40
   const gridColor = 'rgba(200, 200, 200, 0.5)'
 
+  let gridGroup = new fabric.Group([], {
+    selectable: false,
+    evented: false,
+  })
   // 垂直网格线
   for (let x = 0; x <= canvasSize[0]; x += gridSize) {
     const line = new fabric.Line([x, 0, x, canvasSize[1]], {
@@ -318,7 +354,7 @@ function addGrid() {
       selectable: false,
       evented: false,
     })
-    fabricCanvas.add(line)
+    gridGroup.add(line)
   }
 
   // 水平网格线
@@ -329,8 +365,9 @@ function addGrid() {
       selectable: false,
       evented: false,
     })
-    fabricCanvas.add(line)
+    gridGroup.add(line)
   }
+  fabricCanvas.add(gridGroup)
 }
 
 </script>
