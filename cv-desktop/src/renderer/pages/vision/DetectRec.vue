@@ -96,7 +96,7 @@ import { ImageProcessor } from '../../common/ImageProcessor'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { VisionStore } from '../../store'
 import TrackerWorker from '../../tracker.worker?worker'
-import AnnotationPanel from './AnnotationPanel.vue'
+import AnnotationPanel from '../annotation/AnnotationPanel.vue'
 
 const trackerWorker = new TrackerWorker() as Worker
 const visionStore = VisionStore()
