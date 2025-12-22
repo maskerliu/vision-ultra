@@ -12,6 +12,5 @@ export type CVMarker = Partial<{
   shape: fabric.FabricObject,
 }>
 
-export const MarkerTypes = [
-  'select', 'Rect', 'Circle', 'Polygon', 'Line', 'multi-line'
-]
+export const MarkerTypes = ['Select', 'Rect', 'Circle', 'Polygon', 'Line', 'multi-line']
+export enum DrawType { Select = 0, Rect, Circle, Polygon, Line, MultiLine, }

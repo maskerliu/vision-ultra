@@ -1,7 +1,5 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
-import * as fabric from 'fabric'
-import { edit } from 'ace-builds'
 
 export const Object_Labels = [
   "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
