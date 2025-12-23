@@ -55,7 +55,8 @@ export default {
     }
   },
   imgProcess: {
-    ProcessMode: 'Process Mode',
+    IntergrateMode: 'Integrate Mode',
+    ModelEngine: 'Model Engine',
     ImgEnhance: 'Image Enhancement',
     Gray: 'Gray',
     Brightness: 'Brightness', // 亮度

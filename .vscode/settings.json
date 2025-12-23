@@ -1,11 +1,17 @@
 {
   "editor.tabSize": 2,
   "editor.detectIndentation": false,
-  "editor.dropIntoEditor.preferences": [],
   "editor.codeActionsOnSave": {
+    "source.organizeImports": "always"
   },
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[typescript]": {
     "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "Vue.volar",
+    "editor.formatOnSave": true
   },
   "typescript.format.semicolons": "remove",
   "javascript.format.semicolons": "remove",
@@ -28,5 +34,5 @@
   "files.watcherExclude": {
     "**/build": true,
     "**/node_modules": true
-  },
+  }
 }
