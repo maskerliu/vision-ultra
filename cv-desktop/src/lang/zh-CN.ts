@@ -57,7 +57,8 @@ export default {
     }
   },
   imgProcess: {
-    ProcessMode: '处理引擎',
+    IntergrateMode: '集成模式',
+    ModelEngine: '模型引擎',
     ImgEnhance: '图像增强',
     Gray: '灰度',
     Brightness: '亮度', // 亮度

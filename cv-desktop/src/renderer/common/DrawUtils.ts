@@ -1,7 +1,7 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
 
-export const Object_Labels = [
+export const Def_Object_Labels = [
   "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
   "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
   "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
@@ -243,7 +243,7 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
     score = (scores[i] * 100).toFixed(1)
     // if (scores[i] * 100 < 30) continue
 
-    klass = Object_Labels[classes[i]]
+    klass = Def_Object_Labels[classes[i]]
     color = MARK_COLORS.get(classes[i])
     y1 = boxes[i * 4] * scale[1]
     x1 = boxes[i * 4 + 1] * scale[0]

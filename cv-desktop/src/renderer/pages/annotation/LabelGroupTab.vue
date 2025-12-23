@@ -1,12 +1,15 @@
 <template>
   <van-tab :title="$t('anno.label')">
+
     <van-uploader v-model="fileList" accept=".json,.txt" :preview-image="false" :after-read="onLabelUpload">
-      <van-button square plain size="small" block style="width: 62px; height: 32px;">
-        <van-icon class="iconfont icon-file-upload" style="font-size: 1.5rem;" />
-      </van-button>
+      <van-cell center style="width: 15rem;" title="导入标签文件" value="" clickable>
+        <template #right-icon>
+          <van-icon class="iconfont icon-file-upload" style="font-size: 1rem;" />
+        </template>
+      </van-cell>
     </van-uploader>
-    <van-empty v-if="labelGroup.size == 0" />
-    <van-collapse v-model="collapsedLabelGroup" :border="true" accordion>
+    <van-empty image-size="80" style="width: 15rem;" v-if="labelGroup.size == 0" />
+    <van-collapse v-else v-model="collapsedLabelGroup" :border="true" accordion>
       <van-collapse-item :name="key" v-for="key of labelGroup.keys()">
         <template #icon>
           <van-switch size="1rem" v-model="labelGroup.get(key).active" @click.stop="updateLabelGroup(key)"
@@ -21,7 +24,7 @@
             <van-icon class="iconfont icon-delete" style="font-size: 1rem;" />
           </van-button>
         </template>
-        <van-empty v-if="labelGroup.get(key) == null || labelGroup.get(key).labels.length == 0" />
+        <van-empty image-size="80" v-if="labelGroup.get(key) == null || labelGroup.get(key).labels.length == 0" />
         <van-list v-else style="width: calc(15rem - 4px); height: calc(100vh - 280px); overflow-y: scroll;">
           <van-field :placeholder="$t('anno.labelPlaceholder')" center v-model="label.name"
             v-for="label in labelGroup.get(key).labels" @click="activeLabel = label">
@@ -58,10 +61,9 @@
 <script setup lang="ts">
 
 import { onMounted, ref, watch } from 'vue'
-import { CVLabel, MarkerTypes } from '../../common/Annotations'
-import { MARK_COLORS } from '../../common/DrawUtils'
+import { CVLabel } from '../../common/Annotations'
+import { MARK_COLORS, Def_Object_Labels } from '../../common/DrawUtils'
 import { UploaderFileListItem } from 'vant'
-import { Cell, Popup } from 'vant'
 
 const labelGroup = ref<Map<string, { labels: CVLabel[], active: boolean }>>(new Map())
 const collapsedLabelGroup = ref() // 展开的标签组
@@ -77,7 +79,18 @@ const activeLabel = defineModel('activeLabel', {
   type: Object as () => CVLabel
 })
 
-defineExpose({ getLabel })
+defineExpose({ getLabel, searchLabel })
+
+onMounted(() => {
+
+  let defLabels = Def_Object_Labels.map((label, idx) => {
+    return { id: idx, name: label, color: MARK_COLORS.get(idx) }
+  })
+
+  labelGroup.value.set('默认标签', { labels: defLabels, active: true })
+  updateLabelGroup('默认标签')
+})
+
 
 function onLabelUpload(data: UploaderFileListItem) {
   var reader = new FileReader()
@@ -109,6 +122,10 @@ function updateLabelGroup(key: string) {
 
 function getLabel(index: number) {
   return labelGroup.value.get(activeLabelGroup).labels[index]
+}
+
+function searchLabel(keyword: string) {
+  return labelGroup.value.get(activeLabelGroup).labels.filter(item => item.name.indexOf(keyword) != -1)
 }
 
 function onLabelAdd() {

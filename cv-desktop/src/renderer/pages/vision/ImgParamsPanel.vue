@@ -1,7 +1,7 @@
 <template>
   <van-col>
     <van-cell-group>
-      <van-cell :title="$t('imgProcess.ProcessMode')">
+      <van-cell :title="$t('imgProcess.IntergrateMode')">
         <template #right-icon>
           <van-radio-group v-model="visionStore.imgProcessMode" direction="horizontal">
             <van-radio name="1" size="1rem">
@@ -12,6 +12,21 @@
             </van-radio>
             <van-radio name="3" size="1rem" :disabled="isWeb">
               <van-icon class="iconfont icon-native" style="font-size: 1.2rem; color: #3498db; margin-top: 4px;" />
+            </van-radio>
+          </van-radio-group>
+        </template>
+      </van-cell>
+    </van-cell-group>
+
+    <van-cell-group style="margin-top: 10px;">
+      <van-cell :title="$t('imgProcess.ModelEngine')">
+        <template #right-icon>
+          <van-radio-group v-model="visionStore.imgProcessMode" direction="horizontal">
+            <van-radio name="1" size="1rem">
+              <van-icon class="iconfont icon-onnx" style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
+            </van-radio>
+            <van-radio name="2" size="1rem" :disabled="isWeb">
+              <van-icon class="iconfont icon-tensorflow" style="font-size: 1.2rem; color: #e67e22; margin-top: 4px;" />
             </van-radio>
           </van-radio-group>
         </template>
@@ -39,7 +54,7 @@
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.faceDetect">
-          <van-icon class="iconfont icon-tensorflow" style="font-size: 1rem; color: #d35400;" />
+          <van-icon class="iconfont icon-tensorflow" style="font-size: 1rem; color: #e67e22;" />
           <span>{{ $t('imgProcess.FaceRec') }}</span>
         </van-checkbox>
       </template>
