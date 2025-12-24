@@ -1,12 +1,13 @@
 <template>
   <van-tab :title="$t('anno.object')">
+    <van-overlay :show="showLabelSearch" @click="showLabelSearch = false" />
     <van-popup ref="labelSearchRef" class="label-search-panel" size="normal" trigger="manual" :overlay="false"
       :lazy-render="false" v-model:show="showLabelSearch">
       <van-list style="min-width: 14rem; height: 100px;">
         <van-empty image-size="35" v-if="searchLabels == null || searchLabels.length == 0" />
         <van-cell :title="label.name" center clickable v-for="label in searchLabels" @click="updateMarkerLabel(label)">
           <template #right-icon>
-            <van-icon v-if="label.id == curMarker?.get('label')" name="success" />
+            <van-icon class-prefix="iconfont" name="success" v-if="label.name == curMarker?.get('label')" />
           </template>
         </van-cell>
       </van-list>
@@ -18,6 +19,7 @@
         <van-list v-else style="max-height: calc(100vh - 250px); overflow: hidden scroll;">
           <van-cell center :border="true" clickable v-for="(marker, idx) in markerGroup.get(key)"
             :ref="(el: any) => setMarkerRef(el, key, idx as number)"
+            :style="{ backgroundColor: activeMarkers[0]?.get('uuid') == marker.get('uuid') ? '#f5f5f5' : 'white' }"
             @click="onMarkerStatusChanged(marker as any, 'selected')">
             <template #icon>
               <div class="color-block" :style="{ borderColor: marker.get('stroke') }"></div>
@@ -27,11 +29,11 @@
                 @click="showLabelSearchResult(key, idx as number)" :value="marker.get('label')" @input="handleSearch" />
             </template>
             <template #right-icon>
-              <van-icon class="iconfont label-option" v-for="opt of MarkerOpts"
-                :class="'icon-' + opt + (getMarkerStatus(marker as any, opt) ? '' : '-n')"
+              <van-icon class-prefix="iconfont" class="label-option" v-for="opt of MarkerOpts"
+                :name="opt + (getMarkerStatus(marker as any, opt) ? '' : '-n')"
                 @click.stop="onMarkerStatusChanged(marker as any, opt)">
               </van-icon>
-              <van-icon class="iconfont icon-delete label-option" style="color: #e74c3c"
+              <van-icon class-prefix="iconfont" class="label-option" name="delete" style="color: #e74c3c"
                 @click.stop="onMarkerStatusChanged(marker, 'delete', key, idx as number)" />
             </template>
           </van-cell>
@@ -48,7 +50,7 @@ import { onMounted, ref } from 'vue'
 import { AnnotationPanel, CVLabel, DrawType } from '../../common/Annotations'
 
 const activeMarkerGroup = ref(DrawType.Rect) // 展开的标注组
-const curMarker = ref<fabric.FabricObject>(null) // 当前选中的标注
+const curMarker = ref<fabric.FabricObject>()
 const labelRefGroup = ref<Map<DrawType, Array<typeof Cell>>>(new Map())
 const MarkerOpts = ['pin', 'lock', 'visible']
 const labelSearchRef = ref<typeof Popup>()
@@ -58,6 +60,12 @@ const markerGroup = defineModel('markerGroup', {
   required: true,
   default: new Map(),
   type: Map<number, fabric.FabricObject[]>
+})
+
+const activeMarkers = defineModel('activeMarkers', {
+  required: true,
+  default: null,
+  type: Array<fabric.FabricObject>
 })
 
 defineProps<{
@@ -96,6 +104,7 @@ function onMarkerStatusChanged(object: fabric.FabricObject, status: string, grou
   switch (status) {
     case 'selected':
       object.canvas.setActiveObject(object)
+      console.log(object.get('uuid'), object.get('type'), object.get('selectable'), object.get('evented'),)
       break
     case 'pin':
       object.set({

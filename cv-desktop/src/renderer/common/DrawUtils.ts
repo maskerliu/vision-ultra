@@ -1,78 +1,21 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
+import { Def_Object_Labels } from './Annotations'
+import { MARK_COLORS, MarkColors } from './CVColors'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
 
-export const Def_Object_Labels = [
-  "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-  "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-  "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-  "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-  "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-  "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-  "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-  "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-  "hair drier", "toothbrush"
-]
 
-export class MarkColors {
-  private palette: string[]
-  private n: number
-
-  constructor() {
-    this.palette = [
-      "#FEA47F",
-      "#25CCF7",
-      "#EAB543",
-      "#55E6C1",
-      "#CAD3C8",
-      "#F97F51",
-      "#1B9CFC",
-      "#F8EFBA",
-      "#58B19F",
-      "#2C3A47",
-      "#B33771",
-      "#3B3B98",
-      "#FD7272",
-      "#9AECDB",
-      "#D6A2E8",
-      "#6D214F",
-      "#182C61",
-      "#FC427B",
-      "#BDC581",
-      "#82589F",
-    ]
-    this.n = this.palette.length
-  }
-
-  get = (i) => this.palette[Math.floor(i) % this.n];
-
-  static hexToRgba = (hex, alpha) => {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-    return result
-      ? `rgba(${[parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)].join(
-        ", "
-      )}, ${alpha})`
-      : null
-  };
-}
 
 export const NUM_KEYPOINTS = 478
-const GREEN = '#32EEDB'
-const RED = '#FF2C35'
-const BLUE = '#157AB3'
-const YELLOW = '#F8E16C'
-const WHITE = '#ffffff'
-const SILVERY = '#f1f2f6'
-const PURPLE = '#7F00FF'
 
 export const LABEL_TO_COLOR = {
-  lips: PURPLE,
-  leftEye: BLUE,
-  leftEyebrow: BLUE,
-  leftIris: YELLOW,
-  rightEye: RED,
-  rightEyebrow: RED,
-  rightIris: YELLOW,
-  faceOval: SILVERY,
+  lips: MarkColors.PURPLE,
+  leftEye: MarkColors.BLUE,
+  leftEyebrow: MarkColors.BLUE,
+  leftIris: MarkColors.YELLOW,
+  rightEye: MarkColors.RED,
+  rightEyebrow: MarkColors.RED,
+  rightIris: MarkColors.YELLOW,
+  faceOval: MarkColors.SILVERY,
 }
 
 export type FaceDetectResult = {
@@ -109,7 +52,6 @@ export type KeyPoint = {
 
 export const FACE_DIMS: number = 2
 
-export const MARK_COLORS = new MarkColors()
 const SharedPaths: {
   lips?: Float16Array,
   leftEye?: Float16Array,
@@ -155,7 +97,7 @@ function drawPath(ctx: CanvasRenderingContext2D, points: Float16Array, start: nu
 }
 
 function drawFaceCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
-  ctx.strokeStyle = SILVERY
+  ctx.strokeStyle = MarkColors.SILVERY
   ctx.lineWidth = 3
 
   const w = box.width / 6
@@ -262,7 +204,7 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
     ctx.fillStyle = MarkColors.hexToRgba(color, 0.8)
     ctx.fillRect(x1 + width / 2 - 20, y1 + height / 2 - 7, 40, 10)
 
-    ctx.fillStyle = WHITE
+    ctx.fillStyle = MarkColors.WHITE
     ctx.fillText(`${score}%`, x1 + width / 2 - 18, y1 + height / 2 - 5)
   }
 }
@@ -282,7 +224,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
 
   switch (mesh) {
     case 'mesh':
-      ctx.strokeStyle = SILVERY
+      ctx.strokeStyle = MarkColors.SILVERY
       ctx.lineWidth = 0.5
       for (let i = 0; i < TRIANGULATION.length / 3; i++) {
         [TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2]].forEach((val, idx) => {
@@ -294,7 +236,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
       }
       break
     case 'dot':
-      ctx.fillStyle = SILVERY
+      ctx.fillStyle = MarkColors.SILVERY
       for (let i = 0; i < NUM_KEYPOINTS; i++) {
         ctx.beginPath()
         ctx.arc(face.landmarks[i * FACE_DIMS] * normilize + orginX,

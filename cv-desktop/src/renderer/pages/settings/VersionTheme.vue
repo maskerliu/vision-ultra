@@ -2,16 +2,16 @@
   <van-cell-group inset title=" ">
     <van-field center :label="$t('settings.sys.theme')" label-width="4rem" :readonly="true">
       <template #left-icon>
-        <van-icon class="iconfont icon-theme" style="margin-left: 15px;" />
+        <van-icon class-prefix="iconfont" name="theme" style="margin-left: 15px;" />
       </template>
       <template #right-icon>
         <van-radio-group v-model="theme" direction="horizontal" style="height: 26px;" @change="onThemeChanged">
           <van-radio name="light">
-            <van-icon class="iconfont icon-theme-light theme-icon"
+            <van-icon class-prefix="iconfont" name="theme-light"
               :style="{ color: theme == 'light' ? '#3498db' : 'gray' }" />
           </van-radio>
           <van-radio name="dark">
-            <van-icon class="iconfont icon-theme-dark theme-icon"
+            <van-icon class-prefix="iconfont" name="theme-dark"
               :style="{ color: theme == 'dark' ? '#3498db' : 'gray' }" />
           </van-radio>
         </van-radio-group>
@@ -20,7 +20,7 @@
 
     <van-field center input-align="right" :label="$t('settings.sys.version')" label-width="4rem" :readonly="true">
       <template #left-icon>
-        <van-icon class="iconfont icon-info" style="margin-left: 15px;" />
+        <van-icon class-prefix="iconfont" name="info" style="margin-left: 15px;" />
       </template>
       <template #input>
         <div style="height: 33px;display: flex; align-items: center; justify-content: center;" @click="onVersionCheck">
@@ -31,14 +31,14 @@
       <template #right-icon>
         <van-loading v-if="versionChecking" />
         <van-button v-if="hasNewVersion" type="warning" plain size="small" @click="downloadNewVersion">
-          <van-icon class="iconfont icon-version-update" />
+          <van-icon class-prefix="iconfont" name="version-update" />
         </van-button>
       </template>
     </van-field>
 
     <van-field center input-align="right" :label="$t('settings.sys.lang')" label-width="4rem" :readonly="true">
       <template #left-icon>
-        <van-icon class="iconfont icon-lang" style="margin-left: 15px;" />
+        <van-icon class-prefix="iconfont" name="lang" style="margin-left: 15px;" />
       </template>
       <template #input>
         <van-popover v-model:show="showLangs" placement="bottom-end" style="min-width: 140px">
@@ -56,7 +56,7 @@
     <van-popup round v-model:show="showDownload" :closeable="popupCloseable" :close-on-click-overlay="false"
       teleport="#app">
       <van-row style="width: 450px; margin: 15px; height: 300px;" justify="center">
-        <van-icon class="iconfont icon-version-update" style="color: green; font-size: 2rem;" />
+        <van-icon class-prefix="iconfont" name="version-update" style="color: green; font-size: 2rem;" />
         <pre class="update-message">{{ newVersion.message }} </pre>
         <div style="width: 100%;">
           <van-progress :percentage="downloadProgress" stroke-width="4" class="download-progress" />

@@ -4,7 +4,7 @@
       <van-field center placeholder="HLS URL" label-width="3rem" v-model="streamUrl">
         <template #left-icon>
           <div style="display: flex; justify-content: center;">
-            <van-icon class="iconfont icon-link" style="color: var(--van-gray-8)" />
+            <van-icon class-prefix="iconfont" name="link" style="color: var(--van-gray-8)" />
             <div style="position: absolute; bottom: -5px; left: 0; font-size: 10px; color: red;">{{ bandwidth }}kbps
             </div>
           </div>
@@ -12,7 +12,7 @@
         <template #button>
           <van-button size="small" type="primary" icon="play" @click="onHlsClick" :loading="playerLoading">
             <template #icon>
-              <van-icon class="iconfont" :class="playerStatus ? 'icon-player-pause' : 'icon-player-play'"
+              <van-icon class-prefix="iconfont" :name="playerStatus ? 'player-pause' : 'player-play'"
                 style="color: var(--van-gray-8)" />
             </template>
           </van-button>
