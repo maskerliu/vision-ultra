@@ -2,18 +2,18 @@
   <van-row class="marker-layer" justify="center" style="align-items: center">
     <van-col class="left-bar" justify="start">
       <van-button square block @click="showRightBar = !showRightBar">
-        <van-icon :class="`iconfont icon-marker`" style="font-size: 1.2rem" />
+        <van-icon class-prefix="iconfont" name="marker" style="font-size: 1.2rem" />
       </van-button>
 
       <van-button square block plain :type="curDrawType == type ? 'primary' : 'default'"
         v-for="(type, idx) in DrawTypes" :key="idx" @click="onDrawSelect(type)">
-        <van-icon :class="`iconfont icon-mark-${type.toLocaleLowerCase()}`" style="font-size: 1.2rem" />
+        <van-icon class-prefix="iconfont" :name="'mark-' + type.toLocaleLowerCase()" style="font-size: 1.2rem" />
       </van-button>
 
       <van-popover v-model:show="showMagic" placement="right-start">
         <template #reference>
           <van-button square block style="width: 2.5rem">
-            <van-icon class="iconfont icon-mark-magic" style="font-size: 1.2rem" />
+            <van-icon class-prefix="iconfont" name="mark-magic" style="font-size: 1.2rem" />
           </van-button>
         </template>
         <van-row style="width: 260px; padding: 5px">
@@ -35,18 +35,18 @@
     <van-field class="active-label" v-model="searchKeyword" @click="showLabelSearch = true">
       <template #left-icon>
         <div class="color-block" :style="{ backgroundColor: activeLabel?.color }" @click="">
-          <van-icon class="iconfont icon-random" style="font-size: 1.2rem; color: white" />
+          <van-icon class-prefix="iconfont" name="random" />
         </div>
       </template>
     </van-field>
     <van-popup class="label-search-panel" size="normal" trigger="manual" :overlay="true" :lazy-render="false"
-      v-model:show="showLabelSearch">
+      teleport="#app" v-model:show="showLabelSearch">
       <van-list style="min-width: 14rem; max-height: 200px; overflow: hidden scroll;">
         <van-empty image-size="80" :description="$t('anno.noMatch')"
           v-if="searchLabels == null || searchLabels.length == 0" />
         <van-cell :title="label.name" center clickable v-for="label in searchLabels" @click="changeLabel(label)">
           <template #right-icon>
-            <van-icon v-if="label.id == activeLabel?.id" name="success" />
+            <van-icon class-prefix="iconfont" name="success" v-if="label.id == activeLabel?.id" />
           </template>
         </van-cell>
       </van-list>
@@ -55,8 +55,8 @@
 
     <van-popup :show="showRightBar" position="right" :overlay="false" class="right-bar">
       <van-tabs v-model:active="activeTab" sticky>
-        <marker-group-tab v-model:marker-group="markerGroup" :search-labels="markerSearchLabels"
-          @searchLabels="onMarkerLabelSearch" />
+        <marker-group-tab v-model:marker-group="markerGroup" v-model:active-markers="activeMarkers as any"
+          :search-labels="markerSearchLabels" @searchLabels="onMarkerLabelSearch" />
         <label-group-tab ref="labeTab" v-model:active-label="activeLabel" />
       </van-tabs>
     </van-popup>
@@ -78,6 +78,7 @@ const annotationCanvas = useTemplateRef<HTMLCanvasElement>('annotationCanvas')
 const showMagic = ref(false)
 const curDrawType = ref(DrawType.Select)
 const markerGroup = ref<Map<DrawType, Array<fabric.FabricObject>>>(new Map())
+const activeMarkers = ref<Array<fabric.FabricObject>>([])
 const activeLabel = ref<CVLabel>(null)
 const showLabelSearch = ref(false)
 const searchKeyword = ref('')
@@ -101,14 +102,18 @@ watch(() => canvasSize, (val, _) => {
   annotationPanel.showGrid(true)
 })
 
+watch(() => markerGroup.value, () => {
+  console.log(markerGroup.value)
+})
+
 watch(() => searchKeyword.value, () => {
   searchLabels.value = labeTab.value.searchLabel(searchKeyword.value)
 })
 
-
 onMounted(() => {
-  annotationPanel = new AnnotationPanel(annotationCanvas.value!, canvasSize[0], canvasSize[1],
-    markerGroup.value as any)
+  annotationPanel = new AnnotationPanel(annotationCanvas.value!, canvasSize[0], canvasSize[1])
+  annotationPanel.markerGroup = markerGroup.value as any
+  annotationPanel.activeObjects = activeMarkers.value as any
 
   activeLabel.value = labeTab.value.getLabel(1)
   annotationPanel.label = activeLabel.value
@@ -118,7 +123,7 @@ onMounted(() => {
     markerGroup.value.set(DrawTypes[i], [])
   }
 
-  annotationPanel.mock()
+  // annotationPanel.mock()
   annotationPanel.showGrid(true)
 })
 
@@ -218,9 +223,9 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
 }
 
 .color-block {
-  width: 1.5rem;
-  height: 1.5rem;
+  color: white;
   border: 2px solid;
+  padding: 1px 10px;
   margin-right: 10px;
   border-radius: 5px;
 }

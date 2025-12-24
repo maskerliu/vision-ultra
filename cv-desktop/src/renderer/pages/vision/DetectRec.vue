@@ -4,37 +4,36 @@
     <van-row justify="space-between" style="width: 100%; height: 50px; background-color: white;">
       <van-row style="margin-left: 10px;">
         <van-checkbox v-model="showAnnotationPanel">
-          <van-icon class="iconfont icon-mark" />
+          <van-icon class-prefix="iconfont" name="mark" />
         </van-checkbox>
-
       </van-row>
       <van-row style="padding: 10px 10px 0 0;">
         <van-image fit="cover" radius="10" width="32" height="32" :src="recFace" />
 
         <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="openFolder">
           <template #icon>
-            <van-icon class="iconfont icon-open" />
+            <van-icon class-prefix="iconfont" name="open" />
           </template>
         </van-button>
 
         <van-button plain size="small" type="danger" style="margin-left: 15px;" @click="showNameInputDialog = true">
           <template #icon>
-            <van-icon class="iconfont icon-capture" />
+            <van-icon class-prefix="iconfont" name="capture" />
           </template>
         </van-button>
         <van-button plain size="small" type="success" :loading="isScan" style="margin-left: 15px;" @click="onScan">
           <template #icon>
-            <van-icon class="iconfont icon-face-rec" />
+            <van-icon class-prefix="iconfont" name="face-rec" />
           </template>
         </van-button>
         <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="showLiveStreamInput = true">
           <template #icon>
-            <van-icon class="iconfont icon-live-stream" />
+            <van-icon class-prefix="iconfont" name="live-stream" />
           </template>
         </van-button>
         <van-button plain size="small" type="default" style="margin-left: 15px;" @click="onClickCamera">
           <template #icon>
-            <van-icon class="iconfont icon-camera" />
+            <van-icon class-prefix="iconfont" name="camera" />
           </template>
         </van-button>
       </van-row>
@@ -70,7 +69,7 @@
     <van-popup v-model:show="showLiveStreamInput" position="center" :style="{ width: '50%' }" round>
       <van-field center v-model="liveStreamUrl">
         <template #left-icon>
-          <van-icon class="iconfont icon-stream-url" />
+          <van-icon class-prefix="iconfont" name="stream-url" />
         </template>
         <template #right-icon>
           <van-button type="primary" plain size="small" @click="onLiveStream">确认</van-button>
@@ -91,7 +90,7 @@
 import 'media-chrome'
 import { showNotify } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { drawObjectDetectResult, drawTFFaceResult } from '../../common/DrawUtils'
+import { drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { VisionStore } from '../../store'

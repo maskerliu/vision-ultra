@@ -4,12 +4,24 @@
     <van-uploader v-model="fileList" accept=".json,.txt" :preview-image="false" :after-read="onLabelUpload">
       <van-cell center style="width: 15rem;" title="导入标签文件" value="" clickable>
         <template #right-icon>
-          <van-icon class="iconfont icon-file-upload" style="font-size: 1rem;" />
+          <van-icon class-prefix="iconfont" name="file-upload" style="font-size: 1rem;" />
         </template>
       </van-cell>
     </van-uploader>
+
     <van-empty image-size="80" style="width: 15rem;" v-if="labelGroup.size == 0" />
     <van-collapse v-else v-model="collapsedLabelGroup" :border="true" accordion>
+      <van-collapse-item name="colorSpace" title="Color Space" value=" ">
+        <van-grid clickable :column-num="2" style="width: 15rem;">
+          <van-grid-item v-for="key in MARK_COLORS.palettes" @click="onColorSpaceChanged(key)">
+            <van-image :src="`/static/${key}.png`">
+              <div v-if="key == colorSpace"
+                style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; border: 3px solid #1989fa; border-radius: 2px;">
+              </div>
+            </van-image>
+          </van-grid-item>
+        </van-grid>
+      </van-collapse-item>
       <van-collapse-item :name="key" v-for="key of labelGroup.keys()">
         <template #icon>
           <van-switch size="1rem" v-model="labelGroup.get(key).active" @click.stop="updateLabelGroup(key)"
@@ -19,9 +31,12 @@
           <div style="margin: 5px;">{{ key }}</div>
         </template>
         <template #value>
-          {{ labelGroup.get(key)?.labels.length }}
-          <van-button plain square type="danger" size="mini" @click.stop="">
-            <van-icon class="iconfont icon-delete" style="font-size: 1rem;" />
+          <div style="margin: 5px; ">{{ labelGroup.get(key)?.labels.length }}</div>
+        </template>
+        <template #right-icon>
+          <van-button plain type="danger" size="mini" style="margin-top: 5px;" v-if="key !== $t('anno.labelDefault')"
+            @click.stop="deleteLabelGroup(key)">
+            <van-icon class-prefix="iconfont" name="delete" />
           </van-button>
         </template>
         <van-empty image-size="80" v-if="labelGroup.get(key) == null || labelGroup.get(key).labels.length == 0" />
@@ -30,48 +45,33 @@
             v-for="label in labelGroup.get(key).labels" @click="activeLabel = label">
             <template #left-icon>
               <div class="color-block" :style="{ backgroundColor: label.color }" @click="randomColor(label.id)">
-                <van-icon class="iconfont icon-random" style="font-size: 1.2rem; color: white;" />
+                <van-icon class-prefix="iconfont" name="random" style="font-size: 1.2rem; color: white;" />
               </div>
             </template>
             <template #right-icon>
-              <van-button square plain type="danger" size="mini">
-                <van-icon class="iconfont icon-delete" style="font-size: 1rem;" />
-              </van-button>
+              <van-icon class-prefix="iconfont" name="delete" style="font-size: 1rem;" />
             </template>
           </van-field>
         </van-list>
       </van-collapse-item>
     </van-collapse>
-
-    <van-field :placeholder="$t('anno.labelPlaceholder')" v-model="labelName" center
-      style="width: 15rem; position: relative; left: 0; right: 0; bottom: 10px; z-index: 500; margin-top: 15px;">
-      <template #left-icon>
-        <div class="color-block" :style="{ backgroundColor: labelColor }">
-          <van-icon class="iconfont icon-random" style="font-size: 1.2rem; color: white; cursor: pointer;" />
-        </div>
-      </template>
-      <template #right-icon>
-        <van-button square plain type="primary" size="mini" @click="onLabelAdd">
-          <van-icon class="iconfont icon-add" style="font-size: 1rem;" />
-        </van-button>
-      </template>
-    </van-field>
   </van-tab>
 </template>
 <script setup lang="ts">
 
-import { onMounted, ref, watch } from 'vue'
-import { CVLabel } from '../../common/Annotations'
-import { MARK_COLORS, Def_Object_Labels } from '../../common/DrawUtils'
 import { UploaderFileListItem } from 'vant'
+import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { CVLabel, Def_Object_Labels } from '../../common/Annotations'
+import { MARK_COLORS } from '../../common/CVColors'
 
+const { t } = useI18n()
 const labelGroup = ref<Map<string, { labels: CVLabel[], active: boolean }>>(new Map())
 const collapsedLabelGroup = ref() // 展开的标签组
 let activeLabelGroup: string = null
-const curLabel = ref(-1)
-const labelColor = ref('#ff0000')
 const labelName = ref('')
 const fileList = ref([])
+const colorSpace = ref('defo')
 
 const activeLabel = defineModel('activeLabel', {
   required: false,
@@ -84,13 +84,23 @@ defineExpose({ getLabel, searchLabel })
 onMounted(() => {
 
   let defLabels = Def_Object_Labels.map((label, idx) => {
-    return { id: idx, name: label, color: MARK_COLORS.get(idx) }
+    return { id: idx, name: label, color: MARK_COLORS.get(idx, colorSpace.value) }
   })
 
-  labelGroup.value.set('默认标签', { labels: defLabels, active: true })
-  updateLabelGroup('默认标签')
+  let defaultKey = t('anno.labelDefault')
+  labelGroup.value.set(defaultKey, { labels: defLabels, active: true })
+  updateLabelGroup(defaultKey)
 })
 
+function onColorSpaceChanged(key: string) {
+  colorSpace.value = key
+  for (let item of labelGroup.value.keys()) {
+    let labels = labelGroup.value.get(item).labels
+    for (let i = 0; i < labels.length; i++) {
+      labels[i].color = MARK_COLORS.get(i, colorSpace.value)
+    }
+  }
+}
 
 function onLabelUpload(data: UploaderFileListItem) {
   var reader = new FileReader()
@@ -100,7 +110,7 @@ function onLabelUpload(data: UploaderFileListItem) {
     let arr = JSON.parse(pointsTxt as string)
     let labels = []
     for (let i = 0; i < arr.length; i++) {
-      labels.push({ id: i, name: arr[i], color: MARK_COLORS.get(i) })
+      labels.push({ id: i, name: arr[i], color: MARK_COLORS.get(i, colorSpace.value) })
     }
     labelGroup.value.set(data.file.name, { labels, active: true })
     updateLabelGroup(data.file.name)
@@ -128,9 +138,12 @@ function searchLabel(keyword: string) {
   return labelGroup.value.get(activeLabelGroup).labels.filter(item => item.name.indexOf(keyword) != -1)
 }
 
-function onLabelAdd() {
-  // labels.value.push({ id: labels.value.length, name: labelName.value, color: labelColor.value })
-  labelName.value = ''
+function deleteLabelGroup(key: string) {
+  let isActive = labelGroup.value.get(key).active
+  labelGroup.value.delete(key)
+  if (isActive) {
+    labelGroup.value.get(t('anno.labelDefault')).active = true
+  }
 }
 
 function randomColor(idx: number) {
@@ -141,9 +154,9 @@ function randomColor(idx: number) {
 
 <style lang="css" scoped>
 .color-block {
-  width: 1.5rem;
-  height: 1.5rem;
+  color: white;
   border: 2px solid;
+  padding: 1px 10px;
   margin-right: 10px;
   border-radius: 5px;
 }
