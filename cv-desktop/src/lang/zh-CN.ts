@@ -1,4 +1,3 @@
-import { ObjectDetector } from "@mediapipe/tasks-vision"
 
 export default {
   common: {
@@ -117,6 +116,7 @@ export default {
     label: '标签',
     noMatch: '未找到匹配的标签',
     labelPlaceholder: '请输入标签',
+    labelDefault: '默认标签',
   },
   faceRec: {
     nameInput: '请输入姓名',

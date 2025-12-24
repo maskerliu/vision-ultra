@@ -1,7 +1,19 @@
 import * as fabric from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
 import { showNotify } from 'vant'
-import { MarkColors } from './DrawUtils'
+import { MarkColors } from './CVColors'
+
+export const Def_Object_Labels = [
+  "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+  "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+  "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+  "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+  "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+  "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+  "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+  "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
+  "hair drier", "toothbrush"
+]
 
 export type CVLabel = {
   id: number,
@@ -34,14 +46,19 @@ export class AnnotationPanel {
   }
 
   private _markerGroup: Map<DrawType, Array<fabric.FabricObject>>
+  set markerGroup(markerGroup: Map<DrawType, Array<fabric.FabricObject>>) {
+    this._markerGroup = markerGroup
+  }
 
-  private selectedObject: fabric.Object
+  private _activeObjects: fabric.FabricObject[] = []
+  set activeObjects(data: fabric.FabricObject[]) {
+    this._activeObjects = data
+  }
   private defCtrl = fabric.controlsUtils.createObjectDefaultControls()
   private labelText: fabric.FabricText
 
   private gridGroup: fabric.Group
   private mouseFrom: { x: number, y: number } = { x: 0, y: 0 }
-  private mouseTo: { x: number, y: number } = { x: 0, y: 0 }
   private onDrawing = false
 
   private drawingObject: fabric.Object | null = null
@@ -58,14 +75,11 @@ export class AnnotationPanel {
     borderScaleFactor: 1.5
   } as fabric.FabricObjectProps
 
-  constructor(canvas: HTMLCanvasElement, width: number, height: number,
-    markerGroup: Map<DrawType, Array<fabric.FabricObject>>) {
+  constructor(canvas: HTMLCanvasElement, width: number, height: number) {
     this._canvas = new fabric.Canvas(canvas, {
-      width,
-      height,
+      width, height,
       backgroundColor: '#55555520',
-      selection: true,
-      interactive: true
+      selection: false
     })
 
     this.labelText = new fabric.FabricText(`person 90.4%`, {
@@ -87,8 +101,6 @@ export class AnnotationPanel {
       visible: false
     })
     this._canvas.add(this.labelText)
-
-    this._markerGroup = markerGroup
 
     this.addGrid()
     this.registeCanvasEvent()
@@ -128,139 +140,134 @@ export class AnnotationPanel {
       this._canvas.remove(this.drawingObject)
       this.drawingObject = null
       this._canvas.getObjects().forEach((obj) => {
-        obj.set({ selectable: true })
+        obj.set({ evented: true, selectable: true, })
+        console.log(obj.get('uuid'), obj.get('type'), obj.get('selectable'), obj.get('evented'),)
       })
-      this.gridGroup.set({ selectable: false, evented: false, })
-      this._canvas.requestRenderAll()
+    } else {
+      this._canvas.getObjects().forEach((obj) => {
+        obj.set({ evented: false, selectable: false, })
+      })
     }
 
+    this.gridGroup.set({ evented: false, selectable: false, })
     this._canvas.discardActiveObject()
-    this._canvas.getObjects().forEach((obj) => {
-      obj.set({ evented: type == DrawType.Select })
-    })
     this._canvas.requestRenderAll()
   }
 
   private registeCanvasEvent() {
 
-    this._canvas.on('mouse:move', (e) => this.onMouseMove(e))
-    this._canvas.on('mouse:down', (e) => this.onMouseDown(e))
-    this._canvas.on('mouse:up', (e) => this.onMouseUp(e))
+    this._canvas.on('mouse:move', e => this.onMouseMove(e))
+    this._canvas.on('mouse:down', e => this.onMouseDown(e))
+    this._canvas.on('mouse:up', e => this.onMouseUp(e))
 
 
-    this._canvas.on('object:moving', (e) => {
+    this._canvas.on('object:moving', e => {
       this.updateLabelText()
     })
 
-    this._canvas.on('object:scaling', (e) => {
+    this._canvas.on('object:scaling', e => {
       this.updateLabelText()
     })
 
-    this._canvas.on('selection:created', (e) => {
-      this.selectedObject = e.selected?.[0] || null
+    this._canvas.on('selection:created', e => {
+      this._activeObjects[0] = e.selected?.[0] || null
 
       this.updateLabelText()
     })
 
-    this._canvas.on('selection:updated', (e) => {
-      this.selectedObject = e.selected?.[0] || null
+    this._canvas.on('selection:updated', e => {
+      this._activeObjects[0] = e.selected?.[0] || null
 
-      this._canvas.bringObjectToFront(this.selectedObject)
+      this._canvas.bringObjectToFront(this._activeObjects[0])
       this.updateLabelText()
     })
 
-    this._canvas.on('selection:cleared', () => {
+    this._canvas.on('selection:cleared', e => {
       this._canvas.discardActiveObject()
       this.labelText.visible = false
-      this.selectedObject = null
+      this._activeObjects[0] = null
     })
   }
 
   private updateLabelText() {
-    this.labelText.set('text', `${this.selectedObject?.get('label')} ${this.selectedObject?.get('score')}% \n${this.selectedObject?.get('uuid')}`)
-    this.labelText.left = this.selectedObject.left + this.selectedObject.width * this.selectedObject.scaleX + 10
-    this.labelText.top = this.selectedObject.top
+    this.labelText.set('text', `${this._activeObjects[0]?.get('label')} ${this._activeObjects[0]?.get('score')}% \n${this._activeObjects[0]?.get('uuid')}`)
+    this.labelText.left = this._activeObjects[0].left + this._activeObjects[0].width * this._activeObjects[0].scaleX + 10
+    this.labelText.top = this._activeObjects[0].top
     this.labelText.visible = true
 
     this._canvas.bringObjectToFront(this.labelText)
   }
 
-  private onMouseDown(e) {
+  private onMouseDown(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
 
     const pointer = this._canvas.getViewportPoint(e.e)
     this.mouseFrom = pointer
+
+    if (this._drawType == DrawType.Polygon) {
+      if (this.pointArr.length > 2) {
+        let dist = Math.sqrt(Math.pow(this.pointArr[0].x - pointer.x, 2) + Math.pow(this.pointArr[0].y - pointer.y, 2))
+        if (dist <= 10) {
+          this.polyClosed = true
+          this.drawingObject = this.genPoly(this.pointArr)
+          this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
+          this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
+
+          this._canvas.remove(...this.tmpPolyObjects)
+          this._canvas.add(this.drawingObject)
+          this.pointArr = []
+          this.drawingObject = null
+          this.mouseFrom = null
+          this.onDrawing = false
+
+          return
+        }
+      }
+
+      this.onDrawing = true
+      this.polyClosed = false
+      let circle = this.genCircle(pointer.x - 6, pointer.y - 6, pointer.x + 6, pointer.y + 6)
+      circle.set(AnnotationPanel.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
+      circle.set({ strokeWidth: 1, selectable: false, evented: false })
+      if (this.pointArr.length == 0) {
+        circle.set({ fill: '#f39c12', strokeWidth: 2 })
+      }
+      this._canvas.add(circle)
+      this.tmpPolyObjects.push(circle)
+
+      this.drawingObject = this.genLine(pointer.x, pointer.y, pointer.x, pointer.y)
+      this.drawingObject.set(AnnotationPanel.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
+      this.drawingObject.set({ strokeWidth: 2, selectable: false, evented: false })
+      this._canvas.add(this.drawingObject)
+      this.tmpPolyObjects.push(this.drawingObject)
+      this.pointArr.push({ x: pointer.x, y: pointer.y })
+
+      return
+    }
+
     switch (this._drawType) {
       case DrawType.Rect:
-        this.onDrawing = true
         this.drawingObject = this.genRect(pointer.x, pointer.y, pointer.x, pointer.y)
-        this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
-        this.drawingObject.set('score', '100.0')
-        this.drawingObject.set('uuid', uuidv4())
-        this.drawingObject.set({ evented: false })
-        this._canvas.add(this.drawingObject)
-        this._canvas.requestRenderAll()
         break
       case DrawType.Circle:
         this.onDrawing = true
         this.drawingObject = this.genCircle(pointer.x, pointer.y, pointer.x, pointer.y)
-        this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
-        this.drawingObject.set('score', '100.0')
-        this.drawingObject.set('uuid', uuidv4())
-        this.drawingObject.set({ evented: false })
-        this._canvas.add(this.drawingObject)
-        this._canvas.requestRenderAll()
-        break
-      case DrawType.Polygon:
-        if (this.pointArr.length > 2) {
-          let dist = Math.sqrt(Math.pow(this.pointArr[0].x - pointer.x, 2) + Math.pow(this.pointArr[0].y - pointer.y, 2))
-          if (dist <= 10) {
-            this.polyClosed = true
-            let poly = this.genPoly(this.pointArr)
-            poly.set(AnnotationPanel.genLabelOption(this._label))
-            poly.set('score', '100.0')
-            poly.set('uuid', uuidv4())
-            this._canvas.remove(...this.tmpPolyObjects)
-            this._canvas.add(poly)
-            this._canvas.requestRenderAll()
-            this.pointArr = []
-            this.drawingObject = null
-            this.mouseFrom = null
-            this.onDrawing = false
-            return
-          }
-        }
-
-        this.onDrawing = true
-        this.polyClosed = false
-        let circle = this.genCircle(pointer.x - 6, pointer.y - 6, pointer.x + 6, pointer.y + 6)
-        circle.set(AnnotationPanel.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
-        circle.set({ strokeWidth: 1, selectable: false, evented: false })
-        if (this.pointArr.length == 0) {
-          circle.set({ fill: '#f39c12', strokeWidth: 2 })
-        }
-        this._canvas.add(circle)
-        this.tmpPolyObjects.push(circle)
-
-        this.drawingObject = this.genLine(pointer.x, pointer.y, pointer.x, pointer.y)
-        this.drawingObject.set(AnnotationPanel.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
-        this.drawingObject.set({ strokeWidth: 2, selectable: false, evented: false })
-        this._canvas.add(this.drawingObject)
-        this.tmpPolyObjects.push(this.drawingObject)
-        this.pointArr.push({ x: pointer.x, y: pointer.y })
-        this._canvas.requestRenderAll()
         break
       case DrawType.Line:
         this.onDrawing = true
         this.drawingObject = this.genLine(pointer.x, pointer.y, pointer.x, pointer.y)
-        this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
-        this.drawingObject.set({ evented: false })
-        this._canvas.add(this.drawingObject)
-        this._canvas.requestRenderAll()
         break
     }
+
+    this.onDrawing = true
+    this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
+    this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
+    this.drawingObject.set({ evented: false, selectable: false })
+    this._canvas.add(this.drawingObject)
+    this._canvas.bringObjectToFront(this.drawingObject)
+    this._canvas.requestRenderAll()
   }
 
-  private onMouseMove(e) {
+  private onMouseMove(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
     if (!this.onDrawing) return
     const pointer = this._canvas.getViewportPoint(e.e)
     switch (this._drawType) {
@@ -298,47 +305,28 @@ export class AnnotationPanel {
 
   }
 
-  private onMouseUp(e) {
+  private onMouseUp(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
 
     if (!this.onDrawing) return
+
+
     switch (this._drawType) {
       case DrawType.Rect:
-        if (this.drawingObject.width < 10 || this.drawingObject.height < 10) {
-          this._canvas.remove(this.drawingObject)
-          showNotify({ message: 'The object is too small', type: 'danger', duration: 500 })
-        } else {
-          this._markerGroup.get(DrawType.Rect).push(this.drawingObject)
-        }
-
-        this.drawingObject = null
-        this.mouseFrom = null
-        this.onDrawing = false
-        this._canvas.requestRenderAll()
-        break
       case DrawType.Circle:
-        if (this.drawingObject.width < 10 || this.drawingObject.height < 10) {
-          this._canvas.remove(this.drawingObject)
-          showNotify({ message: 'The object is too small', type: 'danger', duration: 500 })
-        } else {
-          this._markerGroup.get(DrawType.Circle).push(this.drawingObject)
-        }
-
-        this.drawingObject = null
-        this.mouseFrom = null
-        this.onDrawing = false
-        this._canvas.requestRenderAll()
-        break
       case DrawType.Line:
         if (this.drawingObject.width < 10 || this.drawingObject.height < 10) {
           this._canvas.remove(this.drawingObject)
           showNotify({ message: 'The object is too small', type: 'danger', duration: 500 })
         } else {
-          this._markerGroup.get(DrawType.Line).push(this.drawingObject)
+          this._markerGroup.get(DrawType.Rect).push(this.drawingObject)
+          this._canvas.add(this.drawingObject)
+          this._canvas.setActiveObject(this.drawingObject)
+
+          this.drawingObject = null
+          this.mouseFrom = null
+          this.onDrawing = false
+          this._canvas.requestRenderAll()
         }
-        this.drawingObject = null
-        this.mouseFrom = null
-        this.onDrawing = false
-        this._canvas.requestRenderAll()
         break
     }
   }
@@ -354,7 +342,7 @@ export class AnnotationPanel {
       height: y2 - y1,
     })
 
-    rect.on('mouseover', () => {
+    rect.on('mouseover', (e) => {
       this._canvas.setActiveObject(rect)
       this._canvas.requestRenderAll()
     })
@@ -385,24 +373,24 @@ export class AnnotationPanel {
   }
 
   genPoly(points: fabric.XY[]) {
-
     const poly = new fabric.Polygon(points, AnnotationPanel.genCommonOption())
-
-    let editing = false
-    let polyCtrl = fabric.controlsUtils.createPolyControls(poly)
+    poly.set({ editing: true })
     poly.on('mousedblclick', () => {
-      editing = !editing
-      if (editing) {
+      if (poly.get('editing')) {
         poly.cornerStyle = 'circle'
         poly.hasBorders = false
-        poly.controls = polyCtrl
+        poly.controls = fabric.controlsUtils.createPolyControls(poly)
+        poly.set({ editing: false })
       } else {
         poly.cornerStyle = 'rect'
         poly.hasBorders = true
         poly.controls = this.defCtrl
+        poly.set({ editing: true })
       }
+      poly.setCoords()
       this._canvas.requestRenderAll()
     })
+
 
     poly.on('mouseover', () => {
       this._canvas.setActiveObject(poly)
@@ -537,9 +525,9 @@ export class AnnotationPanel {
       label: label.name,
       stroke: label.color,
       fill: MarkColors.hexToRgba(label.color, 0.2),
-      cornerColor: MarkColors.hexToRgba(label.color, 0.8),
-      cornerStrokeColor: MarkColors.hexToRgba(label.color, 0.8),
-      borderColor: label.color,
+      // cornerColor: MarkColors.reverseColor(label.color, 0.8),
+      cornerStrokeColor: MarkColors.reverseColor(label.color, 0.8),
+      borderColor: MarkColors.reverseColor(label.color),
     }
   }
 

@@ -17,7 +17,7 @@
         <van-badge style="margin: 5px 15px 0 15px;" v-for="eigen in eigenfaces.eigens" :key="eigen.id">
           <van-image fit="cover" width="80" height="80" radius="15" :src="baseDomain() + eigen.snap" />
           <template #content>
-            <van-icon name="cross" class="badge-icon" @click="onDeleteEigen(eigen.id)" />
+            <van-icon class-prefix="iconfont" name="cross" class="badge-icon" @click="onDeleteEigen(eigen.id)" />
           </template>
         </van-badge>
       </template>
@@ -31,9 +31,9 @@
       <p style="color: red; font-size: 0.8rem; margin: 15px;">{{ $t('faceDbMgr.delEigenConfirmTip') }}</p>
     </van-dialog>
 
-    <van-dialog style="text-align: center;" :title="'&#9889;' + $t('faceDbMgr.delPersonConfirmTitle') + eigenfaces?.name"
-      show-cancel-button confirmButtonColor="#c0392b" v-model:show="showDeletePersonConfirm"
-      @confirm="onDeletePersonConfirm">
+    <van-dialog style="text-align: center;"
+      :title="'&#9889;' + $t('faceDbMgr.delPersonConfirmTitle') + eigenfaces?.name" show-cancel-button
+      confirmButtonColor="#c0392b" v-model:show="showDeletePersonConfirm" @confirm="onDeletePersonConfirm">
       <p style="color: red; font-size: 0.8rem; margin: 15px;">{{ $t('faceDbMgr.delPersonConfirmTip') }}</p>
     </van-dialog>
   </van-form>

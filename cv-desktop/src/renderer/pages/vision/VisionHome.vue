@@ -1,21 +1,22 @@
 <template>
   <van-row>
-    <van-col class="border-bg left-panel">
+    <van-col class="left-panel">
       <van-row justify="space-between">
         <van-row style="color: #c0392b;">
-          <van-icon class="iconfont icon-sjtu-logo" style="font-size: 1.6rem; margin-left: 10px;" />
-          <van-icon class="iconfont icon-sjtu-name" style="font-size: 1.4rem; margin: 2px 10px;" />
+          <van-icon class-prefix="iconfont" name="sjtu-logo" style="font-size: 1.6rem; margin-left: 10px;" />
+          <van-icon class-prefix="iconfont" name="sjtu-name" style="font-size: 1.4rem; margin: 2px 10px;" />
         </van-row>
         <div style="padding: 1px 0;">
-          <van-icon class="iconfont icon-apm left-panel-icon" @click="commonStore.showApm = !commonStore.showApm" />
-          <van-icon class="iconfont icon-data left-panel-icon" @click="openFaceDbMgr" />
-          <van-icon class="iconfont icon-setting left-panel-icon" @click="openSettings">
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="apm"
+            @click="commonStore.showApm = !commonStore.showApm" />
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="data" @click="openFaceDbMgr" />
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="setting" @click="openSettings">
             <span class="badge-dot"></span>
           </van-icon>
         </div>
       </van-row>
-      <OverlayScrollbarsComponent class="snap-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}` } }"
-        defer>
+      <OverlayScrollbarsComponent class="snap-panel border-bg"
+        :options="{ scrollbars: { theme: `os-theme-${reverseTheme}` } }" defer>
         <img-params-panel />
       </OverlayScrollbarsComponent>
     </van-col>
@@ -123,7 +124,7 @@ function openSettings() {
 
 .snap-panel {
   width: 100%;
-  height: calc(100vh - 45px);
+  height: calc(100vh - 58px);
   overflow-y: auto;
   overflow-x: hidden;
 }

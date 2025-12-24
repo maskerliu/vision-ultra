@@ -118,6 +118,7 @@ export default {
     label: 'Label',
     noMatch: 'no match label',
     labelPlaceholder: 'input label name',
+    labelDefault: 'default',
   },
   faceRec: {
     nameInput: 'Please enter name',

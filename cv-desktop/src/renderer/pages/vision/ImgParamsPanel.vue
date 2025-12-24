@@ -5,13 +5,16 @@
         <template #right-icon>
           <van-radio-group v-model="visionStore.imgProcessMode" direction="horizontal">
             <van-radio name="1" size="1rem">
-              <van-icon class="iconfont icon-wasm" style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
+              <van-icon class-prefix="iconfont" name="wasm"
+                style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
             </van-radio>
             <van-radio name="2" size="1rem" :disabled="isWeb">
-              <van-icon class="iconfont icon-nodejs" style="font-size: 1.2rem; color: #27ae60; margin-top: 4px;" />
+              <van-icon class-prefix="iconfont" name="nodejs"
+                style="font-size: 1.2rem; color: #27ae60; margin-top: 4px;" />
             </van-radio>
             <van-radio name="3" size="1rem" :disabled="isWeb">
-              <van-icon class="iconfont icon-native" style="font-size: 1.2rem; color: #3498db; margin-top: 4px;" />
+              <van-icon class-prefix="iconfont" name="native"
+                style="font-size: 1.2rem; color: #3498db; margin-top: 4px;" />
             </van-radio>
           </van-radio-group>
         </template>
@@ -23,10 +26,12 @@
         <template #right-icon>
           <van-radio-group v-model="visionStore.imgProcessMode" direction="horizontal">
             <van-radio name="1" size="1rem">
-              <van-icon class="iconfont icon-onnx" style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
+              <van-icon class-prefix="iconfont" name="onnx"
+                style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
             </van-radio>
             <van-radio name="2" size="1rem" :disabled="isWeb">
-              <van-icon class="iconfont icon-tensorflow" style="font-size: 1.2rem; color: #e67e22; margin-top: 4px;" />
+              <van-icon class-prefix="iconfont" name="tensorflow"
+                style="font-size: 1.2rem; color: #e67e22; margin-top: 4px;" />
             </van-radio>
           </van-radio-group>
         </template>
@@ -37,7 +42,7 @@
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableYolo">
-          <van-icon class="iconfont icon-object-detect" style="font-size: 1rem; color: #2980b9;" />
+          <van-icon class-prefix="iconfont" name="object-detect" style="font-size: 1rem; color: #2980b9;" />
           {{ $t('imgProcess.YOLODetect') }} <span class="param-desc">{{ $t('imgProcess.YOLODesc') }}</span>
         </van-checkbox>
       </template>
@@ -54,21 +59,21 @@
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.faceDetect">
-          <van-icon class="iconfont icon-tensorflow" style="font-size: 1rem; color: #e67e22;" />
+          <van-icon class-prefix="iconfont" name="tensorflow" style="font-size: 1rem; color: #e67e22;" />
           <span>{{ $t('imgProcess.FaceRec') }}</span>
         </van-checkbox>
       </template>
       <van-row style="padding: 10px 15px;">
         <van-checkbox icon-size="1rem" v-model="visionStore.drawEigen" :disabled="!visionStore.faceDetect">
           <template #default>
-            <van-icon class="iconfont icon-mesh" style="font-size: 1.2rem; font-weight: blod; margin-top: 1px;" />
+            <van-icon class-prefix="iconfont" name="mesh" style="font-size: 1.2rem;" />
           </template>
         </van-checkbox>
 
         <van-checkbox icon-size="1rem" v-model="visionStore.drawFaceMesh" style="margin-left: 15px;"
           :disabled="!visionStore.faceDetect">
           <template #default>
-            <van-icon class="iconfont icon-eigen" style="font-size: 1.2rem; font-weight: blod; margin-top: 1px;" />
+            <van-icon class-prefix="iconfont" name="eigen" style="font-size: 1.2rem;" />
           </template>
         </van-checkbox>
       </van-row>
@@ -77,7 +82,7 @@
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgEnhance">
-          <van-icon class="iconfont icon-opencv" style="font-size: 1rem; color: #27ae60;" />
+          <van-icon class-prefix="iconfont" name="opencv" style="font-size: 1rem; color: #27ae60;" />
           {{ $t('imgProcess.ImgEnhance') }}
         </van-checkbox>
       </template>
@@ -199,13 +204,13 @@
       <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableBlur" style="padding: 10px 15px;"
         v-model="blur[0]" @change="onParamChange">
         <van-radio name="gaussian" icon-size="1rem">
-          <van-icon class="iconfont icon-gaussian-filter" style="font-size: 1.4rem; margin-top: 2px;" />
+          <van-icon class-prefix="iconfont" name="gaussian-filter" style="font-size: 1.4rem; margin-top: 2px;" />
         </van-radio>
         <van-radio name="avg" icon-size="1rem">
-          <van-icon class="iconfont icon-avg-filter" style="font-size: 1.4rem; margin-top: 2px;" />
+          <van-icon class-prefix="iconfont" name="avg-filter" style="font-size: 1.4rem; margin-top: 2px;" />
         </van-radio>
         <van-radio name="median" icon-size="1rem">
-          <van-icon class="iconfont icon-median-filter" style="font-size: 1.4rem; margin-top: 2px;" />
+          <van-icon class-prefix="iconfont" name="median-filter" style="font-size: 1.4rem; margin-top: 2px;" />
         </van-radio>
         <van-radio name="bilateral" icon-size="1rem" style="font-size: 0.8rem;">
           {{ $t('imgProcess.BilateralBlur') }}
@@ -459,7 +464,7 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
-import { cvBlur, cvEqualizeHist, cvFilter, cvSharpen, cvDetector, VisionStore } from '../../store'
+import { cvBlur, cvDetector, cvEqualizeHist, cvFilter, cvSharpen, VisionStore } from '../../store'
 
 const YOLOModels = ['yolov8n', 'yolov10n', 'yolo11n']
 const activeCollapse = ref(['0'])
