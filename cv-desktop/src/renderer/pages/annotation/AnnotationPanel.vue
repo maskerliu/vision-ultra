@@ -17,7 +17,6 @@
           </van-button>
         </template>
         <van-row style="width: 260px; padding: 5px">
-          <van-field label="label" input-align="right"> </van-field>
           <van-cell center title="covert masks to polygon">
             <template #right-icon>
               <van-switch />
@@ -32,15 +31,12 @@
       </van-popover>
     </van-col>
 
-    <van-field class="active-label" v-model="searchKeyword" @click="showLabelSearch = true">
-      <template #left-icon>
-        <div class="color-block" :style="{ backgroundColor: activeLabel?.color }" @click="">
-          <van-icon class-prefix="iconfont" name="random" />
-        </div>
-      </template>
+    <van-field class="active-label" v-model="searchKeyword" title="当前标签" :style="{ borderColor: activeLabel?.color }"
+      @click="showLabelSearch = true">
+
     </van-field>
     <van-popup class="label-search-panel" size="normal" trigger="manual" :overlay="true" :lazy-render="false"
-      teleport="#app" v-model:show="showLabelSearch">
+      v-model:show="showLabelSearch">
       <van-list style="min-width: 14rem; max-height: 200px; overflow: hidden scroll;">
         <van-empty image-size="80" :description="$t('anno.noMatch')"
           v-if="searchLabels == null || searchLabels.length == 0" />
@@ -51,6 +47,18 @@
         </van-cell>
       </van-list>
     </van-popup>
+
+    <van-field label="points" label-align="right" type="number" label-width="4rem"
+      v-if="activeMarkers[0]?.type == fabric.Polygon.type"
+      style="position: absolute; top: 8px; left:auto; right: auto; width: 15rem; z-index: 2003;">
+      <template #input>
+        <van-slider bar-height="4px" button-size="1.2rem" min="0" max="3" step="0.1" v-model="polyTolerance">
+          <template #button>
+            <van-button plain size="small"> {{ polyTolerance }}</van-button>
+          </template>
+        </van-slider>
+      </template>
+    </van-field>
     <canvas ref="annotationCanvas" style="display: block"></canvas>
 
     <van-popup :show="showRightBar" position="right" :overlay="false" class="right-bar">
@@ -67,9 +75,9 @@
 import * as fabric from "fabric"
 import { v4 as uuidv4 } from "uuid"
 import { onMounted, ref, useTemplateRef, watch } from "vue"
-import { CVLabel, AnnotationPanel, DrawType } from "../../common/Annotations"
-import MarkerGroupTab from "./MarkerGroupTab.vue"
+import { AnnotationPanel, CVLabel, DrawType } from "../../common/Annotations"
 import LabelGroupTab from "./LabelGroupTab.vue"
+import MarkerGroupTab from "./MarkerGroupTab.vue"
 
 const showRightBar = ref(true)
 const activeTab = ref(0)
@@ -84,6 +92,9 @@ const showLabelSearch = ref(false)
 const searchKeyword = ref('')
 const searchLabels = ref([])
 const markerSearchLabels = ref([])
+
+const showPolyTolerance = ref(false)
+const polyTolerance = ref(1)
 
 const DrawTypes: Array<DrawType> = [
   DrawType.Select, DrawType.Rect, DrawType.Circle, DrawType.Polygon, DrawType.Line, DrawType.MultiLine
@@ -102,12 +113,17 @@ watch(() => canvasSize, (val, _) => {
   annotationPanel.showGrid(true)
 })
 
-watch(() => markerGroup.value, () => {
-  console.log(markerGroup.value)
-})
-
 watch(() => searchKeyword.value, () => {
   searchLabels.value = labeTab.value.searchLabel(searchKeyword.value)
+})
+
+watch(() => activeLabel.value, () => {
+  searchKeyword.value = activeLabel.value.name
+})
+
+watch(() => activeMarkers.value, () => {
+  console.log(activeMarkers.value)
+  showPolyTolerance.value = activeMarkers.value[0]?.type == fabric.Polygon.type
 })
 
 onMounted(() => {
@@ -123,7 +139,7 @@ onMounted(() => {
     markerGroup.value.set(DrawTypes[i], [])
   }
 
-  // annotationPanel.mock()
+  annotationPanel.mock()
   annotationPanel.showGrid(true)
 })
 
@@ -150,6 +166,7 @@ function onDrawSelect(type: DrawType) {
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number]) {
 
+  console.log(boxes, scores, classes, objNum, scale)
   if (objNum == 0) return
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
 
@@ -200,7 +217,9 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   position: absolute;
   top: 5px;
   left: 3rem;
-  width: 228px;
+  width: 10rem;
+  border: 2px solid;
+  border-radius: 5px;
   z-index: 500;
 }
 

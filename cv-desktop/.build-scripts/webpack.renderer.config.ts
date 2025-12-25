@@ -82,10 +82,13 @@ class RendererConfig extends BaseConfig {
           name: 'fonts/[name].[ext]'
         }
       },
-      {
-        test: /\.wasm$/,
-        type: 'webassembly/async' // 或 'webassembly/sync'
-      },
+      // {
+      //   test: /\.wasm$/,
+      //   type: 'webassembly/async', // 或 'webassembly/sync'
+      //   use: [
+      //     { loader: 'wasm-loader', }
+      //   ]
+      // },
       {
         test: /\.(tflite|data|binarypb)$/,
         type: 'asset/resource',

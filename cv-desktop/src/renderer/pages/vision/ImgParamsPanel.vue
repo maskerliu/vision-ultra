@@ -21,6 +21,7 @@
       </van-cell>
     </van-cell-group>
 
+    <!-- ML framework mode -->
     <van-cell-group style="margin-top: 10px;">
       <van-cell :title="$t('imgProcess.ModelEngine')">
         <template #right-icon>
@@ -36,6 +37,14 @@
           </van-radio-group>
         </template>
       </van-cell>
+      <van-uploader accept=".onnx" :preview-image="false" :after-read="onModelUpload">
+        <van-cell center title="导入模型" :value="modelName" clickable style="width: 100%;">
+          <template #icon>
+            <van-icon class-prefix="iconfont" name="file-upload" style="font-size: 1rem;" />
+          </template>
+        </van-cell>
+      </van-uploader>
+
     </van-cell-group>
 
     <!-- YOLO object detect -->
@@ -79,6 +88,7 @@
       </van-row>
     </van-cell-group>
 
+    <!-- opencv image process -->
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgEnhance">
@@ -464,6 +474,7 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
+import { onnx } from '../../common/SamDetector'
 import { cvBlur, cvDetector, cvEqualizeHist, cvFilter, cvSharpen, VisionStore } from '../../store'
 
 const YOLOModels = ['yolov8n', 'yolov10n', 'yolo11n']
@@ -481,6 +492,8 @@ const blur = ref<cvBlur>(['', 0, 0, 0, 0, 0, 0])
 const sharpen = ref<cvSharpen>(['', 0, 0, 0])
 const detector = ref<cvDetector>(['', 0, 0])
 const filter = ref<cvFilter>(['', 0, 0, 0, 0])
+
+const modelName = ref<string>()
 
 
 onMounted(() => {
@@ -519,6 +532,16 @@ function onParamChange() {
   visionStore.imgParams.filter = filter.value.map(val => val) as cvFilter
   visionStore.imgParams.detector = detector.value.map(val => val) as cvDetector
   visionStore.imgParams.canny = canny.value.map(val => val) as any
+}
+
+async function onModelUpload(data: any) {
+  var reader = new FileReader()
+  reader.readAsArrayBuffer(data.file)
+  reader.onload = async function () {
+    let arrayBuffer = reader.result as ArrayBuffer
+    let model = await onnx.createModelCpu(arrayBuffer)
+    console.log(model)
+  }
 }
 
 </script>

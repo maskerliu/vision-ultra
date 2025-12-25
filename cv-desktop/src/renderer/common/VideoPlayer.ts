@@ -1,7 +1,6 @@
 import Hls from 'hls.js'
-import { drawObjectDetectResult, drawTFFaceResult, FACE_DIMS, FaceDetectResult, NUM_KEYPOINTS, ObjectDetectResult } from './DrawUtils'
+import { drawObjectDetectResult, drawTFFaceResult, FaceDetectResult, ObjectDetectResult } from './DrawUtils'
 import { ImageProcessor } from './ImageProcessor'
-import { MAX_OBJECTS_NUM } from './ObjectTracker'
 
 export class VideoPlayer {
   private hls: Hls
@@ -127,7 +126,7 @@ export class VideoPlayer {
 
 
   get isOpen(): boolean {
-    return this.preVideo.srcObject != null ||( this.preVideo.src != '' && this.preVideo.src != null)
+    return this.preVideo.srcObject != null || (this.preVideo.src != '' && this.preVideo.src != null)
   }
 
   async open(url?: string, flip: boolean = true) {

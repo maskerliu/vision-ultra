@@ -139,6 +139,7 @@
     "pinia": "^3.0.3",
     "qrcode.vue": "^3.6.0",
     "rimraf": "^6.0.1",
+    "simplify-js": "^1.2.4",
     "sockjs-client": "^1.6.1",
     "source-map-loader": "^5.0.0",
     "source-map-support": "^0.5.21",

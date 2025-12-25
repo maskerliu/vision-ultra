@@ -1,6 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
 import { baseDomain } from '../../common'
-import { drawObjectDetectResult } from './DrawUtils'
 
 export const MAX_OBJECTS_NUM: number = 20
 

@@ -15,7 +15,7 @@
           </van-icon>
         </div>
       </van-row>
-      <OverlayScrollbarsComponent class="snap-panel border-bg"
+      <OverlayScrollbarsComponent class="border-bg snap-panel"
         :options="{ scrollbars: { theme: `os-theme-${reverseTheme}` } }" defer>
         <img-params-panel />
       </OverlayScrollbarsComponent>
@@ -124,7 +124,8 @@ function openSettings() {
 
 .snap-panel {
   width: 100%;
-  height: calc(100vh - 58px);
+  height: calc(100vh - 45px);
+  margin: 0;
   overflow-y: auto;
   overflow-x: hidden;
 }
