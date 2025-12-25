@@ -19,13 +19,13 @@
         <van-list v-else style="max-height: calc(100vh - 250px); overflow: hidden scroll;">
           <van-cell center :border="true" clickable v-for="(marker, idx) in markerGroup.get(key)"
             :ref="(el: any) => setMarkerRef(el, key, idx as number)"
-            :style="{ backgroundColor: activeMarkers[0]?.get('uuid') == marker.get('uuid') ? '#f5f5f5' : 'white' }"
+            :style="{ backgroundColor: activeMarkers[0]?.get('uuid') == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
             @click="onMarkerStatusChanged(marker as any, 'selected')">
             <template #icon>
               <div class="color-block" :style="{ borderColor: marker.get('stroke') }"></div>
             </template>
             <template #title>
-              <input :ref="`input_${key}_${idx}`" style="width: 5rem; border: 0;"
+              <input :ref="`input_${key}_${idx}`" style="width: 5rem; border: 0; background-color: transparent;"
                 @click="showLabelSearchResult(key, idx as number)" :value="marker.get('label')" @input="handleSearch" />
             </template>
             <template #right-icon>
@@ -104,7 +104,7 @@ function onMarkerStatusChanged(object: fabric.FabricObject, status: string, grou
   switch (status) {
     case 'selected':
       object.canvas.setActiveObject(object)
-      console.log(object.get('uuid'), object.get('type'), object.get('selectable'), object.get('evented'),)
+      // console.log(object.get('uuid'), object.get('type'), object.get('selectable'), object.get('evented'),)
       break
     case 'pin':
       object.set({

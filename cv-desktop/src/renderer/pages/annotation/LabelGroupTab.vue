@@ -1,27 +1,23 @@
 <template>
   <van-tab :title="$t('anno.label')">
-
-    <van-uploader v-model="fileList" accept=".json,.txt" :preview-image="false" :after-read="onLabelUpload">
-      <van-cell center style="width: 15rem;" title="导入标签文件" value="" clickable>
-        <template #right-icon>
-          <van-icon class-prefix="iconfont" name="file-upload" style="font-size: 1rem;" />
-        </template>
-      </van-cell>
-    </van-uploader>
-
-    <van-empty image-size="80" style="width: 15rem;" v-if="labelGroup.size == 0" />
-    <van-collapse v-else v-model="collapsedLabelGroup" :border="true" accordion>
-      <van-collapse-item name="colorSpace" title="Color Space" value=" ">
+    <van-collapse v-model="collapsedLabelGroup" :border="true" accordion>
+      <van-collapse-item name="colorSpace" title="Color Space" value=" " style="width: 15rem;">
         <van-grid clickable :column-num="2" style="width: 15rem;">
           <van-grid-item v-for="key in MARK_COLORS.palettes" @click="onColorSpaceChanged(key)">
-            <van-image :src="`/static/${key}.png`">
-              <div v-if="key == colorSpace"
-                style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; border: 3px solid #1989fa; border-radius: 2px;">
-              </div>
-            </van-image>
+            <div v-if="key == colorSpace"
+              style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; border: 2px solid #1989fa;">
+            </div>
+            <van-image radius="5" :src="`/static/${key}.png`"></van-image>
           </van-grid-item>
         </van-grid>
       </van-collapse-item>
+      <van-uploader accept=".json,.txt" :preview-image="false" :after-read="onLabelUpload">
+        <van-collapse-item name="colorSpace" title="导入标签文件" value=" " style="width: 15rem;">
+          <template #right-icon>
+            <van-icon class-prefix="iconfont" name="file-upload" style="font-size: 1rem;" />
+          </template>
+        </van-collapse-item>
+      </van-uploader>
       <van-collapse-item :name="key" v-for="key of labelGroup.keys()">
         <template #icon>
           <van-switch size="1rem" v-model="labelGroup.get(key).active" @click.stop="updateLabelGroup(key)"
@@ -41,17 +37,18 @@
         </template>
         <van-empty image-size="80" v-if="labelGroup.get(key) == null || labelGroup.get(key).labels.length == 0" />
         <van-list v-else style="width: calc(15rem - 4px); height: calc(100vh - 280px); overflow-y: scroll;">
-          <van-field :placeholder="$t('anno.labelPlaceholder')" center v-model="label.name"
-            v-for="label in labelGroup.get(key).labels" @click="activeLabel = label">
-            <template #left-icon>
-              <div class="color-block" :style="{ backgroundColor: label.color }" @click="randomColor(label.id)">
-                <van-icon class-prefix="iconfont" name="random" style="font-size: 1.2rem; color: white;" />
+          <van-cell :placeholder="$t('anno.labelPlaceholder')" center v-for="label in labelGroup.get(key).labels"
+            clickable @click="activeLabel = label">
+            <template #title>
+              <div class="color-block" :style="{ borderColor: label.color }">
+                {{ label.name }}
               </div>
             </template>
             <template #right-icon>
-              <van-icon class-prefix="iconfont" name="delete" style="font-size: 1rem;" />
+              <van-icon class-prefix="iconfont" name="visible" />
+              <van-icon class-prefix="iconfont" name="lock" style="margin-left: 5px;" />
             </template>
-          </van-field>
+          </van-cell>
         </van-list>
       </van-collapse-item>
     </van-collapse>
@@ -70,7 +67,6 @@ const labelGroup = ref<Map<string, { labels: CVLabel[], active: boolean }>>(new 
 const collapsedLabelGroup = ref() // 展开的标签组
 let activeLabelGroup: string = null
 const labelName = ref('')
-const fileList = ref([])
 const colorSpace = ref('defo')
 
 const activeLabel = defineModel('activeLabel', {
@@ -146,15 +142,10 @@ function deleteLabelGroup(key: string) {
   }
 }
 
-function randomColor(idx: number) {
-  // labels.value[idx].color = '#' + Math.floor(Math.random() * 16777215).toString(16)
-}
-
 </script>
 
 <style lang="css" scoped>
 .color-block {
-  color: white;
   border: 2px solid;
   padding: 1px 10px;
   margin-right: 10px;
