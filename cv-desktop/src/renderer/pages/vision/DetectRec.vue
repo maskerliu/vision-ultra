@@ -1,7 +1,7 @@
 <template>
   <van-row ref="previewParent" style="position: relative; height: calc(100% - 30px); margin-top: 30px;">
 
-    <van-row justify="space-between" style="width: 100%; height: 50px; background-color: white;">
+    <van-row justify="space-between" style="width: 100%; height: 50px;">
       <van-row style="margin-left: 10px;">
         <van-checkbox v-model="showAnnotationPanel">
           <van-icon class-prefix="iconfont" name="mark" />
@@ -40,7 +40,9 @@
     </van-row>
 
     <media-controller audio class="media-controller">
-      <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-size="[canvasW, canvasH]" />
+      <Transition>
+        <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-size="[canvasW, canvasH]" />
+      </Transition>
       <canvas ref="preview"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
       <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
@@ -313,6 +315,16 @@ watch(() => visionStore.imgParams,
 
 </script>
 <style lang="css">
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+
 .media-controller {
   width: 100%;
   height: calc(100% - 50px);

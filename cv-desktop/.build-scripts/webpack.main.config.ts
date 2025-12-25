@@ -109,6 +109,10 @@ class MainConfig extends BaseConfig {
             to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
           },
           {
+            from: path.posix.join(dirname, '../node_modules/onnxruntime-web/tasks-vision/dist/*.{js,wasm,'),
+            to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
+          },
+          {
             from: path.join(dirname, `../data/face_landmarker.task`),
             to: path.join(dirname, '../dist/electron/static/face_landmarker.task'),
           },

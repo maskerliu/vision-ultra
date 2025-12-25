@@ -82,9 +82,9 @@ export class AnnotationPanel {
       selection: false
     })
 
-    this.labelText = new fabric.FabricText(`person 90.4%`, {
+    this.labelText = new fabric.FabricText(`-- 0.0%`, {
       fontSize: 12,
-      fontFamily: 'Comic Sans',
+      fontFamily: 'sans-serif',
       stroke: '#ecf0f1',
       shadow: new fabric.Shadow({
         color: 'rgb(0,0,0)',
@@ -141,7 +141,6 @@ export class AnnotationPanel {
       this.drawingObject = null
       this._canvas.getObjects().forEach((obj) => {
         obj.set({ evented: true, selectable: true, })
-        console.log(obj.get('uuid'), obj.get('type'), obj.get('selectable'), obj.get('evented'),)
       })
     } else {
       this._canvas.getObjects().forEach((obj) => {
@@ -199,6 +198,7 @@ export class AnnotationPanel {
   }
 
   private onMouseDown(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
+    if (this._drawType == DrawType.Select) return
 
     const pointer = this._canvas.getViewportPoint(e.e)
     this.mouseFrom = pointer
@@ -211,9 +211,10 @@ export class AnnotationPanel {
           this.drawingObject = this.genPoly(this.pointArr)
           this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
           this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
-
-          this._canvas.remove(...this.tmpPolyObjects)
           this._canvas.add(this.drawingObject)
+          this._canvas.remove(...this.tmpPolyObjects)
+
+          this._markerGroup.get(this._drawType).push(this.drawingObject)
           this.pointArr = []
           this.drawingObject = null
           this.mouseFrom = null
@@ -228,9 +229,7 @@ export class AnnotationPanel {
       let circle = this.genCircle(pointer.x - 6, pointer.y - 6, pointer.x + 6, pointer.y + 6)
       circle.set(AnnotationPanel.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
       circle.set({ strokeWidth: 1, selectable: false, evented: false })
-      if (this.pointArr.length == 0) {
-        circle.set({ fill: '#f39c12', strokeWidth: 2 })
-      }
+      if (this.pointArr.length == 0) circle.set({ fill: '#f39c12', strokeWidth: 2 })
       this._canvas.add(circle)
       this.tmpPolyObjects.push(circle)
 
@@ -268,7 +267,7 @@ export class AnnotationPanel {
   }
 
   private onMouseMove(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
-    if (!this.onDrawing) return
+    if (!this.onDrawing || this._drawType == DrawType.Select) return
     const pointer = this._canvas.getViewportPoint(e.e)
     switch (this._drawType) {
       case DrawType.Rect:
@@ -307,8 +306,7 @@ export class AnnotationPanel {
 
   private onMouseUp(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
 
-    if (!this.onDrawing) return
-
+    if (!this.onDrawing || this._drawType == DrawType.Select) return
 
     switch (this._drawType) {
       case DrawType.Rect:
@@ -318,7 +316,7 @@ export class AnnotationPanel {
           this._canvas.remove(this.drawingObject)
           showNotify({ message: 'The object is too small', type: 'danger', duration: 500 })
         } else {
-          this._markerGroup.get(DrawType.Rect).push(this.drawingObject)
+          this._markerGroup.get(this._drawType).push(this.drawingObject)
           this._canvas.add(this.drawingObject)
           this._canvas.setActiveObject(this.drawingObject)
 
@@ -434,55 +432,18 @@ export class AnnotationPanel {
   mock() {
 
     const points = [
-
-      {
-        x: 3,
-        y: 4,
-      },
-      {
-        x: 16,
-        y: 3,
-      },
-      {
-        x: 30,
-        y: 5,
-      },
-      {
-        x: 25,
-        y: 55,
-      },
-      {
-        x: 19,
-        y: 44,
-      },
-      {
-        x: 15,
-        y: 30,
-      },
-      {
-        x: 15,
-        y: 55,
-      },
-      {
-        x: 9,
-        y: 55,
-      },
-      {
-        x: 6,
-        y: 53,
-      },
-      {
-        x: -2,
-        y: 55,
-      },
-      {
-        x: -4,
-        y: 40,
-      },
-      {
-        x: 0,
-        y: 20,
-      },
+      { x: 3, y: 4, },
+      { x: 16, y: 3, },
+      { x: 30, y: 5, },
+      { x: 25, y: 55, },
+      { x: 19, y: 44, },
+      { x: 15, y: 30, },
+      { x: 15, y: 55, },
+      { x: 9, y: 55, },
+      { x: 6, y: 53, },
+      { x: -2, y: 55, },
+      { x: -4, y: 40, },
+      { x: 0, y: 20, },
     ]
 
     let rect = this.genRect(120, 200, 220, 280)
@@ -515,6 +476,41 @@ export class AnnotationPanel {
     poly.set('uuid', uuidv4())
     this._canvas.add(poly)
 
+    let path = new fabric.Path('M 10 10 C 20 20, 40 20, 50 10 C 250,30 300,50 300,100 ', AnnotationPanel.genCommonOption())
+    path.set({ fill: 'transparent', stroke: '#e74c3c', })
+    path.set({ left: 100, top: 100 })
+    this._canvas.add(path)
+
+    let arr = []
+    for (let i = 0; i < path.path.length; ++i) {
+      switch (path.path[i][0]) {
+        case 'M':
+          arr.push({ x: path.path[i][1], y: path.path[i][2] })
+          break
+        case 'C':
+          // arr.push({ x: path.path[i][1], y: path.path[i][2] })
+          // arr.push({ x: path.path[i][3], y: path.path[i][4] })
+          arr.push({ x: path.path[i][5], y: path.path[i][6] })
+      }
+    }
+
+    let ctrlPoly = this.genPoly(arr)
+    ctrlPoly.set({ left: 100, top: 100 })
+    ctrlPoly.set({ fill: 'transparent', stroke: 'transparent', })
+    this._canvas.add(ctrlPoly)
+    ctrlPoly.setCoords()
+    let pathCtrl = fabric.controlsUtils.createPolyControls(ctrlPoly)
+    path.set({ editing: true })
+    path.on('mousedblclick', () => {
+      if (poly.get('editing')) {
+        // path.controls = fabric.controlsUtils.createPolyControls(ctrlPoly)
+        path.set({ cornerStyle: 'circle', hasBorders: false, editing: false })
+      } else {
+        path.set({ cornerStyle: 'rect', hasBorders: true, controls: this.defCtrl, editing: true })
+      }
+      path.setCoords()
+      this._canvas.requestRenderAll()
+    })
     for (let key of this._markerGroup.keys()) {
       this._markerGroup.set(key, this._canvas.getObjects(key))
     }
@@ -541,4 +537,58 @@ export class AnnotationPanel {
       borderScaleFactor: 1.5
     } as fabric.FabricObjectProps
   }
+}
+
+function createPathControls(path: fabric.Path, options: Partial<fabric.Control> = {}) {
+  const controls = {} as Record<string, fabric.Control>
+
+  console.log(path.segmentsInfo)
+  for (let i = 0; i < path.segmentsInfo.length; ++i) {
+    controls[`p${i}`] = new fabric.Control({
+      actionName: 'modifyPath',
+      positionHandler: createPathPositionHandler(i),
+      actionHandler: createPathActionHandler(i),
+      ...options,
+    })
+  }
+  return controls
+}
+
+function createPathPositionHandler(idx: number) {
+  return function (dim: fabric.Point, finalMatrix: fabric.TMat2D, curveObject: fabric.Path) {
+    const { segmentsInfo, pathOffset } = curveObject
+
+    return new fabric.Point(segmentsInfo[idx])
+      .subtract(pathOffset)
+      .transform(
+        fabric.util.multiplyTransformMatrices(
+          curveObject.getViewportTransform(),
+          curveObject.calcTransformMatrix(),
+        ),
+      )
+  }
+}
+
+function createPathActionHandler(idx: number) {
+  return fabric.controlsUtils.wrapWithFireEvent(
+    'modifyPath',
+    fabric.controlsUtils.factoryPolyActionHandler(idx, pathActionHandler),
+  )
+}
+
+function pathActionHandler(
+  eventData: fabric.TPointerEvent,
+  transform: fabric.Transform & { pointIndex: number },
+  x: number,
+  y: number,
+) {
+  const { target, pointIndex } = transform
+  const path = target as fabric.Path
+  let point = new fabric.Point(x, y)
+  const mouseLocalPosition = point.transform(fabric.util.calcPlaneChangeMatrix(undefined, path.calcOwnMatrix()))
+
+  // path.points[pointIndex] = mouseLocalPosition.add(path.pathOffset)
+  path.setDimensions()
+  path.set('dirty', true)
+  return true
 }
