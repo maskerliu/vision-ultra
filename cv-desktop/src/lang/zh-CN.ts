@@ -58,6 +58,7 @@ export default {
   imgProcess: {
     IntergrateMode: '集成模式',
     ModelEngine: '模型引擎',
+    ModelImport: '模型导入',
     ImgEnhance: '图像增强',
     Gray: '灰度',
     Brightness: '亮度', // 亮度
@@ -117,6 +118,7 @@ export default {
     noMatch: '未找到匹配的标签',
     labelPlaceholder: '请输入标签',
     labelDefault: '默认标签',
+    labelImport: '导入标签',
   },
   faceRec: {
     nameInput: '请输入姓名',

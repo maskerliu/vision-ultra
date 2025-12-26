@@ -24,7 +24,7 @@
       style="text-align: center;">
       <div class="drag-bar" v-if="!isWeb"></div>
       <apm-panel v-if="commonStore.showApm" />
-      <face-rec />
+      <detect-rec />
     </van-col>
 
     <van-popup v-model:show="showPopup" position="right" close-icon="close">
@@ -44,7 +44,7 @@ import FaceDbMgr from './FaceDbMgr.vue'
 import ImgParamsPanel from './ImgParamsPanel.vue'
 // import FaceRec from './FaceRec.vue'
 
-const FaceRec = defineAsyncComponent({
+const DetectRec = defineAsyncComponent({
   loader: () => import('./DetectRec.vue'),
   loadingComponent: Loading,
   hydrate: () => {

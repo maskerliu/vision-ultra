@@ -38,7 +38,7 @@
         </template>
       </van-cell>
       <van-uploader accept=".onnx" :preview-image="false" :after-read="onModelUpload">
-        <van-cell center title="导入模型" :value="modelName" clickable style="width: 100%;">
+        <van-cell center :title="$t('imgProcess.ModelImport')" :value="modelName" clickable style="width: 100%;">
           <template #icon>
             <van-icon class-prefix="iconfont" name="file-upload" style="font-size: 1rem;" />
           </template>
@@ -51,7 +51,7 @@
     <van-cell-group>
       <template #title>
         <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableYolo">
-          <van-icon class-prefix="iconfont" name="object-detect" style="font-size: 1rem; color: #2980b9;" />
+          <van-icon class-prefix="iconfont" name="object-detect" style="color: #2980b9;" />
           {{ $t('imgProcess.YOLODetect') }} <span class="param-desc">{{ $t('imgProcess.YOLODesc') }}</span>
         </van-checkbox>
       </template>

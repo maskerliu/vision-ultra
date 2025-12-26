@@ -57,6 +57,7 @@ export default {
   imgProcess: {
     IntergrateMode: 'Integrate Mode',
     ModelEngine: 'Model Engine',
+    ModelImport: 'Import Model',
     ImgEnhance: 'Image Enhancement',
     Gray: 'Gray',
     Brightness: 'Brightness', // 亮度
@@ -119,6 +120,7 @@ export default {
     noMatch: 'no match label',
     labelPlaceholder: 'input label name',
     labelDefault: 'default',
+    labelImport: 'Import Label',
   },
   faceRec: {
     nameInput: 'Please enter name',
