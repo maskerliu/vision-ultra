@@ -1,3 +1,4 @@
+import { FilesetResolver, ImageSegmenter, InteractiveSegmenter } from '@mediapipe/tasks-vision'
 import * as tf from '@tensorflow/tfjs'
 import { baseDomain } from '../../common'
 
@@ -33,6 +34,10 @@ export class ObjectTracker {
 
   private _isInited: boolean = false
 
+
+  private segmenter: ImageSegmenter = null
+  private interactiveSegmenter: InteractiveSegmenter = null
+
   async init(yolo: string = 'yolov8n',) {
     this.dispose()
 
@@ -41,6 +46,20 @@ export class ObjectTracker {
     if (this.boxes == null) this.boxes = new Float16Array(MAX_OBJECTS_NUM * 4)
     if (this.scores == null) this.scores = new Float16Array(MAX_OBJECTS_NUM)
     if (this.classes == null) this.classes = new Uint8Array(MAX_OBJECTS_NUM)
+
+
+    let filesetResolver = await FilesetResolver.forVisionTasks(
+      __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
+    this.segmenter = await ImageSegmenter.createFromModelPath(filesetResolver,
+      `${__DEV__ ? '' : baseDomain()}/static/deeplab_v3.tflite`
+    )
+
+    this.interactiveSegmenter = await InteractiveSegmenter.createFromOptions(filesetResolver, {
+      baseOptions: {
+        modelAssetPath: `${__DEV__ ? '' : baseDomain()}/static/magic_touch.tflite`,
+        delegate: 'GPU'
+      },
+    })
 
     await tf.ready()
     let modelPath = `static/${yolo}_web_model/model.json`
@@ -72,6 +91,13 @@ export class ObjectTracker {
     this.classes = null
   }
 
+  segment(image: ImageData) {
+    let result = this.segmenter.segment(image)
+    console.log(result.confidenceMasks[0])
+    // return result.confidenceMasks.map(it => it.getAsFloat32Array())
+    return result.confidenceMasks
+  }
+
   async detect(image: ImageData) {
     let maxSize = Math.max(image.width, image.height)
     if (this.maxSize != maxSize) {
@@ -87,6 +113,7 @@ export class ObjectTracker {
 
     let time = Date.now()
     tf.engine().startScope()
+
     let input = this.preprocess(image)
     let res = this.model.execute(input)
 
@@ -197,4 +224,3 @@ export class ObjectTracker {
     return input
   }
 }
-

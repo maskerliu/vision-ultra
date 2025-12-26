@@ -16,7 +16,8 @@
       <debug-panel />
     </van-popup>
 
-    <van-overlay :show="showLoading" style="display: flex; align-items: center; flex-direction: column;">
+    <van-overlay :show="showLoading" teleport="#app"
+      style="width:100vw; height: 100vh; align-items: center; flex-direction: column; z-index: 2000;">
       <van-row justify="center" class="loading">
         <van-loading />
         <div style="margin: 5px 15px;">{{ $t('common.componetLoading') }}</div>
@@ -202,7 +203,7 @@ function onOpenDebugPanel() {
 .loading {
   width: 20%;
   padding: 10px 5px;
-  margin-top: 20%;
+  margin: 20% auto;
   background-color: #2c3e50e0;
   border-radius: 10px;
   font-size: 0.8rem;

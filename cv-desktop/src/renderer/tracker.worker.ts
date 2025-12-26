@@ -27,10 +27,18 @@ ctx.addEventListener('message', async (event: MessageEvent<{
       case 'faceDispose':
         faceDetector.dispose()
         break
+      case 'objSegment':
+        let masks = objTracker.segment(event.data.image)
+
+        ctx.postMessage({
+          type: 'mask',
+          masks
+        })
+        break
       case 'objDetect':
         await objTracker.detect(event.data.image)
         ctx.postMessage({
-          type: 'obj',
+          type: 'object',
           boxes: objTracker.boxes,
           scores: objTracker.scores,
           classes: objTracker.classes,

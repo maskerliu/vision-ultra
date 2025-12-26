@@ -165,9 +165,8 @@ function onDrawSelect(type: DrawType) {
 
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number]) {
-
-  console.log(boxes, scores, classes, objNum, scale)
   if (objNum == 0) return
+  annotationPanel.clear()
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
 
   for (let i = 0; i < objNum; ++i) {

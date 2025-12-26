@@ -33,7 +33,7 @@ export enum DrawType {
   Circle = 'Circle',
   Polygon = 'Polygon',
   Line = 'Line',
-  MultiLine = 'multi-line',
+  MultiLine = 'Polyline',
 }
 
 
@@ -62,9 +62,9 @@ export class AnnotationPanel {
   private onDrawing = false
 
   private drawingObject: fabric.Object | null = null
-  private pointArr: Array<fabric.XY> = []
-  private polyClosed: boolean = false
-  private tmpPolyObjects: Array<fabric.FabricObject> = []
+  private onPolyDrawing = false
+  private polyTmpPoints: Array<fabric.XY> = []
+  private polyTmpObjects: Array<fabric.FabricObject> = []
 
   private static CommonObjectOptions = {
     strokeWidth: 1,
@@ -108,9 +108,7 @@ export class AnnotationPanel {
 
   resize(width: number, height: number) {
     this._canvas.setDimensions({ width, height })
-    this._canvas.clear()
-    this.addGrid()
-    this._canvas.requestRenderAll()
+    this.clear()
   }
 
   add(object: fabric.FabricObject) {
@@ -126,6 +124,15 @@ export class AnnotationPanel {
     return this._canvas.getObjects(type as string)
   }
 
+  clear() {
+    for (let key of this._markerGroup.keys()) {
+      this._markerGroup.set(key, [])
+    }
+    this._canvas.clear()
+    this.addGrid()
+    this._canvas.requestRenderAll()
+  }
+
   requestRenderAll() {
     this._canvas.requestRenderAll()
   }
@@ -136,8 +143,10 @@ export class AnnotationPanel {
     if (type == DrawType.Select) {
       this.drawingObject = null
       this.onDrawing = false
-      this._canvas.remove(...this.tmpPolyObjects)
+      this._canvas.remove(...this.polyTmpObjects)
       this._canvas.remove(this.drawingObject)
+      this.polyTmpObjects = []
+      this.polyTmpPoints = []
       this.drawingObject = null
       this._canvas.getObjects().forEach((obj) => {
         obj.set({ evented: true, selectable: true, })
@@ -158,6 +167,7 @@ export class AnnotationPanel {
     this._canvas.on('mouse:move', e => this.onMouseMove(e))
     this._canvas.on('mouse:down', e => this.onMouseDown(e))
     this._canvas.on('mouse:up', e => this.onMouseUp(e))
+    this._canvas.on('mouse:dblclick', e => this.onMouseDblClick(e))
 
 
     this._canvas.on('object:moving', e => {
@@ -197,48 +207,55 @@ export class AnnotationPanel {
     this._canvas.bringObjectToFront(this.labelText)
   }
 
+  private onMouseDblClick(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
+
+    if (this._drawType == DrawType.MultiLine || this._drawType == DrawType.Polygon) {
+      if (this.polyTmpPoints.length < 3) {
+        showNotify({ type: 'danger', message: '至少绘制3个点', duration: 1000 })
+        return
+      }
+
+      this.drawingObject = this.genPoly(this.polyTmpPoints, this._drawType)
+      this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
+      this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
+      this.drawingObject.set({ evented: false, selectable: false })
+      if (this._drawType == DrawType.MultiLine) this.drawingObject.set({ fill: 'transparent' })
+      this._canvas.add(this.drawingObject)
+      this._canvas.remove(...this.polyTmpObjects)
+
+      this._markerGroup.get(this._drawType).push(this.drawingObject)
+      this.polyTmpPoints = []
+      this.polyTmpObjects = []
+      this.onPolyDrawing = false
+      this.drawingObject = null
+      this.mouseFrom = null
+      this.onDrawing = false
+    }
+  }
+
   private onMouseDown(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
     if (this._drawType == DrawType.Select) return
 
     const pointer = this._canvas.getViewportPoint(e.e)
     this.mouseFrom = pointer
+    this.onDrawing = true
 
-    if (this._drawType == DrawType.Polygon) {
-      if (this.pointArr.length > 2) {
-        let dist = Math.sqrt(Math.pow(this.pointArr[0].x - pointer.x, 2) + Math.pow(this.pointArr[0].y - pointer.y, 2))
-        if (dist <= 10) {
-          this.polyClosed = true
-          this.drawingObject = this.genPoly(this.pointArr)
-          this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
-          this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
-          this._canvas.add(this.drawingObject)
-          this._canvas.remove(...this.tmpPolyObjects)
+    if (this._drawType == DrawType.MultiLine || this._drawType == DrawType.Polygon) {
+      this.onPolyDrawing = true
 
-          this._markerGroup.get(this._drawType).push(this.drawingObject)
-          this.pointArr = []
-          this.drawingObject = null
-          this.mouseFrom = null
-          this.onDrawing = false
-
-          return
-        }
-      }
-
-      this.onDrawing = true
-      this.polyClosed = false
       let circle = this.genCircle(pointer.x - 6, pointer.y - 6, pointer.x + 6, pointer.y + 6)
       circle.set(AnnotationPanel.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
       circle.set({ strokeWidth: 1, selectable: false, evented: false })
-      if (this.pointArr.length == 0) circle.set({ fill: '#f39c12', strokeWidth: 2 })
+      if (this.polyTmpPoints.length == 0) circle.set({ fill: '#f39c12', strokeWidth: 2 })
       this._canvas.add(circle)
-      this.tmpPolyObjects.push(circle)
+      this.polyTmpObjects.push(circle)
 
       this.drawingObject = this.genLine(pointer.x, pointer.y, pointer.x, pointer.y)
       this.drawingObject.set(AnnotationPanel.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
       this.drawingObject.set({ strokeWidth: 2, selectable: false, evented: false })
       this._canvas.add(this.drawingObject)
-      this.tmpPolyObjects.push(this.drawingObject)
-      this.pointArr.push({ x: pointer.x, y: pointer.y })
+      this.polyTmpObjects.push(this.drawingObject)
+      this.polyTmpPoints.push({ x: pointer.x, y: pointer.y })
 
       return
     }
@@ -257,7 +274,6 @@ export class AnnotationPanel {
         break
     }
 
-    this.onDrawing = true
     this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
     this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
     this.drawingObject.set({ evented: false, selectable: false })
@@ -295,7 +311,8 @@ export class AnnotationPanel {
         this._canvas.requestRenderAll()
         break
       case DrawType.Polygon:
-        if (!this.polyClosed) {
+      case DrawType.MultiLine:
+        if (this.onPolyDrawing) {
           this.drawingObject.set({ x2: pointer.x, y2: pointer.y })
           this._canvas.requestRenderAll()
         }
@@ -370,20 +387,25 @@ export class AnnotationPanel {
     return line
   }
 
-  genPoly(points: fabric.XY[]) {
-    const poly = new fabric.Polygon(points, AnnotationPanel.genCommonOption())
+  genPoly(points: fabric.XY[], type: DrawType) {
+    let poly: fabric.Polygon | fabric.Polyline
+    if (type == DrawType.Polygon)
+      poly = new fabric.Polygon(points, AnnotationPanel.genCommonOption())
+    if (type == DrawType.MultiLine)
+      poly = new fabric.Polyline(points, AnnotationPanel.genCommonOption())
+
     poly.set({ editing: true })
     poly.on('mousedblclick', () => {
       if (poly.get('editing')) {
-        poly.cornerStyle = 'circle'
-        poly.hasBorders = false
+        poly.set({ cornerStyle: 'circle', hasBorders: false, editing: false })
         poly.controls = fabric.controlsUtils.createPolyControls(poly)
-        poly.set({ editing: false })
+        for (let key in poly.controls) {
+          poly.controls[key].mouseUpHandler = (data, transform, x, y) => {
+            // console.log(data, transform, x, y)
+          }
+        }
       } else {
-        poly.cornerStyle = 'rect'
-        poly.hasBorders = true
-        poly.controls = this.defCtrl
-        poly.set({ editing: true })
+        poly.set({ cornerStyle: 'rect', hasBorders: true, editing: true, controls: this.defCtrl })
       }
       poly.setCoords()
       this._canvas.requestRenderAll()
@@ -464,13 +486,13 @@ export class AnnotationPanel {
     rect.set('uuid', uuidv4())
     this._canvas.add(rect)
 
-    let poly = this.genPoly(points)
+    let poly = this.genPoly(points, DrawType.Polygon)
     poly.set(AnnotationPanel.genLabelOption({ id: 0, name: 'person', color: '#e74c3c' }))
     poly.set('score', '90.4')
     poly.set('uuid', uuidv4())
     this._canvas.add(poly)
 
-    poly = this.genPoly(points)
+    poly = this.genPoly(points, DrawType.Polygon)
     poly.set(AnnotationPanel.genLabelOption({ id: 0, name: 'person', color: '#d35400' }))
     poly.set('score', '90.4')
     poly.set('uuid', uuidv4())
@@ -494,12 +516,24 @@ export class AnnotationPanel {
       }
     }
 
-    let ctrlPoly = this.genPoly(arr)
+    let ctrlPoly = this.genPoly(arr, DrawType.MultiLine)
     ctrlPoly.set({ left: 100, top: 100 })
-    ctrlPoly.set({ fill: 'transparent', stroke: 'transparent', })
+    ctrlPoly.set({ fill: 'transparent', stroke: '#e74c3c', })
     this._canvas.add(ctrlPoly)
     ctrlPoly.setCoords()
-    let pathCtrl = fabric.controlsUtils.createPolyControls(ctrlPoly)
+
+    let pathCtrls = ctrlPoly.controls
+    for (let key in pathCtrls) {
+      pathCtrls[key].mouseUpHandler = (eventData) => {
+        // console.log(key, pathCtrls[key].x, pathCtrls[key].y)
+      }
+    }
+
+    // pathCtrls.keys()((ctrl, key) => {
+    //   ctrl.mouseUpHandler = (eventData) => {
+    //     console.log(key, ctrl.x, ctrl.y)
+    //   }
+    // })
     path.set({ editing: true })
     path.on('mousedblclick', () => {
       if (poly.get('editing')) {
@@ -521,8 +555,8 @@ export class AnnotationPanel {
       label: label.name,
       stroke: label.color,
       fill: MarkColors.hexToRgba(label.color, 0.2),
-      // cornerColor: MarkColors.reverseColor(label.color, 0.8),
-      cornerStrokeColor: MarkColors.reverseColor(label.color, 0.8),
+      cornerColor: MarkColors.reverseColor(label.color, 1),
+      // cornerStrokeColor: MarkColors.reverseColor(label.color, 0.8),
       borderColor: MarkColors.reverseColor(label.color),
     }
   }

@@ -45,6 +45,7 @@
       </Transition>
       <canvas ref="preview"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
+      <canvas ref="mask" style="display: none;"></canvas>
       <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
       <media-control-bar style="position: absolute; bottom: 0px; left: 0px; right: 0px;" v-if="showControlBar">
         <media-play-button></media-play-button>
@@ -89,10 +90,11 @@
 </template>
 <script lang="ts" setup>
 
+import { MPMask } from '@mediapipe/tasks-vision'
 import 'media-chrome'
 import { showNotify } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { drawTFFaceResult } from '../../common/DrawUtils'
+import { createCopyTextureToCanvas, drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { VisionStore } from '../../store'
@@ -105,6 +107,7 @@ const previewParent = useTemplateRef<any>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
 const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
+const mask = useTemplateRef<HTMLCanvasElement>('mask')
 const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
@@ -126,6 +129,9 @@ const annotationPanel = ref<any>('annotationPanel')
 
 const showLoading = inject<Ref<boolean>>('showLoading')
 
+
+let toImageBitmap: (mask: MPMask) => Promise<ImageBitmap>
+
 let previewCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let captureCtx: CanvasRenderingContext2D
@@ -142,7 +148,7 @@ let workerListener = (event: MessageEvent) => {
   }
 
   switch (event.data.type) {
-    case 'obj':
+    case 'object':
       if (videoPlayer.isOpen) {
         videoPlayer.objects = visionStore.enableYolo ? event.data : null
       } else {
@@ -152,6 +158,14 @@ let workerListener = (event: MessageEvent) => {
         //   event.data.boxes, event.data.scores, event.data.classes,
         //   event.data.objNum, event.data.scale)
       }
+      break
+    case 'mask':
+      console.log(event.data)
+
+      let mask = new ImageData(preview.value.width, preview.value.height, event.data.masks[0])
+
+      drawSegmentationResult(event.data.masks)
+      previewCtx.putImageData(mask, 0, 0)
       break
     case 'face':
       if (videoPlayer.isOpen) {
@@ -200,8 +214,11 @@ async function onScan() {
   if (visionStore.faceDetect)
     trackerWorker.postMessage({ type: 'faceDetect', image: frame })
 
-  if (visionStore.enableYolo)
+  if (visionStore.enableYolo) {
     trackerWorker.postMessage({ type: 'objDetect', image: frame })
+    trackerWorker.postMessage({ type: 'objSegment', image: frame })
+  }
+
 }
 
 async function onLiveStream() {
@@ -242,6 +259,11 @@ async function openFolder() {
 
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
+
+      mask.value.width = w
+      mask.value.height = h
+      toImageBitmap = createCopyTextureToCanvas(mask.value)
+
       onScan()
     }
     img.src = file
@@ -265,6 +287,35 @@ function drawImage() {
   previewCtx.clearRect(0, 0, imgData.width, imgData.height)
   previewCtx.putImageData(imgData, 0, 0)
   return imgData
+}
+
+async function drawSegmentationResult(segmentationResult: MPMask[]) {
+  // get the canvas dimensions
+  const canvasWidth = preview.value.width
+  const canvasHeight = preview.value.height
+
+  // create segmentation mask
+  const segmentationMask = segmentationResult[0]
+  const segmentationMaskBitmap = await toImageBitmap(segmentationMask)
+
+  previewCtx.save()
+  previewCtx.fillStyle = 'white'
+  previewCtx.clearRect(0, 0, canvasWidth, canvasHeight)
+  previewCtx.drawImage(segmentationMaskBitmap, 0, 0, canvasWidth, canvasHeight)
+  previewCtx.restore()
+
+  previewCtx.save()
+  previewCtx.globalCompositeOperation = 'source-out'
+  previewCtx.fillRect(0, 0, canvasWidth, canvasHeight)
+  previewCtx.restore()
+
+  previewCtx.save()
+  // scale, flip and draw the video to fit the canvas
+  previewCtx.globalCompositeOperation = 'destination-atop'
+  previewCtx.translate(canvasWidth, 0)
+  previewCtx.scale(-1, 1)
+  // previewCtx.drawImage(input, 0, 0, canvasWidth, canvasHeight)
+  previewCtx.restore()
 }
 
 watch(() => visionStore.enableYolo, async (val, _) => {

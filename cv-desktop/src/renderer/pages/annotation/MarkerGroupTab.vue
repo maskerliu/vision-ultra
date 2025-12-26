@@ -16,17 +16,18 @@
       <van-collapse-item :name="key" :title="key" :value="markerGroup.get(key).length"
         v-for="key of markerGroup.keys()">
         <van-empty image-size="80" v-if="markerGroup.get(key) == null || markerGroup.get(key).length == 0" />
-        <van-list v-else style="max-height: calc(100vh - 250px); overflow: hidden scroll;">
+        <van-list v-else style="max-height: calc(100vh - 330px); overflow: hidden scroll;">
           <van-cell center :border="true" clickable v-for="(marker, idx) in markerGroup.get(key)"
             :ref="(el: any) => setMarkerRef(el, key, idx as number)"
-            :style="{ backgroundColor: activeMarkers[0]?.get('uuid') == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
+            style="border: 2px solid; border-radius: 5px; margin-top: 1px;"
+            :style="{ borderColor: marker.get('stroke'), backgroundColor: activeMarkers[0]?.get('uuid') == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
             @click="onMarkerStatusChanged(marker as any, 'selected')">
-            <template #icon>
-              <div class="color-block" :style="{ borderColor: marker.get('stroke') }"></div>
-            </template>
             <template #title>
-              <input :ref="`input_${key}_${idx}`" style="width: 5rem; border: 0; background-color: transparent;"
-                @click="showLabelSearchResult(key, idx as number)" :value="marker.get('label')" @input="handleSearch" />
+              <input :ref="`input_${key}_${idx}`" class="marker-input" :value="marker.get('label')"
+                @input="handleSearch" @click="showLabelSearchResult(key, idx as number)" />
+            </template>
+            <template #label>
+              <div class="van-ellipsis" style="max-width: 8rem;">{{ marker.get('uuid') }}</div>
             </template>
             <template #right-icon>
               <van-icon class-prefix="iconfont" class="label-option" v-for="opt of MarkerOpts"
@@ -81,6 +82,7 @@ onMounted(() => {
   labelRefGroup.value.set(DrawType.Circle, [])
   labelRefGroup.value.set(DrawType.Polygon, [])
   labelRefGroup.value.set(DrawType.Line, [])
+  labelRefGroup.value.set(DrawType.MultiLine, [])
 })
 
 function setMarkerRef(el: typeof Cell, group: DrawType, idx: number) {
@@ -135,7 +137,7 @@ function handleSearch(e: any) {
 
 function showLabelSearchResult(type: DrawType, idx: number) {
   if (labelSearchRef.value.popupRef.value) {
-    labelSearchRef.value.popupRef.value.style.top = labelRefGroup.value.get(type)[idx].$el.getBoundingClientRect().top + 'px'
+    labelSearchRef.value.popupRef.value.style.top = labelRefGroup.value.get(type)[idx].$el.getBoundingClientRect().top + 26 + 'px'
   }
   showLabelSearch.value = !showLabelSearch.value
 }
@@ -160,9 +162,15 @@ function updateMarkerLabel(label: CVLabel) {
   margin-left: 5px;
 }
 
+.marker-input {
+  width: calc(100% - 4px);
+  border: 0;
+  background-color: transparent;
+}
+
 .color-block {
-  width: 1.5rem;
-  height: 1.5rem;
+  /* width: 1.5rem;
+  height: 1.5rem; */
   border: 2px solid;
   margin-right: 10px;
   border-radius: 5px;

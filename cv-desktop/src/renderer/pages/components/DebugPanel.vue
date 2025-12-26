@@ -12,9 +12,8 @@
 </template>
 
 <script lang="ts" setup>
-import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue'
-import { baseDomain, ProxyMock } from '../../../common'
+import { ProxyMock } from '../../../common'
 import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()
@@ -93,7 +92,7 @@ async function onSSE() {
 
 .debug-panel {
   width: 100%;
-  min-width: 375px;
+  min-width: 320px;
   height: 100vh;
   padding: 10px 0;
   background-color: var(--van-gray-1);
