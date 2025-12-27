@@ -17,9 +17,8 @@
         v-for="key of markerGroup.keys()">
         <van-empty image-size="80" v-if="markerGroup.get(key) == null || markerGroup.get(key).length == 0" />
         <van-list v-else style="max-height: calc(100vh - 330px); overflow: hidden scroll;">
-          <van-cell center :border="true" clickable v-for="(marker, idx) in markerGroup.get(key)"
+          <van-cell center :border="true" clickable class="marker" v-for="(marker, idx) in markerGroup.get(key)"
             :ref="(el: any) => setMarkerRef(el, key, idx as number)"
-            style="border: 2px solid; border-radius: 5px; margin-top: 1px;"
             :style="{ borderColor: marker.get('stroke'), backgroundColor: activeMarkers[0]?.get('uuid') == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
             @click="onMarkerStatusChanged(marker as any, 'selected')">
             <template #title>
@@ -160,6 +159,13 @@ function updateMarkerLabel(label: CVLabel) {
 .label-option {
   font-size: 1rem;
   margin-left: 5px;
+}
+
+.marker {
+  width: calc(100% - 3px);
+  border: 2px solid;
+  border-radius: 5px;
+  margin: 4px 0 0 3px;
 }
 
 .marker-input {

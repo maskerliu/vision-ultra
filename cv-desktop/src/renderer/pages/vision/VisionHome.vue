@@ -17,7 +17,7 @@
       </van-row>
       <OverlayScrollbarsComponent class="border-bg snap-panel"
         :options="{ scrollbars: { theme: `os-theme-${reverseTheme}` } }" defer>
-        <img-params-panel />
+        <cv-control-panel />
       </OverlayScrollbarsComponent>
     </van-col>
     <van-col class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }" defer
@@ -40,8 +40,8 @@ import { defineAsyncComponent, inject, onMounted, provide, Ref, ref, watch } fro
 import { CommonStore } from '../../store'
 import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
+import CvControlPanel from './CVControlPanel.vue'
 import FaceDbMgr from './FaceDbMgr.vue'
-import ImgParamsPanel from './ImgParamsPanel.vue'
 // import FaceRec from './FaceRec.vue'
 
 const DetectRec = defineAsyncComponent({

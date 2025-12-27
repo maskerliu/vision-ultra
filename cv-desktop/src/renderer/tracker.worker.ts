@@ -1,10 +1,19 @@
 
+import { FilesetResolver } from "@mediapipe/tasks-vision"
+import { baseDomain } from "../common"
 import { FaceDetector } from "./common/FaceDetector"
 import { ObjectTracker } from "./common/ObjectTracker"
 
 const ctx: Worker = self as any
+let fileset: any = null
 let objTracker: ObjectTracker = new ObjectTracker()
 let faceDetector: FaceDetector = new FaceDetector()
+
+async function init() {
+  fileset = await FilesetResolver.forVisionTasks(
+    __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
+  console.log(fileset)
+}
 
 ctx.addEventListener('message', async (event: MessageEvent<{
   type: string,
@@ -14,8 +23,13 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   try {
     switch (event.data.type) {
       case 'initObjTracker':
-        await objTracker.init(event.data.modelName)
-        ctx.postMessage({ loading: false })
+        try {
+          await objTracker.init(event.data.modelName, fileset)
+          ctx.postMessage({ loading: false })
+        } catch (err) {
+          console.error(err)
+          ctx.postMessage({ loading: false })
+        }
         break
       case 'initFaceDetector':
         await faceDetector.init()
@@ -64,3 +78,5 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   }
 
 })
+
+init()
