@@ -41,7 +41,7 @@
 
     <van-cell v-if="!isWeb">
       <template #value>
-        <van-button plain type="primary" size="normal" block @click="onSave">
+        <van-button plain type="primary" size="small" block @click="onSave">
           {{ $t('common.save') }}
         </van-button>
       </template>

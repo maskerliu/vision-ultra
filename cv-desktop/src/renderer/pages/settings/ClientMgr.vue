@@ -2,7 +2,7 @@
   <van-cell-group inset :title="$t('settings.boardcast.onlineClient') + '[' + clients.length + ']'">
     <van-field :placeholder="$t('settings.boardcast.placeholder')" v-model="broadcastMsg">
       <template #right-icon>
-        <van-button plain size="small" type="primary" @click="sendBroadcastMsg">
+        <van-button size="small" @click="sendBroadcastMsg">
           {{ $t('settings.boardcast.btnSend') }}
         </van-button>
       </template>

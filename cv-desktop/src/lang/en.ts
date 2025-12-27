@@ -54,10 +54,16 @@ export default {
       title: 'Virtual Client'
     }
   },
-  imgProcess: {
+  cvControl: {
     IntergrateMode: 'Integrate Mode',
     ModelEngine: 'Model Engine',
     ModelImport: 'Import Model',
+
+    ImageSegment: 'Image Segment',
+    Deeplab: 'Deeplabv3',
+    SAM: 'Segment Anything',
+    UNet: 'u-net++',
+
     ImgEnhance: 'Image Enhancement',
     Gray: 'Gray',
     Brightness: 'Brightness', // 亮度
@@ -105,11 +111,14 @@ export default {
     CamShift: 'CamShift',
 
     YOLODetect: 'YOLO',
+    DetectModel: {
+      yolov6n: 'YOLOv6 (via meituan)',
+      yolov8n: 'YOLOv8 (via Ultralytics)',
+      yolov10n: 'YOLOv10(via Tsinghua university)',
+      yolo11n: 'YOLO11(lastest)',
+    },
     YOLODesc: 'you only look once',
-    yolov6n: 'YOLOv6 (via meituan)',
-    yolov8n: 'YOLOv8 (via Ultralytics)',
-    yolov10n: 'YOLOv10(via Tsinghua university)',
-    yolo11n: 'YOLO11(lastest)',
+
 
     FaceRec: 'Face Recognition'
 
