@@ -155,18 +155,24 @@ class ImageParams {
 export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
-      faceRecMode: 'tfjs' as 'tfjs' | 'opencv',  // 1: opencv 2: tensorflow
+      intergrateMode: '1' as '1' | '2' | '3', // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
+      modelEngine: 'tf', // tensorflow or onnx
+
+      enableSegment: false,
+      segmentModel: 'deeplab',
+
+      enableDetect: false,
+      detectModel: 'yolov8n',
+
       faceDetect: false,
       drawFaceMesh: true,
       drawEigen: true,
       landmark: false,
       faceRec: false,
       imgEnhance: true,
-      imgProcessMode: '1' as '1' | '2' | '3', // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
+
       imgParams: new ImageParams(),
-      enableYolo: false,
-      yoloModel: 'yolov8n',
-      showQrCode: false,
+
       streamHistories: [] as string[],
     }
   },

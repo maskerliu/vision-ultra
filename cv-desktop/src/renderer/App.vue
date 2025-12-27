@@ -110,6 +110,8 @@ function onOpenDebugPanel() {
 }
 
 :root {
+  --van-cell-group-inset-padding: 5px;
+  --van-cell-group-inset-title-padding: 5px;
   --van-icon-font-family: "iconfont";
   --van-collapse-item-content-padding: 0px;
   --van-dialog-border-radius: 6px;
@@ -120,8 +122,8 @@ function onOpenDebugPanel() {
   --van-cell-horizontal-padding: 10px;
   --van-popup-round-radius: 8px;
   --van-popup-close-icon-margin: 23px;
-  --van-border-width: 1.4px;
-  --van-radius-md: 8px;
+  --van-border-width: 1.5px;
+  --van-radius-md: 5px;
   --van-dialog-radius: 8px;
   --van-floating-bubble-background: #f04b1e;
 }
@@ -166,8 +168,8 @@ function onOpenDebugPanel() {
 .border-bg {
   margin: 5px;
   padding: 0;
-  /* border-radius: 8px;
-  border: 1px solid #e1e1e1; */
+  border-radius: 8px;
+  /* border: 1px solid #e1e1e1; */
   box-shadow: 0px 12px 8px -12px #000;
 }
 

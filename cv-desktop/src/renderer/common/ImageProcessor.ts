@@ -1,22 +1,21 @@
 import { showNotify } from "vant"
 import { imgProcess } from "./CVApi"
-import { drawCVObjectTrack } from "./DrawUtils"
 
 
 export class ImageProcessor {
   public imgEnhance: boolean = false
-  public imgProcessMode: '1' | '2' | '3' = '1'
+  public intergrateMode: '1' | '2' | '3' = '1'
   public imgProcessParams: any = {}
   public objectRects: Array<{ x: number, y: number, width: number, height: number }>
-  
+
 
   process(image: ImageData) {
     if (!this.imgEnhance) return
-    if (this.imgProcessMode != '1' && window.isWeb) {
+    if (this.intergrateMode != '1' && window.isWeb) {
       showNotify({ type: 'danger', message: '当前环境不支持' })
       return
     }
-    switch (this.imgProcessMode) {
+    switch (this.intergrateMode) {
       case '1': {
         try {
           this.objectRects = imgProcess(image, image.width, image.height, this.imgProcessParams)

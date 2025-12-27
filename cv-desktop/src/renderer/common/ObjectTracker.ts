@@ -38,7 +38,9 @@ export class ObjectTracker {
   private segmenter: ImageSegmenter = null
   private interactiveSegmenter: InteractiveSegmenter = null
 
-  async init(yolo: string = 'yolov8n',) {
+  private _fileset: any
+
+  async init(yolo: string = 'yolov8n', fileset: any) {
     this.dispose()
 
     this.modelName = yolo
@@ -50,11 +52,11 @@ export class ObjectTracker {
 
     let filesetResolver = await FilesetResolver.forVisionTasks(
       __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
-    this.segmenter = await ImageSegmenter.createFromModelPath(filesetResolver,
+    this.segmenter = await ImageSegmenter.createFromModelPath(fileset,
       `${__DEV__ ? '' : baseDomain()}/static/deeplab_v3.tflite`
     )
 
-    this.interactiveSegmenter = await InteractiveSegmenter.createFromOptions(filesetResolver, {
+    this.interactiveSegmenter = await InteractiveSegmenter.createFromOptions(fileset, {
       baseOptions: {
         modelAssetPath: `${__DEV__ ? '' : baseDomain()}/static/magic_touch.tflite`,
         delegate: 'GPU'

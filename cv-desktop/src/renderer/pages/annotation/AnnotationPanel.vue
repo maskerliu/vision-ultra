@@ -5,8 +5,8 @@
         <van-icon class-prefix="iconfont" name="marker" style="font-size: 1.2rem" />
       </van-button>
 
-      <van-button square block plain :type="curDrawType == type ? 'primary' : 'default'"
-        v-for="(type, idx) in DrawTypes" :key="idx" @click="onDrawSelect(type)">
+      <van-button square block :type="curDrawType == type ? 'primary' : 'default'" v-for="(type, idx) in DrawTypes"
+        :key="idx" @click="onDrawSelect(type)">
         <van-icon class-prefix="iconfont" :name="'mark-' + type.toLocaleLowerCase()" style="font-size: 1.2rem" />
       </van-button>
 
@@ -31,10 +31,10 @@
       </van-popover>
     </van-col>
 
-    <van-field class="active-label" v-model="searchKeyword" title="当前标签" :style="{ borderColor: activeLabel?.color }"
+    <van-field class="active-label" v-model="searchKeyword" :style="{ borderColor: activeLabel?.color }"
       @click="showLabelSearch = true">
-
     </van-field>
+
     <van-popup class="label-search-panel" size="normal" trigger="manual" :overlay="true" :lazy-render="false"
       v-model:show="showLabelSearch">
       <van-list style="min-width: 14rem; max-height: 200px; overflow: hidden scroll;">
@@ -214,7 +214,7 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
 
 .active-label {
   position: absolute;
-  top: 5px;
+  top: 3px;
   left: 3rem;
   width: 10rem;
   border: 2px solid;

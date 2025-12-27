@@ -48,17 +48,23 @@ export default {
   debug: {
     common: {
       title: 'Common',
-      versionCheck: 'Check Version',
-      devTools: 'Developer Tools',
+      versionCheck: '版本更新',
+      devTools: '开发者工具',
     },
     virtualClient: {
       title: 'Virtual Client'
     }
   },
-  imgProcess: {
+  cvControl: {
     IntergrateMode: '集成模式',
     ModelEngine: '模型引擎',
     ModelImport: '模型导入',
+
+    ImageSegment: '图像分割',
+    Deeplab: 'Deeplabv3',
+    SAM: 'Segment Anything',
+    UNet: 'u-net++',
+
     ImgEnhance: '图像增强',
     Gray: '灰度',
     Brightness: '亮度', // 亮度

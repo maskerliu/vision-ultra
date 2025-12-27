@@ -150,7 +150,7 @@ let workerListener = (event: MessageEvent) => {
   switch (event.data.type) {
     case 'object':
       if (videoPlayer.isOpen) {
-        videoPlayer.objects = visionStore.enableYolo ? event.data : null
+        videoPlayer.objects = visionStore.enableDetect ? event.data : null
       } else {
         annotationPanel.value.drawAnnotations(event.data.boxes, event.data.scores, event.data.classes,
           event.data.objNum, event.data.scale)
@@ -196,7 +196,7 @@ onMounted(async () => {
 
   imgProcessor = new ImageProcessor()
   imgProcessor.imgEnhance = visionStore.imgEnhance
-  imgProcessor.imgProcessMode = visionStore.imgProcessMode
+  imgProcessor.intergrateMode = visionStore.intergrateMode
   imgProcessor.imgProcessParams = visionStore.imgParams.value
 
   videoPlayer = new VideoPlayer(preVideo.value, preview.value, offscreen.value, capture.value)
@@ -214,7 +214,7 @@ async function onScan() {
   if (visionStore.faceDetect)
     trackerWorker.postMessage({ type: 'faceDetect', image: frame })
 
-  if (visionStore.enableYolo) {
+  if (visionStore.enableDetect) {
     trackerWorker.postMessage({ type: 'objDetect', image: frame })
     trackerWorker.postMessage({ type: 'objSegment', image: frame })
   }
@@ -318,19 +318,19 @@ async function drawSegmentationResult(segmentationResult: MPMask[]) {
   previewCtx.restore()
 }
 
-watch(() => visionStore.enableYolo, async (val, _) => {
+watch(() => visionStore.enableDetect, async (val, _) => {
   videoPlayer.enableObject = val
   if (val) {
     showLoading.value = true
-    trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.yoloModel })
+    trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.detectModel })
   } else {
     trackerWorker.postMessage({ type: 'objDispose' })
   }
 })
 
-watch(() => visionStore.yoloModel, async () => {
+watch(() => visionStore.detectModel, async () => {
   showLoading.value = true
-  trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.yoloModel })
+  trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.detectModel })
 })
 
 watch(() => visionStore.faceDetect, async (val, _) => {
@@ -349,10 +349,8 @@ watch(() => visionStore.imgEnhance, (val) => {
   if (!videoPlayer.isOpen) { drawImage() }
 })
 
-
-
-watch(() => visionStore.imgProcessMode, (val) => {
-  imgProcessor.imgProcessMode = val
+watch(() => visionStore.intergrateMode, (val) => {
+  imgProcessor.intergrateMode = val
 })
 
 watch(() => visionStore.imgParams,
