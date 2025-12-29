@@ -5,14 +5,14 @@
         <van-icon class-prefix="iconfont" name="marker" style="font-size: 1.2rem" />
       </van-button>
 
-      <van-button square block :type="curDrawType == type ? 'primary' : 'default'" v-for="(type, idx) in DrawTypes"
-        :key="idx" @click="onDrawSelect(type)">
+      <van-button square block hairline :type="curDrawType == type ? 'primary' : 'default'"
+        v-for="(type, idx) in DrawTypes" :key="idx" @click="onDrawSelect(type)">
         <van-icon class-prefix="iconfont" :name="'mark-' + type.toLocaleLowerCase()" style="font-size: 1.2rem" />
       </van-button>
 
       <van-popover v-model:show="showMagic" placement="right-start">
         <template #reference>
-          <van-button square block style="width: 2.5rem">
+          <van-button square block hairline style="width: 2.5rem">
             <van-icon class-prefix="iconfont" name="mark-magic" style="font-size: 1.2rem" />
           </van-button>
         </template>
@@ -118,7 +118,7 @@ watch(() => searchKeyword.value, () => {
 })
 
 watch(() => activeLabel.value, () => {
-  searchKeyword.value = activeLabel.value.name
+  searchKeyword.value = activeLabel.value?.name
 })
 
 watch(() => activeMarkers.value, () => {
@@ -133,7 +133,7 @@ onMounted(() => {
 
   activeLabel.value = labeTab.value.getLabel(1)
   annotationPanel.label = activeLabel.value
-  searchKeyword.value = activeLabel.value.name
+  searchKeyword.value = activeLabel.value?.name
 
   for (let i = 1; i < DrawTypes.length; ++i) {
     markerGroup.value.set(DrawTypes[i], [])

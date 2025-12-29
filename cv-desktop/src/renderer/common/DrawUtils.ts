@@ -4,8 +4,6 @@ import { Def_Object_Labels } from './Annotations'
 import { MARK_COLORS, MarkColors } from './CVColors'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
 
-
-
 export const NUM_KEYPOINTS = 478
 
 export const LABEL_TO_COLOR = {

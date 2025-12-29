@@ -60,9 +60,11 @@ export default {
     ModelImport: 'Import Model',
 
     ImageSegment: 'Image Segment',
-    Deeplab: 'Deeplabv3',
-    SAM: 'Segment Anything',
-    UNet: 'u-net++',
+    Segment: {
+      deeplab: 'Deeplabv3',
+      sam: 'Segment Anything',
+      unet: 'u-net++',
+    },
 
     ImgEnhance: 'Image Enhancement',
     Gray: 'Gray',
@@ -116,6 +118,7 @@ export default {
       yolov8n: 'YOLOv8 (via Ultralytics)',
       yolov10n: 'YOLOv10(via Tsinghua university)',
       yolo11n: 'YOLO11(lastest)',
+      mobilenet: 'MobileNetv2'
     },
     YOLODesc: 'you only look once',
 

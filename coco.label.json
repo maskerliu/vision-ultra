@@ -1,0 +1,402 @@
+[
+  {
+    "namet": "/m/01g317",
+    "id": 1,
+    "name": "person"
+  },
+  {
+    "namet": "/m/0199g",
+    "id": 2,
+    "name": "bicycle"
+  },
+  {
+    "namet": "/m/0k4j",
+    "id": 3,
+    "name": "car"
+  },
+  {
+    "namet": "/m/04_sv",
+    "id": 4,
+    "name": "motorcycle"
+  },
+  {
+    "namet": "/m/05czz6l",
+    "id": 5,
+    "name": "airplane"
+  },
+  {
+    "namet": "/m/01bjv",
+    "id": 6,
+    "name": "bus"
+  },
+  {
+    "namet": "/m/07jdr",
+    "id": 7,
+    "name": "train"
+  },
+  {
+    "namet": "/m/07r04",
+    "id": 8,
+    "name": "truck"
+  },
+  {
+    "namet": "/m/019jd",
+    "id": 9,
+    "name": "boat"
+  },
+  {
+    "namet": "/m/015qff",
+    "id": 10,
+    "name": "traffic light"
+  },
+  {
+    "namet": "/m/01pns0",
+    "id": 11,
+    "name": "fire hydrant"
+  },
+  {
+    "namet": "/m/02pv19",
+    "id": 13,
+    "name": "stop sign"
+  },
+  {
+    "namet": "/m/015qbp",
+    "id": 14,
+    "name": "parking meter"
+  },
+  {
+    "namet": "/m/0cvnqh",
+    "id": 15,
+    "name": "bench"
+  },
+  {
+    "namet": "/m/015p6",
+    "id": 16,
+    "name": "bird"
+  },
+  {
+    "namet": "/m/01yrx",
+    "id": 17,
+    "name": "cat"
+  },
+  {
+    "namet": "/m/0bt9lr",
+    "id": 18,
+    "name": "dog"
+  },
+  {
+    "namet": "/m/03k3r",
+    "id": 19,
+    "name": "horse"
+  },
+  {
+    "namet": "/m/07bgp",
+    "id": 20,
+    "name": "sheep"
+  },
+  {
+    "namet": "/m/01xq0k1",
+    "id": 21,
+    "name": "cow"
+  },
+  {
+    "namet": "/m/0bwd_0j",
+    "id": 22,
+    "name": "elephant"
+  },
+  {
+    "namet": "/m/01dws",
+    "id": 23,
+    "name": "bear"
+  },
+  {
+    "namet": "/m/0898b",
+    "id": 24,
+    "name": "zebra"
+  },
+  {
+    "namet": "/m/03bk1",
+    "id": 25,
+    "name": "giraffe"
+  },
+  {
+    "namet": "/m/01940j",
+    "id": 27,
+    "name": "backpack"
+  },
+  {
+    "namet": "/m/0hnnb",
+    "id": 28,
+    "name": "umbrella"
+  },
+  {
+    "namet": "/m/080hkjn",
+    "id": 31,
+    "name": "handbag"
+  },
+  {
+    "namet": "/m/01rkbr",
+    "id": 32,
+    "name": "tie"
+  },
+  {
+    "namet": "/m/01s55n",
+    "id": 33,
+    "name": "suitcase"
+  },
+  {
+    "namet": "/m/02wmf",
+    "id": 34,
+    "name": "frisbee"
+  },
+  {
+    "namet": "/m/071p9",
+    "id": 35,
+    "name": "skis"
+  },
+  {
+    "namet": "/m/06__v",
+    "id": 36,
+    "name": "snowboard"
+  },
+  {
+    "namet": "/m/018xm",
+    "id": 37,
+    "name": "sports ball"
+  },
+  {
+    "namet": "/m/02zt3",
+    "id": 38,
+    "name": "kite"
+  },
+  {
+    "namet": "/m/03g8mr",
+    "id": 39,
+    "name": "baseball bat"
+  },
+  {
+    "namet": "/m/03grzl",
+    "id": 40,
+    "name": "baseball glove"
+  },
+  {
+    "namet": "/m/06_fw",
+    "id": 41,
+    "name": "skateboard"
+  },
+  {
+    "namet": "/m/019w40",
+    "id": 42,
+    "name": "surfboard"
+  },
+  {
+    "namet": "/m/0dv9c",
+    "id": 43,
+    "name": "tennis racket"
+  },
+  {
+    "namet": "/m/04dr76w",
+    "id": 44,
+    "name": "bottle"
+  },
+  {
+    "namet": "/m/09tvcd",
+    "id": 46,
+    "name": "wine glass"
+  },
+  {
+    "namet": "/m/08gqpm",
+    "id": 47,
+    "name": "cup"
+  },
+  {
+    "namet": "/m/0dt3t",
+    "id": 48,
+    "name": "fork"
+  },
+  {
+    "namet": "/m/04ctx",
+    "id": 49,
+    "name": "knife"
+  },
+  {
+    "namet": "/m/0cmx8",
+    "id": 50,
+    "name": "spoon"
+  },
+  {
+    "namet": "/m/04kkgm",
+    "id": 51,
+    "name": "bowl"
+  },
+  {
+    "namet": "/m/09qck",
+    "id": 52,
+    "name": "banana"
+  },
+  {
+    "namet": "/m/014j1m",
+    "id": 53,
+    "name": "apple"
+  },
+  {
+    "namet": "/m/0l515",
+    "id": 54,
+    "name": "sandwich"
+  },
+  {
+    "namet": "/m/0cyhj_",
+    "id": 55,
+    "name": "orange"
+  },
+  {
+    "namet": "/m/0hkxq",
+    "id": 56,
+    "name": "broccoli"
+  },
+  {
+    "namet": "/m/0fj52s",
+    "id": 57,
+    "name": "carrot"
+  },
+  {
+    "namet": "/m/01b9xk",
+    "id": 58,
+    "name": "hot dog"
+  },
+  {
+    "namet": "/m/0663v",
+    "id": 59,
+    "name": "pizza"
+  },
+  {
+    "namet": "/m/0jy4k",
+    "id": 60,
+    "name": "donut"
+  },
+  {
+    "namet": "/m/0fszt",
+    "id": 61,
+    "name": "cake"
+  },
+  {
+    "namet": "/m/01mzpv",
+    "id": 62,
+    "name": "chair"
+  },
+  {
+    "namet": "/m/02crq1",
+    "id": 63,
+    "name": "couch"
+  },
+  {
+    "namet": "/m/03fp41",
+    "id": 64,
+    "name": "potted plant"
+  },
+  {
+    "namet": "/m/03ssj5",
+    "id": 65,
+    "name": "bed"
+  },
+  {
+    "namet": "/m/04bcr3",
+    "id": 67,
+    "name": "dining table"
+  },
+  {
+    "namet": "/m/09g1w",
+    "id": 70,
+    "name": "toilet"
+  },
+  {
+    "namet": "/m/07c52",
+    "id": 72,
+    "name": "tv"
+  },
+  {
+    "namet": "/m/01c648",
+    "id": 73,
+    "name": "laptop"
+  },
+  {
+    "namet": "/m/020lf",
+    "id": 74,
+    "name": "mouse"
+  },
+  {
+    "namet": "/m/0qjjc",
+    "id": 75,
+    "name": "remote"
+  },
+  {
+    "namet": "/m/01m2v",
+    "id": 76,
+    "name": "keyboard"
+  },
+  {
+    "namet": "/m/050k8",
+    "id": 77,
+    "name": "cell phone"
+  },
+  {
+    "namet": "/m/0fx9l",
+    "id": 78,
+    "name": "microwave"
+  },
+  {
+    "namet": "/m/029bxz",
+    "id": 79,
+    "name": "oven"
+  },
+  {
+    "namet": "/m/01k6s3",
+    "id": 80,
+    "name": "toaster"
+  },
+  {
+    "namet": "/m/0130jx",
+    "id": 81,
+    "name": "sink"
+  },
+  {
+    "namet": "/m/040b_t",
+    "id": 82,
+    "name": "refrigerator"
+  },
+  {
+    "namet": "/m/0bt_c3",
+    "id": 84,
+    "name": "book"
+  },
+  {
+    "namet": "/m/01x3z",
+    "id": 85,
+    "name": "clock"
+  },
+  {
+    "namet": "/m/02s195",
+    "id": 86,
+    "name": "vase"
+  },
+  {
+    "namet": "/m/01lsmm",
+    "id": 87,
+    "name": "scissors"
+  },
+  {
+    "namet": "/m/0kmg4",
+    "id": 88,
+    "name": "teddy bear"
+  },
+  {
+    "namet": "/m/03wvsk",
+    "id": 89,
+    "name": "hair drier"
+  },
+  {
+    "namet": "/m/012xff",
+    "id": 90,
+    "name": "toothbrush"
+  }
+]

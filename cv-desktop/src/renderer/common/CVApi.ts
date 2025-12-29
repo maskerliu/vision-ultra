@@ -1,6 +1,5 @@
 import { loadOpenCV, type OpenCV } from '@opencvjs/web'
-import { cvBlur, cvEqualizeHist, cvFilter, cvSharpen, cvDetector} from '../store'
-import { Open } from 'webpack-dev-server'
+import { cvBlur, cvDetector, cvEqualizeHist, cvFilter, cvSharpen } from '../store'
 
 const cv: typeof OpenCV = await loadOpenCV()
 let gammaTable = new Uint8Array(256)
