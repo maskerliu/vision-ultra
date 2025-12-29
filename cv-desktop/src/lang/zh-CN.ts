@@ -111,10 +111,13 @@ export default {
 
     YOLODetect: 'YOLO',
     YOLODesc: 'you only look once',
-    yolov6n: 'YOLOv6 (via 美团)',
-    yolov8n: 'YOLOv8 (via Ultralytics)',
-    yolov10n: 'YOLOv10(清华大学)',
-    yolo11n: 'YOLO11(lastest)',
+    DetectModel: {
+      yolov6n: 'YOLOv6 (via 美团)',
+      yolov8n: 'YOLOv8 (via Ultralytics)',
+      yolov10n: 'YOLOv10(清华大学)',
+      yolo11n: 'YOLO11(lastest)',
+      mobilenet: 'MobileNetv2'
+    },
 
     FaceRec: '人脸识别'
   },

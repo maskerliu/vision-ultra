@@ -1,0 +1,606 @@
+[
+  {
+    "id": 0,
+    "name": "background"
+  },
+  {
+    "id": 1,
+    "name": "wall"
+  },
+  {
+    "id": 2,
+    "name": "building"
+  },
+  {
+    "id": 3,
+    "name": "sky"
+  },
+  {
+    "id": 4,
+    "name": "floor"
+  },
+  {
+    "id": 5,
+    "name": "tree"
+  },
+  {
+    "id": 6,
+    "name": "ceiling"
+  },
+  {
+    "id": 7,
+    "name": "road"
+  },
+  {
+    "id": 8,
+    "name": "bed"
+  },
+  {
+    "id": 9,
+    "name": "windowpane"
+  },
+  {
+    "id": 10,
+    "name": "grass"
+  },
+  {
+    "id": 11,
+    "name": "cabinet"
+  },
+  {
+    "id": 12,
+    "name": "sidewalk"
+  },
+  {
+    "id": 13,
+    "name": "person"
+  },
+  {
+    "id": 14,
+    "name": "earth"
+  },
+  {
+    "id": 15,
+    "name": "door"
+  },
+  {
+    "id": 16,
+    "name": "table"
+  },
+  {
+    "id": 17,
+    "name": "mountain"
+  },
+  {
+    "id": 18,
+    "name": "plant"
+  },
+  {
+    "id": 19,
+    "name": "curtain"
+  },
+  {
+    "id": 20,
+    "name": "chair"
+  },
+  {
+    "id": 21,
+    "name": "car"
+  },
+  {
+    "id": 22,
+    "name": "water"
+  },
+  {
+    "id": 23,
+    "name": "painting"
+  },
+  {
+    "id": 24,
+    "name": "sofa"
+  },
+  {
+    "id": 25,
+    "name": "shelf"
+  },
+  {
+    "id": 26,
+    "name": "house"
+  },
+  {
+    "id": 27,
+    "name": "sea"
+  },
+  {
+    "id": 28,
+    "name": "mirror"
+  },
+  {
+    "id": 29,
+    "name": "rug"
+  },
+  {
+    "id": 30,
+    "name": "field"
+  },
+  {
+    "id": 31,
+    "name": "armchair"
+  },
+  {
+    "id": 32,
+    "name": "seat"
+  },
+  {
+    "id": 33,
+    "name": "fence"
+  },
+  {
+    "id": 34,
+    "name": "desk"
+  },
+  {
+    "id": 35,
+    "name": "rock"
+  },
+  {
+    "id": 36,
+    "name": "wardrobe"
+  },
+  {
+    "id": 37,
+    "name": "lamp"
+  },
+  {
+    "id": 38,
+    "name": "bathtub"
+  },
+  {
+    "id": 39,
+    "name": "railing"
+  },
+  {
+    "id": 40,
+    "name": "cushion"
+  },
+  {
+    "id": 41,
+    "name": "base"
+  },
+  {
+    "id": 42,
+    "name": "box"
+  },
+  {
+    "id": 43,
+    "name": "column"
+  },
+  {
+    "id": 44,
+    "name": "signboard"
+  },
+  {
+    "id": 45,
+    "name": "chest"
+  },
+  {
+    "id": 46,
+    "name": "counter"
+  },
+  {
+    "id": 47,
+    "name": "sand"
+  },
+  {
+    "id": 48,
+    "name": "sink"
+  },
+  {
+    "id": 49,
+    "name": "skyscraper"
+  },
+  {
+    "id": 50,
+    "name": "fireplace"
+  },
+  {
+    "id": 51,
+    "name": "refrigerator"
+  },
+  {
+    "id": 52,
+    "name": "grandstand"
+  },
+  {
+    "id": 53,
+    "name": "path"
+  },
+  {
+    "id": 54,
+    "name": "stairs"
+  },
+  {
+    "id": 55,
+    "name": "runway"
+  },
+  {
+    "id": 56,
+    "name": "case"
+  },
+  {
+    "id": 57,
+    "name": "pool"
+  },
+  {
+    "id": 58,
+    "name": "pillow"
+  },
+  {
+    "id": 59,
+    "name": "screen"
+  },
+  {
+    "id": 60,
+    "name": "stairway"
+  },
+  {
+    "id": 61,
+    "name": "river"
+  },
+  {
+    "id": 62,
+    "name": "bridge"
+  },
+  {
+    "id": 63,
+    "name": "bookcase"
+  },
+  {
+    "id": 64,
+    "name": "blind"
+  },
+  {
+    "id": 65,
+    "name": "coffee"
+  },
+  {
+    "id": 66,
+    "name": "toilet"
+  },
+  {
+    "id": 67,
+    "name": "flower"
+  },
+  {
+    "id": 68,
+    "name": "book"
+  },
+  {
+    "id": 69,
+    "name": "hill"
+  },
+  {
+    "id": 70,
+    "name": "bench"
+  },
+  {
+    "id": 71,
+    "name": "countertop"
+  },
+  {
+    "id": 72,
+    "name": "stove"
+  },
+  {
+    "id": 73,
+    "name": "palm"
+  },
+  {
+    "id": 74,
+    "name": "kitchen"
+  },
+  {
+    "id": 75,
+    "name": "computer"
+  },
+  {
+    "id": 76,
+    "name": "swivel"
+  },
+  {
+    "id": 77,
+    "name": "boat"
+  },
+  {
+    "id": 78,
+    "name": "bar"
+  },
+  {
+    "id": 79,
+    "name": "arcade"
+  },
+  {
+    "id": 80,
+    "name": "hovel"
+  },
+  {
+    "id": 81,
+    "name": "bus"
+  },
+  {
+    "id": 82,
+    "name": "towel"
+  },
+  {
+    "id": 83,
+    "name": "light"
+  },
+  {
+    "id": 84,
+    "name": "truck"
+  },
+  {
+    "id": 85,
+    "name": "tower"
+  },
+  {
+    "id": 86,
+    "name": "chandelier"
+  },
+  {
+    "id": 87,
+    "name": "awning"
+  },
+  {
+    "id": 88,
+    "name": "streetlight"
+  },
+  {
+    "id": 89,
+    "name": "booth"
+  },
+  {
+    "id": 90,
+    "name": "television"
+  },
+  {
+    "id": 91,
+    "name": "airplane"
+  },
+  {
+    "id": 92,
+    "name": "dirt"
+  },
+  {
+    "id": 93,
+    "name": "apparel"
+  },
+  {
+    "id": 94,
+    "name": "pole"
+  },
+  {
+    "id": 95,
+    "name": "land"
+  },
+  {
+    "id": 96,
+    "name": "bannister"
+  },
+  {
+    "id": 97,
+    "name": "escalator"
+  },
+  {
+    "id": 98,
+    "name": "ottoman"
+  },
+  {
+    "id": 99,
+    "name": "bottle"
+  },
+  {
+    "id": 100,
+    "name": "buffet"
+  },
+  {
+    "id": 101,
+    "name": "poster"
+  },
+  {
+    "id": 102,
+    "name": "stage"
+  },
+  {
+    "id": 103,
+    "name": "van"
+  },
+  {
+    "id": 104,
+    "name": "ship"
+  },
+  {
+    "id": 105,
+    "name": "fountain"
+  },
+  {
+    "id": 106,
+    "name": "conveyer"
+  },
+  {
+    "id": 107,
+    "name": "canopy"
+  },
+  {
+    "id": 108,
+    "name": "washer"
+  },
+  {
+    "id": 109,
+    "name": "plaything"
+  },
+  {
+    "id": 110,
+    "name": "swimming"
+  },
+  {
+    "id": 111,
+    "name": "stool"
+  },
+  {
+    "id": 112,
+    "name": "barrel"
+  },
+  {
+    "id": 113,
+    "name": "basket"
+  },
+  {
+    "id": 114,
+    "name": "waterfall"
+  },
+  {
+    "id": 115,
+    "name": "tent"
+  },
+  {
+    "id": 116,
+    "name": "bag"
+  },
+  {
+    "id": 117,
+    "name": "minibike"
+  },
+  {
+    "id": 118,
+    "name": "cradle"
+  },
+  {
+    "id": 119,
+    "name": "oven"
+  },
+  {
+    "id": 120,
+    "name": "ball"
+  },
+  {
+    "id": 121,
+    "name": "food"
+  },
+  {
+    "id": 122,
+    "name": "step"
+  },
+  {
+    "id": 123,
+    "name": "tank"
+  },
+  {
+    "id": 124,
+    "name": "trade"
+  },
+  {
+    "id": 125,
+    "name": "microwave"
+  },
+  {
+    "id": 126,
+    "name": "pot"
+  },
+  {
+    "id": 127,
+    "name": "animal"
+  },
+  {
+    "id": 128,
+    "name": "bicycle"
+  },
+  {
+    "id": 129,
+    "name": "lake"
+  },
+  {
+    "id": 130,
+    "name": "dishwasher"
+  },
+  {
+    "id": 131,
+    "name": "screen"
+  },
+  {
+    "id": 132,
+    "name": "blanket"
+  },
+  {
+    "id": 133,
+    "name": "sculpture"
+  },
+  {
+    "id": 134,
+    "name": "hood"
+  },
+  {
+    "id": 135,
+    "name": "sconce"
+  },
+  {
+    "id": 136,
+    "name": "vase"
+  },
+  {
+    "id": 137,
+    "name": "traffic"
+  },
+  {
+    "id": 138,
+    "name": "tray"
+  },
+  {
+    "id": 139,
+    "name": "ashcan"
+  },
+  {
+    "id": 140,
+    "name": "fan"
+  },
+  {
+    "id": 141,
+    "name": "pier"
+  },
+  {
+    "id": 142,
+    "name": "screen"
+  },
+  {
+    "id": 143,
+    "name": "plate"
+  },
+  {
+    "id": 144,
+    "name": "monitor"
+  },
+  {
+    "id": 145,
+    "name": "bulletin"
+  },
+  {
+    "id": 146,
+    "name": "shower"
+  },
+  {
+    "id": 147,
+    "name": "radiator"
+  },
+  {
+    "id": 148,
+    "name": "glass"
+  },
+  {
+    "id": 149,
+    "name": "clock"
+  },
+  {
+    "id": 150,
+    "name": "flag"
+  }
+]

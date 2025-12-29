@@ -27,7 +27,7 @@
           <div style="margin: 5px;">{{ key }}</div>
         </template>
         <template #value>
-          <div style="margin: 5px; ">{{ labelGroup.get(key)?.labels.length }}</div>
+          <div style="margin: 5px; ">{{ labelGroup.get(key)?.labels.size }}</div>
         </template>
         <template #right-icon>
           <van-button plain type="danger" size="mini" style="margin-top: 5px;" v-if="key !== $t('anno.labelDefault')"
@@ -35,13 +35,14 @@
             <van-icon class-prefix="iconfont" name="delete" />
           </van-button>
         </template>
-        <van-empty image-size="80" v-if="labelGroup.get(key) == null || labelGroup.get(key).labels.length == 0" />
+        <van-empty image-size="80" v-if="labelGroup.get(key) == null || labelGroup.get(key).labels.size == 0" />
         <van-list v-else style="width: calc(15rem - 4px); height: calc(100vh - 280px); overflow-y: scroll;">
-          <van-cell :placeholder="$t('anno.labelPlaceholder')" center v-for="label in labelGroup.get(key).labels"
-            clickable @click="activeLabel = label">
+          <van-cell :placeholder="$t('anno.labelPlaceholder')" center clickable
+            v-for="labelKey of labelGroup.get(key).labels.keys()"
+            @click="activeLabel = labelGroup.get(key).labels.get(labelKey)">
             <template #title>
-              <div class="color-block" :style="{ borderColor: label.color }">
-                {{ label.name }}
+              <div class="color-block" :style="{ borderColor: labelGroup.get(key).labels.get(labelKey).color }">
+                {{ labelGroup.get(key).labels.get(labelKey).name }}
               </div>
             </template>
             <template #right-icon>
@@ -63,7 +64,7 @@ import { CVLabel, Def_Object_Labels } from '../../common/Annotations'
 import { MARK_COLORS } from '../../common/CVColors'
 
 const { t } = useI18n()
-const labelGroup = ref<Map<string, { labels: CVLabel[], active: boolean }>>(new Map())
+const labelGroup = ref<Map<string, { labels: Map<string, CVLabel>, active: boolean }>>(new Map())
 const collapsedLabelGroup = ref() // 展开的标签组
 let activeLabelGroup: string = null
 const labelName = ref('')
@@ -79,11 +80,16 @@ defineExpose({ getLabel, searchLabel })
 
 onMounted(() => {
 
-  let defLabels = Def_Object_Labels.map((label, idx) => {
-    return { id: idx, name: label, color: MARK_COLORS.get(idx, colorSpace.value) }
+  // let defLabels = Def_Object_Labels.map((label, idx) => {
+  //   return { id: idx, name: label, color: MARK_COLORS.get(idx, colorSpace.value) }
+  // })
+  let defLabels = new Map()
+  Def_Object_Labels.forEach((label, idx) => {
+    defLabels.set(`${idx}`, { id: idx, name: label, color: MARK_COLORS.get(idx, colorSpace.value) })
   })
 
   let defaultKey = t('anno.labelDefault')
+
   labelGroup.value.set(defaultKey, { labels: defLabels, active: true })
   updateLabelGroup(defaultKey)
 })
@@ -92,8 +98,8 @@ function onColorSpaceChanged(key: string) {
   colorSpace.value = key
   for (let item of labelGroup.value.keys()) {
     let labels = labelGroup.value.get(item).labels
-    for (let i = 0; i < labels.length; i++) {
-      labels[i].color = MARK_COLORS.get(i, colorSpace.value)
+    for (let key of labels.keys()) {
+      labels.get(key).color = MARK_COLORS.get(labels.get(key).id, colorSpace.value)
     }
   }
 }
@@ -104,10 +110,11 @@ function onLabelUpload(data: UploaderFileListItem) {
   reader.onload = function (e) {
     var pointsTxt = e.target.result
     let arr = JSON.parse(pointsTxt as string)
-    let labels = []
-    for (let i = 0; i < arr.length; i++) {
-      labels.push({ id: i, name: arr[i], color: MARK_COLORS.get(i, colorSpace.value) })
-    }
+    let labels = new Map()
+    arr.forEach((it: any) => {
+      labels.set(`${it.id}`, { id: it.id, name: it.name, color: MARK_COLORS.get(it.id, colorSpace.value) })
+    })
+
     labelGroup.value.set(data.file.name, { labels, active: true })
     updateLabelGroup(data.file.name)
   }
@@ -127,11 +134,19 @@ function updateLabelGroup(key: string) {
 }
 
 function getLabel(index: number) {
-  return labelGroup.value.get(activeLabelGroup).labels[index]
+  return labelGroup.value.get(activeLabelGroup).labels.get(`${index}`)
 }
 
 function searchLabel(keyword: string) {
-  return labelGroup.value.get(activeLabelGroup).labels.filter(item => item.name.indexOf(keyword) != -1)
+  let result = []
+
+  for (let item of labelGroup.value.get(activeLabelGroup).labels.values()) {
+    if (item.name.indexOf(keyword) != -1) {
+      result.push(item)
+    }
+  }
+
+  return result
 }
 
 function deleteLabelGroup(key: string) {

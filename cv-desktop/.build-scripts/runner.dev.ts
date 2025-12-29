@@ -76,35 +76,8 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
           },
         },
         {
-          directory: path.join(dirname, '../../model-train/models/yolo11n_web_model/'),
-          publicPath: '/static/yolo11n_web_model/',
-          staticOptions: {
-            etag: true,
-            cacheControl: true,
-            maxAge: '30d',
-          },
-        },
-        {
-          directory: path.join(dirname, '../../model-train/models/yolov10n_web_model/'),
-          publicPath: '/static/yolov10n_web_model/',
-          staticOptions: {
-            etag: true,
-            cacheControl: true,
-            maxAge: '30d',
-          },
-        },
-        {
-          directory: path.join(dirname, '../../model-train/models/yolov8n_web_model/'),
-          publicPath: '/static/yolov8n_web_model/',
-          staticOptions: {
-            etag: true,
-            cacheControl: true,
-            maxAge: '30d',
-          },
-        },
-        {
-          directory: path.join(dirname, '../../model-train/models/yolov6n_web_model/'),
-          publicPath: '/static/yolov6n_web_model/',
+          directory: path.join(dirname, '../../model-train/models/'),
+          publicPath: '/static/',
           staticOptions: {
             etag: true,
             cacheControl: true,
