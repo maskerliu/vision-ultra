@@ -94,6 +94,7 @@ import { MPMask } from '@mediapipe/tasks-vision'
 import 'media-chrome'
 import { showNotify } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
+import { WorkerCMD } from '../../common'
 import { createCopyTextureToCanvas, drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { VideoPlayer } from '../../common/VideoPlayer'
@@ -143,6 +144,7 @@ let workerListener = (event: MessageEvent) => {
   isScan.value = false
 
   if (event.data.error) {
+    console.log(event.data)
     showNotify({ type: 'danger', message: event.data.error, duration: 1500 })
     return
   }
@@ -152,7 +154,8 @@ let workerListener = (event: MessageEvent) => {
       if (videoPlayer.isOpen) {
         videoPlayer.objects = visionStore.enableDetect ? event.data : null
       } else {
-        annotationPanel.value.drawAnnotations(event.data.boxes, event.data.scores, event.data.classes,
+        annotationPanel.value.drawAnnotations(event.data.boxes,
+          event.data.scores, event.data.classes,
           event.data.objNum, event.data.scale)
         // drawObjectDetectResult(previewCtx,
         //   event.data.boxes, event.data.scores, event.data.classes,
@@ -161,11 +164,6 @@ let workerListener = (event: MessageEvent) => {
       break
     case 'mask':
       console.log(event.data)
-
-      let mask = new ImageData(preview.value.width, preview.value.height, event.data.masks[0])
-
-      drawSegmentationResult(event.data.masks)
-      previewCtx.putImageData(mask, 0, 0)
       break
     case 'face':
       if (videoPlayer.isOpen) {
@@ -212,13 +210,12 @@ async function onScan() {
   isScan.value = true
   let frame = drawImage()
   if (visionStore.faceDetect)
-    trackerWorker.postMessage({ type: 'faceDetect', image: frame })
+    trackerWorker.postMessage({ cmd: WorkerCMD.faceDetect, image: frame })
 
-  if (visionStore.enableDetect) {
-    trackerWorker.postMessage({ type: 'objDetect', image: frame })
-    trackerWorker.postMessage({ type: 'objSegment', image: frame })
-  }
-
+  let cmds = []
+  if (visionStore.enableDetect) cmds.push(WorkerCMD.objDetect)
+  if (visionStore.enableSegment) cmds.push(WorkerCMD.objSegment)
+  if (cmds.length > 0) trackerWorker.postMessage({ cmd: cmds, image: frame })
 }
 
 async function onLiveStream() {
@@ -276,7 +273,7 @@ async function onConfirmName() {
     showNameInputDialog.value = true
     return
   }
-  trackerWorker.postMessage({ type: 'faceCapture', name: eigenName.value })
+  trackerWorker.postMessage({ cmd: WorkerCMD.faceCapture, name: eigenName.value })
   eigenName.value = null
   showNameInputDialog.value = false
 }
@@ -318,28 +315,59 @@ async function drawSegmentationResult(segmentationResult: MPMask[]) {
   previewCtx.restore()
 }
 
+watch(() => visionStore.enableSegment, async (val, _) => {
+  showLoading.value = true
+  if (val) {
+    showLoading.value = true
+    trackerWorker.postMessage({
+      cmd: WorkerCMD.initObjTracker,
+      detectModel: visionStore.enableDetect ? visionStore.detectModel : null,
+      segmentModel: visionStore.enableSegment ? visionStore.segmentModel : null
+    })
+  } else {
+    trackerWorker.postMessage({ cmd: WorkerCMD.disposeSegment })
+  }
+})
+
+watch(() => visionStore.segmentModel, async () => {
+  showLoading.value = true
+  trackerWorker.postMessage({
+    cmd: WorkerCMD.initObjTracker,
+    detectModel: visionStore.enableDetect ? visionStore.detectModel : null,
+    segmentModel: visionStore.segmentModel
+  })
+})
+
 watch(() => visionStore.enableDetect, async (val, _) => {
   videoPlayer.enableObject = val
   if (val) {
     showLoading.value = true
-    trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.detectModel })
+    trackerWorker.postMessage({
+      cmd: WorkerCMD.initObjTracker,
+      detectModel: visionStore.enableDetect ? visionStore.detectModel : null,
+      segmentModel: visionStore.enableSegment ? visionStore.segmentModel : null
+    })
   } else {
-    trackerWorker.postMessage({ type: 'objDispose' })
+    trackerWorker.postMessage({ cmd: WorkerCMD.disposeDetect })
   }
 })
 
 watch(() => visionStore.detectModel, async () => {
   showLoading.value = true
-  trackerWorker.postMessage({ type: 'initObjTracker', modelName: visionStore.detectModel })
+  trackerWorker.postMessage({
+    cmd: WorkerCMD.initObjTracker,
+    detectModel: visionStore.enableDetect ? visionStore.detectModel : null,
+    segmentModel: visionStore.enableSegment ? visionStore.segmentModel : null
+  })
 })
 
 watch(() => visionStore.faceDetect, async (val, _) => {
   videoPlayer.enableFace = val
   if (val) {
     showLoading.value = true
-    trackerWorker.postMessage({ type: 'initFaceDetector' })
+    trackerWorker.postMessage({ cmd: WorkerCMD.initFaceDetector })
   } else {
-    trackerWorker.postMessage({ type: 'faceDispose' })
+    trackerWorker.postMessage({ cmd: WorkerCMD.faceDispose })
     videoPlayer.face = null
   }
 })
@@ -360,7 +388,6 @@ watch(() => visionStore.imgParams,
   },
   { deep: true }
 )
-
 
 </script>
 <style lang="css">

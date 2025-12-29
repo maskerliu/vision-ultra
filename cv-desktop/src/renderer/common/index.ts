@@ -1,5 +1,18 @@
 export { PushClient } from './PushClient'
 
+export enum WorkerCMD {
+  initObjTracker = 'initObjTracker',
+  disposeSegment = 'disposeSegment',
+  disposeDetect = 'disposeDetect',
+  objSegment = 'objSegment',
+  objDetect = 'objDetect',
+
+  initFaceDetector = 'initFaceDetector',
+  faceDispose = 'faceDispose',
+  faceDetect = 'faceDetect',
+  faceCapture = 'faceCapture'
+}
+
 export function generateUid(): string {
   let len = 8
   let res = []

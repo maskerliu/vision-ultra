@@ -142,7 +142,6 @@ function showLabelSearchResult(type: DrawType, idx: number) {
 }
 
 function updateMarkerLabel(label: CVLabel) {
-  console.log(label)
   curMarker.value.set(AnnotationPanel.genLabelOption(label))
   curMarker.value.canvas.requestRenderAll()
   showLabelSearch.value = false

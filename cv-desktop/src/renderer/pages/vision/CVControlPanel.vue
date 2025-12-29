@@ -60,7 +60,7 @@
         v-model="visionStore.segmentModel" @change="onParamChange">
         <van-radio :name="model" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 10px;"
           v-for="model in SegmentModels">
-          {{ $t(`cvControl.${model}`) }}
+          {{ $t(`cvControl.Segment.${model}`) }}
         </van-radio>
       </van-radio-group>
     </van-cell-group>
@@ -170,10 +170,10 @@
           </van-slider>
         </template>
       </van-field>
-      <van-popover v-model:show="showColorMaps" position="bottom" :overlay="true" style="width: 320px;">
+      <van-popover v-model:show="showColorMaps" position="bottom" :overlay="true" style="width: 330px;">
         <template #reference>
-          <van-cell center clickable style="min-width: 320px;" :title="$t('cvControl.ColorMap')"
-            :value="ColorMaps[visionStore.imgParams.colorMap]"></van-cell>
+          <van-field center clickable input-align="right" readonly :label="$t('cvControl.ColorMap')"
+            :model-value="ColorMaps[visionStore.imgParams.colorMap]" style="width: 300px;"></van-field>
         </template>
         <van-list style="height: 200px; overflow: hidden scroll;">
           <van-cell center clickable :title="val" v-for="(val, idx) in ColorMaps" :key="idx"
@@ -510,10 +510,9 @@ import { onMounted, ref } from 'vue'
 import { onnx } from '../../common/ONNX'
 import { VisionStore } from '../../store'
 
-const SegmentModels = ['Deeplab', 'UNet', 'SAM']
-const DetectModels = ['yolov8n', 'yolov10n', 'yolo11n']
+const SegmentModels = ['deeplab', 'unet', 'sam']
+const DetectModels = ['yolov8n', 'yolov10n', 'yolo11n', 'mobilenet']
 const showColorMaps = ref(false)
-const activeCollapse = ref(['0'])
 const ColorMaps = ['NONE', 'AUTUMN', 'BONE', 'JET', 'WINTER', 'RAINBOW', 'OCEAN', 'SUMMER',
   'SPRING', 'COOL', 'HSV', 'PINK', 'HOT', 'PARULA', 'MAGMA',
   'INFERNO', 'PLASMA', 'VIRIDIS', 'CIVIDIS', 'TWILIGHT', 'TWILIGHT_SHIFTED', 'TURBO', 'DEEPGREEN']
@@ -554,6 +553,7 @@ function onParamChange() {
   // visionStore.imgParams.detector = detector.value as cvDetector
   // visionStore.imgParams.canny = canny.value as any
 }
+
 function onColorMapChanged(idx: number) {
   visionStore.imgParams.colorMap = idx
   showColorMaps.value = false

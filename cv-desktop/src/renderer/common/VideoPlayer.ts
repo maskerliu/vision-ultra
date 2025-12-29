@@ -98,14 +98,14 @@ export class VideoPlayer {
     this.previewCtx.putImageData(this.frame, 0, 0)
 
     if (this._faceFrames == 3) {
-      if (this._enableFace) this._trackerWorker?.postMessage({ type: 'faceDetect', image: this.frame })
+      if (this._enableFace) this._trackerWorker?.postMessage({ cmd: 'faceDetect', image: this.frame })
       this._faceFrames = 0
     } else {
       this._faceFrames++
     }
 
     if (this._objFrames == 5) {
-      if (this._enableObject) this._trackerWorker?.postMessage({ type: 'objDetect', image: this.frame })
+      if (this._enableObject) this._trackerWorker?.postMessage({ cmd: 'objDetect', image: this.frame })
       this._objFrames = 0
     } else {
       this._objFrames++
