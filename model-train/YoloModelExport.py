@@ -39,7 +39,7 @@ from pathlib import Path
 #     print(result.boxes)
 # modelv6.export(format="tfjs", half=True)
 
-modelv6 = YOLO("./yolov6n.yaml")
+# modelv6 = YOLO("./yolov6n.yaml")
 # modelv6.info()
 # results = modelv6.train(data="coco8.yaml", epochs=100, imgsz=640)
 # results = modelv6("bus.jpg")
@@ -49,6 +49,8 @@ modelv6 = YOLO("./yolov6n.yaml")
 
 
 model11n_seg = YOLO("./yolo11n-seg.pt")
-results = model11n_seg("bus.jpg")
-for result in results:
-    print(result.boxes)
+# results = model11n_seg("bus.jpg")
+# for result in results:
+#     print(result.masks)
+
+model11n_seg.export(format="tfjs", half=True, int8=True)

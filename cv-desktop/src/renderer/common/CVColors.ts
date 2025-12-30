@@ -46,12 +46,12 @@ export class MarkColors {
   get(i: number, palette = 'defo') { return this._palettes.get(palette)[Math.floor(i) % this.n] }
 
   static hexToRgba(hex: string, alpha = 255) {
+    return `rgba(${MarkColors.hexToRgb(hex).join(", ")}, ${alpha})`
+  }
+
+  static hexToRgb(hex: string) {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-    return result
-      ? `rgba(${[parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)].join(
-        ", "
-      )}, ${alpha})`
-      : null
+    return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
   }
 
   static reverseColor(hex: string, alpha = 255) {

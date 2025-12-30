@@ -24,3 +24,5 @@ log.txt
 *.pb
 *.onnx
 *_saved_model
+
+datasets

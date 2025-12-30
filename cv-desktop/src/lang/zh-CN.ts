@@ -61,9 +61,12 @@ export default {
     ModelImport: '模型导入',
 
     ImageSegment: '图像分割',
-    Deeplab: 'Deeplabv3',
-    SAM: 'Segment Anything',
-    UNet: 'u-net++',
+    Segment: {
+      deeplab: 'Deeplabv3',
+      'yolo11n-seg': 'Yolo11n',
+      sam: 'Segment Anything',
+      unet: 'u-net++',
+    },
 
     ImgEnhance: '图像增强',
     Gray: '灰度',
