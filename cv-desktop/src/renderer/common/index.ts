@@ -2,8 +2,7 @@ export { PushClient } from './PushClient'
 
 export enum WorkerCMD {
   initObjTracker = 'initObjTracker',
-  disposeSegment = 'disposeSegment',
-  disposeDetect = 'disposeDetect',
+  dispose = 'dispose',
   objSegment = 'objSegment',
   objDetect = 'objDetect',
 

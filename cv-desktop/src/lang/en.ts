@@ -62,6 +62,7 @@ export default {
     ImageSegment: 'Image Segment',
     Segment: {
       deeplab: 'Deeplabv3',
+      'yolo11n-seg': 'Yolo11n',
       sam: 'Segment Anything',
       unet: 'u-net++',
     },

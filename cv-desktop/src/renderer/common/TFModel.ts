@@ -4,6 +4,15 @@ import { baseDomain } from '../../common'
 
 export const MAX_OBJECTS_NUM: number = 20
 
+export enum ModelType {
+  Unknown = -1,
+  Classify = 0,
+  Detect = 1,
+  Segment = 2,
+  OBB = 3,
+  Pose = 4
+}
+
 export class TFModel {
   protected model: tf.GraphModel
   name: string
@@ -13,16 +22,24 @@ export class TFModel {
   private maxSize: number = 0
   public objNum: number = 0
   public scale: [number, number] = [1, 1]
+  private type: ModelType
 
   private _isInited: boolean = false
   get isInited() { return this._isInited }
 
-  async init(name: string, fileset: any) {
+  get inShape() {
+    return this.model.inputs[0].shape.slice(1)
+  }
+
+  async init(name: string, type: ModelType = ModelType.Unknown) {
     if (this._isInited && this.name == name) return
     if (name == null) return
+    if (type == ModelType.Unknown) throw new Error('model type is unknown')
+
     this.dispose()
     this._isInited = false
     this.name = name
+    this.type = type
 
     await tf.ready()
 
@@ -45,6 +62,9 @@ export class TFModel {
     }
     this.modelWidth = this.model.inputs[0].shape[1]
     this.modelHeight = this.model.inputs[0].shape[2]
+
+    // console.log(this.model, this.modelWidth, this.modelHeight)
+
     this._isInited = true
   }
 
@@ -54,7 +74,7 @@ export class TFModel {
     this.model = null
   }
 
-  async run(image: ImageData) {
+  async run(image: ImageData, segment: boolean = false) {
     let maxSize = Math.max(image.width, image.height)
     if (this.modelWidth == -1 || this.modelHeight == -1)
       this.scale[0] = this.scale[1] = 1
@@ -68,7 +88,21 @@ export class TFModel {
       return
     }
 
-    let input = this.preprocess(image)
+    let input: any
+    switch (this.type) {
+      case ModelType.Detect:
+        input = this.preprocess(image)
+        break
+      case ModelType.Segment:
+        if (this.name.indexOf('deeplab') !== -1)
+          input = tf.tidy(() => tf.cast(this.toInputTensor(image), 'int32'))
+        else
+          input = this.preprocess(image)
+        break
+      default:
+        throw new Error('model type is unknown')
+    }
+
     let result = await this.model.executeAsync(input)
     input.dispose()
     return result
@@ -93,5 +127,17 @@ export class TFModel {
     })
 
     return input
+  }
+
+  protected toInputTensor(input: ImageData) {
+    return tf.tidy(() => {
+      const image = input instanceof tf.Tensor ? input : tf.browser.fromPixels(input)
+      const [height, width] = image.shape
+      const resizeRatio = 513 / Math.max(width, height)
+      const targetHeight = Math.round(height * resizeRatio)
+      const targetWidth = Math.round(width * resizeRatio)
+      return tf.expandDims(
+        tf.image.resizeBilinear(image, [targetHeight, targetWidth]))
+    })
   }
 }

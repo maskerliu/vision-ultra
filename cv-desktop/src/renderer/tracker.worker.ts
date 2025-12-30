@@ -4,6 +4,7 @@ import { baseDomain } from "../common"
 import { WorkerCMD } from "./common"
 import { FaceDetector } from "./common/FaceDetector"
 import { ObjectTracker } from "./common/ObjectTracker"
+import { ModelType } from "./common/TFModel"
 
 const ctx: Worker = self as any
 let fileset: any = null
@@ -19,40 +20,35 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   cmd: WorkerCMD | WorkerCMD[],
   detectModel?: string,
   segmentModel?: string,
+  modelTypes?: ModelType[],
   image?: ImageData
 }>) => {
-  try {
-    let cmds = Array.isArray(event.data.cmd) ? event.data.cmd : [event.data.cmd]
-    for (let cmd of cmds) {
-      console.log(cmd)
+
+  let cmds = Array.isArray(event.data.cmd) ? event.data.cmd : [event.data.cmd]
+  for (let cmd of cmds) {
+    let data = { loading: false }
+    try {
       switch (cmd) {
         case WorkerCMD.initObjTracker:
-          await objTracker.init(event.data.detectModel, event.data.segmentModel, fileset)
-          ctx.postMessage({ loading: false })
+          await objTracker.init(event.data.detectModel, event.data.segmentModel)
           break
         case WorkerCMD.initFaceDetector:
           await faceDetector.init()
-          ctx.postMessage({ loading: false })
           break
-        case WorkerCMD.disposeDetect:
-          objTracker.disposeDetect()
-          break
-        case WorkerCMD.disposeSegment:
-          objTracker.disposeSegment()
+        case WorkerCMD.dispose:
+          objTracker.dispose(event.data.modelTypes)
           break
         case WorkerCMD.faceDispose:
           faceDetector.dispose()
           break
         case WorkerCMD.objSegment:
-          await objTracker.segment(event.data.image)
-          // ctx.postMessage({
-          //   type: 'mask',
-          //   masks
-          // })
+          let result = await objTracker.segment(event.data.image)
+          data = Object.assign(data, result)
+          data['type'] = 'mask'
           break
         case WorkerCMD.objDetect:
           await objTracker.detect(event.data.image)
-          ctx.postMessage({
+          data = Object.assign(data, {
             type: 'object',
             boxes: objTracker.boxes,
             scores: objTracker.scores,
@@ -64,7 +60,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           break
         case WorkerCMD.faceDetect:
           await faceDetector.detect(event.data.image)
-          ctx.postMessage({
+          data = Object.assign(data, {
             type: 'face',
             face: faceDetector.face,
           })
@@ -73,12 +69,12 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           // await faceDetector.facCapture(event.data.image)
           break
       }
+    } catch (error) {
+      data = Object.assign(data, { error: error })
+    } finally {
+      ctx.postMessage(data)
     }
-  } catch (error) {
-    console.error(error)
-    ctx.postMessage({ error: error, loading: false })
   }
-
 })
 
 init()

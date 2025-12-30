@@ -100,6 +100,7 @@ class ImageParams {
   }
 }
 
+
 export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
@@ -107,7 +108,7 @@ export const VisionStore = defineStore('VisionStore', {
       modelEngine: 'tf', // tensorflow or onnx
 
       enableSegment: false,
-      segmentModel: 'deeplab',
+      segmentModel: 'yolo11n-seg',
 
       enableDetect: false,
       detectModel: 'mobilenet',

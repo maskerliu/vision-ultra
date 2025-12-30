@@ -510,7 +510,7 @@ import { onMounted, ref } from 'vue'
 import { onnx } from '../../common/ONNX'
 import { VisionStore } from '../../store'
 
-const SegmentModels = ['deeplab', 'unet', 'sam']
+const SegmentModels = ['deeplab', 'yolo11n-seg', 'unet', 'sam']
 const DetectModels = ['yolov8n', 'yolov10n', 'yolo11n', 'mobilenet']
 const showColorMaps = ref(false)
 const ColorMaps = ['NONE', 'AUTUMN', 'BONE', 'JET', 'WINTER', 'RAINBOW', 'OCEAN', 'SUMMER',
