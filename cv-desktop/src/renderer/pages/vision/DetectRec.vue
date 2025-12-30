@@ -95,8 +95,11 @@ import 'media-chrome'
 import { showNotify } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { WorkerCMD } from '../../common'
+import { CVLabel } from '../../common/Annotations'
+import { MarkColors } from '../../common/CVColors'
 import { createCopyTextureToCanvas, drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
+import { ModelType } from '../../common/TFModel'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { VisionStore } from '../../store'
 import TrackerWorker from '../../tracker.worker?worker'
@@ -144,8 +147,7 @@ let workerListener = (event: MessageEvent) => {
   isScan.value = false
 
   if (event.data.error) {
-    console.log(event.data)
-    showNotify({ type: 'danger', message: event.data.error, duration: 1500 })
+    showNotify({ type: 'danger', message: event.data.error.message, duration: 1500 })
     return
   }
 
@@ -163,7 +165,40 @@ let workerListener = (event: MessageEvent) => {
       }
       break
     case 'mask':
-      console.log(event.data)
+      let labels = new Map()
+      let imageData = new ImageData(event.data.width, event.data.height)
+      console.log(imageData.width, imageData.height)
+      for (let row = 0; row < imageData.width; ++row) {
+        for (let col = 0; col < imageData.height; ++col) {
+          let idx = row * imageData.height + col
+          let id = event.data.mask[idx]
+          if (id == undefined) {
+            console.log('undefined', row, col, idx)
+            continue
+          }
+          if (!labels.has(id)) {
+            let label: CVLabel = annotationPanel.value.getLabel(id)
+            if (label == null) {
+              console.log(id, 'not found')
+              label = { id: id, name: 'unknown', color: '#0000FF' }
+            }
+            labels.set(label.id, label)
+          }
+
+          let l = labels.get(id)
+          let [r, g, b] = MarkColors.hexToRgb(l.color)
+          imageData.data[idx * 4] = r
+          imageData.data[idx * 4 + 1] = g
+          imageData.data[idx * 4 + 2] = b
+          imageData.data[idx * 4 + 3] = 200
+        }
+      }
+
+      offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
+      offscreenCtx.putImageData(imageData, 0, 0)
+
+      previewCtx.drawImage(offscreenCtx.canvas, 0, 0)
+
       break
     case 'face':
       if (videoPlayer.isOpen) {
@@ -325,7 +360,7 @@ watch(() => visionStore.enableSegment, async (val, _) => {
       segmentModel: visionStore.enableSegment ? visionStore.segmentModel : null
     })
   } else {
-    trackerWorker.postMessage({ cmd: WorkerCMD.disposeSegment })
+    trackerWorker.postMessage({ cmd: WorkerCMD.dispose, modelTypes: [ModelType.Segment] })
   }
 })
 
@@ -348,7 +383,7 @@ watch(() => visionStore.enableDetect, async (val, _) => {
       segmentModel: visionStore.enableSegment ? visionStore.segmentModel : null
     })
   } else {
-    trackerWorker.postMessage({ cmd: WorkerCMD.disposeDetect })
+    trackerWorker.postMessage({ cmd: WorkerCMD.dispose, modelTypes: [ModelType.Detect] })
   }
 })
 

@@ -106,7 +106,7 @@ const { canvasSize = [640, 480] } = defineProps<{
   canvasSize: [number, number]
 }>()
 
-defineExpose({ drawAnnotations })
+defineExpose({ drawAnnotations, getLabel })
 
 watch(() => canvasSize, (val, _) => {
   annotationPanel.resize(val[0], val[1])
@@ -161,6 +161,10 @@ function onMagic() {
 function onDrawSelect(type: DrawType) {
   curDrawType.value = type
   annotationPanel.changeDrawType(type)
+}
+
+function getLabel(id: number) {
+  return labeTab.value.getLabel(id)
 }
 
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
