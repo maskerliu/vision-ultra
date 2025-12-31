@@ -70,6 +70,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           break
       }
     } catch (error) {
+      console.error(error)
       data = Object.assign(data, { error: error })
     } finally {
       ctx.postMessage(data)

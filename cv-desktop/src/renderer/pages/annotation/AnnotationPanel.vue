@@ -1,7 +1,7 @@
 <template>
   <van-row class="marker-layer" justify="center" style="align-items: center">
     <van-col class="left-bar" justify="start">
-      <van-button square block @click="showRightBar = !showRightBar">
+      <van-button square block plain :type="showRightBar ? 'primary' : 'default'" @click="showRightBar = !showRightBar">
         <van-icon class-prefix="iconfont" name="marker" style="font-size: 1.2rem" />
       </van-button>
 
