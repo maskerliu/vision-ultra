@@ -13,9 +13,16 @@ export enum ModelType {
   Pose = 4
 }
 
+const ModelClassSize = {
+  'mobilenet': 90,
+  'yolo': 80,
+  'deeplab': 151
+}
+
 export class TFModel {
   protected model: tf.GraphModel
-  name: string
+  private _name: string
+  get name() { return this._name }
 
   private modelWidth: number = 0
   private modelHeight: number = 0
@@ -23,6 +30,8 @@ export class TFModel {
   public objNum: number = 0
   public scale: [number, number] = [1, 1]
   private type: ModelType
+  private _classNum: number = 0
+  get classNum() { return this._classNum }
 
   private _isInited: boolean = false
   get isInited() { return this._isInited }
@@ -38,8 +47,10 @@ export class TFModel {
 
     this.dispose()
     this._isInited = false
-    this.name = name
+    this._name = name
     this.type = type
+
+    this._classNum = ModelClassSize[name]
 
     await tf.ready()
 
@@ -63,7 +74,13 @@ export class TFModel {
     this.modelWidth = this.model.inputs[0].shape[1]
     this.modelHeight = this.model.inputs[0].shape[2]
 
-    // console.log(this.model, this.modelWidth, this.modelHeight)
+    if (name == 'deeplab') {
+      this.modelWidth = this.modelHeight = 513
+    }
+
+    console.log(this.model.inputs[0].shape, this.modelWidth, this.modelHeight)
+
+    console.log(this.model)
 
     this._isInited = true
   }
@@ -76,13 +93,10 @@ export class TFModel {
 
   async run(image: ImageData, segment: boolean = false) {
     let maxSize = Math.max(image.width, image.height)
-    if (this.modelWidth == -1 || this.modelHeight == -1)
-      this.scale[0] = this.scale[1] = 1
-    else {
-      this.scale[0] = maxSize / this.modelWidth
-      this.scale[1] = maxSize / this.modelHeight
-      this.maxSize = maxSize
-    }
+    this.scale[0] = maxSize / this.modelWidth
+    this.scale[1] = maxSize / this.modelHeight
+    this.maxSize = maxSize
+
     if (!this._isInited || this.model == null) {
       this.objNum = 0
       return

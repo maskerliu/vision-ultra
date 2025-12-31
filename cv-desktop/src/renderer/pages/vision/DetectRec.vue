@@ -90,14 +90,13 @@
 </template>
 <script lang="ts" setup>
 
-import { MPMask } from '@mediapipe/tasks-vision'
 import 'media-chrome'
 import { showNotify } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { WorkerCMD } from '../../common'
 import { CVLabel } from '../../common/Annotations'
 import { MarkColors } from '../../common/CVColors'
-import { createCopyTextureToCanvas, drawTFFaceResult } from '../../common/DrawUtils'
+import { drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
 import { ModelType } from '../../common/TFModel'
 import { VideoPlayer } from '../../common/VideoPlayer'
@@ -133,16 +132,14 @@ const annotationPanel = ref<any>('annotationPanel')
 
 const showLoading = inject<Ref<boolean>>('showLoading')
 
-
-let toImageBitmap: (mask: MPMask) => Promise<ImageBitmap>
-
 let previewCtx: CanvasRenderingContext2D
+let maskCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let captureCtx: CanvasRenderingContext2D
 let imgProcessor: ImageProcessor
 let videoPlayer: VideoPlayer = null
 
-let workerListener = (event: MessageEvent) => {
+const workerListener = (event: MessageEvent) => {
   showLoading.value = event.data.loading
   isScan.value = false
 
@@ -167,7 +164,6 @@ let workerListener = (event: MessageEvent) => {
     case 'mask':
       let labels = new Map()
       let imageData = new ImageData(event.data.width, event.data.height)
-      console.log(imageData.width, imageData.height)
       for (let row = 0; row < imageData.width; ++row) {
         for (let col = 0; col < imageData.height; ++col) {
           let idx = row * imageData.height + col
@@ -194,10 +190,15 @@ let workerListener = (event: MessageEvent) => {
         }
       }
 
-      offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
-      offscreenCtx.putImageData(imageData, 0, 0)
+      mask.value.width = event.data.width
+      mask.value.height = event.data.height
+      maskCtx.clearRect(0, 0, mask.value.width, mask.value.height)
+      maskCtx.putImageData(imageData, 0, 0)
 
-      previewCtx.drawImage(offscreenCtx.canvas, 0, 0)
+      previewCtx.save()
+      previewCtx.scale(event.data.scale[0], event.data.scale[1])
+      previewCtx.drawImage(maskCtx.canvas, 0, 0)
+      previewCtx.restore()
 
       break
     case 'face':
@@ -222,6 +223,7 @@ onMounted(async () => {
   // tensorTest()
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
+  maskCtx = mask.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
 
@@ -294,7 +296,6 @@ async function openFolder() {
 
       mask.value.width = w
       mask.value.height = h
-      toImageBitmap = createCopyTextureToCanvas(mask.value)
 
       onScan()
     }
@@ -319,35 +320,6 @@ function drawImage() {
   previewCtx.clearRect(0, 0, imgData.width, imgData.height)
   previewCtx.putImageData(imgData, 0, 0)
   return imgData
-}
-
-async function drawSegmentationResult(segmentationResult: MPMask[]) {
-  // get the canvas dimensions
-  const canvasWidth = preview.value.width
-  const canvasHeight = preview.value.height
-
-  // create segmentation mask
-  const segmentationMask = segmentationResult[0]
-  const segmentationMaskBitmap = await toImageBitmap(segmentationMask)
-
-  previewCtx.save()
-  previewCtx.fillStyle = 'white'
-  previewCtx.clearRect(0, 0, canvasWidth, canvasHeight)
-  previewCtx.drawImage(segmentationMaskBitmap, 0, 0, canvasWidth, canvasHeight)
-  previewCtx.restore()
-
-  previewCtx.save()
-  previewCtx.globalCompositeOperation = 'source-out'
-  previewCtx.fillRect(0, 0, canvasWidth, canvasHeight)
-  previewCtx.restore()
-
-  previewCtx.save()
-  // scale, flip and draw the video to fit the canvas
-  previewCtx.globalCompositeOperation = 'destination-atop'
-  previewCtx.translate(canvasWidth, 0)
-  previewCtx.scale(-1, 1)
-  // previewCtx.drawImage(input, 0, 0, canvasWidth, canvasHeight)
-  previewCtx.restore()
 }
 
 watch(() => visionStore.enableSegment, async (val, _) => {

@@ -47,24 +47,6 @@
 
     </van-cell-group>
 
-    <!-- image segment -->
-    <van-cell-group inset>
-      <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableSegment" style="margin-left: 10px;">
-          <van-icon class-prefix="iconfont" name="segment" style="color: #2980b9; " />
-          {{ $t('cvControl.ImageSegment') }}
-        </van-checkbox>
-      </template>
-
-      <van-radio-group direction="vertical" :disabled="!visionStore.enableSegment" style="padding: 10px 15px 0 15px;"
-        v-model="visionStore.segmentModel" @change="onParamChange">
-        <van-radio :name="model" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 10px;"
-          v-for="model in SegmentModels">
-          {{ $t(`cvControl.Segment.${model}`) }}
-        </van-radio>
-      </van-radio-group>
-    </van-cell-group>
-
     <!-- object detect -->
     <van-cell-group inset>
       <template #title>
@@ -119,6 +101,24 @@
           </van-slider>
         </template>
       </van-field>
+    </van-cell-group>
+
+    <!-- image segment -->
+    <van-cell-group inset>
+      <template #title>
+        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableSegment" style="margin-left: 10px;">
+          <van-icon class-prefix="iconfont" name="segment" style="color: #2980b9; " />
+          {{ $t('cvControl.ImageSegment') }}
+        </van-checkbox>
+      </template>
+
+      <van-radio-group direction="vertical" :disabled="!visionStore.enableSegment" style="padding: 10px 15px 0 15px;"
+        v-model="visionStore.segmentModel" @change="onParamChange">
+        <van-radio :name="model" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 10px;"
+          v-for="model in SegmentModels">
+          {{ $t(`cvControl.Segment.${model}`) }}
+        </van-radio>
+      </van-radio-group>
     </van-cell-group>
 
     <!-- face recognize -->
