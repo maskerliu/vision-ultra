@@ -1,5 +1,4 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
-import { MPMask } from '@mediapipe/tasks-vision'
 import { Def_Object_Labels } from './Annotations'
 import { MARK_COLORS, MarkColors } from './CVColors'
 import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
@@ -388,31 +387,4 @@ const createVertexBuffer = (gl) => {
     gl.STATIC_DRAW
   )
   return vertexBuffer
-}
-
-export function createCopyTextureToCanvas(canvas: HTMLCanvasElement) {
-  const gl = canvas.getContext('webgl2')
-  if (!gl) return undefined
-  const {
-    shaderProgram,
-    attribLocations: { position: positionLocation },
-    uniformLocations: { textureSampler: textureLocation }
-  } = createShaderProgram(gl)
-  const vertexBuffer = createVertexBuffer(gl)
-
-  return (mask: MPMask) => {
-    gl.viewport(0, 0, canvas.width, canvas.height)
-    gl.clearColor(1.0, 1.0, 1.0, 1.0)
-    gl.useProgram(shaderProgram)
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    const texture = mask.getAsWebGLTexture()
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
-    gl.enableVertexAttribArray(positionLocation)
-    gl.activeTexture(gl.TEXTURE0)
-    gl.bindTexture(gl.TEXTURE_2D, texture)
-    gl.uniform1i(textureLocation, 0)
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
-    return createImageBitmap(canvas)
-  }
 }
