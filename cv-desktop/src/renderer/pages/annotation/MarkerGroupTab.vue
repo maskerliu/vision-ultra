@@ -161,23 +161,15 @@ function updateMarkerLabel(label: CVLabel) {
 }
 
 .marker {
-  width: calc(100% - 3px);
-  border: 2px solid;
+  width: calc(100% - 8px);
+  border: 1px solid;
   border-radius: 5px;
-  margin: 4px 0 0 3px;
+  margin: 4px 0 0 7px;
 }
 
 .marker-input {
-  width: calc(100% - 4px);
+  width: calc(100% - 5px);
   border: 0;
   background-color: transparent;
-}
-
-.color-block {
-  /* width: 1.5rem;
-  height: 1.5rem; */
-  border: 2px solid;
-  margin-right: 10px;
-  border-radius: 5px;
 }
 </style>

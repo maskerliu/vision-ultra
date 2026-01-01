@@ -68,12 +68,12 @@ flowchart TD
   - 多格式图片、视频、实时音视频流、摄像头等多源输入支持。
   - 基础图形标注支持
     矩形、圆、多边形、直线、点、文本等图形的绘制和编辑，支持图形的拖拽、缩放、旋转、删除等操作。
-    ![数据预览](./assets/anno-editor.png)
+    ![数据预览](https://ibb.co/4Zd4WK01)
 
 - 图像处理：OpenCV 常见图像处理方法
   支持旋转、模糊、色彩空间、灰度、滤波等。
   支持 web、wsam、node-napi 不同形态的图像处理，方便前后端分离设计。
-  ![数据预览](./assets/opencv.png)
+  ![预览](https://ibb.co/vxhbfm4S)
 
 - 目标分割检测与跟踪：
   基于 Deeplab、YOLO、MobileNet 等高性能模型目标检测，支持 YOLO 系列模型：
@@ -81,12 +81,15 @@ flowchart TD
   _YOLOv10 (清华大学)_
   _YOLOv11 (最新版)_
   支持自定义模型训练与部署，拓展性高。
-  ![数据预览](./assets/detect.png)
+  检测
+  ![数据预览](https://ibb.co/23b1V59y)
+  分割
+  ![数据预览](https://ibb.co/5xh4dW6Y)
 
 - 人脸检测：实现人脸识别和特征提取
   在`@mediapipe/tasks-vision`基础上，实现实时人脸检测和关键点定位，特征点三角化、3D 重建等，友好的可视化支持，方便更为直观的分析结果。
   结合`lancedb`，实现人脸特征数据存储与检索，并构建了简洁的 Face DB 管理模块，方便数据的管理与分析。
-  ![数据预览](./assets/face.png)
+  ![数据预览](https://ibb.co/YTySYjw1)
 
 #### 技术特点
 
