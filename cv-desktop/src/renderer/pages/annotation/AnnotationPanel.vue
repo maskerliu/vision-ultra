@@ -1,7 +1,8 @@
 <template>
   <van-row class="marker-layer" justify="center" style="align-items: center">
     <van-col class="left-bar" justify="start">
-      <van-button square block plain :type="showRightBar ? 'primary' : 'default'" @click="showRightBar = !showRightBar">
+      <van-button square block hairline plain :type="showRightBar ? 'primary' : 'default'"
+        @click="showRightBar = !showRightBar">
         <van-icon class-prefix="iconfont" name="marker" style="font-size: 1.2rem" />
       </van-button>
 
@@ -37,7 +38,7 @@
 
     <van-popup class="label-search-panel" size="normal" trigger="manual" :overlay="true" :lazy-render="false"
       v-model:show="showLabelSearch">
-      <van-list style="min-width: 14rem; max-height: 200px; overflow: hidden scroll;">
+      <van-list style="max-width: 10rem; max-height: 200px; overflow: hidden scroll;">
         <van-empty image-size="80" :description="$t('anno.noMatch')"
           v-if="searchLabels == null || searchLabels.length == 0" />
         <van-cell :title="label.name" center clickable v-for="label in searchLabels" @click="changeLabel(label)">
@@ -231,7 +232,7 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   top: 145px;
   left: 3rem;
   right: auto;
-  width: 228px;
+  width: 10rem;
   height: 200px;
   overflow: hidden;
   padding: 0;

@@ -162,44 +162,35 @@ const workerListener = (event: MessageEvent) => {
       }
       break
     case 'mask':
-      let labels = new Map()
-      let imageData = new ImageData(event.data.width, event.data.height)
-      for (let row = 0; row < imageData.width; ++row) {
-        for (let col = 0; col < imageData.height; ++col) {
-          let idx = row * imageData.height + col
-          let id = event.data.mask[idx]
-          if (id == undefined) {
-            console.log('undefined', row, col, idx)
-            continue
-          }
-          if (!labels.has(id)) {
-            let label: CVLabel = annotationPanel.value.getLabel(id)
-            if (label == null) {
-              console.log(id, 'not found')
-              label = { id: id, name: 'unknown', color: '#0000FF' }
-            }
-            labels.set(label.id, label)
+      annotationPanel.value.drawAnnotations(event.data.boxes,
+        event.data.scores, event.data.classes,
+        event.data.objNum, event.data.scale)
+
+
+      if (event.data.masks != null) {
+        console.log(event.data.masks)
+
+        let imageData = new ImageData(160, 160)
+        for (let col = 0; col < 160; ++col)
+          for (let row = 0; row < 160; ++row) {
+            let idx = col * 160 + row
+            let mask = event.data.masks[idx]
+            imageData.data[idx * 4] = 255
+            imageData.data[idx * 4 + 1] = 0
+            imageData.data[idx * 4 + 2] = 0
+            imageData.data[idx * 4 + 3] = mask == 0 ? 0 : 200
           }
 
-          let l = labels.get(id)
-          let [r, g, b] = MarkColors.hexToRgb(l.color)
-          imageData.data[idx * 4] = r
-          imageData.data[idx * 4 + 1] = g
-          imageData.data[idx * 4 + 2] = b
-          imageData.data[idx * 4 + 3] = 200
-        }
+        mask.value.width = 160
+        mask.value.height = 160
+        maskCtx.clearRect(0, 0, mask.value.width, mask.value.height)
+        maskCtx.putImageData(imageData, 0, 0)
+        previewCtx.drawImage(maskCtx.canvas, 0, 0)
       }
 
-      mask.value.width = event.data.width
-      mask.value.height = event.data.height
-      maskCtx.clearRect(0, 0, mask.value.width, mask.value.height)
-      maskCtx.putImageData(imageData, 0, 0)
-
-      previewCtx.save()
-      previewCtx.scale(event.data.scale[0], event.data.scale[1])
-      previewCtx.drawImage(maskCtx.canvas, 0, 0)
-      previewCtx.restore()
-
+      if (event.data.overlay != null)
+        drawOverlay(event.data.overlay,
+          event.data.width, event.data.height, event.data.scale)
       break
     case 'face':
       if (videoPlayer.isOpen) {
@@ -213,6 +204,46 @@ const workerListener = (event: MessageEvent) => {
       }
       break
   }
+}
+
+function drawOverlay(overlay: Uint8Array, width: number, height: number, scale: [number, number]) {
+  let labels = new Map()
+  let imageData = new ImageData(width, height)
+  for (let row = 0; row < imageData.width; ++row) {
+    for (let col = 0; col < imageData.height; ++col) {
+      let idx = row * imageData.height + col
+      let id = overlay[idx]
+      if (id == undefined) {
+        console.log('undefined', row, col, idx)
+        continue
+      }
+      if (!labels.has(id)) {
+        let label: CVLabel = annotationPanel.value.getLabel(id)
+        if (label == null) {
+          console.log(id, 'not found')
+          label = { id: id, name: 'unknown', color: '#0000FF' }
+        }
+        labels.set(label.id, label)
+      }
+
+      let l = labels.get(id)
+      let [r, g, b] = MarkColors.hexToRgb(l.color)
+      imageData.data[idx * 4] = r
+      imageData.data[idx * 4 + 1] = g
+      imageData.data[idx * 4 + 2] = b
+      imageData.data[idx * 4 + 3] = 200
+    }
+  }
+
+  mask.value.width = width
+  mask.value.height = height
+  maskCtx.clearRect(0, 0, mask.value.width, mask.value.height)
+  maskCtx.putImageData(imageData, 0, 0)
+
+  previewCtx.save()
+  previewCtx.scale(scale[0], scale[1])
+  previewCtx.drawImage(maskCtx.canvas, 0, 0)
+  previewCtx.restore()
 }
 
 onMounted(async () => {
