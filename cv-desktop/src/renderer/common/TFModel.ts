@@ -26,7 +26,6 @@ export class TFModel {
 
   private modelWidth: number = 0
   private modelHeight: number = 0
-  private maxSize: number = 0
   public objNum: number = 0
   public scale: [number, number] = [1, 1]
   private type: ModelType
@@ -80,8 +79,6 @@ export class TFModel {
 
     console.log(this.model.inputs[0].shape, this.modelWidth, this.modelHeight)
 
-    console.log(this.model)
-
     this._isInited = true
   }
 
@@ -91,32 +88,13 @@ export class TFModel {
     this.model = null
   }
 
-  async run(image: ImageData, segment: boolean = false) {
-    let maxSize = Math.max(image.width, image.height)
-    this.scale[0] = maxSize / this.modelWidth
-    this.scale[1] = maxSize / this.modelHeight
-    this.maxSize = maxSize
-
+  async run(image: ImageData) {
     if (!this._isInited || this.model == null) {
       this.objNum = 0
       return
     }
 
-    let input: any
-    switch (this.type) {
-      case ModelType.Detect:
-        input = this.preprocess(image)
-        break
-      case ModelType.Segment:
-        if (this.name.indexOf('deeplab') !== -1)
-          input = tf.tidy(() => tf.cast(this.toInputTensor(image), 'int32'))
-        else
-          input = this.preprocess(image)
-        break
-      default:
-        throw new Error('model type is unknown')
-    }
-
+    let input = this.preprocess(image)
     let result = await this.model.executeAsync(input)
     input.dispose()
     return result
@@ -125,33 +103,37 @@ export class TFModel {
   protected preprocess(image: ImageData) {
     const input = tf.tidy(() => {
       const img = tf.browser.fromPixels(image)
+      const maxSize = Math.max(image.width, image.height)
+      this.scale[0] = maxSize / this.modelWidth
+      this.scale[1] = maxSize / this.modelHeight
 
-      if (this.modelWidth == -1 || this.modelHeight == -1)
+      // this mean is for mobilenet
+      if (this.modelWidth == -1 || this.modelHeight == -1) {
+        this.scale[0] = this.scale[1] = 1
         return tf.expandDims(img)
+      }
 
-      const imgPadded = img.pad([
-        [0, this.maxSize - image.height],
-        [0, this.maxSize - image.width],
+      // scale to model size
+      if (this.name == 'deeplab') {
+        const resizeRatio = this.modelWidth / maxSize
+        const targetWidth = Math.round(image.width * resizeRatio)
+        const targetHeight = Math.round(image.height * resizeRatio)
+        return tf.image
+          .resizeBilinear(img, [targetHeight, targetWidth])
+          .expandDims(0).cast('int32')
+      }
+
+      // pad image to model size 
+      const padded = img.pad([
+        [0, maxSize - image.height],
+        [0, maxSize - image.width],
         [0, 0],
       ])
       return tf.image
-        .resizeBilinear(imgPadded as any, [this.modelWidth, this.modelHeight])
-        .div(255.0)
-        .expandDims(0)
+        .resizeBilinear(padded as any, [this.modelHeight, this.modelWidth])
+        .div(255.0).expandDims(0)
     })
 
     return input
-  }
-
-  protected toInputTensor(input: ImageData) {
-    return tf.tidy(() => {
-      const image = input instanceof tf.Tensor ? input : tf.browser.fromPixels(input)
-      const [height, width] = image.shape
-      const resizeRatio = 513 / Math.max(width, height)
-      const targetHeight = Math.round(height * resizeRatio)
-      const targetWidth = Math.round(width * resizeRatio)
-      return tf.expandDims(
-        tf.image.resizeBilinear(image, [targetHeight, targetWidth]))
-    })
   }
 }

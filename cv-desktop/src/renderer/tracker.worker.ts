@@ -43,8 +43,20 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           break
         case WorkerCMD.objSegment:
           let result = await objTracker.segment(event.data.image)
-          data = Object.assign(data, result)
+          data = Object.assign(data, {
+            boxes: objTracker.boxes,
+            scores: objTracker.scores,
+            classes: objTracker.classes,
+            overlay: result?.overlay,
+            width: result?.width,
+            height: result?.height,
+            masks: objTracker.masks,
+            scale: result?.scale,
+            objNum: objTracker.objNum,
+            expire: objTracker.expire,
+          })
           data['type'] = 'mask'
+          console.log(data)
           break
         case WorkerCMD.objDetect:
           await objTracker.detect(event.data.image)

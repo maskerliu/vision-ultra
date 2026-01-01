@@ -133,8 +133,9 @@ function updateFps() {
   width: 210px;
   height: 110px;
   z-index: 1000;
-  background-color: #2c3e5077;
+  background-color: #2c3e50AA;
   border: 1px solid #f1f2f699;
-  border-radius: 10px;
+  border-radius: 5px;
+  box-shadow: 0px 12px 8px -12px #000;
 }
 </style>

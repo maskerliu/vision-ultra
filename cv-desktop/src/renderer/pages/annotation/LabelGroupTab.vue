@@ -161,7 +161,7 @@ function deleteLabelGroup(key: string) {
 
 <style lang="css" scoped>
 .color-block {
-  border: 2px solid;
+  border: 1px solid;
   padding: 1px 10px;
   margin-right: 10px;
   border-radius: 5px;
