@@ -74,7 +74,6 @@ let perferences = [
   { tooltip: 'settings.sys.serverDomain', key: 'domain' },
   { tooltip: 'settings.sys.port', key: 'port', readonly: isWeb },
   { tooltip: 'settings.sys.updateServer', key: 'updateServer', readonly: isWeb },
-  { tooltip: 'settings.sys.mqttBroker', key: 'mqttBroker', },
 ] as Array<SettingPreference>
 
 onMounted(() => {

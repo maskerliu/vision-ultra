@@ -170,8 +170,8 @@ function getLabel(id: number) {
 
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number]) {
-  if (objNum == 0) return
   annotationPanel.clear()
+  if (objNum == 0) return
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
 
   for (let i = 0; i < objNum; ++i) {
@@ -222,7 +222,7 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   top: 3px;
   left: 3rem;
   width: 10rem;
-  border: 2px solid;
+  border: 1px solid;
   border-radius: 5px;
   z-index: 500;
 }

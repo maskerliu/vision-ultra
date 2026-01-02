@@ -3,8 +3,8 @@
     <van-col class="left-panel">
       <van-row justify="space-between">
         <van-row style="color: #c0392b;">
-          <van-icon class-prefix="iconfont" name="sjtu-logo" style="font-size: 1.6rem; margin-left: 10px;" />
-          <van-icon class-prefix="iconfont" name="sjtu-name" style="font-size: 1.4rem; margin: 2px 10px;" />
+          <van-icon class-prefix="iconfont" name="sjtu-logo" style="font-size: 1.4rem; margin: 5px 10px;" />
+          <van-icon class-prefix="iconfont" name="sjtu-name" style="font-size: 1.4rem; margin: 5px 0;" />
         </van-row>
         <div style="padding: 1px 0;">
           <van-icon class-prefix="iconfont" class="left-panel-icon" name="apm"

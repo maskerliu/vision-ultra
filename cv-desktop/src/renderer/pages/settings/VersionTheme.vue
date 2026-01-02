@@ -1,16 +1,17 @@
 <template>
   <van-cell-group inset title=" ">
-    <van-field center :label="$t('settings.sys.theme')" label-width="4rem" :readonly="true">
-      <template #left-icon>
-        <van-icon class-prefix="iconfont" name="theme" style="margin-left: 15px;" />
+    <van-field center label-width="7rem" :readonly="true">
+      <template #label>
+        <van-icon class-prefix="iconfont" name="theme" />
+        {{ $t('settings.sys.theme').padStart(10, '&nbsp;') }}
       </template>
       <template #right-icon>
         <van-radio-group v-model="theme" direction="horizontal" style="height: 26px;" @change="onThemeChanged">
-          <van-radio name="light">
+          <van-radio name="light" icon-size="1rem">
             <van-icon class-prefix="iconfont" name="theme-light"
               :style="{ color: theme == 'light' ? '#3498db' : 'gray' }" />
           </van-radio>
-          <van-radio name="dark">
+          <van-radio name="dark" icon-size="1rem">
             <van-icon class-prefix="iconfont" name="theme-dark"
               :style="{ color: theme == 'dark' ? '#3498db' : 'gray' }" />
           </van-radio>
@@ -18,9 +19,21 @@
       </template>
     </van-field>
 
-    <van-field center input-align="right" :label="$t('settings.sys.version')" label-width="4rem" :readonly="true">
-      <template #left-icon>
-        <van-icon class-prefix="iconfont" name="info" style="margin-left: 15px;" />
+    <van-field center input-align="right" label-width="7rem" :readonly="true">
+      <template #label>
+        <van-icon class-prefix="iconfont" name="fontsize" />
+        {{ $t('settings.sys.fontsize').padStart(10, '&nbsp;') }}
+      </template>
+      <template #input>
+        <van-slider v-model="fontSize" min="7" max="10" @change="updateFontsize"
+          style="width: 60%; margin-right: 10px;" />
+      </template>
+    </van-field>
+
+    <van-field center input-align="right" label-width="7rem" :readonly="true">
+      <template #label>
+        <van-icon class-prefix="iconfont" name="info" />
+        {{ $t('settings.sys.version').padStart(11, '&nbsp;') }}
       </template>
       <template #input>
         <div style="height: 33px;display: flex; align-items: center; justify-content: center;" @click="onVersionCheck">
@@ -36,9 +49,10 @@
       </template>
     </van-field>
 
-    <van-field center input-align="right" :label="$t('settings.sys.lang')" label-width="4rem" :readonly="true">
-      <template #left-icon>
-        <van-icon class-prefix="iconfont" name="lang" style="margin-left: 15px;" />
+    <van-field center input-align="right" label-width="7rem" :readonly="true">
+      <template #label>
+        <van-icon class-prefix="iconfont" name="lang" />
+        {{ $t('settings.sys.lang').padStart(11, '&nbsp;') }}
       </template>
       <template #input>
         <van-popover v-model:show="showLangs" placement="bottom-end" style="min-width: 140px">
@@ -69,7 +83,7 @@
   </van-cell-group>
 </template>
 <script lang="ts" setup>
-import { ConfigProviderTheme, showNotify, showToast } from 'vant'
+import { ConfigProviderTheme, ConfigProviderThemeVars, showNotify, showToast } from 'vant'
 import { inject, onMounted, ref, Ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Version, versionCheck } from '../../../common'
@@ -86,10 +100,12 @@ const downloadProgress = ref<number>(0)
 
 const lang = inject<Ref<string>>('lang')
 const theme = inject<Ref<ConfigProviderTheme>>('theme')
+const themeVars = inject<Ref<ConfigProviderThemeVars>>('themeVars')
 
 const popupCloseable = window.isWeb
 let newVersion: Version = null
 
+let fontSize = ref(10)
 const value1 = ref(0)
 const langs = ['en', 'zh-CN']
 
@@ -98,6 +114,8 @@ onMounted(() => {
   window.mainApi?.onDownloadUpdate((...args: any) => {
     downloadProgress.value = args[0].progress.toFixed(1)
   })
+
+  fontSize.value = parseInt(themeVars.value.fontSizeXs.split('px')[0])
 
 })
 
@@ -118,6 +136,13 @@ function onSelectLang(_lang: string) {
 function onThemeChanged() {
   window.localStorage.setItem('theme', theme.value)
   window.mainApi?.setAppTheme(theme.value)
+}
+
+function updateFontsize() {
+  themeVars.value.fontSizeXs = `${fontSize.value}px`
+  themeVars.value.fontSizeSm = `${fontSize.value + 2}px`
+  themeVars.value.fontSizeMd = `${fontSize.value + 4}px`
+  themeVars.value.fontSizeLg = `${fontSize.value + 6}px`
 }
 
 async function onVersionCheck() {
