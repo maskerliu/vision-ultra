@@ -4,15 +4,15 @@
       <van-cell :title="$t('cvControl.IntergrateMode')">
         <template #right-icon>
           <van-radio-group v-model="visionStore.intergrateMode" direction="horizontal">
-            <van-radio name="1" size="1rem">
+            <van-radio name="1" icon-size="1rem">
               <van-icon class-prefix="iconfont" name="wasm"
                 style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
             </van-radio>
-            <van-radio name="2" size="1rem" :disabled="isWeb">
+            <van-radio name="2" icon-size="1rem" :disabled="isWeb">
               <van-icon class-prefix="iconfont" name="nodejs"
                 style="font-size: 1.2rem; color: #27ae60; margin-top: 4px;" />
             </van-radio>
-            <van-radio name="3" size="1rem" :disabled="isWeb">
+            <van-radio name="3" icon-size="1rem" :disabled="isWeb">
               <van-icon class-prefix="iconfont" name="native"
                 style="font-size: 1.2rem; color: #3498db; margin-top: 4px;" />
             </van-radio>
@@ -26,11 +26,11 @@
       <van-cell :title="$t('cvControl.ModelEngine')">
         <template #right-icon>
           <van-radio-group v-model="visionStore.intergrateMode" direction="horizontal">
-            <van-radio name="1" size="1rem">
+            <van-radio name="1" icon-size="1rem">
               <van-icon class-prefix="iconfont" name="onnx"
                 style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
             </van-radio>
-            <van-radio name="2" size="1rem" :disabled="isWeb">
+            <van-radio name="2" icon-size="1rem" :disabled="isWeb">
               <van-icon class-prefix="iconfont" name="tensorflow"
                 style="font-size: 1.2rem; color: #e67e22; margin-top: 4px;" />
             </van-radio>

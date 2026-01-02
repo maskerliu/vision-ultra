@@ -56,7 +56,6 @@ ctx.addEventListener('message', async (event: MessageEvent<{
             expire: objTracker.expire,
           })
           data['type'] = 'mask'
-          console.log(data)
           break
         case WorkerCMD.objDetect:
           await objTracker.detect(event.data.image)
@@ -66,7 +65,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
             scores: objTracker.scores,
             classes: objTracker.classes,
             objNum: objTracker.objNum,
-            scale: objTracker.scale,
+            scale: objTracker.modelScale,
             expire: objTracker.expire
           })
           break

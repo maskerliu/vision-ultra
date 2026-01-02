@@ -1,5 +1,5 @@
 <template>
-  <van-config-provider :theme="theme" class="full-row">
+  <van-config-provider :theme="theme" :theme-vars="themeVars" theme-vars-scope="global" class="full-row">
     <router-view class="biz-content" v-slot="{ Component, route }">
       <transition name="fade">
         <component :is="Component" :key="route.path" />
@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ConfigProviderTheme } from 'vant'
+import { ConfigProviderTheme, ConfigProviderThemeVars } from 'vant'
 import { onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -37,6 +37,12 @@ import { CommonStore } from './store'
 const i18n = useI18n()
 const canRender = ref(true)
 const theme = ref<ConfigProviderTheme>('light')
+const themeVars = ref<ConfigProviderThemeVars>({
+  fontSizeXs: '9px',
+  fontSizeSm: '11px',
+  fontSizeMd: '13px',
+  fontSizeLg: '15px',
+})
 const lang = ref<string>('zh-CN')
 const active = ref<number>(0)
 const showDebugPanel = ref<boolean>(false)
@@ -48,6 +54,7 @@ const offset = {
 }
 
 provide('theme', theme)
+provide('themeVars', themeVars)
 provide('lang', lang)
 provide('showDebugPanel', showDebugPanel)
 provide('showLoading', showLoading)
@@ -110,6 +117,10 @@ function onOpenDebugPanel() {
 }
 
 :root {
+  --van-font-size-xs: 9px;
+  --van-font-size-sm: 11px;
+  --van-font-size-md: 13px;
+  --van-font-size-lg: 15px;
   --van-cell-group-inset-padding: 5px;
   --van-cell-group-inset-title-padding: 5px;
   --van-icon-font-family: "iconfont";
@@ -122,7 +133,7 @@ function onOpenDebugPanel() {
   --van-cell-horizontal-padding: 10px;
   --van-popup-round-radius: 8px;
   --van-popup-close-icon-margin: 23px;
-  --van-border-width: 1.5px;
+  --van-border-width: 1px;
   --van-radius-md: 5px;
   --van-dialog-radius: 8px;
   --van-floating-bubble-background: #f04b1e;
@@ -131,6 +142,7 @@ function onOpenDebugPanel() {
 #app {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: small;
   background: var(--van-gray-1);
   letter-spacing: 1px;
   /* -moz-user-select: none;

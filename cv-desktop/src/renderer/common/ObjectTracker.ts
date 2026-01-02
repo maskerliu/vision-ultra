@@ -6,20 +6,20 @@ export const MAX_OBJECTS_NUM: number = 20
 export class ObjectTracker {
   private _detectModel: TFModel = new TFModel()
   private _segmentModel: TFModel = new TFModel()
-  private maskThreshold = 0.5
 
   public objNum: number = 0
-  get scale() {
+  get modelScale() {
     return this._detectModel.scale
+  }
+
+  get segmentScale() {
+    return this._segmentModel.scale
   }
 
   public boxes: Float16Array<ArrayBufferLike> = new Float16Array(MAX_OBJECTS_NUM * 4)
   public scores: Float16Array = new Float16Array(MAX_OBJECTS_NUM)
   public classes: Uint8Array = new Uint8Array(MAX_OBJECTS_NUM)
-  public overlay: Uint8Array
   public masks: Uint8Array = new Uint8Array(MAX_OBJECTS_NUM * 160 * 160)
-
-  private maskCoeffsTF: tf.Tensor
 
   private _expire: number = 0
   get expire(): number { return this._expire }
@@ -47,10 +47,8 @@ export class ObjectTracker {
     switch (this._detectModel.name) {
       case 'yolov8n':
       case 'yolo11n':
-        result = await this.yoyoCommon(res as tf.Tensor)
-        break
       case 'yolov10n':
-        result = await this.yolov10n(res as tf.Tensor[])
+        result = await this.yoyoCommon(res as tf.Tensor)
         break
       case 'mobilenet':
         result = await this.mobilenetv2(res as tf.Tensor[], image.width, image.height)
@@ -68,16 +66,18 @@ export class ObjectTracker {
       nms = tmp
     }
 
-    const boxesTF = result[0].gather(nms, 0)
-    const scoresTF = result[1].gather(nms, 0)
-    const classesTF = result[2].gather(nms, 0)
-    const maskCoeffsTF = result[3]?.gather(nms, 0)
+    tf.tidy(() => {
+      const boxesTF = result[0].gather(nms, 0)
+      const scoresTF = result[1].gather(nms, 0)
+      const classesTF = result[2].gather(nms, 0)
 
-    this.boxes.set(boxesTF?.dataSync().slice(0, this.objNum * 4))
-    this.scores.set(scoresTF?.dataSync().slice(0, this.objNum))
-    this.classes.set(classesTF?.dataSync().slice(0, this.objNum))
+      this.boxes.set(boxesTF?.dataSync().slice(0, this.objNum * 4))
+      this.scores.set(scoresTF?.dataSync().slice(0, this.objNum))
+      this.classes.set(classesTF?.dataSync().slice(0, this.objNum))
+    })
 
-    tf.dispose([res, nms, boxesTF, scoresTF, classesTF, maskCoeffsTF, ...result])
+
+    tf.dispose([res, nms, ...result])
     tf.engine().endScope()
 
     this._expire = Date.now() - time
@@ -92,35 +92,22 @@ export class ObjectTracker {
         let [height, width] = wrapper.shape.slice(1)
         let data = await wrapper.data()
         wrapper.dispose()
-        this.overlay = data as any
+        this.objNum = 0
+        tf.dispose([result])
         return { overlay: data, width, height, scale: this._segmentModel.scale }
       }
       case 'yolo11n-seg': {
-        let data = await this.yolo11nSegment(result as tf.Tensor[])
-        return { scale: this._segmentModel.scale }
+        let wrapper = result as tf.Tensor[]
+        let [height, width] = wrapper[1].shape.slice(1)
+        await this.yolo11nSegment(wrapper)
+        tf.dispose([...wrapper])
+        return { width, height, scale: this._segmentModel.scale }
       }
       default:
         console.log('no match model find!!')
         return
     }
-  }
 
-  private async yolov10n(res: tf.Tensor[]) {
-    return tf.tidy(() => {
-      let x1 = res[1].slice([0, 0, 0], [-1, -1, 1])// x1
-      let y1 = res[1].slice([0, 0, 1], [-1, -1, 1]) // y1
-      let x2 = res[1].slice([0, 0, 2], [-1, -1, 1]) // x2
-      let y2 = res[1].slice([0, 0, 3], [-1, -1, 1]) // y2
-      const scores = tf.tidy(() => res[1].slice([0, 0, 4], [-1, -1, 1]).squeeze())
-      const classes = tf.tidy(() => res[1].slice([0, 0, 5], [-1, -1, 1]).squeeze())
-      const boxes = tf.tidy(() => tf.concat([y1, x1, y2, x2,], 2).squeeze())
-
-      let maskCoeffs: any
-      if (res[1].shape[2] == 116) {
-        maskCoeffs = res[1].slice([0, 0, 4 + 80], [-1, -1, 32])
-      }
-      return [boxes, scores, classes, maskCoeffs]
-    })
   }
 
   /**
@@ -139,27 +126,35 @@ export class ObjectTracker {
    * 
    * @returns 
    */
-  private async yoyoCommon(res: tf.Tensor) {
-
+  private async yoyoCommon(res: tf.Tensor | tf.Tensor[]) {
     return tf.tidy(() => {
-      const transRes = res.transpose([0, 2, 1])
+      let boxes: tf.Tensor, scores: tf.Tensor, classes: tf.Tensor, maskCoeffs: tf.Tensor
 
-      const w = transRes.slice([0, 0, 2], [-1, -1, 1]) // get width
-      const h = transRes.slice([0, 0, 3], [-1, -1, 1]) // get height
-      const x1 = transRes.slice([0, 0, 0], [-1, -1, 1]).sub(w.div(2)) // x1
-      const y1 = transRes.slice([0, 0, 1], [-1, -1, 1]).sub(h.div(2)) // y1
-      const boxes = tf.concat([y1, x1, y1.add(h), x1.add(w)], 2).squeeze()
-      const classScores = transRes.slice([0, 0, 4], [-1, -1, 80]).squeeze()
-      const scores = classScores.max(1)
-      const classes = classScores.argMax(1)
+      if (this._detectModel.name == 'yolov10n') {
+        const x1 = res[1].slice([0, 0, 0], [-1, -1, 1])// x1
+        const y1 = res[1].slice([0, 0, 1], [-1, -1, 1]) // y1
+        const x2 = res[1].slice([0, 0, 2], [-1, -1, 1]) // x2
+        const y2 = res[1].slice([0, 0, 3], [-1, -1, 1]) // y2
+        boxes = tf.tidy(() => tf.concat([y1, x1, y2, x2,], 2).squeeze())
+        scores = tf.tidy(() => res[1].slice([0, 0, 4], [-1, -1, 1]).squeeze())
+        classes = tf.tidy(() => res[1].slice([0, 0, 5], [-1, -1, 1]).squeeze())
+      } else {
+        const transRes = (res as tf.Tensor).transpose([0, 2, 1])
+        const w = transRes.slice([0, 0, 2], [-1, -1, 1]) // get width
+        const h = transRes.slice([0, 0, 3], [-1, -1, 1]) // get height
+        const x1 = transRes.slice([0, 0, 0], [-1, -1, 1]).sub(w.div(2)) // x1
+        const y1 = transRes.slice([0, 0, 1], [-1, -1, 1]).sub(h.div(2)) // y1
+        boxes = tf.concat([y1, x1, y1.add(h), x1.add(w)], 2).squeeze()
+        const classScores = transRes.slice([0, 0, 4], [-1, -1, 80]).squeeze()
+        scores = classScores.max(1)
+        classes = classScores.argMax(1)
 
-      let maskCoeffs: any
-      if (transRes.shape[2] == 116) {
-        maskCoeffs = transRes.slice([0, 0, 4 + 80], [-1, -1, 32]).squeeze()
-        // console.log(res)
-        // res.print()
+        if (transRes.shape[2] == 116) {
+          maskCoeffs = transRes.slice([0, 0, 4 + 80], [-1, -1, 32]).squeeze()
+          // console.log(res)
+          // res.print()
+        }
       }
-
       return [boxes, scores, classes, maskCoeffs]
     })
   }
@@ -183,7 +178,8 @@ export class ObjectTracker {
 
   private async yolo11nSegment(res: tf.Tensor[]) {
     const result = await this.yoyoCommon(res[0])
-
+    const [modelW, modelH] = this._segmentModel.inShape
+    const [segHeight, segWidth, segChannel] = res[1].shape.slice(1)
     let nms = await tf.image.nonMaxSuppressionAsync(result[0] as any, result[1] as any, 50, 0.45, 0.35)
     this.objNum = Math.min(nms.size, MAX_OBJECTS_NUM)
 
@@ -193,33 +189,42 @@ export class ObjectTracker {
       nms = tmp
     }
 
-    const boxesTF = result[0].gather(nms, 0)
-    const scoresTF = result[1].gather(nms, 0)
-    const classesTF = result[2].gather(nms, 0)
-    const maskCoeffsTF = result[3]?.gather(nms, 0)
+    const masks = tf.tidy(() => {
+      const boxesTF = result[0].gather(nms, 0)
+      const scoresTF = result[1].gather(nms, 0)
+      const classesTF = result[2].gather(nms, 0)
+      const maskCoeffsTF = result[3]?.gather(nms, 0)
 
-    console.log(scoresTF)
-    scoresTF.print()
+      this.boxes.set(boxesTF?.dataSync().slice(0, this.objNum * 4))
+      this.scores.set(scoresTF?.dataSync().slice(0, this.objNum))
+      this.classes.set(classesTF?.dataSync().slice(0, this.objNum))
 
-    this.boxes.set(boxesTF?.dataSync().slice(0, this.objNum * 4))
-    this.scores.set(scoresTF?.dataSync().slice(0, this.objNum))
-    this.classes.set(classesTF?.dataSync().slice(0, this.objNum))
+      return this.generateMasks(maskCoeffsTF, res[1])
+    })
 
-    const masks = this.generateMasks(maskCoeffsTF, res[1])
-    let binaryMasks = masks.greater(0.25).cast('int32')
-    console.log(binaryMasks)
-    binaryMasks.print()
+    const scale = modelW / segWidth
+    let offset = 0
+    for (let i = 0; i < this.objNum; ++i) {
+      let i4 = i * 4
+      const y1 = Math.round(this.boxes[i4] / scale)
+      const x1 = Math.round(this.boxes[i4 + 1] / scale)
+      const y2 = Math.round(this.boxes[i4 + 2] / scale)
+      const x2 = Math.round(this.boxes[i4 + 3] / scale)
+      const iou = masks.slice([0, y1, x1], [-1, y2 - y1, x2 - x1])
+      const binary = tf.tidy(() => iou.greater(0.5).cast('int32'))
+      this.masks.set(binary.dataSync(), offset)
+      offset += (y2 - y1) * (x2 - x1)
+      tf.dispose([iou, binary])
+    }
 
-    this.masks.set(binaryMasks.dataSync().slice(0, this.objNum * 160 * 160))
-    console.log(this.masks)
-    binaryMasks.print()
-    tf.dispose([res, nms, boxesTF, scoresTF, classesTF, maskCoeffsTF, masks, ...result])
+    tf.dispose([nms, masks, ...result])
   }
 
   private generateMasks(maskCoeffs: tf.Tensor, proto: tf.Tensor) {
     return tf.tidy(() => {
+      const transSegMask = tf.tidy(() => proto.transpose([0, 3, 1, 2]).squeeze())
       const [_, height, width, channel] = proto.shape
-      const reshaped = proto.squeeze().reshape([channel, height * width])
+      const reshaped = transSegMask.reshape([channel, height * width])
       return tf.matMul(maskCoeffs, reshaped).reshape([-1, height, width]).sigmoid()
     })
   }

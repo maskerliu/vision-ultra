@@ -16,7 +16,7 @@ import VersionTheme from './VersionTheme.vue'
 </script>
 <style scoped>
 .settings {
-  width: 69vw;
+  width: 70vw;
   min-width: 375px;
   height: 100vh;
   /* padding-top: 12px 0 20px 0; */
