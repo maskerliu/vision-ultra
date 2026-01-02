@@ -20,6 +20,7 @@ export default {
       updateServer: '应用更新服务地址',
       mqttBroker: 'MQTT服务地址',
       theme: '主题',
+      fontsize: '字体大小',
       lang: '语言',
       version: '版本',
       restart: '重启',

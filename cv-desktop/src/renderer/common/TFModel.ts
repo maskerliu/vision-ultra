@@ -70,6 +70,7 @@ export class TFModel {
         await this.model.save(`indexeddb://${modelPath}`)
       }
     }
+
     this.modelWidth = this.model.inputs[0].shape[1]
     this.modelHeight = this.model.inputs[0].shape[2]
 

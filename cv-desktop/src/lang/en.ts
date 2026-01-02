@@ -19,7 +19,8 @@ export default {
       updateServer: 'App Update Server',
       mqttBroker: 'MQTT Broker',
       theme: 'Theme',
-      lang: 'locales',
+      fontsize: 'Font Size',
+      lang: 'Locales',
       version: 'Version',
       restart: 'restart',
       noNewVersion: 'No New Version'

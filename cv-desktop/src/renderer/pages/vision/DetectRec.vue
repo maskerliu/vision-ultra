@@ -166,31 +166,36 @@ const workerListener = (event: MessageEvent) => {
         event.data.scores, event.data.classes,
         event.data.objNum, event.data.scale)
 
+      drawOverlay(event.data.overlay,
+        event.data.width, event.data.height, event.data.scale)
 
-      if (event.data.masks != null) {
-        console.log(event.data.masks)
+      let scale = Math.max(preview.value.width, preview.value.height) / Math.max(event.data.width, event.data.height)
+      drawMask(event.data.boxes, event.data.classes, event.data.masks,
+        event.data.objNum, event.data.width, event.data.height, [scale, scale])
 
-        let imageData = new ImageData(160, 160)
-        for (let col = 0; col < 160; ++col)
-          for (let row = 0; row < 160; ++row) {
-            let idx = col * 160 + row
-            let mask = event.data.masks[idx]
-            imageData.data[idx * 4] = 255
-            imageData.data[idx * 4 + 1] = 0
-            imageData.data[idx * 4 + 2] = 0
-            imageData.data[idx * 4 + 3] = mask == 0 ? 0 : 200
-          }
+      // if (event.data.masks != null) {
+      //   let imageData = new ImageData(event.data.width, event.data.height)
+      //   for (let i = 0; i < event.data.objNum; ++i)
+      //     for (let col = 0; col < event.data.width; ++col)
+      //       for (let row = 0; row < event.data.height; ++row) {
+      //         let idx = col * event.data.height + row
+      //         let mask = event.data.masks[idx + event.data.width * event.data.height * i]
+      //         imageData.data[idx * 4] = 255
+      //         imageData.data[idx * 4 + 1] = 0
+      //         imageData.data[idx * 4 + 2] = 0
+      //         imageData.data[idx * 4 + 3] += mask == 0 ? 0 : 30
+      //       }
 
-        mask.value.width = 160
-        mask.value.height = 160
-        maskCtx.clearRect(0, 0, mask.value.width, mask.value.height)
-        maskCtx.putImageData(imageData, 0, 0)
-        previewCtx.drawImage(maskCtx.canvas, 0, 0)
-      }
+      //   mask.value.width = event.data.width
+      //   mask.value.height = event.data.height
+      //   maskCtx.clearRect(0, 0, mask.value.width, mask.value.height)
+      //   maskCtx.putImageData(imageData, 0, 0)
+      //   previewCtx.save()
+      //   previewCtx.scale(preview.value.width / event.data.width, preview.value.height / event.data.height)
+      //   previewCtx.drawImage(maskCtx.canvas, 0, 0)
+      //   previewCtx.restore()
+      // }
 
-      if (event.data.overlay != null)
-        drawOverlay(event.data.overlay,
-          event.data.width, event.data.height, event.data.scale)
       break
     case 'face':
       if (videoPlayer.isOpen) {
@@ -206,7 +211,47 @@ const workerListener = (event: MessageEvent) => {
   }
 }
 
+function drawMask(boxes: Float16Array, classes: Uint8Array, masks: Uint8Array, objNum: number,
+  width: number, height: number, scale: [number, number]) {
+
+  let ratio = 640 / 160
+  let length = 0
+  let offset = 0
+  const imageData = new ImageData(width, height)
+  for (let i = 1; i < 2; ++i) {
+    let i4 = i * 4
+    const y1 = Math.round(boxes[i4] / ratio)
+    const x1 = Math.round(boxes[i4 + 1] / ratio)
+    const y2 = Math.round(boxes[i4 + 2] / ratio)
+    const x2 = Math.round(boxes[i4 + 3] / ratio)
+    length = (y2 - y1) * (x2 - x1)
+    const overlay = masks.slice(offset, length)
+    offset += length
+    for (let row = x1; row < x2; ++row)
+      for (let col = y1; col < y2; ++col) {
+        let id = col * width + row
+        let absId = (col - y1) * (x2 - x1) + row - x1
+        imageData.data[id * 4] = 255
+        imageData.data[id * 4 + 1] = 0
+        imageData.data[id * 4 + 2] = 0
+        imageData.data[id * 4 + 3] = overlay[absId] == 0 ? 0 : 200
+      }
+  }
+
+  mask.value.width = width
+  mask.value.height = height
+  maskCtx.clearRect(0, 0, mask.value.width, mask.value.height)
+  maskCtx.putImageData(imageData, 0, 0)
+
+  previewCtx.save()
+  previewCtx.scale(scale[0], scale[1])
+  previewCtx.drawImage(maskCtx.canvas, 0, 0)
+  previewCtx.restore()
+}
+
 function drawOverlay(overlay: Uint8Array, width: number, height: number, scale: [number, number]) {
+  if (overlay == null) return
+
   let labels = new Map()
   let imageData = new ImageData(width, height)
   for (let row = 0; row < imageData.width; ++row) {
@@ -214,13 +259,13 @@ function drawOverlay(overlay: Uint8Array, width: number, height: number, scale: 
       let idx = row * imageData.height + col
       let id = overlay[idx]
       if (id == undefined) {
-        console.log('undefined', row, col, idx)
+        // console.log('undefined', row, col, idx)
         continue
       }
       if (!labels.has(id)) {
         let label: CVLabel = annotationPanel.value.getLabel(id)
         if (label == null) {
-          console.log(id, 'not found')
+          // console.log(id, 'not found')
           label = { id: id, name: 'unknown', color: '#0000FF' }
         }
         labels.set(label.id, label)
