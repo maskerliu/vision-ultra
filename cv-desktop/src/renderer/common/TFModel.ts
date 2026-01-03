@@ -78,7 +78,7 @@ export class TFModel {
       this.modelWidth = this.modelHeight = 513
     }
 
-    console.log(this.model.inputs[0].shape, this.modelWidth, this.modelHeight)
+    // console.log(this.model.inputs[0].shape, this.modelWidth, this.modelHeight)
 
     this._isInited = true
   }

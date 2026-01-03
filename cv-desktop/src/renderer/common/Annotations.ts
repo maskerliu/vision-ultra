@@ -475,12 +475,6 @@ export class AnnotationPanel {
     this._canvas.add(rect)
 
     rect = this.genRect(240, 250, 320, 380)
-    rect.set(AnnotationPanel.genLabelOption({ id: 0, name: 'person', color: '#EAB543' }))
-    rect.set('score', '90.4')
-    rect.set('uuid', uuidv4())
-    this._canvas.add(rect)
-
-    rect = this.genRect(240, 250, 320, 380)
     rect.set(AnnotationPanel.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
     rect.set('score', '90.4')
     rect.set('uuid', uuidv4())
@@ -488,12 +482,6 @@ export class AnnotationPanel {
 
     let poly = this.genPoly(points, DrawType.Polygon)
     poly.set(AnnotationPanel.genLabelOption({ id: 0, name: 'person', color: '#e74c3c' }))
-    poly.set('score', '90.4')
-    poly.set('uuid', uuidv4())
-    this._canvas.add(poly)
-
-    poly = this.genPoly(points, DrawType.Polygon)
-    poly.set(AnnotationPanel.genLabelOption({ id: 0, name: 'person', color: '#d35400' }))
     poly.set('score', '90.4')
     poly.set('uuid', uuidv4())
     this._canvas.add(poly)
