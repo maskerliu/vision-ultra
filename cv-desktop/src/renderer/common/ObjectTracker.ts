@@ -19,7 +19,7 @@ export class ObjectTracker {
   public boxes: Float16Array<ArrayBufferLike> = new Float16Array(MAX_OBJECTS_NUM * 4)
   public scores: Float16Array = new Float16Array(MAX_OBJECTS_NUM)
   public classes: Uint8Array = new Uint8Array(MAX_OBJECTS_NUM)
-  public masks: Uint8Array = new Uint8Array(MAX_OBJECTS_NUM * 160 * 160)
+  public masks: Array<Uint8Array> = new Array<Uint8Array>(MAX_OBJECTS_NUM)
 
   private _expire: number = 0
   get expire(): number { return this._expire }
@@ -189,7 +189,7 @@ export class ObjectTracker {
       nms = tmp
     }
 
-    const masks = tf.tidy(() => {
+    const overlay = tf.tidy(() => {
       const boxesTF = result[0].gather(nms, 0)
       const scoresTF = result[1].gather(nms, 0)
       const classesTF = result[2].gather(nms, 0)
@@ -204,20 +204,49 @@ export class ObjectTracker {
 
     const scale = modelW / segWidth
     let offset = 0
-    for (let i = 0; i < this.objNum; ++i) {
+    let i = 0
+    while (i < this.objNum) {
       let i4 = i * 4
       const y1 = Math.round(this.boxes[i4] / scale)
       const x1 = Math.round(this.boxes[i4 + 1] / scale)
       const y2 = Math.round(this.boxes[i4 + 2] / scale)
       const x2 = Math.round(this.boxes[i4 + 3] / scale)
-      const iou = masks.slice([0, y1, x1], [-1, y2 - y1, x2 - x1])
-      const binary = tf.tidy(() => iou.greater(0.5).cast('int32'))
-      this.masks.set(binary.dataSync(), offset)
+      const iou = overlay.slice([i, y1, x1], [1, y2 - y1, x2 - x1])
+      const binary = tf.tidy(() => iou.greater(0.5).squeeze().cast('int32'))
+      let data = binary.dataSync()
+      this.masks[i] = data as Uint8Array
+      console.log(i, offset, (y2 - y1) * (x2 - x1))
+      if (i == 1) {
+        binary.print()
+        console.log(this.masks.slice(offset, (y2 - y1) * (x2 - x1)))
+      }
+
       offset += (y2 - y1) * (x2 - x1)
       tf.dispose([iou, binary])
+      i++
     }
 
-    tf.dispose([nms, masks, ...result])
+    console.log(this.masks)
+
+    // for (let i = 0; i < this.objNum; ++i) {
+    //   let i4 = i * 4
+    //   const y1 = Math.round(this.boxes[i4] / scale)
+    //   const x1 = Math.round(this.boxes[i4 + 1] / scale)
+    //   const y2 = Math.round(this.boxes[i4 + 2] / scale)
+    //   const x2 = Math.round(this.boxes[i4 + 3] / scale)
+    //   const iou = overlay.slice([i, y1, x1], [1, y2 - y1, x2 - x1])
+
+    //   console.log(y1, x1, y2, x2, y2 - y1, x2 - x1)
+    //   const binary = tf.tidy(() => iou.greater(0.5).squeeze().cast('int32'))
+    //   let data = binary.dataSync()
+    //   console.log(binary)
+    //   binary.print()
+    //   this.masks.set(data, offset)
+    //   offset += (y2 - y1) * (x2 - x1)
+    //   tf.dispose([iou, binary])
+    // }
+
+    tf.dispose([nms, overlay, ...result])
   }
 
   private generateMasks(maskCoeffs: tf.Tensor, proto: tf.Tensor) {

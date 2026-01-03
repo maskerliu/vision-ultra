@@ -218,23 +218,24 @@ function drawMask(boxes: Float16Array, classes: Uint8Array, masks: Uint8Array, o
   let length = 0
   let offset = 0
   const imageData = new ImageData(width, height)
-  for (let i = 1; i < 2; ++i) {
+  for (let i = 0; i < objNum; ++i) {
+    let label: CVLabel = annotationPanel.value.getLabel(classes[i])
+    let [r, g, b] = MarkColors.hexToRgb(label.color)
     let i4 = i * 4
     const y1 = Math.round(boxes[i4] / ratio)
     const x1 = Math.round(boxes[i4 + 1] / ratio)
     const y2 = Math.round(boxes[i4 + 2] / ratio)
     const x2 = Math.round(boxes[i4 + 3] / ratio)
     length = (y2 - y1) * (x2 - x1)
-    const overlay = masks.slice(offset, length)
     offset += length
     for (let row = x1; row < x2; ++row)
       for (let col = y1; col < y2; ++col) {
         let id = col * width + row
         let absId = (col - y1) * (x2 - x1) + row - x1
-        imageData.data[id * 4] = 255
-        imageData.data[id * 4 + 1] = 0
-        imageData.data[id * 4 + 2] = 0
-        imageData.data[id * 4 + 3] = overlay[absId] == 0 ? 0 : 200
+        imageData.data[id * 4] = 255 - r
+        imageData.data[id * 4 + 1] = 255 - g
+        imageData.data[id * 4 + 2] = 155 - b
+        imageData.data[id * 4 + 3] += masks[i][absId] == 0 ? 0 : 200
       }
   }
 
