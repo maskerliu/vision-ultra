@@ -117,20 +117,23 @@ function onOpenDebugPanel() {
 }
 
 :root {
+  --van-switch-size: 1.2rem;
+  --van-radio-size: 1rem;
+  --van-checkbox-size: 1rem;
   --van-font-size-xs: 9px;
   --van-font-size-sm: 11px;
   --van-font-size-md: 13px;
   --van-font-size-lg: 15px;
   --van-cell-group-inset-padding: 5px;
-  --van-cell-group-inset-title-padding: 5px;
+  --van-cell-group-inset-title-padding: 5px 20px;
   --van-icon-font-family: "iconfont";
   --van-collapse-item-content-padding: 0px;
   --van-dialog-border-radius: 6px;
   --van-tag-font-size: 0.6rem;
   --van-tag-padding: 2px 5px;
   --van-tag-border-radius: 5px;
-  --van-cell-vertical-padding: 5px;
-  --van-cell-horizontal-padding: 10px;
+  --van-cell-vertical-padding: 8px;
+  --van-cell-horizontal-padding: 15px;
   --van-popup-round-radius: 8px;
   --van-popup-close-icon-margin: 23px;
   --van-border-width: 1px;

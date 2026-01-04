@@ -43,6 +43,7 @@
       <Transition>
         <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-size="[canvasW, canvasH]" />
       </Transition>
+      <!-- <van-empty v-show="hasPreview" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 2000;" /> -->
       <canvas ref="preview"></canvas>
       <canvas ref="offscreen" style="display: none;"></canvas>
       <canvas ref="mask" style="display: none;"></canvas>
@@ -57,11 +58,13 @@
       </media-control-bar>
     </media-controller>
 
-    <div ref="eigenFace" class="eigen-face" v-show="visionStore.faceDetect">
-      <canvas ref="capture" width="120" height="140"></canvas>
-      <canvas ref="masklayer" width="120" height="140"
-        style="position: absolute; top: 5px; left: 5px; z-index: 3000; display: none;"></canvas>
-    </div>
+    <Transition>
+      <div ref="eigenFace" class="eigen-face" v-show="visionStore.faceDetect">
+        <canvas ref="capture" width="120" height="140"></canvas>
+        <canvas ref="masklayer" width="120" height="140"
+          style="position: absolute; top: 5px; left: 5px; z-index: 3000; display: none;"></canvas>
+      </div>
+    </Transition>
 
     <van-dialog v-model:show="showNameInputDialog" :title="$t('faceRec.nameInput')" show-cancel-button
       @confirm="onConfirmName">
@@ -93,13 +96,9 @@
 import 'media-chrome'
 import { showNotify } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { WorkerCMD } from '../../common'
-import { CVLabel } from '../../common/Annotations'
-import { MarkColors } from '../../common/CVColors'
+import { CVLabel, MarkColors, ModelType, VideoPlayer, WorkerCMD } from '../../common'
 import { drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
-import { ModelType } from '../../common/TFModel'
-import { VideoPlayer } from '../../common/VideoPlayer'
 import { VisionStore } from '../../store'
 import TrackerWorker from '../../tracker.worker?worker'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
@@ -115,7 +114,7 @@ const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
-const showAnnotationPanel = ref(true)
+const showAnnotationPanel = ref(false)
 const showNameInputDialog = ref(false)
 const showLiveStreamInput = ref(false)
 const eigenName = ref('')
@@ -166,35 +165,10 @@ const workerListener = (event: MessageEvent) => {
         event.data.scores, event.data.classes,
         event.data.objNum, event.data.scale)
 
-      drawOverlay(event.data.overlay,
-        event.data.width, event.data.height, event.data.scale)
+      drawOverlay(event.data.overlay, event.data.width, event.data.height, event.data.scale)
 
-      let scale = Math.max(preview.value.width, preview.value.height) / Math.max(event.data.width, event.data.height)
       drawMask(event.data.boxes, event.data.classes, event.data.masks,
-        event.data.objNum, event.data.width, event.data.height, [scale, scale])
-
-      // if (event.data.masks != null) {
-      //   let imageData = new ImageData(event.data.width, event.data.height)
-      //   for (let i = 0; i < event.data.objNum; ++i)
-      //     for (let col = 0; col < event.data.width; ++col)
-      //       for (let row = 0; row < event.data.height; ++row) {
-      //         let idx = col * event.data.height + row
-      //         let mask = event.data.masks[idx + event.data.width * event.data.height * i]
-      //         imageData.data[idx * 4] = 255
-      //         imageData.data[idx * 4 + 1] = 0
-      //         imageData.data[idx * 4 + 2] = 0
-      //         imageData.data[idx * 4 + 3] += mask == 0 ? 0 : 30
-      //       }
-
-      //   mask.value.width = event.data.width
-      //   mask.value.height = event.data.height
-      //   maskCtx.clearRect(0, 0, mask.value.width, mask.value.height)
-      //   maskCtx.putImageData(imageData, 0, 0)
-      //   previewCtx.save()
-      //   previewCtx.scale(preview.value.width / event.data.width, preview.value.height / event.data.height)
-      //   previewCtx.drawImage(maskCtx.canvas, 0, 0)
-      //   previewCtx.restore()
-      // }
+        event.data.objNum, event.data.width, event.data.height)
 
       break
     case 'face':
@@ -211,12 +185,12 @@ const workerListener = (event: MessageEvent) => {
   }
 }
 
-function drawMask(boxes: Float16Array, classes: Uint8Array, masks: Uint8Array, objNum: number,
-  width: number, height: number, scale: [number, number]) {
-
+function drawMask(boxes: Float16Array, classes: Uint8Array, masks: Array<Uint8Array>,
+  objNum: number, width: number, height: number) {
   let ratio = 640 / 160
   let length = 0
   let offset = 0
+  let contours = []
   const imageData = new ImageData(width, height)
   for (let i = 0; i < objNum; ++i) {
     let label: CVLabel = annotationPanel.value.getLabel(classes[i])
@@ -237,6 +211,15 @@ function drawMask(boxes: Float16Array, classes: Uint8Array, masks: Uint8Array, o
         imageData.data[id * 4 + 2] = 155 - b
         imageData.data[id * 4 + 3] += masks[i][absId] == 0 ? 0 : 200
       }
+
+    let points = imgProcessor.findContours(masks[i], x2 - x1, y2 - y1,)
+    if (points.length < 3) continue
+
+    points.forEach(p => {
+      p[0] += x1
+      p[1] += y1
+    })
+    contours.push(points)
   }
 
   mask.value.width = width
@@ -244,10 +227,33 @@ function drawMask(boxes: Float16Array, classes: Uint8Array, masks: Uint8Array, o
   maskCtx.clearRect(0, 0, mask.value.width, mask.value.height)
   maskCtx.putImageData(imageData, 0, 0)
 
+  let sacle = Math.max(preview.value.width, preview.value.height) / Math.max(width, height)
   previewCtx.save()
-  previewCtx.scale(scale[0], scale[1])
+  previewCtx.scale(sacle, sacle)
   previewCtx.drawImage(maskCtx.canvas, 0, 0)
   previewCtx.restore()
+
+  contours.forEach(points => {
+    points.forEach(p => {
+      p[0] *= sacle
+      p[1] *= sacle
+    })
+  })
+
+  for (let i = 0; i < contours.length; ++i) {
+    let points = contours[i]
+    let label: CVLabel = annotationPanel.value.getLabel(classes[i])
+    let [r, g, b] = MarkColors.hexToRgb(label.color)
+    previewCtx.beginPath()
+    previewCtx.moveTo(points[0][0], points[0][1])
+    for (let j = 1; j < points.length; ++j) {
+      previewCtx.lineTo(points[j][0], points[j][1])
+    }
+    previewCtx.closePath()
+    previewCtx.lineWidth = 2
+    previewCtx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.8)`
+    previewCtx.stroke()
+  }
 }
 
 function drawOverlay(overlay: Uint8Array, width: number, height: number, scale: [number, number]) {
@@ -293,11 +299,16 @@ function drawOverlay(overlay: Uint8Array, width: number, height: number, scale: 
 }
 
 onMounted(async () => {
-  window.addEventListener('beforeunload', () => {
-    videoPlayer?.close()
+  window.addEventListener('beforeunload', () => { videoPlayer?.close() })
+
+  window.addEventListener('resize', () => {
+    console.log(previewParent.value.$el.clientWidth, previewParent.value.$el.clientHeight)
   })
-  // test()
-  // tensorTest()
+
+  preview.value.width = canvasW.value
+  preview.value.height = canvasH.value
+  offscreen.value.width = canvasW.value
+  offscreen.value.height = canvasH.value
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   maskCtx = mask.value.getContext('2d', { willReadFrequently: true })
@@ -308,8 +319,8 @@ onMounted(async () => {
 
   imgProcessor = new ImageProcessor()
   imgProcessor.imgEnhance = visionStore.imgEnhance
-  imgProcessor.intergrateMode = visionStore.intergrateMode
   imgProcessor.imgProcessParams = visionStore.imgParams.value
+  await imgProcessor.init(visionStore.intergrateMode)
 
   videoPlayer = new VideoPlayer(preVideo.value, preview.value, offscreen.value, capture.value)
   videoPlayer.imgProcessor = imgProcessor
@@ -323,13 +334,12 @@ onMounted(async () => {
 async function onScan() {
   isScan.value = true
   let frame = drawImage()
-  if (visionStore.faceDetect)
-    trackerWorker.postMessage({ cmd: WorkerCMD.faceDetect, image: frame })
-
   let cmds = []
+  if (visionStore.faceDetect) cmds.push(WorkerCMD.faceDetect)
   if (visionStore.enableDetect) cmds.push(WorkerCMD.objDetect)
   if (visionStore.enableSegment) cmds.push(WorkerCMD.objSegment)
   if (cmds.length > 0) trackerWorker.postMessage({ cmd: cmds, image: frame })
+  else { isScan.value = false }
 }
 
 async function onLiveStream() {
@@ -461,8 +471,8 @@ watch(() => visionStore.imgEnhance, (val) => {
   if (!videoPlayer.isOpen) { drawImage() }
 })
 
-watch(() => visionStore.intergrateMode, (val) => {
-  imgProcessor.intergrateMode = val
+watch(() => visionStore.intergrateMode, async (val) => {
+  await imgProcessor.init(val)
 })
 
 watch(() => visionStore.imgParams,

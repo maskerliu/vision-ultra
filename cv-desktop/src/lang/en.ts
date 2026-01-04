@@ -1,3 +1,4 @@
+
 export default {
   common: {
     done: 'Done',
@@ -60,8 +61,17 @@ export default {
     ModelEngine: 'Model Engine',
     ModelImport: 'Import Model',
 
-    ImageSegment: 'Image Segment',
-    Segment: {
+    Detect: 'Detect',
+    DetectModel: {
+      yolov6n: 'YOLOv6 (via meituan)',
+      yolov8n: 'YOLOv8 (via Ultralytics)',
+      yolov10n: 'YOLOv10(via Tsinghua university)',
+      yolo11n: 'YOLO11(lastest)',
+      mobilenet: 'MobileNetv2'
+    },
+
+    Segment: 'Segment',
+    SegmentModel: {
       deeplab: 'Deeplabv3',
       'yolo11n-seg': 'Yolo11n',
       sam: 'Segment Anything',
@@ -74,6 +84,17 @@ export default {
     BrightnessDesc: 'Gamma correction',
     Rotate: 'Rotate',
     ColorMap: 'Color Map',
+
+    Morph: 'Morphology', // 形态学
+    MorphOpt: {
+      Erode: 'Erosion', // 腐蚀
+      Dilate: 'Dilation', // 膨胀
+      Open: 'Open', // 开运算
+      Close: 'Close', // 闭运算
+      Gradient: 'Gradient', // 梯度
+      TopHat: 'TopHat', // 顶帽
+      BlackHat: 'BlackHat' // 黑帽
+    },
 
     Contrast: 'Contrast', // 对比度
     EqualizeHist: 'EqualizeHist', // 直方图均衡
@@ -107,22 +128,13 @@ export default {
     HoughCircle: 'Hough Circle Cvt',
     HoughLine: 'Hough Line Cvt',
 
-    ObjectDetect: 'Object Detect',
     ColorTrack: 'Color',
     ContourTrack: 'Contour',
     BackgroundSub: 'Bg Subtract',
     MeanShit: 'MeanShift',
     CamShift: 'CamShift',
 
-    YOLODetect: 'YOLO',
-    DetectModel: {
-      yolov6n: 'YOLOv6 (via meituan)',
-      yolov8n: 'YOLOv8 (via Ultralytics)',
-      yolov10n: 'YOLOv10(via Tsinghua university)',
-      yolo11n: 'YOLO11(lastest)',
-      mobilenet: 'MobileNetv2'
-    },
-    YOLODesc: 'you only look once',
+
 
 
     FaceRec: 'Face Recognition'

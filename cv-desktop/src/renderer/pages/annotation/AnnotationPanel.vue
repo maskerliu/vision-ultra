@@ -76,7 +76,7 @@
 import * as fabric from "fabric"
 import { v4 as uuidv4 } from "uuid"
 import { onMounted, ref, useTemplateRef, watch } from "vue"
-import { AnnotationPanel, CVLabel, DrawType } from "../../common/Annotations"
+import { AnnotationPanel, CVLabel, DrawType } from "../../common"
 import LabelGroupTab from "./LabelGroupTab.vue"
 import MarkerGroupTab from "./MarkerGroupTab.vue"
 
@@ -215,6 +215,7 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   height: 100%;
   border-radius: 0 0 0 8px;
   background-color: #44444488;
+  z-index: 2002;
 }
 
 .active-label {
