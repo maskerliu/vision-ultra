@@ -61,8 +61,17 @@ export default {
     ModelEngine: '模型引擎',
     ModelImport: '模型导入',
 
-    ImageSegment: '图像分割',
-    Segment: {
+    Detect: '目标检测',
+    DetectModel: {
+      yolov6n: 'YOLOv6 (via 美团)',
+      yolov8n: 'YOLOv8 (via Ultralytics)',
+      yolov10n: 'YOLOv10(清华大学)',
+      yolo11n: 'YOLO11(lastest)',
+      mobilenet: 'MobileNetv2'
+    },
+
+    Segment: '图像分割',
+    SegmentModel: {
       deeplab: 'Deeplabv3',
       'yolo11n-seg': 'Yolo11n',
       sam: 'Segment Anything',
@@ -76,20 +85,31 @@ export default {
     Rotate: '旋转',
     ColorMap: '色彩映射',
 
-    Contrast: '对比度', // 对比度
-    EqualizeHist: '直方图均衡', // 直方图均衡
-    CLAHE: 'CLAHE', // CLAHE
+    Morph: '形态学',
+    MorphOpt: {
+      Erode: '腐蚀',
+      Dilate: '膨胀',
+      Open: '开运算',
+      Close: '闭运算',
+      Gradient: '梯度',
+      TopHat: '顶帽',
+      BlackHat: '黑帽'
+    },
 
-    Saturation: '饱和度', // 饱和度
+    Contrast: '对比度',
+    EqualizeHist: '直方图均衡',
+    CLAHE: 'CLAHE',
+
+    Saturation: '饱和度',
     SaturationDesc: 'HSV 色彩空间增强',
-    Hue: '色调', // 色调
+    Hue: '色调',
 
     Sharpness: '锐化',
     Blur: '模糊',
-    GaussianBlur: '高斯模糊', // 高斯模糊
-    AvgBlur: '均值滤波', // 均值滤波
-    MedianBlur: '中值滤波', // 中值滤波
-    BilateralBlur: '双边滤波', // 双边滤波
+    GaussianBlur: '高斯模糊',
+    AvgBlur: '均值滤波',
+    MedianBlur: '中值滤波',
+    BilateralBlur: '双边滤波',
 
     Filter: '滤波',
     Laplace: '拉普拉斯',
@@ -113,15 +133,7 @@ export default {
     MeanShit: 'MeanShift',
     CamShift: 'CamShift',
 
-    YOLODetect: 'YOLO',
-    YOLODesc: 'you only look once',
-    DetectModel: {
-      yolov6n: 'YOLOv6 (via 美团)',
-      yolov8n: 'YOLOv8 (via Ultralytics)',
-      yolov10n: 'YOLOv10(清华大学)',
-      yolo11n: 'YOLO11(lastest)',
-      mobilenet: 'MobileNetv2'
-    },
+
 
     FaceRec: '人脸识别'
   },

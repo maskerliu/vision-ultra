@@ -1,4 +1,13 @@
+export * from './Annotations'
+// export * from './CVApi'
+export * from './CVColors'
+export * from './FaceDetector'
+// export * from './ImageProcessor'
+export * from './ObjectTracker'
+export * from './ONNX'
 export { PushClient } from './PushClient'
+export * from './TFModel'
+export * from './VideoPlayer'
 
 export enum WorkerCMD {
   initObjTracker = 'initObjTracker',

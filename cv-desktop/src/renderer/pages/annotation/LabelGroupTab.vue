@@ -20,7 +20,7 @@
       </van-uploader>
       <van-collapse-item :name="key" v-for="key of labelGroup.keys()">
         <template #icon>
-          <van-switch size="1rem" v-model="labelGroup.get(key).active" @click.stop="updateLabelGroup(key)"
+          <van-switch v-model="labelGroup.get(key).active" @click.stop="updateLabelGroup(key)"
             style="margin-top: 8px;"></van-switch>
         </template>
         <template #title>

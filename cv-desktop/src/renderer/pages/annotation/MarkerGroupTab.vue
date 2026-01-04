@@ -47,7 +47,7 @@
 import * as fabric from 'fabric'
 import { Cell, Popup } from 'vant'
 import { onMounted, ref } from 'vue'
-import { AnnotationPanel, CVLabel, DrawType } from '../../common/Annotations'
+import { AnnotationPanel, CVLabel, DrawType } from '../../common'
 
 const activeMarkerGroup = ref(DrawType.Rect) // 展开的标注组
 const curMarker = ref<fabric.FabricObject>()

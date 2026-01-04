@@ -4,17 +4,8 @@
       <van-cell :title="$t('cvControl.IntergrateMode')">
         <template #right-icon>
           <van-radio-group v-model="visionStore.intergrateMode" direction="horizontal">
-            <van-radio name="1" icon-size="1rem">
-              <van-icon class-prefix="iconfont" name="wasm"
-                style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
-            </van-radio>
-            <van-radio name="2" icon-size="1rem" :disabled="isWeb">
-              <van-icon class-prefix="iconfont" name="nodejs"
-                style="font-size: 1.2rem; color: #27ae60; margin-top: 4px;" />
-            </van-radio>
-            <van-radio name="3" icon-size="1rem" :disabled="isWeb">
-              <van-icon class-prefix="iconfont" name="native"
-                style="font-size: 1.2rem; color: #3498db; margin-top: 4px;" />
+            <van-radio :name="idx" v-for="(mode, idx) in IntergrateModes">
+              <van-icon class-prefix="iconfont" :name="mode.name" :style="{ color: mode.color }" />
             </van-radio>
           </van-radio-group>
         </template>
@@ -25,14 +16,9 @@
     <van-cell-group style="margin-top: 10px;" inset>
       <van-cell :title="$t('cvControl.ModelEngine')">
         <template #right-icon>
-          <van-radio-group v-model="visionStore.intergrateMode" direction="horizontal">
-            <van-radio name="1" icon-size="1rem">
-              <van-icon class-prefix="iconfont" name="onnx"
-                style="font-size: 1.2rem; color: #8e44ad; margin-top: 4px;" />
-            </van-radio>
-            <van-radio name="2" icon-size="1rem" :disabled="isWeb">
-              <van-icon class-prefix="iconfont" name="tensorflow"
-                style="font-size: 1.2rem; color: #e67e22; margin-top: 4px;" />
+          <van-radio-group v-model="visionStore.modelEngine" direction="horizontal">
+            <van-radio :name="engine.name" v-for="engine in ModelEngines">
+              <van-icon class-prefix="iconfont" :name="engine.name" :style="{ color: engine.color }" />
             </van-radio>
           </van-radio-group>
         </template>
@@ -47,39 +33,89 @@
 
     </van-cell-group>
 
-    <!-- object detect -->
-    <van-cell-group inset>
-      <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableDetect" style="margin-left: 10px;">
-          <van-icon class-prefix="iconfont" name="object-detect" style="color: #2980b9;" />
-          {{ $t('cvControl.ObjectDetect') }}
-        </van-checkbox>
-      </template>
-      <van-radio-group direction="vertical" :disabled="!visionStore.enableDetect" style="padding: 10px 15px 0 15px;"
-        v-model="visionStore.detectModel" @change="onParamChange">
-        <van-radio :name="model" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 10px;"
-          v-for="model in DetectModels">
-          {{ $t(`cvControl.DetectModel.${model}`) }}
-        </van-radio>
-      </van-radio-group>
+    <!-- object detect & segment & face recognize-->
+    <van-cell-group inset title="detect & segment & rec">
+      <van-cell :disabled="!visionStore.enableDetect">
+        <template #title>
+          <van-checkbox shape="square" v-model="visionStore.enableDetect">
+            <van-icon class-prefix="iconfont" name="object-detect" style="color: #2980b9;" />
+            {{ $t('cvControl.Detect') }}
+          </van-checkbox>
+        </template>
+        <template #value>
+          <van-popover v-model:show="showDetectModels" placement="bottom-end" overlay>
+            <template #reference>
+              {{ visionStore.detectModel }}
+            </template>
+            <van-list style="width: 260px; height: 160px; overflow: hidden scroll;">
+              <van-cell clickable :title="$t(`cvControl.DetectModel.${model}`)" @click="onDetectModelChanged(model)"
+                v-for="model in DetectModels"></van-cell>
+            </van-list>
+          </van-popover>
+        </template>
+      </van-cell>
 
-      <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableDetect"
-        style="margin-left: 15px;">
+      <van-cell :disabled="!visionStore.enableSegment">
+        <template #title>
+          <van-checkbox shape="square" v-model="visionStore.enableSegment">
+            <van-icon class-prefix="iconfont" name="segment" style="color: #2980b9;" />
+            {{ $t('cvControl.Segment') }}
+          </van-checkbox>
+        </template>
+        <template #value>
+          <van-popover v-model:show="showSegmentModels" placement="bottom-end" overlay>
+            <template #reference>
+              {{ visionStore.segmentModel }}
+            </template>
+            <van-list style="width: 260px; height: 160px; overflow: hidden scroll;">
+              <van-cell clickable :title="$t(`cvControl.SegmentModel.${model}`)" @click="onSegmentModelChanged(model)"
+                v-for="model in SegmentModels"></van-cell>
+            </van-list>
+          </van-popover>
+        </template>
+      </van-cell>
+
+      <van-cell :disabled="!visionStore.faceDetect">
+        <template #title>
+          <van-checkbox shape="square" v-model="visionStore.faceDetect">
+            <van-icon class-prefix="iconfont" name="face-rec" style="color: #e67e22;" />
+            <span>{{ $t('cvControl.FaceRec') }}</span>
+          </van-checkbox>
+        </template>
+        <template #label>
+          <van-row style="padding-top: 15px;" v-if="visionStore.faceDetect">
+            <van-checkbox v-model="visionStore.drawEigen" :disabled="!visionStore.faceDetect">
+              <template #default>
+                <van-icon class-prefix="iconfont" name="mesh" />
+              </template>
+            </van-checkbox>
+
+            <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;"
+              :disabled="!visionStore.faceDetect">
+              <template #default>
+                <van-icon class-prefix="iconfont" name="eigen" />
+              </template>
+            </van-checkbox>
+          </van-row>
+        </template>
+      </van-cell>
+
+      <van-checkbox shape="square" v-model="visionStore.imgParams.enableDetect" style="margin: 10px 15px 0 15px;">
         Opencv
       </van-checkbox>
       <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableDetect"
         style="padding: 10px 15px;" v-model="visionStore.imgParams.detector[0]" @change="onParamChange">
-        <van-radio name="color" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="color" style="font-size: 0.8rem;">
           {{ $t('cvControl.ColorTrack') }}
         </van-radio>
-        <van-radio name="contour" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="contour" style="font-size: 0.8rem;">
           {{ $t('cvControl.ContourTrack') }}
         </van-radio>
-        <van-radio name="bgSub" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="bgSub" style="font-size: 0.8rem;">
           {{ $t('cvControl.BackgroundSub') }}
         </van-radio>
       </van-radio-group>
-      <van-field label="threshold" label-align="right" type="number" input-align="right" label-width="5rem"
+      <van-field label="threshold" type="number" input-align="right" label-width="5rem"
         v-if="visionStore.imgParams.enableDetect">
         <template #input>
           <van-slider bar-height="4px" button-size="1.2rem" min="1" max="100" step="1"
@@ -90,7 +126,7 @@
           </van-slider>
         </template>
       </van-field>
-      <van-field label="minArea" label-align="right" type="number" input-align="right" label-width="5rem"
+      <van-field label="minArea" type="number" input-align="right" label-width="5rem"
         v-if="visionStore.imgParams.enableDetect">
         <template #input>
           <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="5"
@@ -103,173 +139,149 @@
       </van-field>
     </van-cell-group>
 
-    <!-- image segment -->
-    <van-cell-group inset>
-      <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.enableSegment" style="margin-left: 10px;">
-          <van-icon class-prefix="iconfont" name="segment" style="color: #2980b9; " />
-          {{ $t('cvControl.ImageSegment') }}
-        </van-checkbox>
-      </template>
-
-      <van-radio-group direction="vertical" :disabled="!visionStore.enableSegment" style="padding: 10px 15px 0 15px;"
-        v-model="visionStore.segmentModel" @change="onParamChange">
-        <van-radio :name="model" icon-size="1rem" style="font-size: 0.8rem; margin-bottom: 10px;"
-          v-for="model in SegmentModels">
-          {{ $t(`cvControl.Segment.${model}`) }}
-        </van-radio>
-      </van-radio-group>
-    </van-cell-group>
-
-    <!-- face recognize -->
-    <van-cell-group inset>
-      <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.faceDetect" style="margin-left: 10px;">
-          <van-icon class-prefix="iconfont" name="face-rec"
-            style="font-size: 1rem; color: #e67e22; margin-right: 5px;" />
-          <span>{{ $t('cvControl.FaceRec') }}</span>
-        </van-checkbox>
-      </template>
-      <van-row style="padding: 10px 15px;">
-        <van-checkbox icon-size="1rem" v-model="visionStore.drawEigen" :disabled="!visionStore.faceDetect">
-          <template #default>
-            <van-icon class-prefix="iconfont" name="mesh" style="font-size: 1.2rem;" />
-          </template>
-        </van-checkbox>
-
-        <van-checkbox icon-size="1rem" v-model="visionStore.drawFaceMesh" style="margin-left: 15px;"
-          :disabled="!visionStore.faceDetect">
-          <template #default>
-            <van-icon class-prefix="iconfont" name="eigen" style="font-size: 1.2rem;" />
-          </template>
-        </van-checkbox>
-      </van-row>
-    </van-cell-group>
-
     <!-- opencv image process -->
     <van-cell-group inset>
       <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgEnhance" style="margin-left: 10px;">
+        <van-checkbox shape="square" v-model="visionStore.imgEnhance">
           <van-icon class-prefix="iconfont" name="opencv" style="font-size: 1rem; color: #27ae60;" />
           {{ $t('cvControl.ImgEnhance') }}
         </van-checkbox>
       </template>
-      <van-field :label="$t('cvControl.Gray')" label-align="right" type="number" input-align="right" label-width="4rem">
+      <van-field :label="$t('cvControl.Gray')" type="number" input-align="right">
         <template #input>
-          <van-switch v-model="visionStore.imgParams.isGray" size="1.3rem"></van-switch>
+          <van-switch v-model="visionStore.imgParams.isGray"></van-switch>
         </template>
       </van-field>
-      <van-field :label="$t('cvControl.Rotate')" label-align="right" type="number" input-align="right"
-        label-width="4rem">
+      <van-field :label="$t('cvControl.Brightness')" type="number" input-align="right">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="-180" max="180" step="15"
-            v-model="visionStore.imgParams.rotate" @change="onParamChange">
-            <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.rotate }}</van-button>
-            </template>
-          </van-slider>
-        </template>
-      </van-field>
-      <van-popover v-model:show="showColorMaps" position="bottom" :overlay="true" style="width: 330px;">
-        <template #reference>
-          <van-field center clickable input-align="right" readonly :label="$t('cvControl.ColorMap')"
-            :model-value="ColorMaps[visionStore.imgParams.colorMap]" style="width: 300px;"></van-field>
-        </template>
-        <van-list style="height: 200px; overflow: hidden scroll;">
-          <van-cell center clickable :title="val" v-for="(val, idx) in ColorMaps" :key="idx"
-            @click="onColorMapChanged(idx)">
-            <template #value>
-              <van-image height="1rem" radius="5" :src="`/static/${val.toLowerCase()}.jpg`" v-if="idx != 0" />
-            </template>
-          </van-cell>
-        </van-list>
-      </van-popover>
-      <!-- <van-collapse v-model="activeCollapse">
-        <van-collapse-item :title="$t('cvControl.ColorMap')" name="1" :value="ColorMaps[visionStore.imgParams.colorMap]"
-          style="padding-left: 5px;">
-          <van-radio-group v-model="visionStore.imgParams.colorMap">
-            <van-radio :name="idx" icon-size="1rem" style="font-size: 0.8rem; padding:0 15px 5px 15px;"
-              v-for="(val, idx) in ColorMaps" :key="idx" @click="onParamChange">
-              <van-row justify="space-between">
-                <van-col span="6">{{ val }}</van-col>
-                <van-col span="8">
-                  <van-image height="1rem" radius="5" :src="`/static/${val.toLowerCase()}.jpg`" v-if="idx != 0" />
-                </van-col>
-              </van-row>
-            </van-radio>
-          </van-radio-group>
-        </van-collapse-item>
-      </van-collapse> -->
-
-    </van-cell-group>
-
-    <!-- brightness -->
-    <van-cell-group inset>
-      <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableGamma"
-          style="margin-left: 10px;">
-          {{ $t('cvControl.Brightness') }}
-        </van-checkbox>
-      </template>
-      <van-field label="gamma" label-align="right" type="number" input-align="right" label-width="4rem">
-        <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="-1" max="2" step="0.1"
-            v-model="visionStore.imgParams.gamma" :disabled="!visionStore.imgParams.enableGamma"
+          <van-slider bar-height="4px" min="-1" max="2" step="0.1" v-model="visionStore.imgParams.gamma"
             @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.gamma }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.gamma }} </van-button>
             </template>
           </van-slider>
         </template>
+      </van-field>
+      <van-field :label="$t('cvControl.Rotate')" type="number" input-align="right">
+        <template #input>
+          <van-slider bar-height="4px" min="-180" max="180" step="15" v-model="visionStore.imgParams.rotate"
+            @change="onParamChange">
+            <template #button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.rotate }}</van-button>
+            </template>
+          </van-slider>
+        </template>
+      </van-field>
+      <van-field ref="colorMapAnchor" center clickable input-align="right" readonly :label="$t('cvControl.ColorMap')"
+        style="scroll-margin-top: 50px;">
+        <template #input>
+          <van-popover v-model:show="showColorMaps" placement="bottom-end" :overlay="true" @open="checkPosition"
+            style="width: 300px;">
+            <template #reference>
+              <div style="width: 200px;">{{
+                ColorMaps[visionStore.imgParams.colorMap] }}</div>
+            </template>
+            <van-list style="height: 200px; overflow: hidden scroll;">
+              <van-cell center clickable :title="val" v-for="(val, idx) in ColorMaps" :key="idx"
+                @click="onColorMapChanged(idx)">
+                <template #value>
+                  <van-image height="1rem" radius="5" :src="`/static/${val.toLowerCase()}.jpg`" v-if="idx != 0" />
+                </template>
+              </van-cell>
+            </van-list>
+          </van-popover>
+        </template>
+      </van-field>
+    </van-cell-group>
+
+    <!-- morphological operation -->
+    <van-cell-group inset>
+      <van-cell center input-align="right">
+        <template #title>
+          <van-checkbox shape="square" v-model="visionStore.imgParams.enableMorph">
+            {{ $t(`cvControl.Morph`) }}
+          </van-checkbox>
+        </template>
+        <template #value>
+          <van-popover style="width: 200px;" overlay placement="bottom-end" v-model:show="showMorphOpts">
+            <template #reference>
+              <span style="font-size: var(--van-font-size-md)">
+                {{ $t(`cvControl.MorphOpt.${MorphOpts[visionStore.imgParams.morph[0]]}`) }}
+              </span>
+            </template>
+            <van-radio-group direction="vertical"
+              style="width: 180px; height: 100px; padding: 10px 10px 0 10px; overflow: hidden scroll;"
+              v-model="visionStore.imgParams.morph[0]" @change="onParamChange">
+              <van-radio :name="idx" label-position="left" style="margin-bottom: 10px;"
+                v-for="(morph, idx) in MorphOpts">
+                <span style="font-size: var(--van-font-size-md)">{{ $t(`cvControl.MorphOpt.${morph}`) }}</span>
+              </van-radio>
+            </van-radio-group>
+          </van-popover>
+        </template>
+      </van-cell>
+
+      <van-field center label="kernelX" input-align="right" type="number" :disabled="!visionStore.imgParams.enableMorph"
+        v-model="visionStore.imgParams.morph[1]">
+      </van-field>
+      <van-field center label="kernelY" input-align="right" type="number" :disabled="!visionStore.imgParams.enableMorph"
+        v-model="visionStore.imgParams.morph[2]">
+      </van-field>
+      <van-field center label="iterations" input-align="right" type="number"
+        :disabled="!visionStore.imgParams.enableMorph" v-model="visionStore.imgParams.morph[3]">
       </van-field>
     </van-cell-group>
 
     <!-- contrast -->
     <van-cell-group inset>
       <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableContrast"
-          style="margin-left: 10px;" :disabled="!visionStore.imgParams.isGray">
+        <van-checkbox shape="square" v-model="visionStore.imgParams.enableContrast"
+          :disabled="!visionStore.imgParams.isGray">
           {{ $t('cvControl.Contrast') }}
         </van-checkbox>
       </template>
       <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableContrast"
         style="padding: 10px 15px;" v-model="visionStore.imgParams.equalization[0]" @change="onParamChange">
-        <van-radio name="equalizeHist" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="equalizeHist" style="font-size: 0.8rem;">
           {{ $t('cvControl.EqualizeHist') }}
         </van-radio>
-        <van-radio name="clahe" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="clahe" style="font-size: 0.8rem;">
           {{ $t('cvControl.CLAHE') }}
         </van-radio>
       </van-radio-group>
-      <van-field label="clip" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="clip" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.equalization[0] == 'clahe' && visionStore.imgParams.enableContrast">
         <template #input>
           <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="1"
             v-model="visionStore.imgParams.equalization[1]" @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.equalization[1] }}</van-button>
+              <van-button plain class="slider-button">
+                {{ visionStore.imgParams.equalization[1] }}
+              </van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="sizeX" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="sizeX" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.equalization[0] == 'clahe' && visionStore.imgParams.enableContrast">
         <template #input>
           <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="1"
             v-model="visionStore.imgParams.equalization[2]" @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.equalization[2] }}</van-button>
+              <van-button plain class="slider-button">
+                {{ visionStore.imgParams.equalization[2] }}
+              </van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="sizeY" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="sizeY" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.equalization[0] == 'clahe' && visionStore.imgParams.enableContrast">
         <template #input>
           <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="1"
             v-model="visionStore.imgParams.equalization[3]" @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.equalization[3] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.equalization[3] }}</van-button>
             </template>
           </van-slider>
         </template>
@@ -279,89 +291,88 @@
     <!-- blur -->
     <van-cell-group inset>
       <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableBlur"
-          style="margin-left: 10px;">
+        <van-checkbox shape="square" v-model="visionStore.imgParams.enableBlur">
           {{ $t('cvControl.Blur') }}
         </van-checkbox>
       </template>
 
-      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableBlur" style="padding: 10px 15px;"
+      <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableBlur" style="padding: 15px 15px;"
         v-model="visionStore.imgParams.blur[0]" @change="onParamChange">
-        <van-radio name="gaussian" icon-size="1rem">
-          <van-icon class-prefix="iconfont" name="gaussian-filter" style="font-size: 1.4rem; margin-top: 2px;" />
+        <van-radio name="gaussian">
+          <van-icon class-prefix="iconfont" name="gaussian-filter" />
         </van-radio>
-        <van-radio name="avg" icon-size="1rem">
-          <van-icon class-prefix="iconfont" name="avg-filter" style="font-size: 1.4rem; margin-top: 2px;" />
+        <van-radio name="avg">
+          <van-icon class-prefix="iconfont" name="avg-filter" />
         </van-radio>
-        <van-radio name="median" icon-size="1rem">
-          <van-icon class-prefix="iconfont" name="median-filter" style="font-size: 1.4rem; margin-top: 2px;" />
+        <van-radio name="median">
+          <van-icon class-prefix="iconfont" name="median-filter" />
         </van-radio>
-        <van-radio name="bilateral" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="bilateral" style="font-size: 0.8rem;">
           {{ $t('cvControl.BilateralBlur') }}
         </van-radio>
       </van-radio-group>
-      <van-field label="sizeX" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="sizeX" type="number" input-align="right" label-width="4rem"
         v-if="(visionStore.imgParams.blur[0] == 'gaussian' || visionStore.imgParams.blur[0] == 'avg') && visionStore.imgParams.enableBlur">
         <template #input>
           <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="1"
             v-model="visionStore.imgParams.blur[1]" @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.blur[1] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.blur[1] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="sizeY" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="sizeY" type="number" input-align="right" label-width="4rem"
         v-if="(visionStore.imgParams.blur[0] == 'gaussian' || visionStore.imgParams.blur[0] == 'avg') && visionStore.imgParams.enableBlur">
         <template #input>
           <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="1"
             v-model="visionStore.imgParams.blur[2]" @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.blur[2] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.blur[2] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="aperture" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="aperture" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.blur[0] == 'median' && visionStore.imgParams.enableBlur">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="1"
-            v-model="visionStore.imgParams.blur[3]" @change="onParamChange">
+          <van-slider bar-height="4px" min="1" max="31" step="1" v-model="visionStore.imgParams.blur[3]"
+            @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.blur[3] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.blur[3] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="diameter" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="diameter" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.blur[0] == 'bilateral' && visionStore.imgParams.enableBlur">
         <template #input>
           <van-slider bar-height="4px" button-size="1.2rem" min="1" max="5" step="1"
             v-model="visionStore.imgParams.blur[4]" @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.blur[4] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.blur[4] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="color" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="color" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.blur[0] == 'bilateral' && visionStore.imgParams.enableBlur">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="10" max="255" step="1"
-            v-model="visionStore.imgParams.blur[5]" @change="onParamChange">
+          <van-slider bar-height="4px" min="10" max="255" step="1" v-model="visionStore.imgParams.blur[5]"
+            @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.blur[5] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.blur[5] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="space" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="space" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.blur[0] == 'bilateral' && visionStore.imgParams.enableBlur">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="10" max="255" step="1"
-            v-model="visionStore.imgParams.blur[6]" @change="onParamChange">
+          <van-slider bar-height="4px" min="10" max="255" step="1" v-model="visionStore.imgParams.blur[6]"
+            @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.blur[6] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.blur[6] }}</van-button>
             </template>
           </van-slider>
         </template>
@@ -371,38 +382,37 @@
     <!-- sharpness -->
     <van-cell-group inset>
       <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableSharpen"
-          style="margin-left: 10px;">
+        <van-checkbox shape="square" v-model="visionStore.imgParams.enableSharpen">
           {{ $t('cvControl.Sharpness') }}
         </van-checkbox>
       </template>
       <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableSharpen"
         style="padding: 10px 15px;" v-model="visionStore.imgParams.sharpen[0]" @change="onParamChange">
-        <van-radio name="laplace" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="laplace" style="font-size: 0.8rem;">
           laplacian
         </van-radio>
-        <van-radio name="usm" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="usm" style="font-size: 0.8rem;">
           usm
         </van-radio>
       </van-radio-group>
-      <van-field label="origin" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="origin" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.sharpen[0] !== 'laplace' && visionStore.imgParams.enableSharpen">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="1" max="2" step="0.1"
-            v-model="visionStore.imgParams.sharpen[1]" @change="onParamChange">
+          <van-slider bar-height="4px" min="1" max="2" step="0.1" v-model="visionStore.imgParams.sharpen[1]"
+            @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.sharpen[1] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.sharpen[1] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="addon" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="addon" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.sharpen[0] !== 'laplace' && visionStore.imgParams.enableSharpen">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="-2" max="2" step="0.1"
-            v-model="visionStore.imgParams.sharpen[2]" @change="onParamChange">
+          <van-slider bar-height="4px" min="-2" max="2" step="0.1" v-model="visionStore.imgParams.sharpen[2]"
+            @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.sharpen[2] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.sharpen[2] }}</van-button>
             </template>
           </van-slider>
         </template>
@@ -412,63 +422,63 @@
     <!-- filter -->
     <van-cell-group inset>
       <template #title>
-        <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableFilter"
-          style="margin-left: 10px;" :disabled="!visionStore.imgParams.isGray">
+        <van-checkbox shape="square" v-model="visionStore.imgParams.enableFilter"
+          :disabled="!visionStore.imgParams.isGray">
           {{ $t('cvControl.Filter') }}
         </van-checkbox>
       </template>
       <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableFilter"
         style="padding: 10px 15px;" v-model="visionStore.imgParams.filter[0]" @change="onParamChange">
-        <van-radio name="sobel" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="sobel" style="font-size: 0.8rem;">
           {{ $t('cvControl.Sobel') }}
         </van-radio>
-        <van-radio name="scharr" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="scharr" style="font-size: 0.8rem;">
           {{ $t('cvControl.Scharr') }}
         </van-radio>
-        <van-radio name="laplace" icon-size="1rem" style="font-size: 0.8rem;">
+        <van-radio name="laplace" style="font-size: 0.8rem;">
           {{ $t('cvControl.Laplace') }}
         </van-radio>
       </van-radio-group>
-      <van-field label="dX" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="dX" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.filter[0] !== 'laplace' && visionStore.imgParams.enableFilter">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="0" max="3" step="0.1"
-            v-model="visionStore.imgParams.filter[1]" @change="onParamChange">
+          <van-slider bar-height="4px" min="0" max="3" step="0.1" v-model="visionStore.imgParams.filter[1]"
+            @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.filter[1] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.filter[1] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="dY" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="dY" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.filter[0] !== 'laplace' && visionStore.imgParams.enableFilter">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="0" max="3" step="0.1"
-            v-model="visionStore.imgParams.filter[2]" @change="onParamChange">
+          <van-slider bar-height="4px" min="0" max="3" step="0.1" v-model="visionStore.imgParams.filter[2]"
+            @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.filter[2] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.filter[2] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="size" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="size" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.filter[0] !== 'scharr' && visionStore.imgParams.enableFilter">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="1" max="30" step="1"
-            v-model="visionStore.imgParams.filter[4]" @change="onParamChange">
+          <van-slider bar-height="4px" min="1" max="30" step="1" v-model="visionStore.imgParams.filter[4]"
+            @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.filter[4] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.filter[4] }}</van-button>
             </template>
           </van-slider>
         </template>
       </van-field>
-      <van-field label="scale" label-align="right" type="number" input-align="right" label-width="4rem"
+      <van-field label="scale" type="number" input-align="right" label-width="4rem"
         v-if="visionStore.imgParams.enableFilter">
         <template #input>
-          <van-slider bar-height="4px" button-size="1.2rem" min="1" max="31" step="1"
-            v-model="visionStore.imgParams.filter[3]" @change="onParamChange">
+          <van-slider bar-height="4px" min="1" max="31" step="1" v-model="visionStore.imgParams.filter[3]"
+            @change="onParamChange">
             <template #button>
-              <van-button plain size="small"> {{ visionStore.imgParams.filter[3] }}</van-button>
+              <van-button plain class="slider-button"> {{ visionStore.imgParams.filter[3] }}</van-button>
             </template>
           </van-slider>
         </template>
@@ -478,7 +488,7 @@
     <van-cell-group inset :title="$t('cvControl.FeatExtract')">
       <van-cell center :title="$t('cvControl.Canny')" :label="'[ ' + visionStore.imgParams.canny.toString() + ' ]'">
         <template #title>
-          <van-checkbox icon-size="1rem" shape="square" v-model="visionStore.imgParams.enableCanny">
+          <van-checkbox shape="square" v-model="visionStore.imgParams.enableCanny">
             <span>canny</span>
             <span class="param-desc">{{ $t('cvControl.CannyDesc') }}</span>
           </van-checkbox>
@@ -507,11 +517,25 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
-import { onnx } from '../../common/ONNX'
+import { onnx } from '../../common'
 import { VisionStore } from '../../store'
 
-const SegmentModels = ['deeplab', 'yolo11n-seg', 'unet', 'sam']
+const IntergrateModes = [
+  { name: 'wasm', color: '#8e44ad' },
+  { name: 'nodejs', color: '#2ecc71' },
+  { name: 'native', color: '#3498db' }
+]
+const ModelEngines = [{ name: 'onnx', color: '##95a5a6' }, { name: 'tensorflow', color: '#e67e22' }]
+
+const showDetectModels = ref(false)
 const DetectModels = ['yolov8n', 'yolov10n', 'yolo11n', 'mobilenet']
+
+const showSegmentModels = ref(false)
+const SegmentModels = ['deeplab', 'yolo11n-seg', 'unet', 'sam']
+
+const showMorphOpts = ref(false)
+const MorphOpts = ['Erode', 'Dilate', 'Open', 'Close', 'Gradient', 'TopHat', 'BlackHat']
+
 const showColorMaps = ref(false)
 const ColorMaps = ['NONE', 'AUTUMN', 'BONE', 'JET', 'WINTER', 'RAINBOW', 'OCEAN', 'SUMMER',
   'SPRING', 'COOL', 'HSV', 'PINK', 'HOT', 'PARULA', 'MAGMA',
@@ -520,38 +544,30 @@ const ColorMaps = ['NONE', 'AUTUMN', 'BONE', 'JET', 'WINTER', 'RAINBOW', 'OCEAN'
 const visionStore = VisionStore()
 const isWeb = window.isWeb
 
-// const canny = ref<[number, number]>([60, 160])
-// const rotate = ref(0)
-// const gamma = ref(1)
-// const equalization = ref<cvEqualizeHist>(['', 0, 0, 0])
-// const blur = ref<cvBlur>(['', 0, 0, 0, 0, 0, 0])
-// const sharpen = ref<cvSharpen>(['', 0, 0, 0])
-// const detector = ref<cvDetector>(['', 0, 0])
-// const filter = ref<cvFilter>(['', 0, 0, 0, 0])
-
+const colorMapAnchor = ref()
 const modelName = ref<string>()
 
 
 onMounted(() => {
-  // rotate.value = visionStore.imgParams.rotate
-  // equalization.value = visionStore.imgParams.equalization
-  // blur.value = visionStore.imgParams.blur
-  // sharpen.value = visionStore.imgParams.sharpen
-  // filter.value = visionStore.imgParams.filter
-  // detector.value = visionStore.imgParams.detector
-  // canny.value = visionStore.imgParams.canny
 })
 
-function onParamChange() {
-  // visionStore.imgParams.rotate = rotate.value
-  // visionStore.imgParams.gamma = gamma.value
+function checkPosition() {
+  colorMapAnchor.value.$el.scrollIntoView({
+    behavior: 'smooth',
+  })
+}
 
-  // visionStore.imgParams.equalization = equalization.value as cvEqualizeHist
-  // visionStore.imgParams.sharpen = sharpen.value as cvSharpen
-  // visionStore.imgParams.blur = blur.value as cvBlur
-  // visionStore.imgParams.filter = filter.value as cvFilter
-  // visionStore.imgParams.detector = detector.value as cvDetector
-  // visionStore.imgParams.canny = canny.value as any
+function onParamChange() {
+}
+
+function onDetectModelChanged(name: string) {
+  visionStore.detectModel = name
+  showDetectModels.value = false
+}
+
+function onSegmentModelChanged(name: string) {
+  visionStore.segmentModel = name
+  showSegmentModels.value = false
 }
 
 function onColorMapChanged(idx: number) {
@@ -573,5 +589,11 @@ async function onModelUpload(data: any) {
 <style>
 .van-radio__label {
   width: 100%;
+}
+
+.slider-button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
 }
 </style>

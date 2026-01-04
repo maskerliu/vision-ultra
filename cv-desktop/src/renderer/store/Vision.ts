@@ -1,42 +1,5 @@
 import { defineStore } from "pinia"
-
-export type cvEqualizeHist = [
-  string, // type equalizeHist
-  number, // clipLimit
-  number, // tileGridSizeX
-  number, // tileGridSizeY
-]
-
-export type cvSharpen = [
-  string, // type laplacian, usm
-  number, // dx
-  number, // dy
-  number, // scale
-]
-
-export type cvBlur = [
-  string, // type gaussian, median, bilateral
-  number, // sizeX
-  number, // sizeY
-  number, // aperture
-  number, // diameter
-  number, // sigmaColor
-  number  // sigmaSpace
-]
-
-export type cvFilter = [
-  string, // type sobel, laplacian, scharr
-  number, // dx
-  number, // dy
-  number, // scale
-  number, // size
-]
-
-export type cvDetector = [
-  string, // type meanShift, camShift
-  number, // threshold
-  number, // minSize
-]
+import { cvBlur, cvDetector, cvEqualizeHist, cvFilter, cvMorph, cvSharpen, IntergrateMode } from "../common/CVApi"
 
 class ImageParams {
   isGray: boolean = false
@@ -44,6 +7,9 @@ class ImageParams {
   clahe: boolean = false // 自适应直方图均衡化
   rotate: number = 0
   colorMap: number = 0
+
+  enableMorph: boolean = false
+  morph: cvMorph = [0, 1, 1, 1]
 
   enableGamma: boolean = false
   gamma: number = 1 // 伽马校正
@@ -73,10 +39,11 @@ class ImageParams {
       isGray: this.isGray,
       rotate: this.rotate,
       colorMap: this.colorMap,
+      gamma: this.gamma
     }
 
-    if (this.enableGamma) params['gamma'] = this.gamma
-    else delete params['gamma']
+    if (this.enableMorph) params['morph'] = this.morph.map(val => val)
+    else delete params['morph']
 
     if (this.enableContrast) params['equalization'] = this.equalization.map(val => val)
     else delete params['equalization']
@@ -104,8 +71,8 @@ class ImageParams {
 export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
-      intergrateMode: '1' as '1' | '2' | '3', // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
-      modelEngine: 'tf', // tensorflow or onnx
+      intergrateMode: IntergrateMode.WebAssembly, // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
+      modelEngine: 'tensorflow', // tensorflow or onnx
 
       enableSegment: false,
       segmentModel: 'yolo11n-seg',
