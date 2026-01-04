@@ -2,8 +2,6 @@
 import * as tf from '@tensorflow/tfjs'
 import { baseDomain } from '../../common'
 
-export const MAX_OBJECTS_NUM: number = 20
-
 export enum ModelType {
   Unknown = -1,
   Classify = 0,

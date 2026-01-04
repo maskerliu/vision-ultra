@@ -32,7 +32,7 @@
 
     <van-field center input-align="right" label-width="7rem" :readonly="true">
       <template #label>
-        <van-icon class-prefix="iconfont" name="info" />
+        <van-icon class-prefix="iconfont" name="version-update" />
         {{ $t('settings.sys.version').padStart(11, '&nbsp;') }}
       </template>
       <template #input>
