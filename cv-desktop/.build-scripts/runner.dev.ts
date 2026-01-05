@@ -85,7 +85,7 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
           },
         },
         {
-          directory: path.join(dirname, '../icons/colormaps'),
+          directory: path.join(dirname, '../icons/web'),
           publicPath: '/static/',
           staticOptions: {
             etag: true,

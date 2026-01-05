@@ -1,13 +1,16 @@
 <template>
-  <van-row ref="previewParent" style="position: relative; height: calc(100% - 30px); margin-top: 30px;">
+  <van-col ref="previewParent">
+    <Transition>
+      <apm-panel v-if="commonStore.showApm" />
+    </Transition>
 
-    <van-row justify="space-between" style="width: 100%; height: 50px;">
+    <van-row justify="space-between" style="height: 32px; margin-top: 30px;">
       <van-row style="margin-left: 10px;">
         <van-checkbox v-model="showAnnotationPanel">
           <van-icon class-prefix="iconfont" name="mark" />
         </van-checkbox>
       </van-row>
-      <van-row style="padding: 10px 10px 0 0;">
+      <van-row style="padding: 0 10px 0 0;">
         <van-image fit="cover" radius="10" width="32" height="32" :src="recFace" />
 
         <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="openFolder">
@@ -48,7 +51,7 @@
       <canvas ref="offscreen" style="display: none;"></canvas>
       <canvas ref="mask" style="display: none;"></canvas>
       <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
-      <media-control-bar style="position: absolute; bottom: 0px; left: 0px; right: 0px;" v-if="showControlBar">
+      <media-control-bar style="position: absolute; bottom: 0; left: 0; right: 0;" v-if="showControlBar">
         <media-play-button></media-play-button>
         <media-time-display showduration></media-time-display>
         <media-time-range></media-time-range>
@@ -57,6 +60,8 @@
         <media-volume-range></media-volume-range>
       </media-control-bar>
     </media-controller>
+
+    <live2d-panel ref="live2dPanel" />
 
     <Transition>
       <div ref="eigenFace" class="eigen-face" v-show="visionStore.faceDetect">
@@ -89,22 +94,34 @@
         </van-tag>
       </van-row>
     </van-popup>
-  </van-row>
+  </van-col>
 </template>
 <script lang="ts" setup>
 
 import 'media-chrome'
-import { showNotify } from 'vant'
-import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
+import { Loading, showNotify } from 'vant'
+import { defineAsyncComponent, inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { CVLabel, MarkColors, ModelType, VideoPlayer, WorkerCMD } from '../../common'
 import { drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
-import { VisionStore } from '../../store'
+import { CommonStore, VisionStore } from '../../store'
 import TrackerWorker from '../../tracker.worker?worker'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
+import ApmPanel from '../components/ApmPanel.vue'
+// import Live2dPanel from './Live2dPanel.vue'
+
+const Live2dPanel = defineAsyncComponent({
+  loader: () => import('./Live2dPanel.vue'),
+  loadingComponent: Loading,
+  hydrate: () => {
+    console.info('loaded')
+  }
+})
 
 const trackerWorker = new TrackerWorker() as Worker
 const visionStore = VisionStore()
+const commonStore = CommonStore()
+
 const previewParent = useTemplateRef<any>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
@@ -114,7 +131,9 @@ const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
-const showAnnotationPanel = ref(false)
+// const live2dPanel = ref()
+
+const showAnnotationPanel = ref(true)
 const showNameInputDialog = ref(false)
 const showLiveStreamInput = ref(false)
 const eigenName = ref('')
@@ -177,6 +196,8 @@ const workerListener = (event: MessageEvent) => {
       } else {
         drawTFFaceResult(previewCtx, event.data.face, 'none', visionStore.drawEigen, true)
       }
+
+      live2dPanel.value.animateLive2DModel(event.data.tface)
       captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
       if (visionStore.drawFaceMesh) {
         drawTFFaceResult(captureCtx, event.data.face, 'mesh', false, false, capture.value.height)
@@ -496,15 +517,15 @@ watch(() => visionStore.imgParams,
 }
 
 .media-controller {
-  width: 100%;
-  height: calc(100% - 50px);
+  /* width: 100%; */
+  margin-top: 5px;
+  height: calc(100% - 67px);
   position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   background-color: #2f3542;
-  border-radius: 0 0 10px 10px;
 }
 
 .eigen-face {
