@@ -1,5 +1,5 @@
 <template>
-  <van-config-provider :theme="theme" :theme-vars="themeVars" theme-vars-scope="global" class="full-row">
+  <van-config-provider :theme="theme" :theme-vars="themeVars" theme-vars-scope="global">
     <router-view class="biz-content" v-slot="{ Component, route }">
       <transition name="fade">
         <component :is="Component" :key="route.path" />
@@ -23,6 +23,7 @@
         <div style="margin: 5px 15px;">{{ $t('common.componetLoading') }}</div>
       </van-row>
     </van-overlay>
+
   </van-config-provider>
 </template>
 
@@ -43,15 +44,16 @@ const themeVars = ref<ConfigProviderThemeVars>({
   fontSizeMd: '13px',
   fontSizeLg: '15px',
 })
+
 const lang = ref<string>('zh-CN')
 const active = ref<number>(0)
 const showDebugPanel = ref<boolean>(false)
 const enableDebug = true
 const showLoading = ref<boolean>(false)
-const offset = {
+const offset = ref({
   x: window.innerWidth - 60,
   y: window.innerHeight - 100
-}
+})
 
 provide('theme', theme)
 provide('themeVars', themeVars)
@@ -67,12 +69,13 @@ onMounted(async () => {
     return true
   })
 
+  window.addEventListener('resize', () => {
+    offset.value.x = window.innerWidth - 60
+    offset.value.y = window.innerHeight - 100
+  })
 
-  window.onresize = () => {
-    offset.x = window.innerWidth - 60
-    offset.y = window.innerHeight - 100
 
-  }
+
   useRouter().replace("/visionHome")
   active.value = 1
 
@@ -181,9 +184,9 @@ function onOpenDebugPanel() {
 }
 
 .border-bg {
-  margin: 5px;
+  /* margin: 5px; */
   padding: 0;
-  border-radius: 8px;
+  /* border-radius: 8px; */
   /* border: 1px solid #e1e1e1; */
   box-shadow: 0px 12px 8px -12px #000;
 }
@@ -197,31 +200,19 @@ function onOpenDebugPanel() {
 }
 
 .drag-bar {
+  position: absolute;
   width: 100%;
-  height: 30px;
-  position: fixed;
-  background: linear-gradient(to bottom, var(--van-gray-1), transparent);
+  height: 32px;
+  /* background: linear-gradient(to bottom, var(--van-gray-1), #000); */
   -webkit-app-region: drag;
-  z-index: -1;
-}
-
-.rule-mgr-cell-value {
-  flex: 0 0 120px !important;
-}
-
-.van-tabs__nav--card {
-  box-sizing: border-box;
-  height: var(--van-tabs-card-height);
-  margin: 0;
-  border: var(--van-border-width) solid var(--van-tabs-default-color);
-  border-radius: var(--van-radius-sm);
+  z-index: 0;
 }
 
 .loading {
   width: 20%;
   padding: 10px 5px;
   margin: 20% auto;
-  background-color: #2c3e50e0;
+  background-color: #262f37e0;
   border-radius: 10px;
   font-size: 0.8rem;
   color: #bdc3c7;

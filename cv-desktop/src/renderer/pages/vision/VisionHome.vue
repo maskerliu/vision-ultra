@@ -1,5 +1,6 @@
 <template>
   <van-row>
+    <van-sticky class="drag-bar" v-if="!isWeb"></van-sticky>
     <van-col class="left-panel">
       <van-row justify="space-between">
         <van-row style="color: #c0392b;">
@@ -20,12 +21,8 @@
         <cv-control-panel />
       </OverlayScrollbarsComponent>
     </van-col>
-    <van-col class="right-panel" :options="{ scrollbars: { theme: `os-theme-${reverseTheme}`, } }" defer
-      style="text-align: center;">
-      <div class="drag-bar" v-if="!isWeb"></div>
-      <apm-panel v-if="commonStore.showApm" />
-      <detect-rec />
-    </van-col>
+
+    <detect-rec class="right-panel border-bg" />
 
     <van-popup v-model:show="showPopup" position="right" close-icon="close">
       <settings v-if="showSettings" />
@@ -38,7 +35,6 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 import { ConfigProviderTheme, Loading } from 'vant'
 import { defineAsyncComponent, inject, onMounted, provide, Ref, ref, watch } from 'vue'
 import { CommonStore } from '../../store'
-import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
 import CvControlPanel from './CVControlPanel.vue'
 import FaceDbMgr from './FaceDbMgr.vue'
@@ -103,6 +99,7 @@ function openSettings() {
   min-width: 300px;
   height: calc(100vh - 10px);
   margin: 5px;
+  z-index: 500;
 }
 
 .right-panel {
@@ -110,20 +107,17 @@ function openSettings() {
   flex-grow: 19;
   flex-basis: 50%;
   min-width: 620px;
-  height: calc(100vh - 10px);
-  margin: 5px 2px;
-  overflow: hidden;
-  overflow-y: auto;
+  margin: 5px 5px 8px 5px;
+  overflow: hidden auto;
 }
 
 .left-panel-icon {
-  font-size: 1.4rem;
-  margin: 3px 6px;
+  font-size: 1.2rem;
+  margin: 5px;
   color: var(--van-gray-8)
 }
 
 .snap-panel {
-  width: 100%;
   height: calc(100vh - 45px);
   margin: 0;
   overflow-y: auto;
@@ -139,29 +133,5 @@ function openSettings() {
 .param-value {
   margin: 10px;
   width: calc(100% - 20px);
-}
-
-.register-url {
-  text-decoration: underline;
-  width: 300px;
-  color: var(--van-text-color);
-  padding: 5px;
-  font-size: 0.8rem;
-  user-select: text;
-  word-break: break-all;
-  cursor: pointer;
-}
-
-.register-url:focus {
-  font-weight: bold;
-}
-
-a {
-  color: rgb(31, 187, 166);
-  text-decoration: underline;
-}
-
-.label {
-  padding: 15px 0;
 }
 </style>

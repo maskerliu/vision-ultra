@@ -74,6 +74,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           data = Object.assign(data, {
             type: 'face',
             face: faceDetector.face,
+            tface: faceDetector.tface,
           })
           break
         case WorkerCMD.faceCapture:

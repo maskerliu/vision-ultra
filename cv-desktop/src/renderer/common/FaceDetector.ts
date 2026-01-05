@@ -1,4 +1,5 @@
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
+import { Face, TFace } from "kalidokit"
 import { baseDomain } from "../../common"
 import { FACE_DIMS, FaceDetectResult, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from "./DrawUtils"
 
@@ -16,6 +17,11 @@ export class FaceDetector {
 
   private _face: FaceDetectResult = null
   get face() { return this._face }
+
+  private _tface: TFace = null
+  get tface() { return this._tface }
+
+  private _drawFace: boolean = false
 
   private _enableFaceAngle: boolean = false
   get enableFaceAngle() { return this._enableFaceAngle }
@@ -77,6 +83,7 @@ export class FaceDetector {
       case 'tfjs': {
         let time = Date.now()
         let result = this.faceLandmarker?.detect(frame)
+        this._tface = Face.solve(result?.faceLandmarks[0], { runtime: 'mediapipe' })
         landmarksToFace(result?.faceLandmarks[0], this._face, frame.width, frame.height)
         this._face.expire = Date.now() - time
         this.calacleFaceAngle()
