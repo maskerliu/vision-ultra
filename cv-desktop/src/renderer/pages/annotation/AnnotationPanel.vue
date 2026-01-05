@@ -3,18 +3,18 @@
     <van-col class="left-bar" justify="start">
       <van-button square block hairline plain :type="showRightBar ? 'primary' : 'default'"
         @click="showRightBar = !showRightBar">
-        <van-icon class-prefix="iconfont" name="marker" style="font-size: 1.2rem" />
+        <van-icon class-prefix="iconfont" name="marker" />
       </van-button>
 
       <van-button square block hairline :type="curDrawType == type ? 'primary' : 'default'"
         v-for="(type, idx) in DrawTypes" :key="idx" @click="onDrawSelect(type)">
-        <van-icon class-prefix="iconfont" :name="'mark-' + type.toLocaleLowerCase()" style="font-size: 1.2rem" />
+        <van-icon class-prefix="iconfont" :name="'mark-' + type.toLocaleLowerCase()" />
       </van-button>
 
       <van-popover v-model:show="showMagic" placement="right-start">
         <template #reference>
           <van-button square block hairline style="width: 2.5rem">
-            <van-icon class-prefix="iconfont" name="mark-magic" style="font-size: 1.2rem" />
+            <van-icon class-prefix="iconfont" name="mark-magic" />
           </van-button>
         </template>
         <van-row style="width: 260px; padding: 5px">
@@ -212,8 +212,6 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   left: 0;
   bottom: 0;
   width: 2.5rem;
-  height: 100%;
-  border-radius: 0 0 0 8px;
   background-color: #44444488;
   z-index: 2002;
 }
@@ -240,8 +238,8 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
 }
 
 .right-bar {
-  height: calc(100vh - 90px);
-  margin-top: 40px;
+  height: calc(100vh - 80px);
+  margin-top: 32px;
   overflow-y: hidden;
   border-radius: 0 0 10px 0;
 }

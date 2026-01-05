@@ -22,19 +22,19 @@
             :style="{ borderColor: marker.get('stroke'), backgroundColor: activeMarkers[0]?.get('uuid') == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
             @click="onMarkerStatusChanged(marker as any, 'selected')">
             <template #title>
-              <input :ref="`input_${key}_${idx}`" class="marker-input" :value="marker.get('label')"
-                @input="handleSearch" @click="showLabelSearchResult(key, idx as number)" />
+              <van-row>
+                <input :ref="`input_${key}_${idx}`" class="marker-input" :value="marker.get('label')"
+                  @input="handleSearch" @click="showLabelSearchResult(key, idx as number)" />
+                <van-icon class-prefix="iconfont" class="label-option" v-for="opt of MarkerOpts"
+                  :name="opt + (getMarkerStatus(marker as any, opt) ? '' : '-n')"
+                  @click.stop="onMarkerStatusChanged(marker as any, opt)">
+                </van-icon>
+                <van-icon class-prefix="iconfont" name="delete" style="color: #e74c3c"
+                  @click.stop="onMarkerStatusChanged(marker, 'delete', key, idx as number)" />
+              </van-row>
             </template>
             <template #label>
-              <div class="van-ellipsis" style="max-width: 8rem;">{{ marker.get('uuid') }}</div>
-            </template>
-            <template #right-icon>
-              <van-icon class-prefix="iconfont" class="label-option" v-for="opt of MarkerOpts"
-                :name="opt + (getMarkerStatus(marker as any, opt) ? '' : '-n')"
-                @click.stop="onMarkerStatusChanged(marker as any, opt)">
-              </van-icon>
-              <van-icon class-prefix="iconfont" class="label-option" name="delete" style="color: #e74c3c"
-                @click.stop="onMarkerStatusChanged(marker, 'delete', key, idx as number)" />
+              <div class="van-ellipsis" style="width: 13rem;">{{ marker.get('uuid') }}</div>
             </template>
           </van-cell>
         </van-list>
@@ -156,19 +156,18 @@ function updateMarkerLabel(label: CVLabel) {
 }
 
 .label-option {
-  font-size: 1rem;
-  margin-left: 5px;
+  margin-right: 5px;
 }
 
 .marker {
-  width: calc(100% - 8px);
+  width: calc(100% - 3px);
   border: 1px solid;
   border-radius: 5px;
-  margin: 4px 0 0 7px;
+  margin: 4px 0 0 2px;
 }
 
 .marker-input {
-  width: calc(100% - 5px);
+  width: 50%;
   border: 0;
   background-color: transparent;
 }
