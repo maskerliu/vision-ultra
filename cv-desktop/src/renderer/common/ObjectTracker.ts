@@ -96,7 +96,8 @@ export class ObjectTracker {
         tf.dispose([result])
         return { overlay: data, width, height, scale: this._segmentModel.scale }
       }
-      case 'yolo11n-seg': {
+      case 'yolo11n-seg':
+      case 'yolo11s-seg': {
         let wrapper = result as tf.Tensor[]
         let [height, width] = wrapper[1].shape.slice(1)
         await this.yolo11nSegment(wrapper)

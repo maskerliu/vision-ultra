@@ -1,7 +1,7 @@
 import { loadOpenCV, OpenCV } from "@opencvjs/web"
 import { showNotify } from "vant"
 import { IOpencvAPI } from "../../common/ipc.api"
-import { cvBlur, cvDetector, cvEqualizeHist, cvFilter, cvMorph, cvSharpen, IntergrateMode } from "./CVApi"
+import { cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter, cvFilterType, cvMorph, cvSharpen, IntergrateMode } from "./CVApi"
 
 export class ImageProcessor {
   public imgEnhance: boolean = false
@@ -233,17 +233,17 @@ export class ImageProcessor {
 
   private blur(params: cvBlur) {
     switch (params[0]) {
-      case 'gaussian':
+      case cvBlurType.gaussian:
         if (params[1] % 2 !== 1 || params[2] % 2 !== 1) return
         this.cvWeb.GaussianBlur(this.processedImg, this.processedImg, new this.cvWeb.Size(params[1], params[2]), 0)
         break
-      case 'median':
+      case cvBlurType.median:
         this.cvWeb.medianBlur(this.processedImg, this.processedImg, params[3])
         break
-      case 'avg':
+      case cvBlurType.avg:
         this.cvWeb.blur(this.processedImg, this.processedImg, new this.cvWeb.Size(params[1], params[2]))
         break
-      case 'bilateral':
+      case cvBlurType.bilateral:
         try {
           this.cvWeb.bilateralFilter(this.processedImg, this.processedImg,
             params[4], params[5], params[6], this.cvWeb.BORDER_DEFAULT)
@@ -269,31 +269,19 @@ export class ImageProcessor {
 
   private filtering(filter: cvFilter) {
     switch (filter[0]) {
-      case 'sobel':
+      case cvFilterType.sobel:
         if (filter[4] % 2 !== 1) return
         this.cvWeb.Sobel(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[1], filter[2], filter[4], filter[3])
         break
-      case 'scharr':
+      case cvFilterType.scharr:
         // dx + dy == 1 
         if (filter[1] + filter[2] !== 1) return
         this.cvWeb.Scharr(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[1], filter[2], filter[3])
         break
-      case 'laplace':
+      case cvFilterType.laplace:
         if (filter[4] % 2 !== 1) return
         this.cvWeb.Laplacian(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[4], filter[3])
         break
-    }
-    if (filter[0] === 'sobel' && filter[4] % 2 == 1) {
-      this.cvWeb.Sobel(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[1], filter[2], filter[4], filter[3])
-    }
-
-    if (filter[0] === 'scharr' && (filter[1] + filter[2] == 1)) {
-      // dx + dy == 1 
-      this.cvWeb.Scharr(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[1], filter[2], filter[3])
-    }
-
-    if (filter[0] === 'laplace' && filter[4] % 2 == 1) {
-      this.cvWeb.Laplacian(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[4], filter[3])
     }
   }
 

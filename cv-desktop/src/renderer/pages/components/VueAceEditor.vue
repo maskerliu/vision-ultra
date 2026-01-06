@@ -86,10 +86,10 @@ const props = withDefaults(defineProps<Partial<VueAceEditorProps>>(), {
   data: '{}',
 })
 
-const aceEditor = ref<HTMLElement>()
 const showPreview = ref<boolean>(false)
 const previewType = ref<number>(0)
 
+const aceEditor = useTemplateRef<HTMLElement>('aceEditor')
 const previewContainer = useTemplateRef<HTMLElement>('previewContainer')
 const imgSrc = ref<string>()
 const audioSrc = ref<string>()
