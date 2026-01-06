@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { cvBlur, cvDetector, cvEqualizeHist, cvFilter, cvMorph, cvSharpen, IntergrateMode } from "../common/CVApi"
+import { cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter, cvFilterType, cvMorph, cvSharpen, IntergrateMode } from "../common/CVApi"
 
 class ImageParams {
   isGray: boolean = false
@@ -20,13 +20,13 @@ class ImageParams {
   enableClahe: boolean = false
 
   enableBlur: boolean = false
-  blur: cvBlur = ['gaussian', 3, 31, 5, 5, 75, 75]
+  blur: cvBlur = [cvBlurType.gaussian, 3, 31, 5, 5, 75, 75]
 
   enableSharpen: boolean = false
   sharpen: cvSharpen = ['laplace', 1, 0, 1]
 
   enableFilter: boolean = false
-  filter: cvFilter = ['sobel', 1, 1, 1, 1]
+  filter: cvFilter = [cvFilterType.sobel, 1, 1, 1, 1]
 
   enableDetect: boolean = false
   detector: cvDetector = ['contour', 50, 100]
@@ -84,9 +84,9 @@ export const VisionStore = defineStore('VisionStore', {
       drawFaceMesh: true,
       drawEigen: true,
       landmark: false,
-      faceRec: false,
-      imgEnhance: true,
+      live2d: false,
 
+      imgEnhance: true,
       imgParams: new ImageParams(),
 
       streamHistories: [] as string[],

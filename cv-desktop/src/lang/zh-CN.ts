@@ -74,6 +74,7 @@ export default {
     SegmentModel: {
       deeplab: 'Deeplabv3',
       'yolo11n-seg': 'Yolo11n',
+      'yolo11s-seg': 'Yolo11s ',
       sam: 'Segment Anything',
       unet: 'u-net++',
     },
@@ -106,18 +107,23 @@ export default {
 
     Sharpness: '锐化',
     Blur: '模糊',
-    GaussianBlur: '高斯模糊',
-    AvgBlur: '均值滤波',
-    MedianBlur: '中值滤波',
-    BilateralBlur: '双边滤波',
+    BlurType: {
+      Gaussian: '高斯模糊',
+      Avg: '均值滤波',
+      Median: '中值滤波',
+      Bilateral: '双边滤波',
+    },
 
     Filter: '滤波',
-    Laplace: '拉普拉斯',
-    LaplaceDesc: '通常用于特征提取和特征检测',
-    Sobel: 'Sobel',
-    SobelDesc: '离散的微分算子',
-    Scharr: 'Scharr',
-    ScharrDesc: 'Sobel算子的增强版本',
+    FilterType: {
+      Laplace: '拉普拉斯',
+      LaplaceDesc: '通常用于特征提取和特征检测',
+      Sobel: 'Sobel',
+      SobelDesc: '离散的微分算子',
+      Scharr: 'Scharr',
+      ScharrDesc: 'Sobel算子的增强版本',
+    },
+
 
     FeatExtract: '特征提取',
     Canny: 'Canny',

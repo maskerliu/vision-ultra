@@ -241,7 +241,6 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   height: calc(100vh - 80px);
   margin-top: 32px;
   overflow-y: hidden;
-  border-radius: 0 0 10px 0;
 }
 
 .color-block {

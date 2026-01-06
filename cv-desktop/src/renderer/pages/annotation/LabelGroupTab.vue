@@ -12,7 +12,7 @@
         </van-grid>
       </van-collapse-item>
       <van-uploader accept=".json,.txt" :preview-image="false" :after-read="onLabelUpload">
-        <van-collapse-item name="colorSpace" :title="$t('anno.labelImport')" value=" " style="width: 15rem;">
+        <van-collapse-item :title="$t('anno.labelImport')" value=" " style="width: 15rem;">
           <template #right-icon>
             <van-icon class-prefix="iconfont" name="file-upload" style="font-size: 1rem;" />
           </template>

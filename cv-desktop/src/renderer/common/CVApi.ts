@@ -1,4 +1,5 @@
 
+
 export type cvMorph = [
   number, // MorphType erode, dilate, open, close
   number, // iterations
@@ -20,8 +21,15 @@ export type cvSharpen = [
   number, // scale
 ]
 
+export enum cvBlurType {
+  gaussian = 0,
+  median,
+  avg,
+  bilateral
+}
+
 export type cvBlur = [
-  string, // type gaussian, median, bilateral
+  number, // cvBlurType
   number, // sizeX
   number, // sizeY
   number, // aperture
@@ -30,8 +38,14 @@ export type cvBlur = [
   number  // sigmaSpace
 ]
 
+export enum cvFilterType {
+  sobel = 0,
+  laplace,
+  scharr
+}
+
 export type cvFilter = [
-  string, // type sobel, laplacian, scharr
+  cvFilterType, // type sobel, laplacian, scharr
   number, // dx
   number, // dy
   number, // scale

@@ -201,11 +201,14 @@ function onOpenDebugPanel() {
 
 .drag-bar {
   position: absolute;
-  width: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 32px;
+  pointer-events: auto;
   /* background: linear-gradient(to bottom, var(--van-gray-1), #000); */
   -webkit-app-region: drag;
-  z-index: 0;
+  z-index: 1;
 }
 
 .loading {
