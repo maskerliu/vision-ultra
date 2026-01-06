@@ -76,6 +76,8 @@ export class TFModel {
       this.modelWidth = this.modelHeight = 513
     }
 
+
+
     // console.log(this.model.inputs[0].shape, this.modelWidth, this.modelHeight)
 
     this._isInited = true
@@ -94,7 +96,7 @@ export class TFModel {
     }
 
     let input = this.preprocess(image)
-    let result = await this.model.executeAsync(input)
+    let result = this.model.execute(input)
     input.dispose()
     return result
   }

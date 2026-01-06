@@ -1,14 +1,13 @@
 <template>
-  <canvas ref="live2d" width="400" height="500"
+  <canvas ref="live2d" width="400" height="400"
     style="position: absolute; right: 5px; bottom: 8px; z-index: 100; "></canvas>
 </template>
 <script lang="ts" setup>
-import { Face, TFace, Utils, Vector } from 'kalidokit'
+import { Face, TFace, Vector } from 'kalidokit'
 import Live2DCubismModel, { Live2DModelOptions } from 'live2d-renderer'
 import { onMounted, useTemplateRef } from 'vue'
 
 const lerp = Vector.lerp
-const clamp = Utils.clamp
 const live2d = useTemplateRef<HTMLCanvasElement>('live2d')
 
 let liveModel: Live2DCubismModel
@@ -33,7 +32,12 @@ onMounted(async () => {
 })
 
 function animateLive2DModel(face: TFace) {
-  rigFace(face, 0.5)
+  try {
+    rigFace(face, 0.5)
+  } catch (err) {
+    console.error(err)
+  }
+
 }
 
 function rigFace(result: TFace, lerpAmount = 0.7) {
@@ -81,14 +85,8 @@ function rigFace(result: TFace, lerpAmount = 0.7) {
   liveModel.setParameter("ParamEyeROpen", stabilizedEyes.r)
 
   // Adding 0.3 to ParamMouthForm to make default more of a "smile"
-  liveModel.setParameter(
-    "ParamMouthForm",
-    0.3 +
-    lerp(
-      result.mouth.x,
-      liveModel.getParameterValue("ParamMouthForm"),
-      0.3
-    )
+  liveModel.setParameter("ParamMouthForm",
+    0.3 + lerp(result.mouth.x, liveModel.getParameterValue("ParamMouthForm"), 0.3)
   )
 
   // liveModel.motionManager.update = () => {

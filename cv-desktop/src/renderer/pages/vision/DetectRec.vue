@@ -61,7 +61,7 @@
       </media-control-bar>
     </media-controller>
 
-    <live2d-panel ref="live2dPanel" />
+    <live2d-panel ref="live2dPanel" v-if="visionStore.live2d" />
 
     <Transition>
       <div ref="eigenFace" class="eigen-face" v-show="visionStore.faceDetect">
@@ -89,7 +89,8 @@
       <van-row style="padding: 10px 5px 5px 15px;">
         <van-tag plain closeable size="large" v-for="(value, idx) in visionStore.liveStreamHistories"
           style="margin: 0 10px 10px 0; max-width: calc(50% - 30px);" @close="onDeleteHistory(idx)">
-          <div style="max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ value }}
+          <div style="max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {{ value }}
           </div>
         </van-tag>
       </van-row>
@@ -99,8 +100,8 @@
 <script lang="ts" setup>
 
 import 'media-chrome'
-import { Loading, showNotify } from 'vant'
-import { defineAsyncComponent, inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
+import { Col, showNotify } from 'vant'
+import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { CVLabel, MarkColors, ModelType, VideoPlayer, WorkerCMD } from '../../common'
 import { drawTFFaceResult } from '../../common/DrawUtils'
 import { ImageProcessor } from '../../common/ImageProcessor'
@@ -108,21 +109,21 @@ import { CommonStore, VisionStore } from '../../store'
 import TrackerWorker from '../../tracker.worker?worker'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
 import ApmPanel from '../components/ApmPanel.vue'
-// import Live2dPanel from './Live2dPanel.vue'
+import Live2dPanel from './Live2dPanel.vue'
 
-const Live2dPanel = defineAsyncComponent({
-  loader: () => import('./Live2dPanel.vue'),
-  loadingComponent: Loading,
-  hydrate: () => {
-    console.info('loaded')
-  }
-})
+// const Live2dPanel = defineAsyncComponent({
+//   loader: () => import('./Live2dPanel.vue'),
+//   loadingComponent: Loading,
+//   hydrate: () => {
+//     console.info('loaded')
+//   }
+// })
 
 const trackerWorker = new TrackerWorker() as Worker
 const visionStore = VisionStore()
 const commonStore = CommonStore()
 
-const previewParent = useTemplateRef<any>('previewParent')
+const previewParent = useTemplateRef<typeof Col>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
 const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
@@ -131,7 +132,7 @@ const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
-// const live2dPanel = ref()
+const live2dPanel = useTemplateRef('live2dPanel')
 
 const showAnnotationPanel = ref(true)
 const showNameInputDialog = ref(false)
@@ -146,7 +147,7 @@ const isWeb = window.isWeb
 
 const canvasW = ref(640)
 const canvasH = ref(480)
-const annotationPanel = ref<any>('annotationPanel')
+const annotationPanel = useTemplateRef<typeof AnnotationPanel>('annotationPanel')
 
 const showLoading = inject<Ref<boolean>>('showLoading')
 
@@ -180,6 +181,7 @@ const workerListener = (event: MessageEvent) => {
       }
       break
     case 'mask':
+      console.log(event.data)
       annotationPanel.value.drawAnnotations(event.data.boxes,
         event.data.scores, event.data.classes,
         event.data.objNum, event.data.scale)
@@ -386,10 +388,9 @@ async function openFolder() {
     showControlBar.value = false
     var img = new Image()
     img.onload = async function () {
-
       let w = img.width, h = img.height
-      if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 50)) {
-        const ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 50) / h)
+      if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 67)) {
+        const ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 67) / h)
         w = img.width * ratio
         h = img.height * ratio
       }

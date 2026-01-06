@@ -46,14 +46,14 @@
 
 import * as fabric from 'fabric'
 import { Cell, Popup } from 'vant'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, useTemplateRef } from 'vue'
 import { AnnotationPanel, CVLabel, DrawType } from '../../common'
 
 const activeMarkerGroup = ref(DrawType.Rect) // 展开的标注组
 const curMarker = ref<fabric.FabricObject>()
 const labelRefGroup = ref<Map<DrawType, Array<typeof Cell>>>(new Map())
 const MarkerOpts = ['pin', 'lock', 'visible']
-const labelSearchRef = ref<typeof Popup>()
+const labelSearchRef = useTemplateRef<typeof Popup>('labelSearchRef')
 const showLabelSearch = ref(false)
 
 const markerGroup = defineModel('markerGroup', {
@@ -167,7 +167,7 @@ function updateMarkerLabel(label: CVLabel) {
 }
 
 .marker-input {
-  width: 50%;
+  width: 55%;
   border: 0;
   background-color: transparent;
 }
