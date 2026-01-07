@@ -36,42 +36,32 @@
 
     <!-- object detect & segment & face recognize-->
     <van-cell-group inset title="detect & segment & rec">
-      <van-cell center :disabled="!visionStore.enableDetect">
+      <van-cell center :disabled="!visionStore.enableObjRec">
         <template #title>
-          <van-checkbox shape="square" v-model="visionStore.enableDetect">
-            <van-icon class-prefix="iconfont" name="object-detect" style="color: #2980b9;" />
-            {{ $t('cvControl.Detect') }}
+          <van-checkbox shape="square" v-model="visionStore.enableObjRec">
+            <van-icon class-prefix="iconfont" name="obj-rec" style="color: #2980b9;" />
+            {{ $t('cvControl.ObjRec') }}
           </van-checkbox>
         </template>
         <template #value>
-          <van-popover v-model:show="showDetectModels" placement="bottom-end" overlay>
+          <van-popover v-model:show="showObjRecModels" placement="bottom-end" overlay>
             <template #reference>
-              {{ visionStore.detectModel }}
+              {{ visionStore.objRecModel.name }}
             </template>
-            <van-list style="width: 260px; height: 160px; overflow: hidden scroll;">
-              <van-cell center clickable :title="$t(`cvControl.DetectModel.${model}`)"
-                @click="onDetectModelChanged(model)" v-for="model in DetectModels" />
-            </van-list>
-          </van-popover>
-        </template>
-      </van-cell>
-
-      <van-cell center :disabled="!visionStore.enableSegment">
-        <template #title>
-          <van-checkbox shape="square" v-model="visionStore.enableSegment">
-            <van-icon class-prefix="iconfont" name="segment" style="color: #2980b9;" />
-            {{ $t('cvControl.Segment') }}
-          </van-checkbox>
-        </template>
-        <template #value>
-          <van-popover v-model:show="showSegmentModels" placement="bottom-end" overlay>
-            <template #reference>
-              {{ visionStore.segmentModel }}
-            </template>
-            <van-list style="width: 260px; height: 160px; overflow: hidden scroll;">
-              <van-cell center clickable :title="$t(`cvControl.SegmentModel.${model}`)"
-                @click="onSegmentModelChanged(model)" v-for="model in SegmentModels" />
-            </van-list>
+            <van-col class="model-container">
+              <van-cell-group inset v-for="key of ModelGrop.keys()">
+                <template #title>
+                  <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key" />
+                  {{ $t(`cvControl.Obj${key}`) }}
+                </template>
+                <van-cell center clickable :title="$t(`cvControl.ObjModel.${model.name}`)"
+                  @click="onObjRecModelChanged(model)" title-class="van-ellipsis" v-for="model in ModelGrop.get(key)">
+                  <template #right-icon>
+                    <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                  </template>
+                </van-cell>
+              </van-cell-group>
+            </van-col>
           </van-popover>
         </template>
       </van-cell>
@@ -152,24 +142,24 @@
           <van-popover v-model:show="showColorMaps" placement="bottom-end" :overlay="true" @open="checkPosition"
             style="width: 300px;">
             <template #reference>
-              <div style="width: 180px;">{{
-                ColorMaps[visionStore.imgParams.colorMap] }}</div>
+              <div style="width: 180px;">
+                {{ ColorMaps[visionStore.imgParams.colorMap] }}
+              </div>
             </template>
             <van-list style="height: 200px; overflow: hidden scroll;">
               <van-cell center clickable :title="val" v-for="(val, idx) in ColorMaps" :key="idx"
                 @click="onColorMapChanged(idx)">
-                <template #value>
-                  <van-image height="1rem" radius="5" :src="`/static/${val.toLowerCase()}.jpg`" v-if="idx != 0" />
+                <template #right-icon>
+                  <img radius="5" class="colormaps" style="background-image: url('./static/colormaps.png')"
+                    :style="{ backgroundPosition: `0px -${(idx - 1) * 10}px` }" v-if="idx != 0" />
                 </template>
               </van-cell>
             </van-list>
           </van-popover>
         </template>
       </van-field>
-    </van-cell-group>
 
-    <!-- morphological operation -->
-    <van-cell-group inset>
+      <!-- morphological operation -->
       <van-cell center input-align="right">
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.imgParams.enableMorph">
@@ -186,9 +176,11 @@
             <van-radio-group direction="vertical"
               style="width: 180px; height: 100px; padding: 10px 10px 0 10px; overflow: hidden scroll;"
               v-model="visionStore.imgParams.morph[0]">
-              <van-radio :name="idx" label-position="left" style="margin-bottom: 10px;"
+              <van-radio :name="idx" label-position="left" style="height: 1rem; margin-bottom: 15px;"
                 v-for="(morph, idx) in MorphOpts">
-                <span style="font-size: var(--van-font-size-md)">{{ $t(`cvControl.MorphOpt.${morph}`) }}</span>
+                <span style="font-size: var(--van-font-size-md)">
+                  {{ $t(`cvControl.MorphOpt.${morph}`).padEnd(15, '&nbsp;') }}
+                </span>
               </van-radio>
             </van-radio-group>
           </van-popover>
@@ -196,12 +188,10 @@
       </van-cell>
 
       <van-col v-if="visionStore.imgParams.enableMorph">
-        <van-field center label="kernelX" input-align="right" type="number"
-          :disabled="!visionStore.imgParams.enableMorph" v-model="visionStore.imgParams.morph[1]" />
-        <van-field center label="kernelY" input-align="right" type="number"
-          :disabled="!visionStore.imgParams.enableMorph" v-model="visionStore.imgParams.morph[2]" />
+        <van-field center label="kernelX" input-align="right" type="number" v-model="visionStore.imgParams.morph[1]" />
+        <van-field center label="kernelY" input-align="right" type="number" v-model="visionStore.imgParams.morph[2]" />
         <van-field center label="iterations" input-align="right" type="number"
-          :disabled="!visionStore.imgParams.enableMorph" v-model="visionStore.imgParams.morph[3]" />
+          v-model="visionStore.imgParams.morph[3]" />
       </van-col>
     </van-cell-group>
 
@@ -240,7 +230,7 @@
       <van-radio-group direction="horizontal" :disabled="!visionStore.imgParams.enableBlur"
         v-model="visionStore.imgParams.blur[0]" style="padding: 10px 15px;">
         <van-radio :name="idx" v-for="(type, idx) in BlurTypes">
-          <van-icon class-prefix="iconfont" :name="`${type.toLocaleLowerCase()}-filter`" />
+          <van-icon class-prefix="iconfont" :name="`${type}-filter`" />
         </van-radio>
       </van-radio-group>
 
@@ -335,7 +325,7 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
-import { onnx } from '../../common'
+import { ModelInfo, ModelType, onnx } from '../../common'
 import { cvBlurType, cvFilterType } from '../../common/CVApi'
 import { VisionStore } from '../../store'
 import SliderField from '../components/SliderField.vue'
@@ -350,20 +340,30 @@ const ModelEngines = [
   { name: 'tensorflow', color: '#e67e22' }
 ]
 
-const showDetectModels = ref(false)
-const DetectModels = ['yolov8n', 'yolov10n', 'yolo11n', 'mobilenet']
-
-const showSegmentModels = ref(false)
-const SegmentModels = ['deeplab', 'yolo11n-seg', 'yolo11s-seg', 'unet', 'sam']
+const showObjRecModels = ref(false)
+const ModelGrop = new Map<string, Array<ModelInfo>>()
+const DetectModels = [
+  { name: 'yolov8n', desc: '3.2M', type: ModelType.Detect },
+  { name: 'yolov10n', desc: '2.3M', type: ModelType.Detect },
+  { name: 'yolo11n', desc: '2.6M', type: ModelType.Detect },
+  { name: 'yolo11s', desc: '2.3M', type: ModelType.Detect },
+  { name: 'mobilenet', desc: '', type: ModelType.Detect }
+]
+const SegmentModels = [
+  { name: 'deeplab', desc: '', type: ModelType.Segment },
+  { name: 'yolo11n-seg', desc: '2.6M', type: ModelType.Segment },
+  { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.Segment },
+  { name: 'unet', desc: '', type: ModelType.Segment },
+  { name: 'sam', desc: '38.9M', type: ModelType.Segment }
+]
 
 const showMorphOpts = ref(false)
 const MorphOpts = ['Erode', 'Dilate', 'Open', 'Close', 'Gradient', 'TopHat', 'BlackHat']
 
 const showColorMaps = ref(false)
 const ColorMaps = [
-  'NONE', 'AUTUMN', 'BONE', 'JET', 'WINTER', 'RAINBOW', 'OCEAN', 'SUMMER',
-  'SPRING', 'COOL', 'HSV', 'PINK', 'HOT', 'PARULA', 'MAGMA',
-  'INFERNO', 'PLASMA', 'VIRIDIS', 'CIVIDIS', 'TWILIGHT', 'TWILIGHT_SHIFTED', 'TURBO', 'DEEPGREEN'
+  'NONE', 'AUTUMN', 'BONE', 'CIVIDIS', 'COOL', 'DEEPGREEN', 'HOT', 'HSV', 'INFERNO', 'JET', 'MAGMA', 'OCEAN', 'PARULA', 'PINK', 'PLASMA', 'RAINBOW', 'SPRING', 'SUMMER',
+  'TURBO', 'TWILIGHT', 'TWILIGHT_SHIFTED', 'VIRIDIS', 'WINTER',
 ]
 
 const BlurTypes = ['Gaussian', 'Avg', 'Median', 'Bilateral']
@@ -383,6 +383,9 @@ watch(() => visionStore.faceDetect, (val, old) => {
 })
 
 onMounted(() => {
+
+  ModelGrop.set('Detect', DetectModels)
+  ModelGrop.set('Segment', SegmentModels)
 })
 
 function checkPosition() {
@@ -391,15 +394,11 @@ function checkPosition() {
   })
 }
 
-function onDetectModelChanged(name: string) {
-  visionStore.detectModel = name
-  showDetectModels.value = false
+function onObjRecModelChanged(model: ModelInfo) {
+  visionStore.objRecModel = model
+  showObjRecModels.value = false
 }
 
-function onSegmentModelChanged(name: string) {
-  visionStore.segmentModel = name
-  showSegmentModels.value = false
-}
 
 function onColorMapChanged(idx: number) {
   visionStore.imgParams.colorMap = idx
@@ -418,9 +417,18 @@ async function onModelUpload(data: any) {
 
 </script>
 <style>
-.slider-button {
-  width: 26px;
-  height: 26px;
-  padding: 0;
+.colormaps {
+  width: 128px;
+  height: 10px;
+  background-size: 100% 2200%;
+  background-image: './static/colormaps.png';
+}
+
+.model-container {
+  width: 290px;
+  height: 260px;
+  overflow: hidden scroll;
+  padding-top: 10px;
+  background-color: var(--van-gray-1);
 }
 </style>

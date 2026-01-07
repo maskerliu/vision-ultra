@@ -61,17 +61,16 @@ export default {
     ModelEngine: '模型引擎',
     ModelImport: '模型导入',
 
-    Detect: '目标检测',
-    DetectModel: {
+    ObjRec: '目标识别',
+    ObjDetect: '检测',
+    ObjSegment: '分割',
+    ObjModel: {
       yolov6n: 'YOLOv6 (via 美团)',
       yolov8n: 'YOLOv8 (via Ultralytics)',
       yolov10n: 'YOLOv10(清华大学)',
-      yolo11n: 'YOLO11(lastest)',
-      mobilenet: 'MobileNetv2'
-    },
-
-    Segment: '图像分割',
-    SegmentModel: {
+      yolo11n: 'YOLO11n(lastest)',
+      yolo11s: 'YOLO11s(lastest)',
+      mobilenet: 'MobileNetv2',
       deeplab: 'Deeplabv3',
       'yolo11n-seg': 'Yolo11n',
       'yolo11s-seg': 'Yolo11s ',
