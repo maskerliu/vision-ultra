@@ -170,7 +170,7 @@ const workerListener = (event: MessageEvent) => {
   switch (event.data.type) {
     case 'object':
       if (videoPlayer.isOpen) {
-        videoPlayer.objects = visionStore.enableDetect ? event.data : null
+        videoPlayer.objects = visionStore.enableObjRec ? event.data : null
       } else {
         annotationPanel.value.drawAnnotations(event.data.boxes,
           event.data.scores, event.data.classes,
@@ -199,7 +199,7 @@ const workerListener = (event: MessageEvent) => {
         drawTFFaceResult(previewCtx, event.data.face, 'none', visionStore.drawEigen, true)
       }
 
-      live2dPanel.value.animateLive2DModel(event.data.tface)
+      live2dPanel.value?.animateLive2DModel(event.data.tface)
       captureCtx.clearRect(0, 0, capture.value.width, capture.value.height)
       if (visionStore.drawFaceMesh) {
         drawTFFaceResult(captureCtx, event.data.face, 'mesh', false, false, capture.value.height)
@@ -214,6 +214,7 @@ function drawMask(boxes: Float16Array, classes: Uint8Array, masks: Array<Uint8Ar
   let length = 0
   let offset = 0
   let contours = []
+  if (width == null || width == 0 || height == null || height == 0) return
   const imageData = new ImageData(width, height)
   for (let i = 0; i < objNum; ++i) {
     let label: CVLabel = annotationPanel.value.getLabel(classes[i])
@@ -343,7 +344,7 @@ onMounted(async () => {
   imgProcessor = new ImageProcessor()
   imgProcessor.imgEnhance = visionStore.imgEnhance
   imgProcessor.imgProcessParams = visionStore.imgParams.value
-  await imgProcessor.init(visionStore.intergrateMode)
+  // await imgProcessor.init(visionStore.intergrateMode)
 
   videoPlayer = new VideoPlayer(preVideo.value, preview.value, offscreen.value, capture.value)
   videoPlayer.imgProcessor = imgProcessor
@@ -359,8 +360,7 @@ async function onScan() {
   let frame = drawImage()
   let cmds = []
   if (visionStore.faceDetect) cmds.push(WorkerCMD.faceDetect)
-  if (visionStore.enableDetect) cmds.push(WorkerCMD.objDetect)
-  if (visionStore.enableSegment) cmds.push(WorkerCMD.objSegment)
+  if (visionStore.enableObjRec) cmds.push(WorkerCMD.objRec)
   if (cmds.length > 0) trackerWorker.postMessage({ cmd: cmds, image: frame })
   else { isScan.value = false }
 }
@@ -425,55 +425,30 @@ async function onConfirmName() {
 
 function drawImage() {
   let imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  imgProcessor.process(imgData)
+  if (visionStore.imgEnhance) imgProcessor.process(imgData)
   previewCtx.clearRect(0, 0, imgData.width, imgData.height)
   previewCtx.putImageData(imgData, 0, 0)
   return imgData
 }
 
-watch(() => visionStore.enableSegment, async (val, _) => {
-  showLoading.value = true
-  if (val) {
-    showLoading.value = true
-    trackerWorker.postMessage({
-      cmd: WorkerCMD.initObjTracker,
-      detectModel: visionStore.enableDetect ? visionStore.detectModel : null,
-      segmentModel: visionStore.enableSegment ? visionStore.segmentModel : null
-    })
-  } else {
-    trackerWorker.postMessage({ cmd: WorkerCMD.dispose, modelTypes: [ModelType.Segment] })
-  }
-})
-
-watch(() => visionStore.segmentModel, async () => {
-  showLoading.value = true
-  trackerWorker.postMessage({
-    cmd: WorkerCMD.initObjTracker,
-    detectModel: visionStore.enableDetect ? visionStore.detectModel : null,
-    segmentModel: visionStore.segmentModel
-  })
-})
-
-watch(() => visionStore.enableDetect, async (val, _) => {
+watch(() => visionStore.enableObjRec, async (val, _) => {
   videoPlayer.enableObject = val
   if (val) {
     showLoading.value = true
     trackerWorker.postMessage({
       cmd: WorkerCMD.initObjTracker,
-      detectModel: visionStore.enableDetect ? visionStore.detectModel : null,
-      segmentModel: visionStore.enableSegment ? visionStore.segmentModel : null
+      model: JSON.stringify(visionStore.objRecModel)
     })
   } else {
     trackerWorker.postMessage({ cmd: WorkerCMD.dispose, modelTypes: [ModelType.Detect] })
   }
 })
 
-watch(() => visionStore.detectModel, async () => {
+watch(() => visionStore.objRecModel, async () => {
   showLoading.value = true
   trackerWorker.postMessage({
     cmd: WorkerCMD.initObjTracker,
-    detectModel: visionStore.enableDetect ? visionStore.detectModel : null,
-    segmentModel: visionStore.enableSegment ? visionStore.segmentModel : null
+    model: JSON.stringify(visionStore.objRecModel)
   })
 })
 
@@ -488,8 +463,15 @@ watch(() => visionStore.faceDetect, async (val, _) => {
   }
 })
 
-watch(() => visionStore.imgEnhance, (val) => {
+watch(() => visionStore.imgEnhance, async (val) => {
   imgProcessor.imgEnhance = val
+  if (!val) { imgProcessor.dispose() }
+  else {
+    showLoading.value = true
+    await imgProcessor.init(visionStore.intergrateMode)
+    showLoading.value = false
+  }
+
   if (!videoPlayer.isOpen) { drawImage() }
 })
 
