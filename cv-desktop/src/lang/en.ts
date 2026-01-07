@@ -61,17 +61,15 @@ export default {
     ModelEngine: 'Model Engine',
     ModelImport: 'Import Model',
 
-    Detect: 'Detect',
-    DetectModel: {
+    ObjDetect: 'Detect',
+    ObjSegment: 'Segment',
+    ObjModel: {
       yolov6n: 'YOLOv6 (via meituan)',
       yolov8n: 'YOLOv8 (via Ultralytics)',
       yolov10n: 'YOLOv10(via Tsinghua university)',
-      yolo11n: 'YOLO11(lastest)',
-      mobilenet: 'MobileNetv2'
-    },
-
-    Segment: 'Segment',
-    SegmentModel: {
+      yolo11n: 'YOLO11n(lastest)',
+      yolo11s: 'YOLO11s(lastest)',
+      mobilenet: 'MobileNetv2',
       deeplab: 'Deeplabv3',
       'yolo11n-seg': 'Yolo11n',
       'yolo11s-seg': 'Yolo11s',

@@ -8,13 +8,13 @@
 
       <van-button square block hairline :type="curDrawType == type ? 'primary' : 'default'"
         v-for="(type, idx) in DrawTypes" :key="idx" @click="onDrawSelect(type)">
-        <van-icon class-prefix="iconfont" :name="'mark-' + type.toLocaleLowerCase()" />
+        <van-icon class-prefix="iconfont" :name="'mark-' + type" />
       </van-button>
 
       <van-popover v-model:show="showMagic" placement="right-start">
         <template #reference>
           <van-button square block hairline style="width: 2.5rem">
-            <van-icon class-prefix="iconfont" name="mark-magic" />
+            <van-icon class-prefix="iconfont" name="mark-Magic" />
           </van-button>
         </template>
         <van-row style="width: 260px; padding: 5px">

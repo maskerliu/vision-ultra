@@ -1,4 +1,4 @@
-import { loadOpenCV, OpenCV } from "@opencvjs/web"
+import { OpenCV } from "@opencvjs/web"
 import { showNotify } from "vant"
 import { IOpencvAPI } from "../../common/ipc.api"
 import { cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter, cvFilterType, cvMorph, cvSharpen, IntergrateMode } from "./CVApi"
@@ -22,7 +22,6 @@ export class ImageProcessor {
   private lut: OpenCV.Mat
   private processedImg: OpenCV.Mat
   private tmpImg: OpenCV.Mat
-  private rotateMat: OpenCV.Mat
 
   private bgSubtractor: OpenCV.BackgroundSubtractorMOG2
   private termCrit: OpenCV.TermCriteria
@@ -41,13 +40,15 @@ export class ImageProcessor {
     this._isInited = false
     switch (this._mode) {
       case IntergrateMode.WebAssembly:
+        const { loadOpenCV } = await import('@opencvjs/web')
         this.cvWeb = await loadOpenCV()
+
+        console.log(WebAssembly.Module)
         this.bgSubtractor = new this.cvWeb.BackgroundSubtractorMOG2(500, 16, true)
         this.gamma = 1.0
         this.lut = this.cvWeb.matFromArray(256, 1, this.cvWeb.CV_8UC1, this.gammaTable)
         this.processedImg = new this.cvWeb.Mat()
         this.tmpImg = new this.cvWeb.Mat()
-
 
         this.termCrit = new this.cvWeb.TermCriteria(this.cvWeb.TermCriteria_EPS | this.cvWeb.TermCriteria_COUNT, 10, 1)
         this.trackWindow = new this.cvWeb.Rect(150, 60, 63, 125)
@@ -57,6 +58,7 @@ export class ImageProcessor {
         let mask = new this.cvWeb.Mat()
         this.cvWeb.inRange(roi, this.lower, this.upper, mask)
 
+        this.hsvVec = new this.cvWeb.MatVector()
 
         this.roiHist = new this.cvWeb.Mat()
         let roiVec = new this.cvWeb.MatVector()
@@ -83,8 +85,9 @@ export class ImageProcessor {
     if (this.processedImg) this.processedImg.delete()
     if (this.tmpImg) this.tmpImg.delete()
     if (this.lut) this.lut.delete()
-    if (this.rotateMat) this.rotateMat.delete()
     if (this.hsvVec) this.hsvVec.delete()
+    this._isInited = false
+    this.cvWeb = null
   }
 
   process(image: ImageData) {
@@ -169,7 +172,7 @@ export class ImageProcessor {
       let dsize = new this.cvWeb.Size(width, height)
       let center = new this.cvWeb.Point(width / 2, height / 2)
       let rotateMat = this.cvWeb.getRotationMatrix2D(center, params.rotate, 1)
-      this.cvWeb.warpAffine(this.processedImg, this.processedImg, this.rotateMat, dsize)
+      this.cvWeb.warpAffine(this.processedImg, this.processedImg, rotateMat, dsize)
       rotateMat.delete()
     }
 
@@ -232,66 +235,86 @@ export class ImageProcessor {
   }
 
   private blur(params: cvBlur) {
-    switch (params[0]) {
-      case cvBlurType.gaussian:
-        if (params[1] % 2 !== 1 || params[2] % 2 !== 1) return
-        this.cvWeb.GaussianBlur(this.processedImg, this.processedImg, new this.cvWeb.Size(params[1], params[2]), 0)
-        break
-      case cvBlurType.median:
-        this.cvWeb.medianBlur(this.processedImg, this.processedImg, params[3])
-        break
-      case cvBlurType.avg:
-        this.cvWeb.blur(this.processedImg, this.processedImg, new this.cvWeb.Size(params[1], params[2]))
-        break
-      case cvBlurType.bilateral:
-        try {
-          this.cvWeb.bilateralFilter(this.processedImg, this.processedImg,
-            params[4], params[5], params[6], this.cvWeb.BORDER_DEFAULT)
-        } catch (err) {
-          console.error(err)
-        }
-        break
+    try {
+      switch (params[0]) {
+        case cvBlurType.gaussian:
+          if (params[1] % 2 !== 1 || params[2] % 2 !== 1) return
+          this.cvWeb.GaussianBlur(this.processedImg, this.processedImg, new this.cvWeb.Size(params[1], params[2]), 0)
+          break
+        case cvBlurType.median:
+          this.cvWeb.medianBlur(this.processedImg, this.processedImg, params[3])
+          break
+        case cvBlurType.avg:
+          this.cvWeb.blur(this.processedImg, this.processedImg, new this.cvWeb.Size(params[1], params[2]))
+          break
+        case cvBlurType.bilateral:
+          try {
+            this.cvWeb.bilateralFilter(this.processedImg, this.processedImg,
+              params[4], params[5], params[6], this.cvWeb.BORDER_DEFAULT)
+          } catch (err) {
+            console.error(err)
+          }
+          break
+      }
+
+    } catch (err) {
+      console.warn(err)
     }
   }
 
   private sharpen(sharpen: cvSharpen) {
-    switch (sharpen[0]) {
-      case 'laplace':
-        this.cvWeb.Laplacian(this.processedImg, this.tmpImg, -1)
-        this.cvWeb.addWeighted(this.processedImg, sharpen[1], this.tmpImg, sharpen[2], 0, this.processedImg)
-        break
-      case 'usm':
-        this.cvWeb.GaussianBlur(this.processedImg, this.tmpImg, new this.cvWeb.Size(sharpen[1], sharpen[1]), 25)
-        this.cvWeb.addWeighted(this.processedImg, sharpen[1], this.tmpImg, sharpen[2], 0, this.processedImg)
-        break
+    try {
+      switch (sharpen[0]) {
+        case 'laplace':
+          this.cvWeb.Laplacian(this.processedImg, this.tmpImg, -1)
+          this.cvWeb.addWeighted(this.processedImg, sharpen[1], this.tmpImg, sharpen[2], 0, this.processedImg)
+          break
+        case 'usm':
+          this.cvWeb.GaussianBlur(this.processedImg, this.tmpImg, new this.cvWeb.Size(sharpen[1], sharpen[1]), 25)
+          this.cvWeb.addWeighted(this.processedImg, sharpen[1], this.tmpImg, sharpen[2], 0, this.processedImg)
+          break
+      }
+    } catch (err) {
+      console.warn(err)
     }
+
   }
 
   private filtering(filter: cvFilter) {
-    switch (filter[0]) {
-      case cvFilterType.sobel:
-        if (filter[4] % 2 !== 1) return
-        this.cvWeb.Sobel(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[1], filter[2], filter[4], filter[3])
-        break
-      case cvFilterType.scharr:
-        // dx + dy == 1 
-        if (filter[1] + filter[2] !== 1) return
-        this.cvWeb.Scharr(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[1], filter[2], filter[3])
-        break
-      case cvFilterType.laplace:
-        if (filter[4] % 2 !== 1) return
-        this.cvWeb.Laplacian(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[4], filter[3])
-        break
+    try {
+      switch (filter[0]) {
+        case cvFilterType.sobel:
+          if (filter[4] % 2 !== 1) return
+          this.cvWeb.Sobel(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[1], filter[2], filter[4], filter[3])
+          break
+        case cvFilterType.scharr:
+          // dx + dy == 1 
+          if (filter[1] + filter[2] !== 1) return
+          this.cvWeb.Scharr(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[1], filter[2], filter[3])
+          break
+        case cvFilterType.laplace:
+          if (filter[4] % 2 !== 1) return
+          this.cvWeb.Laplacian(this.processedImg, this.processedImg, this.cvWeb.CV_8U, filter[4], filter[3])
+          break
+      }
+
+    } catch (err) {
+      console.warn(err)
     }
+
   }
 
   private morph(params: cvMorph) {
-    let M: any
-    if (params[1] < 0 || params[2] < 0 || params[3] < 0) return
-    let ksize = new this.cvWeb.Size(params[1], params[2])
-    M = this.cvWeb.getStructuringElement(this.cvWeb.MORPH_CROSS, ksize)
-    this.cvWeb.morphologyEx(this.processedImg, this.processedImg, params[0], M, new this.cvWeb.Point(-1, -1), params[3])
-    M.delete()
+    try {
+      let M: any
+      if (params[1] == undefined || params[2] == undefined || params[3] == undefined || params[1] < 0 || params[2] < 0 || params[3] < 0) return
+      let ksize = new this.cvWeb.Size(params[1], params[2])
+      M = this.cvWeb.getStructuringElement(this.cvWeb.MORPH_CROSS, ksize)
+      this.cvWeb.morphologyEx(this.processedImg, this.processedImg, params[0], M, new this.cvWeb.Point(-1, -1), params[3])
+      M.delete()
+    } catch (err) {
+      console.warn(err)
+    }
   }
 
   // 使用背景减除方法
@@ -362,6 +385,8 @@ export class ImageProcessor {
 
 
   findContours(data: Uint8Array, width: number, height: number) {
+    if (!this._isInited) return []
+
     let src = new this.cvWeb.Mat(height, width, this.cvWeb.CV_8UC1)
     src.data.set(data)
     let contours = new this.cvWeb.MatVector()
@@ -399,9 +424,7 @@ export class ImageProcessor {
       this.cvWeb.approxPolyDP(cnt, approx, epsilon, true)
 
       for (let i = 0; i < approx.rows; i++) {
-        let x = approx.data32S[i * 2]
-        let y = approx.data32S[i * 2 + 1]
-        finalCoordinates.push([x, y]) // 以 [x, y] 数组形式存储
+        finalCoordinates.push([approx.data32S[i * 2], approx.data32S[i * 2 + 1]]) // 以 [x, y] 数组形式存储
       }
       approx.delete()
     }
