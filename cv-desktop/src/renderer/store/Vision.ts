@@ -1,4 +1,5 @@
 import { defineStore } from "pinia"
+import { ModelType } from "../common"
 import { cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter, cvFilterType, cvMorph, cvSharpen, IntergrateMode } from "../common/CVApi"
 
 class ImageParams {
@@ -74,11 +75,8 @@ export const VisionStore = defineStore('VisionStore', {
       intergrateMode: IntergrateMode.WebAssembly, // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
       modelEngine: 'tensorflow', // tensorflow or onnx
 
-      enableSegment: false,
-      segmentModel: 'yolo11n-seg',
-
-      enableDetect: false,
-      detectModel: 'mobilenet',
+      enableObjRec: false,
+      objRecModel: { name: 'mobilenet', type: ModelType.Detect },
 
       faceDetect: false,
       drawFaceMesh: true,
@@ -86,7 +84,7 @@ export const VisionStore = defineStore('VisionStore', {
       landmark: false,
       live2d: false,
 
-      imgEnhance: true,
+      imgEnhance: false,
       imgParams: new ImageParams(),
 
       streamHistories: [] as string[],

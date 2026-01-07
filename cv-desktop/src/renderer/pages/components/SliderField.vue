@@ -28,4 +28,10 @@ const sliderValue = defineModel('sliderValue', {
 })
 
 </script>
-<style scoped></style>
+<style scoped>
+.slider-button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+}
+</style>

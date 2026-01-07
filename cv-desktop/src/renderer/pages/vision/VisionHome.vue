@@ -103,6 +103,7 @@ function openSettings() {
 }
 
 .right-panel {
+  position: relative;
   flex-grow: 19;
   flex-basis: 50%;
   min-width: 620px;

@@ -11,6 +11,12 @@ export enum ModelType {
   Pose = 4
 }
 
+export type ModelInfo = {
+  name: string,
+  type: ModelType
+  desc?: string
+}
+
 const ModelClassSize = {
   'mobilenet': 90,
   'yolo': 80,
@@ -76,8 +82,6 @@ export class TFModel {
       this.modelWidth = this.modelHeight = 513
     }
 
-
-
     // console.log(this.model.inputs[0].shape, this.modelWidth, this.modelHeight)
 
     this._isInited = true
@@ -96,7 +100,12 @@ export class TFModel {
     }
 
     let input = this.preprocess(image)
-    let result = this.model.execute(input)
+    let result: tf.Tensor | tf.Tensor[] = null
+    if (this._name == 'mobilenet') {
+      result = await this.model.executeAsync(input)
+    } else {
+      result = this.model.execute(input)
+    }
     input.dispose()
     return result
   }

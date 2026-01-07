@@ -12,8 +12,7 @@ export * from './VideoPlayer'
 export enum WorkerCMD {
   initObjTracker = 'initObjTracker',
   dispose = 'dispose',
-  objSegment = 'objSegment',
-  objDetect = 'objDetect',
+  objRec = 'objRec',
 
   initFaceDetector = 'initFaceDetector',
   faceDispose = 'faceDispose',

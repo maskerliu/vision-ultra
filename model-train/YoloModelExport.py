@@ -48,7 +48,7 @@ from pathlib import Path
 # modelv6.export(format="tfjs", half=True)
 
 
-model11n_seg = YOLO("./yolo11s-seg.pt")
+model11n_seg = YOLO("./yolo11s.pt")
 # results = model11n_seg("bus.jpg")
 # for result in results:
 #     print(result.masks)

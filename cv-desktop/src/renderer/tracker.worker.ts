@@ -4,7 +4,7 @@ import { baseDomain } from "../common"
 import { WorkerCMD } from "./common"
 import { FaceDetector } from "./common/FaceDetector"
 import { ObjectTracker } from "./common/ObjectTracker"
-import { ModelType } from "./common/TFModel"
+import { ModelInfo } from "./common/TFModel"
 
 const ctx: Worker = self as any
 let fileset: any = null
@@ -18,9 +18,7 @@ async function init() {
 
 ctx.addEventListener('message', async (event: MessageEvent<{
   cmd: WorkerCMD | WorkerCMD[],
-  detectModel?: string,
-  segmentModel?: string,
-  modelTypes?: ModelType[],
+  model?: string,
   image?: ImageData
 }>) => {
 
@@ -30,44 +28,32 @@ ctx.addEventListener('message', async (event: MessageEvent<{
     try {
       switch (cmd) {
         case WorkerCMD.initObjTracker:
-          await objTracker.init(event.data.detectModel, event.data.segmentModel)
+          await objTracker.init(JSON.parse(event.data.model) as ModelInfo)
           break
         case WorkerCMD.initFaceDetector:
           await faceDetector.init()
           break
         case WorkerCMD.dispose:
-          objTracker.dispose(event.data.modelTypes)
+          objTracker.dispose()
           break
         case WorkerCMD.faceDispose:
           faceDetector.dispose()
           break
-        case WorkerCMD.objSegment:
-          let result = await objTracker.segment(event.data.image)
+        case WorkerCMD.objRec:
+          let result = await objTracker.detect(event.data.image)
           data = Object.assign(data, {
             boxes: objTracker.boxes,
             scores: objTracker.scores,
             classes: objTracker.classes,
+            objNum: objTracker.objNum,
+            expire: objTracker.expire,
             overlay: result?.overlay,
             width: result?.width,
             height: result?.height,
             masks: objTracker.masks,
-            scale: result?.scale,
-            objNum: objTracker.objNum,
-            expire: objTracker.expire,
+            scale: objTracker.modelScale,
           })
           data['type'] = 'mask'
-          break
-        case WorkerCMD.objDetect:
-          await objTracker.detect(event.data.image)
-          data = Object.assign(data, {
-            type: 'object',
-            boxes: objTracker.boxes,
-            scores: objTracker.scores,
-            classes: objTracker.classes,
-            objNum: objTracker.objNum,
-            scale: objTracker.modelScale,
-            expire: objTracker.expire
-          })
           break
         case WorkerCMD.faceDetect:
           await faceDetector.detect(event.data.image)
