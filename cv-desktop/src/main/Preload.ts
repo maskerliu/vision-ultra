@@ -1,10 +1,10 @@
 import { contextBridge } from 'electron'
-import cvNativeApi from './ipc/CVApi.native'
-import cvWasmApi from './ipc/CVApi.wasm'
+import cvBackend from './ipc/cv.backend'
+import cvNative from './ipc/cv.native'
 import tfApi from './ipc/TFApi'
 import mainApi from './MainApi'
 
 contextBridge.exposeInMainWorld('mainApi', mainApi)
-contextBridge.exposeInMainWorld('cvWasmApi', cvWasmApi)
-contextBridge.exposeInMainWorld('cvNativeApi', cvNativeApi)
+contextBridge.exposeInMainWorld('cvBackend', cvBackend)
+contextBridge.exposeInMainWorld('cvNative', cvNative)
 contextBridge.exposeInMainWorld('tfApi', tfApi)

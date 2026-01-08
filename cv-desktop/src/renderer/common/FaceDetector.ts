@@ -1,7 +1,7 @@
-import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
-import { Face, TFace } from "kalidokit"
-import { baseDomain } from "../../common"
-import { FACE_DIMS, FaceDetectResult, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from "./DrawUtils"
+import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
+import { Face, TFace } from 'kalidokit'
+import { baseDomain } from '../../common'
+import { FACE_DIMS, FaceDetectResult, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from './DrawUtils'
 
 
 export class FaceDetector {
@@ -75,8 +75,8 @@ export class FaceDetector {
 
     switch (this._faceRecMode) {
       case 'opencv': {
-        const result = window.cvNativeApi?.faceRecognize(frame, frame.width, frame.height)
-        this._face = result?.face
+        // const result = window.cvNative?.faceRecognize(frame, frame.width, frame.height)
+        // this._face = result?.face
         // if (this.drawFace) drawCVFaceResult(this.previewCtx, this.face, this.eyes, this.landmarks)
         break
       }

@@ -1,4 +1,5 @@
 import Hls from 'hls.js'
+import { WorkerCMD } from '.'
 import { drawObjectDetectResult, drawTFFaceResult, FaceDetectResult, ObjectDetectResult } from './DrawUtils'
 import { ImageProcessor } from './ImageProcessor'
 
@@ -22,6 +23,11 @@ export class VideoPlayer {
   private _trackerWorker: Worker = null
   set trackerWorker(value: Worker) {
     this._trackerWorker = value
+  }
+
+  private _imgProcessorWorker: Worker = null
+  set imgProcessorWorker(value: Worker) {
+    this._imgProcessorWorker = value
   }
 
   private _enableFace = false
@@ -95,17 +101,19 @@ export class VideoPlayer {
     this.offscreenCtx.drawImage(this.preVideo, 0, 0, this.offscreen.width, this.offscreen.height)
     this.frame.data.set(this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data)
     this._imgProcessor?.process(this.frame)
+
+    this._imgProcessorWorker?.postMessage({ cmd: WorkerCMD.imageProcess, image: this.frame })
     this.previewCtx.putImageData(this.frame, 0, 0)
 
     if (this._faceFrames == 3) {
-      if (this._enableFace) this._trackerWorker?.postMessage({ cmd: 'faceDetect', image: this.frame })
+      if (this._enableFace) this._trackerWorker?.postMessage({ cmd: WorkerCMD.faceDetect, image: this.frame })
       this._faceFrames = 0
     } else {
       this._faceFrames++
     }
 
     if (this._objFrames == 5) {
-      if (this._enableObject) this._trackerWorker?.postMessage({ cmd: 'objDetect', image: this.frame })
+      if (this._enableObject) this._trackerWorker?.postMessage({ cmd: WorkerCMD.objRec, image: this.frame })
       this._objFrames = 0
     } else {
       this._objFrames++

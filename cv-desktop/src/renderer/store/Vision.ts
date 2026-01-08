@@ -1,6 +1,10 @@
-import { defineStore } from "pinia"
-import { ModelType } from "../common"
-import { cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter, cvFilterType, cvMorph, cvSharpen, IntergrateMode } from "../common/CVApi"
+import { defineStore } from 'pinia'
+import {
+  cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
+  cvFilterType, cvMorph, cvSharpen,
+} from '../../common'
+import { IntergrateMode, ModelType } from '../common'
+
 
 class ImageParams {
   isGray: boolean = false
@@ -83,6 +87,9 @@ export const VisionStore = defineStore('VisionStore', {
       drawEigen: true,
       landmark: false,
       live2d: false,
+
+      genImage: false,
+      ganModel: { name: 'AnimateGan', type: ModelType.GenImage },
 
       imgEnhance: false,
       imgParams: new ImageParams(),

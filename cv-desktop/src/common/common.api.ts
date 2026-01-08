@@ -1,7 +1,7 @@
-import { Connection } from "sockjs"
+import { Connection } from 'sockjs'
+import { API_URL } from "./api.const"
 import { get } from './base.api'
 import { BizConfig } from './base.models'
-import { API_URL } from "./api.const"
 
 export namespace CommonApi {
   export interface MsgPushClient extends ClientInfo {

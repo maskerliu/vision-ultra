@@ -4,7 +4,7 @@ import { baseDomain } from "../common"
 import { WorkerCMD } from "./common"
 import { FaceDetector } from "./common/FaceDetector"
 import { ObjectTracker } from "./common/ObjectTracker"
-import { ModelInfo } from "./common/TFModel"
+import { ModelInfo, ModelType } from "./common/TFModel"
 
 const ctx: Worker = self as any
 let fileset: any = null
@@ -18,6 +18,7 @@ async function init() {
 
 ctx.addEventListener('message', async (event: MessageEvent<{
   cmd: WorkerCMD | WorkerCMD[],
+  modelTypes?: ModelType[],
   model?: string,
   image?: ImageData
 }>) => {
@@ -34,10 +35,10 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           await faceDetector.init()
           break
         case WorkerCMD.dispose:
-          objTracker.dispose()
-          break
-        case WorkerCMD.faceDispose:
-          faceDetector.dispose()
+          if (ModelType.Face in event.data.modelTypes) faceDetector.dispose()
+          if (ModelType.Detect in event.data.modelTypes ||
+            ModelType.Segment in event.data.modelTypes)
+            objTracker.dispose()
           break
         case WorkerCMD.objRec:
           let result = await objTracker.detect(event.data.image)

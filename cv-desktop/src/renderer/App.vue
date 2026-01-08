@@ -28,6 +28,7 @@
 </template>
 
 <script lang="ts" setup>
+
 import { ConfigProviderTheme, ConfigProviderThemeVars } from 'vant'
 import { onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -73,8 +74,6 @@ onMounted(async () => {
     offset.value.x = window.innerWidth - 60
     offset.value.y = window.innerHeight - 100
   })
-
-
 
   useRouter().replace("/visionHome")
   active.value = 1

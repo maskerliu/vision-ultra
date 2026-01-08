@@ -1,5 +1,4 @@
 import { get, post } from './base.api'
-
 import { CommonApi } from './common.api'
 
 export namespace ProxyMock {

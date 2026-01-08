@@ -4,6 +4,7 @@
   </div>
 </template>
 <script lang="ts" setup>
+
 import { onMounted, useTemplateRef } from 'vue'
 
 const apmPanel = useTemplateRef<HTMLCanvasElement>('apmPanel')

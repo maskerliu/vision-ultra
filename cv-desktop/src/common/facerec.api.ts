@@ -1,8 +1,7 @@
-import { API_URL } from "./api.const"
-import { formPost, get, post } from "./base.api"
+import { API_URL } from './api.const'
+import { formPost, get, post } from './base.api'
 
 export namespace FaceRec {
-
 
   export type EigenFace = {
     name: string,

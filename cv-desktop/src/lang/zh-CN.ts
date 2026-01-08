@@ -78,6 +78,11 @@ export default {
       unet: 'u-net++',
     },
 
+    GenImage: '生成图像',
+    GanModel: {
+      AnimateGan: 'AnimateGANv3'
+    },
+
     ImgEnhance: '图像增强',
     Gray: '灰度',
     Brightness: '亮度', // 亮度

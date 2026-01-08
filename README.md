@@ -1,6 +1,6 @@
 ### Vision Ultra
 
-![数据预览](./assets/detect.png)
+![数据预览](./assets/preview.png)
 
 #### 1. 简介
 
@@ -75,7 +75,7 @@ flowchart TD
   OpenCV 常见图像处理方法，支持旋转、模糊、色彩空间、灰度、滤波等。
   支持 web、wsam、node-napi 不同形态的图像处理，方便前后端分离设计。
 
-  ![预览](./assets/opencv.png)
+  ![预览](./assets/image-process.png)
 
 - 目标分割检测与跟踪：
   基于 Deeplab、YOLO、MobileNet 等高性能模型目标检测，支持 YOLO 系列模型：

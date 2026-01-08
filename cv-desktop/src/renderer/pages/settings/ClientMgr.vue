@@ -36,6 +36,7 @@
   </van-cell-group>
 </template>
 <script lang="ts" setup>
+
 import { showNotify } from 'vant'
 import { onMounted, ref } from 'vue'
 import { CommonApi } from '../../../common'

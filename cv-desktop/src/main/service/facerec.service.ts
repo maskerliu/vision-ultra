@@ -5,8 +5,6 @@ import { inject, injectable } from "inversify"
 import path from 'path'
 import { IocTypes, USER_DATA_DIR } from "../MainConst"
 import { FaceRecRepo } from "../repository/facerec.repo"
-import { eigenAsync } from '@u4/opencv4nodejs'
-import { Timestamp } from 'apache-arrow'
 
 @injectable()
 export class FaceRecService {
@@ -70,8 +68,8 @@ export class FaceRecService {
         similarity: result[0]._distance,
         timestamp: result[0].timestamp.toString()
       }
-    } 
-    
+    }
+
     throw 'no match'
   }
 }

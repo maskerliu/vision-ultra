@@ -102,9 +102,9 @@
 import 'media-chrome'
 import { Col, showNotify } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { CVLabel, MarkColors, ModelType, VideoPlayer, WorkerCMD } from '../../common'
+import { CVLabel, ImageProcessor, MarkColors, ModelType, VideoPlayer, WorkerCMD } from '../../common'
 import { drawTFFaceResult } from '../../common/DrawUtils'
-import { ImageProcessor } from '../../common/ImageProcessor'
+import ImageProcessorWorker from '../../imgProcessor.worker?worker'
 import { CommonStore, VisionStore } from '../../store'
 import TrackerWorker from '../../tracker.worker?worker'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
@@ -119,7 +119,9 @@ import Live2dPanel from './Live2dPanel.vue'
 //   }
 // })
 
-const trackerWorker = new TrackerWorker() as Worker
+let trackerWorker: Worker
+let imgProcessorWorker: Worker
+
 const visionStore = VisionStore()
 const commonStore = CommonStore()
 
@@ -158,7 +160,7 @@ let captureCtx: CanvasRenderingContext2D
 let imgProcessor: ImageProcessor
 let videoPlayer: VideoPlayer = null
 
-const workerListener = (event: MessageEvent) => {
+const trackerWorkerListener = (event: MessageEvent) => {
   showLoading.value = event.data.loading
   isScan.value = false
 
@@ -206,6 +208,10 @@ const workerListener = (event: MessageEvent) => {
       }
       break
   }
+}
+
+const imgProcessorWorkerListener = (event: MessageEvent) => {
+  showLoading.value = event.data.loading
 }
 
 function drawMask(boxes: Float16Array, classes: Uint8Array, masks: Array<Uint8Array>,
@@ -339,21 +345,48 @@ onMounted(async () => {
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
 
-  trackerWorker.addEventListener("message", workerListener)
-
-  imgProcessor = new ImageProcessor()
-  imgProcessor.imgEnhance = visionStore.imgEnhance
-  imgProcessor.imgProcessParams = visionStore.imgParams.value
+  // imgProcessor = new ImageProcessor()
+  // imgProcessor.imgProcessParams = visionStore.imgParams.value
   // await imgProcessor.init(visionStore.intergrateMode)
 
   videoPlayer = new VideoPlayer(preVideo.value, preview.value, offscreen.value, capture.value)
   videoPlayer.imgProcessor = imgProcessor
-  videoPlayer.trackerWorker = trackerWorker
-
-  window.cvNativeApi?.init()
-  window.tfApi?.init('mediapipe-gpu')
-
 })
+
+function initTrackerWorker() {
+  if (trackerWorker != null) return
+  trackerWorker = new TrackerWorker()
+  trackerWorker.addEventListener("message", trackerWorkerListener)
+  videoPlayer.trackerWorker = trackerWorker
+}
+
+function disposeTrackerWorker() {
+  if (visionStore.enableObjRec || visionStore.faceDetect) return
+  trackerWorker?.terminate()
+  trackerWorker = null
+}
+
+function initImgProcessorWorker() {
+  if (imgProcessorWorker != null) return
+  imgProcessorWorker = new ImageProcessorWorker()
+  imgProcessorWorker.postMessage({
+    cmd: WorkerCMD.initImageProcessor,
+    mode: visionStore.intergrateMode,
+    params: JSON.stringify(visionStore.imgParams.value)
+  })
+  imgProcessorWorker.addEventListener("message", imgProcessorWorkerListener)
+  videoPlayer.imgProcessorWorker = imgProcessorWorker
+  // videoPlayer.imgProcessorWorker = imgProcessorWorker
+}
+
+
+function disposeImgProcessorWorker() {
+  if (imgProcessorWorker != null) {
+    imgProcessorWorker.terminate()
+    imgProcessorWorker = null
+  }
+}
+
 
 async function onScan() {
   isScan.value = true
@@ -418,22 +451,35 @@ async function onConfirmName() {
     showNameInputDialog.value = true
     return
   }
-  trackerWorker.postMessage({ cmd: WorkerCMD.faceCapture, name: eigenName.value })
+  trackerWorker?.postMessage({ cmd: WorkerCMD.faceCapture, name: eigenName.value })
   eigenName.value = null
   showNameInputDialog.value = false
 }
 
 function drawImage() {
   let imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  if (visionStore.imgEnhance) imgProcessor.process(imgData)
+  if (visionStore.imgEnhance) {
+    imgProcessor?.process(imgData)
+    imgProcessorWorker?.postMessage({ cmd: WorkerCMD.imageProcess, image: imgData })
+  }
   previewCtx.clearRect(0, 0, imgData.width, imgData.height)
   previewCtx.putImageData(imgData, 0, 0)
   return imgData
 }
 
+watch(() => visionStore.intergrateMode, async (val, _) => {
+  await imgProcessor?.init(val)
+
+  if (visionStore.imgEnhance) {
+    disposeImgProcessorWorker()
+    initImgProcessorWorker()
+  }
+})
+
 watch(() => visionStore.enableObjRec, async (val, _) => {
   videoPlayer.enableObject = val
   if (val) {
+    initTrackerWorker()
     showLoading.value = true
     trackerWorker.postMessage({
       cmd: WorkerCMD.initObjTracker,
@@ -441,6 +487,7 @@ watch(() => visionStore.enableObjRec, async (val, _) => {
     })
   } else {
     trackerWorker.postMessage({ cmd: WorkerCMD.dispose, modelTypes: [ModelType.Detect] })
+    disposeTrackerWorker()
   }
 })
 
@@ -456,19 +503,23 @@ watch(() => visionStore.faceDetect, async (val, _) => {
   videoPlayer.enableFace = val
   if (val) {
     showLoading.value = true
+    initTrackerWorker()
     trackerWorker.postMessage({ cmd: WorkerCMD.initFaceDetector })
   } else {
-    trackerWorker.postMessage({ cmd: WorkerCMD.faceDispose })
+    trackerWorker.postMessage({ cmd: WorkerCMD.dispose, modelTypes: [ModelType.Face] })
+    disposeTrackerWorker()
     videoPlayer.face = null
   }
 })
 
 watch(() => visionStore.imgEnhance, async (val) => {
-  imgProcessor.imgEnhance = val
-  if (!val) { imgProcessor.dispose() }
-  else {
+  if (!val) {
+    imgProcessor?.dispose()
+    disposeImgProcessorWorker()
+  } else {
+    initImgProcessorWorker()
     showLoading.value = true
-    await imgProcessor.init(visionStore.intergrateMode)
+    await imgProcessor?.init(visionStore.intergrateMode)
     showLoading.value = false
   }
 
@@ -476,12 +527,26 @@ watch(() => visionStore.imgEnhance, async (val) => {
 })
 
 watch(() => visionStore.intergrateMode, async (val) => {
-  await imgProcessor.init(val)
+  if (visionStore.imgEnhance) {
+    await imgProcessor?.init(val)
+
+    initImgProcessorWorker()
+    imgProcessorWorker?.postMessage({
+      cmd: WorkerCMD.updateOptions,
+      options: JSON.stringify(visionStore.imgParams.value)
+    })
+  }
 })
 
 watch(() => visionStore.imgParams,
   () => {
-    imgProcessor.imgProcessParams = visionStore.imgParams.value
+    imgProcessorWorker?.postMessage({
+      cmd: WorkerCMD.updateOptions,
+      options: JSON.stringify(visionStore.imgParams.value)
+    })
+
+    // imgProcessor.imgProcessParams = visionStore.imgParams.value
+
     if (!videoPlayer.isOpen) { drawImage() }
   },
   { deep: true }

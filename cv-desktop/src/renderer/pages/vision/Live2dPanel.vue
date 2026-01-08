@@ -3,6 +3,7 @@
     style="position: absolute; right: 5px; bottom: 8px; z-index: 100; "></canvas>
 </template>
 <script lang="ts" setup>
+
 import { Face, TFace, Vector } from 'kalidokit'
 import Live2DCubismModel, { Live2DModelOptions } from 'live2d-renderer'
 import { onMounted, useTemplateRef } from 'vue'

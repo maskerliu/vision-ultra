@@ -1,7 +1,7 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
 import { Def_Object_Labels } from './Annotations'
 import { MARK_COLORS, MarkColors } from './CVColors'
-import { FACEMESH_CONTOUR, TRIANGULATION } from "./Triangulation"
+import { FACEMESH_CONTOUR, TRIANGULATION } from './Triangulation'
 
 export const NUM_KEYPOINTS = 478
 

@@ -10,6 +10,7 @@
   </van-field>
 </template>
 <script lang="ts" setup>
+
 import { FieldTextAlign } from 'vant'
 
 const { label = '', inputAlign = 'center', barHeight = '4px', min = 1, max = 100, step = 1 } = defineProps<{
