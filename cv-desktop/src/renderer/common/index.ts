@@ -1,8 +1,7 @@
 export * from './Annotations'
-// export * from './CVApi'
 export * from './CVColors'
 export * from './FaceDetector'
-// export * from './ImageProcessor'
+export * from './ImageProcessor'
 export * from './ObjectTracker'
 export * from './ONNX'
 export { PushClient } from './PushClient'
@@ -10,15 +9,25 @@ export * from './TFModel'
 export * from './VideoPlayer'
 
 export enum WorkerCMD {
+  initImageProcessor = 'initImageProcessor',
+  updateOptions = 'updateOptions',
+  imageProcess = 'imageProcess',
+
   initObjTracker = 'initObjTracker',
   dispose = 'dispose',
   objRec = 'objRec',
 
   initFaceDetector = 'initFaceDetector',
-  faceDispose = 'faceDispose',
   faceDetect = 'faceDetect',
   faceCapture = 'faceCapture'
 }
+
+export enum IntergrateMode {
+  WebAssembly,
+  Backend,
+  Native
+}
+
 
 export function generateUid(): string {
   let len = 8

@@ -62989,8 +62989,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CommonApi: () => (/* binding */ CommonApi)
 /* harmony export */ });
-/* harmony import */ var _base_api__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base.api */ "./src/common/base.api.ts");
-/* harmony import */ var _api_const__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./api.const */ "./src/common/api.const.ts");
+/* harmony import */ var _api_const__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./api.const */ "./src/common/api.const.ts");
+/* harmony import */ var _base_api__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./base.api */ "./src/common/base.api.ts");
 
 
 var CommonApi;
@@ -63014,11 +63014,11 @@ var CommonApi;
         BizType[BizType["ClientInfos"] = 2] = "ClientInfos";
     })(BizType = CommonApi.BizType || (CommonApi.BizType = {}));
     function getBizConfig() {
-        return (0,_base_api__WEBPACK_IMPORTED_MODULE_0__.get)(`${_api_const__WEBPACK_IMPORTED_MODULE_1__.API_URL.Common}${_api_const__WEBPACK_IMPORTED_MODULE_1__.API_URL.GetBizConfig}`);
+        return (0,_base_api__WEBPACK_IMPORTED_MODULE_1__.get)(`${_api_const__WEBPACK_IMPORTED_MODULE_0__.API_URL.Common}${_api_const__WEBPACK_IMPORTED_MODULE_0__.API_URL.GetBizConfig}`);
     }
     CommonApi.getBizConfig = getBizConfig;
     function getAllPushClients() {
-        return (0,_base_api__WEBPACK_IMPORTED_MODULE_0__.get)(`${_api_const__WEBPACK_IMPORTED_MODULE_1__.API_URL.Common}${_api_const__WEBPACK_IMPORTED_MODULE_1__.API_URL.GetAllPushClients}`);
+        return (0,_base_api__WEBPACK_IMPORTED_MODULE_1__.get)(`${_api_const__WEBPACK_IMPORTED_MODULE_0__.API_URL.Common}${_api_const__WEBPACK_IMPORTED_MODULE_0__.API_URL.GetAllPushClients}`);
     }
     CommonApi.getAllPushClients = getAllPushClients;
 })(CommonApi || (CommonApi = {}));
@@ -63090,10 +63090,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   BizCode: () => (/* reexport safe */ _base_models__WEBPACK_IMPORTED_MODULE_1__.BizCode),
 /* harmony export */   BizFail: () => (/* reexport safe */ _base_models__WEBPACK_IMPORTED_MODULE_1__.BizFail),
 /* harmony export */   CommonApi: () => (/* reexport safe */ _common_api__WEBPACK_IMPORTED_MODULE_2__.CommonApi),
-/* harmony export */   FaceRec: () => (/* reexport safe */ _facerec_api__WEBPACK_IMPORTED_MODULE_4__.FaceRec),
-/* harmony export */   ProxyMock: () => (/* reexport safe */ _proxy_api__WEBPACK_IMPORTED_MODULE_3__.ProxyMock),
+/* harmony export */   FaceRec: () => (/* reexport safe */ _facerec_api__WEBPACK_IMPORTED_MODULE_3__.FaceRec),
+/* harmony export */   MainAPICMD: () => (/* reexport safe */ _ipc_api__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD),
+/* harmony export */   ProxyMock: () => (/* reexport safe */ _proxy_api__WEBPACK_IMPORTED_MODULE_5__.ProxyMock),
 /* harmony export */   UserNetwork: () => (/* reexport safe */ _base_models__WEBPACK_IMPORTED_MODULE_1__.UserNetwork),
 /* harmony export */   baseDomain: () => (/* reexport safe */ _base_api__WEBPACK_IMPORTED_MODULE_0__.baseDomain),
+/* harmony export */   cvBlurType: () => (/* reexport safe */ _ipc_api__WEBPACK_IMPORTED_MODULE_4__.cvBlurType),
+/* harmony export */   cvFilterType: () => (/* reexport safe */ _ipc_api__WEBPACK_IMPORTED_MODULE_4__.cvFilterType),
+/* harmony export */   cvMorphType: () => (/* reexport safe */ _ipc_api__WEBPACK_IMPORTED_MODULE_4__.cvMorphType),
 /* harmony export */   formPost: () => (/* reexport safe */ _base_api__WEBPACK_IMPORTED_MODULE_0__.formPost),
 /* harmony export */   get: () => (/* reexport safe */ _base_api__WEBPACK_IMPORTED_MODULE_0__.get),
 /* harmony export */   post: () => (/* reexport safe */ _base_api__WEBPACK_IMPORTED_MODULE_0__.post),
@@ -63104,9 +63108,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _base_api__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base.api */ "./src/common/base.api.ts");
 /* harmony import */ var _base_models__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./base.models */ "./src/common/base.models.ts");
 /* harmony import */ var _common_api__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./common.api */ "./src/common/common.api.ts");
-/* harmony import */ var _proxy_api__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./proxy.api */ "./src/common/proxy.api.ts");
-/* harmony import */ var _facerec_api__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./facerec.api */ "./src/common/facerec.api.ts");
-/* harmony import */ var _mapi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./mapi */ "./src/common/mapi.ts");
+/* harmony import */ var _facerec_api__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./facerec.api */ "./src/common/facerec.api.ts");
+/* harmony import */ var _ipc_api__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./ipc.api */ "./src/common/ipc.api.ts");
+/* harmony import */ var _proxy_api__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./proxy.api */ "./src/common/proxy.api.ts");
+/* harmony import */ var _mapi__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./mapi */ "./src/common/mapi.ts");
+
 
 
 
@@ -63126,7 +63132,10 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   MainAPICMD: () => (/* binding */ MainAPICMD)
+/* harmony export */   MainAPICMD: () => (/* binding */ MainAPICMD),
+/* harmony export */   cvBlurType: () => (/* binding */ cvBlurType),
+/* harmony export */   cvFilterType: () => (/* binding */ cvFilterType),
+/* harmony export */   cvMorphType: () => (/* binding */ cvMorphType)
 /* harmony export */ });
 const MainAPICMD = {
     Relaunch: 'relaunch',
@@ -63143,6 +63152,29 @@ const MainAPICMD = {
     DownloadUpdate: 'downloadUpdate',
     SendServerEvent: 'sendServerEvent'
 };
+var cvMorphType;
+(function (cvMorphType) {
+    cvMorphType[cvMorphType["erode"] = 0] = "erode";
+    cvMorphType[cvMorphType["dilate"] = 1] = "dilate";
+    cvMorphType[cvMorphType["open"] = 2] = "open";
+    cvMorphType[cvMorphType["close"] = 3] = "close";
+    cvMorphType[cvMorphType["gradient"] = 4] = "gradient";
+    cvMorphType[cvMorphType["topHat"] = 5] = "topHat";
+    cvMorphType[cvMorphType["blackHat"] = 6] = "blackHat";
+})(cvMorphType || (cvMorphType = {}));
+var cvBlurType;
+(function (cvBlurType) {
+    cvBlurType[cvBlurType["gaussian"] = 0] = "gaussian";
+    cvBlurType[cvBlurType["median"] = 1] = "median";
+    cvBlurType[cvBlurType["avg"] = 2] = "avg";
+    cvBlurType[cvBlurType["bilateral"] = 3] = "bilateral";
+})(cvBlurType || (cvBlurType = {}));
+var cvFilterType;
+(function (cvFilterType) {
+    cvFilterType[cvFilterType["sobel"] = 0] = "sobel";
+    cvFilterType[cvFilterType["laplace"] = 1] = "laplace";
+    cvFilterType[cvFilterType["scharr"] = 2] = "scharr";
+})(cvFilterType || (cvFilterType = {}));
 
 
 /***/ }),
@@ -63261,7 +63293,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var stream_promises__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(stream_promises__WEBPACK_IMPORTED_MODULE_8__);
 /* harmony import */ var zlib__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! zlib */ "zlib");
 /* harmony import */ var zlib__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(zlib__WEBPACK_IMPORTED_MODULE_9__);
-/* harmony import */ var _common_ipc_api__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../common/ipc.api */ "./src/common/ipc.api.ts");
+/* harmony import */ var _common__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../common */ "./src/common/index.ts");
 /* harmony import */ var _MainConst__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./MainConst */ "./src/main/MainConst.ts");
 /* harmony import */ var _misc_utils__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./misc/utils */ "./src/main/misc/utils.ts");
 
@@ -63288,7 +63320,7 @@ async function incrementUpdate(version) {
     const resp = await (0,axios__WEBPACK_IMPORTED_MODULE_0__["default"])({
         url: version.updateUrl, method: 'GET', responseType: 'stream',
         onDownloadProgress: (event) => {
-            (0,_misc_utils__WEBPACK_IMPORTED_MODULE_12__.getAppWindow)()?.webContents.send(_common_ipc_api__WEBPACK_IMPORTED_MODULE_10__.MainAPICMD.DownloadUpdate, { progress: Math.round((event.loaded / event.total) * 100) });
+            (0,_misc_utils__WEBPACK_IMPORTED_MODULE_12__.getAppWindow)()?.webContents.send(_common__WEBPACK_IMPORTED_MODULE_10__.MainAPICMD.DownloadUpdate, { progress: Math.round((event.loaded / event.total) * 100) });
         }
     });
     await (0,stream_promises__WEBPACK_IMPORTED_MODULE_8__.pipeline)(resp.data, fs_extra__WEBPACK_IMPORTED_MODULE_4___default().createWriteStream(sourceFile));
@@ -63337,7 +63369,7 @@ async function fullUpdate(version) {
     const resp = await (0,axios__WEBPACK_IMPORTED_MODULE_0__["default"])({
         url: version.updateUrl, method: 'GET', responseType: 'stream',
         onDownloadProgress: (event) => {
-            (0,_misc_utils__WEBPACK_IMPORTED_MODULE_12__.getAppWindow)()?.webContents.send(_common_ipc_api__WEBPACK_IMPORTED_MODULE_10__.MainAPICMD.DownloadUpdate, { progress: Math.round((event.loaded / event.total) * 100) });
+            (0,_misc_utils__WEBPACK_IMPORTED_MODULE_12__.getAppWindow)()?.webContents.send(_common__WEBPACK_IMPORTED_MODULE_10__.MainAPICMD.DownloadUpdate, { progress: Math.round((event.loaded / event.total) * 100) });
         }
     });
     await (0,stream_promises__WEBPACK_IMPORTED_MODULE_8__.pipeline)(resp.data, fs_extra__WEBPACK_IMPORTED_MODULE_4___default().createWriteStream(downloadDir));
@@ -63443,7 +63475,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var os__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(os__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _common_ipc_api__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../common/ipc.api */ "./src/common/ipc.api.ts");
+/* harmony import */ var _common__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../common */ "./src/common/index.ts");
 /* harmony import */ var _AppUpdater__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./AppUpdater */ "./src/main/AppUpdater.ts");
 /* harmony import */ var _MainConst__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./MainConst */ "./src/main/MainConst.ts");
 /* harmony import */ var _misc_utils__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./misc/utils */ "./src/main/misc/utils.ts");
@@ -63457,7 +63489,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.Relaunch, (_) => {
+electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.Relaunch, (_) => {
     if (fs_extra__WEBPACK_IMPORTED_MODULE_2___default().pathExistsSync(path__WEBPACK_IMPORTED_MODULE_5___default().join(process.resourcesPath, 'update.asar'))) {
         const logPath = electron__WEBPACK_IMPORTED_MODULE_1__.app.getPath('logs');
         const out = fs_extra__WEBPACK_IMPORTED_MODULE_2___default().openSync(path__WEBPACK_IMPORTED_MODULE_5___default().join(logPath, 'out.log'), 'a');
@@ -63481,7 +63513,7 @@ electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IM
     }
     electron__WEBPACK_IMPORTED_MODULE_1__.app.quit();
 });
-electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.OpenFile, async (_, target) => {
+electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.OpenFile, async (_, target) => {
     let result = await electron__WEBPACK_IMPORTED_MODULE_1__.dialog.showOpenDialog(electron__WEBPACK_IMPORTED_MODULE_1__.BrowserWindow.getFocusedWindow(), {
         properties: ['openFile',],
         filters: [
@@ -63493,9 +63525,9 @@ electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IM
     });
     if (result.canceled)
         return;
-    (0,_misc_utils__WEBPACK_IMPORTED_MODULE_9__.getAppWindow)()?.webContents.send(_common_ipc_api__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.OpenFile, os__WEBPACK_IMPORTED_MODULE_4___default().platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0]);
+    (0,_misc_utils__WEBPACK_IMPORTED_MODULE_9__.getAppWindow)()?.webContents.send(_common__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.OpenFile, os__WEBPACK_IMPORTED_MODULE_4___default().platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0]);
 });
-electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.SaveFileAs, async (_, title, fileName, data, slient = false) => {
+electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.SaveFileAs, async (_, title, fileName, data, slient = false) => {
     let filePath = path__WEBPACK_IMPORTED_MODULE_5___default().join(_MainConst__WEBPACK_IMPORTED_MODULE_8__.USER_DATA_DIR, fileName);
     await fs_extra__WEBPACK_IMPORTED_MODULE_2___default().ensureDir(path__WEBPACK_IMPORTED_MODULE_5___default().dirname(filePath));
     if (slient) {
@@ -63522,10 +63554,10 @@ electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IM
         console.log(`save as--catch:${e}`);
     }
 });
-electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.OpenDevTools, (_, args) => {
+electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.OpenDevTools, (_, args) => {
     electron__WEBPACK_IMPORTED_MODULE_1__.BrowserWindow.getFocusedWindow()?.webContents.openDevTools({ mode: 'detach', activate: false });
 });
-electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.SetAppTheme, (_, theme) => {
+electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.SetAppTheme, (_, theme) => {
     electron__WEBPACK_IMPORTED_MODULE_1__.nativeTheme.themeSource = theme;
     if (os__WEBPACK_IMPORTED_MODULE_4___default().platform() == 'darwin') {
         // console.log(this.mainWindow.setTitleBarOverlay)
@@ -63537,7 +63569,7 @@ electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IM
         });
     }
 });
-electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common_ipc_api__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.DownloadUpdate, async (_, newVersion) => {
+electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.handle(_common__WEBPACK_IMPORTED_MODULE_6__.MainAPICMD.DownloadUpdate, async (_, newVersion) => {
     if (newVersion.fullUpdate)
         await (0,_AppUpdater__WEBPACK_IMPORTED_MODULE_7__.fullUpdate)(newVersion);
     else
@@ -63602,7 +63634,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var os__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(os__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _common_ipc_api__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../common/ipc.api */ "./src/common/ipc.api.ts");
+/* harmony import */ var _common__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../common */ "./src/common/index.ts");
 /* harmony import */ var _IPCServices__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./IPCServices */ "./src/main/IPCServices.ts");
 /* harmony import */ var _MainConst__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./MainConst */ "./src/main/MainConst.ts");
 /* harmony import */ var _MainServer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./MainServer */ "./src/main/MainServer.ts");
@@ -63757,7 +63789,7 @@ class MainApp {
         this.mainWindow.on('ready-to-show', () => {
             this.mainWindow.show();
             this.mainWindow.focus();
-            this.mainWindow.webContents.send(_common_ipc_api__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.GetSysSettings, this.mainServer.getSysSettings());
+            this.mainWindow.webContents.send(_common__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.GetSysSettings, this.mainServer.getSysSettings());
         });
     }
     createTrayMenu() {
@@ -63769,7 +63801,7 @@ class MainApp {
                 label: '用例管理',
                 click: () => {
                     this.mainWindow?.show();
-                    this.mainWindow?.webContents.send(_common_ipc_api__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.OpenMockRuleMgr);
+                    this.mainWindow?.webContents.send(_common__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.OpenMockRuleMgr);
                 }
             },
             {
@@ -63777,7 +63809,7 @@ class MainApp {
                 label: '设置',
                 click: () => {
                     this.mainWindow?.show();
-                    this.mainWindow?.webContents.send(_common_ipc_api__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.OpenSettings);
+                    this.mainWindow?.webContents.send(_common__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.OpenSettings);
                 }
             },
             {
@@ -63785,7 +63817,7 @@ class MainApp {
                 label: '开发者面板',
                 click: () => {
                     this.mainWindow?.show();
-                    this.mainWindow?.webContents.send(_common_ipc_api__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.OpenDevTools);
+                    this.mainWindow?.webContents.send(_common__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.OpenDevTools);
                 }
             },
             {
@@ -63854,7 +63886,7 @@ class MainApp {
         });
     }
     initIPCService() {
-        electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle(_common_ipc_api__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.SaveSysSettings, (_, ...args) => {
+        electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle(_common__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.SaveSysSettings, (_, ...args) => {
             let curSettings = this.mainServer.getSysSettings();
             let newSettings = JSON.parse(args);
             this.mainServer.updateSysSettings(JSON.parse(args));
@@ -63862,9 +63894,9 @@ class MainApp {
                 this.mainServer.stop();
                 this.mainServer.start();
             }
-            this.mainWindow.webContents.send(_common_ipc_api__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.GetSysSettings, this.mainServer.getSysSettings());
+            this.mainWindow.webContents.send(_common__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.GetSysSettings, this.mainServer.getSysSettings());
         });
-        electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle(_common_ipc_api__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.SendServerEvent, () => {
+        electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle(_common__WEBPACK_IMPORTED_MODULE_4__.MainAPICMD.SendServerEvent, () => {
             // console.log('send sse')
         });
     }
@@ -64549,10 +64581,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var express__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(express__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var formidable__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! formidable */ "formidable");
 /* harmony import */ var formidable__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(formidable__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _common_base_models__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../common/base.models */ "./src/common/base.models.ts");
-/* harmony import */ var _misc_utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../misc/utils */ "./src/main/misc/utils.ts");
-/* harmony import */ var json_bigint__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! json-bigint */ "json-bigint");
-/* harmony import */ var json_bigint__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(json_bigint__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var json_bigint__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! json-bigint */ "json-bigint");
+/* harmony import */ var json_bigint__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(json_bigint__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _common_base_models__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../common/base.models */ "./src/common/base.models.ts");
+/* harmony import */ var _misc_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../misc/utils */ "./src/main/misc/utils.ts");
 
 
 
@@ -64590,31 +64622,31 @@ class BaseRouter {
         if (paramInfos != null) {
             if (req.method.toLowerCase() == 'post') {
                 [contentType, _] = req.headers['content-type']?.match(/[\da-zA-Z\:\/\-\=]+/g);
-                if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_3__.BizNetwork.MIME_MULTIPART) {
+                if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_4__.BizNetwork.MIME_MULTIPART) {
                     let [_, files] = await this._form.parse(req);
                     req['files'] = files;
                 }
-                else if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_3__.BizNetwork.MIME_JSON) {
-                    jsonBody = (0,_misc_utils__WEBPACK_IMPORTED_MODULE_3__.parseJsonBody)(req);
+                else if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_4__.BizNetwork.MIME_JSON) {
+                    jsonBody = (0,_misc_utils__WEBPACK_IMPORTED_MODULE_4__.parseJsonBody)(req);
                 }
             }
             let filesBody = req['files'];
             for (const item of paramInfos) {
                 if (item.type == ParamType.FormBody) {
-                    if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_3__.BizNetwork.MIME_MULTIPART) {
+                    if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_4__.BizNetwork.MIME_MULTIPART) {
                         try {
                             if (filesBody[item.key] != null) {
-                                params.push((0,_misc_utils__WEBPACK_IMPORTED_MODULE_3__.fetchFormFile)(filesBody[item.key][0]));
+                                params.push((0,_misc_utils__WEBPACK_IMPORTED_MODULE_4__.fetchFormFile)(filesBody[item.key][0]));
                             }
                         }
                         catch (err) {
                             console.error('error:', err);
                         }
                     }
-                    else if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_3__.BizNetwork.MIME_JSON) {
+                    else if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_4__.BizNetwork.MIME_JSON) {
                         params.push(jsonBody);
                     }
-                    else if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_3__.BizNetwork.MIME_FORM) {
+                    else if (contentType == _misc_utils__WEBPACK_IMPORTED_MODULE_4__.BizNetwork.MIME_FORM) {
                         params.push(req.body[item.key]);
                     }
                     else {
@@ -64628,31 +64660,31 @@ class BaseRouter {
             }
         }
         if (hasContext) {
-            params.push((0,_misc_utils__WEBPACK_IMPORTED_MODULE_3__.parseContext)(req));
+            params.push((0,_misc_utils__WEBPACK_IMPORTED_MODULE_4__.parseContext)(req));
         }
         let bizResp;
         try {
             let instance = await Reflect.get(this, target);
             let result = await Reflect.apply(Reflect.get(instance, func), instance, params);
             if (result == null) {
-                bizResp = { code: _common_base_models__WEBPACK_IMPORTED_MODULE_2__.BizCode.FAIL, msg: 'biz inner error, no result found' };
+                bizResp = { code: _common_base_models__WEBPACK_IMPORTED_MODULE_3__.BizCode.FAIL, msg: 'biz inner error, no result found' };
             }
             else {
-                bizResp = { code: _common_base_models__WEBPACK_IMPORTED_MODULE_2__.BizCode.SUCCESS, data: result };
+                bizResp = { code: _common_base_models__WEBPACK_IMPORTED_MODULE_3__.BizCode.SUCCESS, data: result };
             }
         }
         catch (err) {
             console.error("error:", err);
-            if (err instanceof _common_base_models__WEBPACK_IMPORTED_MODULE_2__.BizFail) {
+            if (err instanceof _common_base_models__WEBPACK_IMPORTED_MODULE_3__.BizFail) {
                 bizResp = { code: err.code, msg: err.msg };
             }
             else {
-                bizResp = { code: _common_base_models__WEBPACK_IMPORTED_MODULE_2__.BizCode.ERROR, msg: err.toString() };
+                bizResp = { code: _common_base_models__WEBPACK_IMPORTED_MODULE_3__.BizCode.ERROR, msg: err.toString() };
             }
         }
         finally {
             resp.setHeader('Content-Type', 'application/json');
-            resp.end(json_bigint__WEBPACK_IMPORTED_MODULE_4___default().stringify(bizResp));
+            resp.end(json_bigint__WEBPACK_IMPORTED_MODULE_2___default().stringify(bizResp));
             this._form.removeAllListeners();
         }
     }
@@ -64795,11 +64827,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var inversify__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! inversify */ "inversify");
 /* harmony import */ var inversify__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(inversify__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _base_router__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./base.router */ "./src/main/router/base.router.ts");
-/* harmony import */ var _misc_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../misc/utils */ "./src/main/misc/utils.ts");
-/* harmony import */ var _service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../service */ "./src/main/service/index.ts");
-/* harmony import */ var _MainConst__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../MainConst */ "./src/main/MainConst.ts");
-/* harmony import */ var _common_api_const__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../common/api.const */ "./src/common/api.const.ts");
+/* harmony import */ var _common_api_const__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../common/api.const */ "./src/common/api.const.ts");
+/* harmony import */ var _MainConst__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../MainConst */ "./src/main/MainConst.ts");
+/* harmony import */ var _misc_utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../misc/utils */ "./src/main/misc/utils.ts");
+/* harmony import */ var _service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../service */ "./src/main/service/index.ts");
+/* harmony import */ var _base_router__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./base.router */ "./src/main/router/base.router.ts");
 var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -64816,44 +64848,44 @@ var _a;
 
 
 
-let FaceRecRouter = class FaceRecRouter extends _base_router__WEBPACK_IMPORTED_MODULE_1__.BaseRouter {
+let FaceRecRouter = class FaceRecRouter extends _base_router__WEBPACK_IMPORTED_MODULE_5__.BaseRouter {
     faceRecService;
     constructor() {
         super();
     }
     initApiInfos() {
         this.addApiInfo({
-            method: _misc_utils__WEBPACK_IMPORTED_MODULE_2__.BizNetwork.Method_Get,
-            path: `${_common_api_const__WEBPACK_IMPORTED_MODULE_5__.API_URL.F_List}/:keyword`,
+            method: _misc_utils__WEBPACK_IMPORTED_MODULE_3__.BizNetwork.Method_Get,
+            path: `${_common_api_const__WEBPACK_IMPORTED_MODULE_1__.API_URL.F_List}/:keyword`,
             func: 'list', target: 'faceRecService',
-            params: [{ key: 'keyword', type: _base_router__WEBPACK_IMPORTED_MODULE_1__.ParamType.Path }]
+            params: [{ key: 'keyword', type: _base_router__WEBPACK_IMPORTED_MODULE_5__.ParamType.Path }]
         });
         this.addApiInfo({
-            method: _misc_utils__WEBPACK_IMPORTED_MODULE_2__.BizNetwork.Method_Post, path: `${_common_api_const__WEBPACK_IMPORTED_MODULE_5__.API_URL.F_Registe}`,
+            method: _misc_utils__WEBPACK_IMPORTED_MODULE_3__.BizNetwork.Method_Post, path: `${_common_api_const__WEBPACK_IMPORTED_MODULE_1__.API_URL.F_Registe}`,
             func: 'registe', target: 'faceRecService',
             params: [
-                { key: 'name', type: _base_router__WEBPACK_IMPORTED_MODULE_1__.ParamType.FormBody },
-                { key: 'eigen', type: _base_router__WEBPACK_IMPORTED_MODULE_1__.ParamType.FormBody },
-                { key: 'avatar', type: _base_router__WEBPACK_IMPORTED_MODULE_1__.ParamType.FormBody }
+                { key: 'name', type: _base_router__WEBPACK_IMPORTED_MODULE_5__.ParamType.FormBody },
+                { key: 'eigen', type: _base_router__WEBPACK_IMPORTED_MODULE_5__.ParamType.FormBody },
+                { key: 'avatar', type: _base_router__WEBPACK_IMPORTED_MODULE_5__.ParamType.FormBody }
             ]
         });
         this.addApiInfo({
-            method: _misc_utils__WEBPACK_IMPORTED_MODULE_2__.BizNetwork.Method_Post, path: `${_common_api_const__WEBPACK_IMPORTED_MODULE_5__.API_URL.F_Delete}`,
+            method: _misc_utils__WEBPACK_IMPORTED_MODULE_3__.BizNetwork.Method_Post, path: `${_common_api_const__WEBPACK_IMPORTED_MODULE_1__.API_URL.F_Delete}`,
             func: 'delete', target: 'faceRecService',
             params: [
-                { key: 'eigenIds', type: _base_router__WEBPACK_IMPORTED_MODULE_1__.ParamType.FormBody }
+                { key: 'eigenIds', type: _base_router__WEBPACK_IMPORTED_MODULE_5__.ParamType.FormBody }
             ]
         });
         this.addApiInfo({
-            method: _misc_utils__WEBPACK_IMPORTED_MODULE_2__.BizNetwork.Method_Post, path: `${_common_api_const__WEBPACK_IMPORTED_MODULE_5__.API_URL.F_Recognize}`,
+            method: _misc_utils__WEBPACK_IMPORTED_MODULE_3__.BizNetwork.Method_Post, path: `${_common_api_const__WEBPACK_IMPORTED_MODULE_1__.API_URL.F_Recognize}`,
             func: 'recognize', target: 'faceRecService',
-            params: [{ key: 'eigen', type: _base_router__WEBPACK_IMPORTED_MODULE_1__.ParamType.FormBody }]
+            params: [{ key: 'eigen', type: _base_router__WEBPACK_IMPORTED_MODULE_5__.ParamType.FormBody }]
         });
     }
 };
 __decorate([
-    (0,inversify__WEBPACK_IMPORTED_MODULE_0__.inject)(_MainConst__WEBPACK_IMPORTED_MODULE_4__.IocTypes.FaceRecService),
-    __metadata("design:type", typeof (_a = typeof _service__WEBPACK_IMPORTED_MODULE_3__.FaceRecService !== "undefined" && _service__WEBPACK_IMPORTED_MODULE_3__.FaceRecService) === "function" ? _a : Object)
+    (0,inversify__WEBPACK_IMPORTED_MODULE_0__.inject)(_MainConst__WEBPACK_IMPORTED_MODULE_2__.IocTypes.FaceRecService),
+    __metadata("design:type", typeof (_a = typeof _service__WEBPACK_IMPORTED_MODULE_4__.FaceRecService !== "undefined" && _service__WEBPACK_IMPORTED_MODULE_4__.FaceRecService) === "function" ? _a : Object)
 ], FaceRecRouter.prototype, "faceRecService", void 0);
 FaceRecRouter = __decorate([
     (0,inversify__WEBPACK_IMPORTED_MODULE_0__.injectable)(),

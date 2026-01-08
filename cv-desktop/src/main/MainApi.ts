@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
+import { IMainAPI, MainAPICMD } from '../common'
 import { BizConfig } from '../common/base.models'
-import { IMainAPI, MainAPICMD } from '../common/ipc.api'
 
 let mainApi: IMainAPI = {
   relaunch() {

@@ -1,14 +1,13 @@
-import { spawn } from "child_process"
-import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from "electron"
+import { spawn } from 'child_process'
+import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron'
 import fse from 'fs-extra'
-import { Buffer } from "node:buffer"
+import { Buffer } from 'node:buffer'
 import os from 'os'
 import path from "path"
-import { Version } from "../common"
-import { MainAPICMD } from "../common/ipc.api"
-import { fullUpdate, incrementUpdate } from "./AppUpdater"
-import { USER_DATA_DIR } from "./MainConst"
-import { getAppWindow } from "./misc/utils"
+import { MainAPICMD, Version } from '../common'
+import { fullUpdate, incrementUpdate } from './AppUpdater'
+import { USER_DATA_DIR } from './MainConst'
+import { getAppWindow } from './misc/utils'
 
 ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   if (fse.pathExistsSync(path.join(process.resourcesPath, 'update.asar'))) {

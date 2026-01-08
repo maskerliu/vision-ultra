@@ -9,8 +9,6 @@ import i18n from '../lang'
 import App from './App.vue'
 import router from './router'
 
-
-
 OverlayScrollbars.plugin(ClickScrollPlugin)
 
 const pinia = createPinia()
