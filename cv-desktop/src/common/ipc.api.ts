@@ -1,4 +1,4 @@
-import { BizConfig } from "./base.models"
+import { BizConfig } from './base.models'
 
 
 export const MainAPICMD = {
@@ -48,19 +48,94 @@ export interface IMainAPI {
   onDownloadUpdate(callback: any): void
 }
 
-export interface IOpencvAPI {
+
+export enum cvMorphType {
+  erode = 0,
+  dilate,
+  open,
+  close,
+  gradient,
+  topHat,
+  blackHat
+}
+
+export type cvMorph = [
+  cvMorphType, // MorphType erode, dilate, open, close
+  number, // iterations
+  number, // sizeX,
+  number, // sizeY
+]
+
+export type cvEqualizeHist = [
+  string, // type equalizeHist
+  number, // clipLimit
+  number, // tileGridSizeX
+  number, // tileGridSizeY
+]
+
+export type cvSharpen = [
+  string, // type laplacian, usm
+  number, // dx
+  number, // dy
+  number, // scale
+]
+
+export enum cvBlurType {
+  gaussian = 0,
+  median,
+  avg,
+  bilateral
+}
+
+export type cvBlur = [
+  cvBlurType, // cvBlurType
+  number, // sizeX
+  number, // sizeY
+  number, // aperture
+  number, // diameter
+  number, // sigmaColor
+  number  // sigmaSpace
+]
+
+export enum cvFilterType {
+  sobel = 0,
+  laplace,
+  scharr
+}
+
+export type cvFilter = [
+  cvFilterType, // type sobel, laplacian, scharr
+  number, // dx
+  number, // dy
+  number, // scale
+  number, // size
+]
+
+export type cvDetector = [
+  string, // type meanShift, camShift
+  number, // threshold
+  number, // minSize
+]
+
+export interface ICVAPI {
   init(): Promise<void>
-  destroy(): void
-  imgProcess(image: ImageData, width: number, height: number, params: Partial<{
+  dispose(): void
+  imgProcess(frame: ImageData, width: number, height: number, params: Partial<{
     isGray: boolean,
-    equalizeHist: boolean,
-    gamma: number,
     rotate: number,
-    blur:[string, number, number, number, number, number, number]
-    filter:[string, number, number, number],
-    cannyThreshold: [number, number],
-  }>): Uint8ClampedArray
-  faceRecognize(frame: ImageData, width: number, height: number): { face: any, eyes: Array<any>, landmarks: Array<any> } | null
+    colorMap: number,
+    morph: cvMorph,
+    gamma: number,
+    equalization: cvEqualizeHist,
+    sharpen: cvSharpen,
+    blur: cvBlur,
+    filter: cvFilter,
+    detector: cvDetector,
+    canny: [number, number],
+  }>): Promise<Uint8ClampedArray>
+
+  findContours(data: Uint8Array, width: number, height: number): Array<[number, number]>
+  // faceRecognize(frame: ImageData, width: number, height: number): { face: any, eyes: Array<any>, landmarks: Array<any> } | null
 }
 
 export interface ITensorflowApi {

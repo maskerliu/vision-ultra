@@ -73,12 +73,12 @@
 </template>
 <script lang="ts" setup>
 
-import * as fabric from "fabric"
-import { v4 as uuidv4 } from "uuid"
-import { onMounted, ref, useTemplateRef, watch } from "vue"
-import { AnnotationPanel, CVLabel, DrawType } from "../../common"
-import LabelGroupTab from "./LabelGroupTab.vue"
-import MarkerGroupTab from "./MarkerGroupTab.vue"
+import * as fabric from 'fabric'
+import { v4 as uuidv4 } from 'uuid'
+import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { AnnotationPanel, CVLabel, DrawType } from '../../common'
+import LabelGroupTab from './LabelGroupTab.vue'
+import MarkerGroupTab from './MarkerGroupTab.vue'
 
 const showRightBar = ref(true)
 const activeTab = ref(0)

@@ -20,6 +20,7 @@
   </div>
 </template>
 <script lang="ts" setup>
+
 import ace, { Ace, Range } from 'ace-builds'
 import 'ace-builds/src-min-noconflict/ext-language_tools'
 import 'ace-builds/src-min-noconflict/mode-json'

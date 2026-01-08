@@ -24,6 +24,7 @@
 
 </template>
 <script lang="ts" setup>
+
 import Hls from 'hls.js'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { CommonStore } from '../../store'

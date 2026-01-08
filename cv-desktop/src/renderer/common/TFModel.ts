@@ -8,7 +8,9 @@ export enum ModelType {
   Detect = 1,
   Segment = 2,
   OBB = 3,
-  Pose = 4
+  Pose = 4,
+  GenImage = 5,
+  Face = 6
 }
 
 export type ModelInfo = {

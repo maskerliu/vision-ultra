@@ -44,18 +44,18 @@
           </van-checkbox>
         </template>
         <template #value>
-          <van-popover v-model:show="showObjRecModels" placement="bottom-end" overlay>
+          <van-popover v-model:show="showObjRecModels" :show-arrow="false" placement="bottom-end" overlay>
             <template #reference>
               {{ visionStore.objRecModel.name }}
             </template>
             <van-col class="model-container">
-              <van-cell-group inset v-for="key of ModelGrop.keys()">
+              <van-cell-group inset v-for="key of ObjRecModelGrop.keys()">
                 <template #title>
                   <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key" />
                   {{ $t(`cvControl.Obj${key}`) }}
                 </template>
-                <van-cell center clickable :title="$t(`cvControl.ObjModel.${model.name}`)"
-                  @click="onObjRecModelChanged(model)" title-class="van-ellipsis" v-for="model in ModelGrop.get(key)">
+                <van-cell center clickable :title="$t(`cvControl.ObjModel.${model.name}`)" title-class="van-ellipsis"
+                  @click="onObjRecModelChanged(model)" v-for="model in ObjRecModelGrop.get(key)">
                   <template #right-icon>
                     <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                   </template>
@@ -92,6 +92,30 @@
           <span style="color: var(--van-cell-value-color)">face-mesh</span>
         </template>
 
+      </van-cell>
+
+      <van-cell :disabled="!visionStore.genImage">
+        <template #title>
+          <van-checkbox shape="square" v-model="visionStore.faceDetect">
+            <van-icon class-prefix="iconfont" name="face-rec" style="color: #e67e22;" />
+            <span>{{ $t('cvControl.GenImage') }}</span>
+          </van-checkbox>
+        </template>
+        <template #value>
+          <van-popover v-model:show="showGanModels" :show-arrow="false" placement="bottom-end" overlay>
+            <template #reference>
+              {{ visionStore.ganModel.name }}
+            </template>
+            <van-col class="model-container">
+              <van-cell center clickable :title="$t(`cvControl.ObjModel.${model.name}`)" title-class="van-ellipsis"
+                @click="onGanModelChanged(model)" v-for="model in GanModels">
+                <template #right-icon>
+                  <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                </template>
+              </van-cell>
+            </van-col>
+          </van-popover>
+        </template>
       </van-cell>
 
       <van-checkbox shape="square" v-model="visionStore.imgParams.enableDetect" style="margin: 15px;">
@@ -324,9 +348,10 @@
   </van-col>
 </template>
 <script lang="ts" setup>
+
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { cvBlurType, cvFilterType } from '../../../common'
 import { ModelInfo, ModelType, onnx } from '../../common'
-import { cvBlurType, cvFilterType } from '../../common/CVApi'
 import { VisionStore } from '../../store'
 import SliderField from '../components/SliderField.vue'
 
@@ -341,7 +366,7 @@ const ModelEngines = [
 ]
 
 const showObjRecModels = ref(false)
-const ModelGrop = new Map<string, Array<ModelInfo>>()
+const ObjRecModelGrop = new Map<string, Array<ModelInfo>>()
 const DetectModels = [
   { name: 'yolov8n', desc: '3.2M', type: ModelType.Detect },
   { name: 'yolov10n', desc: '2.3M', type: ModelType.Detect },
@@ -357,13 +382,21 @@ const SegmentModels = [
   { name: 'sam', desc: '38.9M', type: ModelType.Segment }
 ]
 
+const showGanModels = ref(false)
+const GanModels = [
+  { name: 'stylegan2', desc: '2.0G', type: ModelType.GenImage },
+  { name: 'stylegan3', desc: '2.0G', type: ModelType.GenImage },
+  { name: 'stylegan2-t', desc: '2.0G', type: ModelType.GenImage },
+]
+
 const showMorphOpts = ref(false)
 const MorphOpts = ['Erode', 'Dilate', 'Open', 'Close', 'Gradient', 'TopHat', 'BlackHat']
 
 const showColorMaps = ref(false)
 const ColorMaps = [
-  'NONE', 'AUTUMN', 'BONE', 'CIVIDIS', 'COOL', 'DEEPGREEN', 'HOT', 'HSV', 'INFERNO', 'JET', 'MAGMA', 'OCEAN', 'PARULA', 'PINK', 'PLASMA', 'RAINBOW', 'SPRING', 'SUMMER',
-  'TURBO', 'TWILIGHT', 'TWILIGHT_SHIFTED', 'VIRIDIS', 'WINTER',
+  'NONE', 'AUTUMN', 'BONE', 'JET', 'WINTER', 'RAINBOW', 'OCEAN', 'SUMMER',
+  'SPRING', 'COOL', 'HSV', 'PINK', 'HOT', 'PARULA', 'MAGMA',
+  'INFERNO', 'PLASMA', 'VIRIDIS', 'CIVIDIS', 'TWILIGHT', 'TWILIGHT_SHIFTED', 'TURBO', 'DEEPGREEN'
 ]
 
 const BlurTypes = ['Gaussian', 'Avg', 'Median', 'Bilateral']
@@ -383,9 +416,8 @@ watch(() => visionStore.faceDetect, (val, old) => {
 })
 
 onMounted(() => {
-
-  ModelGrop.set('Detect', DetectModels)
-  ModelGrop.set('Segment', SegmentModels)
+  ObjRecModelGrop.set('Detect', DetectModels)
+  ObjRecModelGrop.set('Segment', SegmentModels)
 })
 
 function checkPosition() {
@@ -397,6 +429,11 @@ function checkPosition() {
 function onObjRecModelChanged(model: ModelInfo) {
   visionStore.objRecModel = model
   showObjRecModels.value = false
+}
+
+function onGanModelChanged(model: ModelInfo) {
+  visionStore.ganModel = model
+  showGanModels.value = false
 }
 
 
