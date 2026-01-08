@@ -5,7 +5,7 @@ import {
 import fse from 'fs-extra'
 import os from 'os'
 import path from 'path'
-import { MainAPICMD } from '../common/ipc.api'
+import { MainAPICMD } from '../common'
 import './IPCServices'
 import { IS_DEV, USER_DATA_DIR } from './MainConst'
 import { MainServer } from './MainServer'

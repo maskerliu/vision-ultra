@@ -16,8 +16,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+
 import * as fabric from 'fabric' // 引入 Fabric.js[citation:2]
+import { onMounted, ref, watch } from 'vue'
 
 // 定义可用工具
 const tools = ['矩形', '线段', '多边形', '圆', '椭圆']

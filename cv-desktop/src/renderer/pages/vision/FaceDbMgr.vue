@@ -39,6 +39,7 @@
   </van-form>
 </template>
 <script lang="ts" setup>
+
 import { ref } from 'vue'
 import { FaceRec, baseDomain } from '../../../common'
 

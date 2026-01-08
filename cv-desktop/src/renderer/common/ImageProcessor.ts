@@ -1,17 +1,19 @@
-import { OpenCV } from "@opencvjs/web"
-import { showNotify } from "vant"
-import { IOpencvAPI } from "../../common/ipc.api"
-import { cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter, cvFilterType, cvMorph, cvSharpen, IntergrateMode } from "./CVApi"
+import { OpenCV } from '@opencvjs/web'
+import { showNotify } from 'vant'
+import { IntergrateMode } from '.'
+import {
+  ICVAPI, cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
+  cvFilterType, cvMorph, cvSharpen
+} from '../../common'
 
 export class ImageProcessor {
-  public imgEnhance: boolean = false
   public _mode: IntergrateMode = IntergrateMode.WebAssembly
   public imgProcessParams: any = {}
   public objectRects: Array<{ x: number, y: number, width: number, height: number }>
 
   private cvWeb: typeof OpenCV
-  private cvBackend: IOpencvAPI
-  private cvNative: IOpencvAPI
+  private cvBackend: ICVAPI
+  private cvNative: ICVAPI
 
   private _isInited: boolean = false
   public get isInited() {
@@ -34,12 +36,15 @@ export class ImageProcessor {
 
 
   async init(mode: IntergrateMode) {
+    console.log('init', mode)
     if (this.isInited && this._mode == mode) return
 
     this._mode = mode
     this._isInited = false
     switch (this._mode) {
       case IntergrateMode.WebAssembly:
+        this.cvNative?.dispose()
+        this.cvBackend?.dispose()
         const { loadOpenCV } = await import('@opencvjs/web')
         this.cvWeb = await loadOpenCV()
 
@@ -71,12 +76,19 @@ export class ImageProcessor {
         this.lower.delete()
         this.upper.delete()
         roiVec.delete()
+        break
       case IntergrateMode.Native:
-        this.cvNative = window.cvNativeApi
+        this.dispose()
+        this.cvBackend?.dispose()
+        this.cvNative = window.cvNative
+        await this.cvNative.init()
         this._isInited = true
         break
       case IntergrateMode.Backend:
-        this.cvBackend = window.cvWasmApi
+        this.dispose()
+        this.cvNative?.dispose()
+        this.cvBackend = window.cvBackend
+        await this.cvBackend.init()
         break
     }
   }
@@ -90,8 +102,7 @@ export class ImageProcessor {
     this.cvWeb = null
   }
 
-  process(image: ImageData) {
-    if (!this.imgEnhance) return
+  async process(image: ImageData) {
     if (this._mode != IntergrateMode.WebAssembly && window.isWeb) {
       showNotify({ type: 'danger', message: '当前环境不支持' })
       return
@@ -106,12 +117,12 @@ export class ImageProcessor {
         break
       }
       case IntergrateMode.Backend: {
-        let data = this.cvBackend?.imgProcess(image, image.width, image.height, this.imgProcessParams)
+        let data = await this.cvBackend?.imgProcess(image, image.width, image.height, this.imgProcessParams)
         if (data) image.data.set(data)
         break
       }
       case IntergrateMode.Native: {
-        let data = this.cvNative.imgProcess(image, image.width, image.height, this.imgProcessParams)
+        let data = await this.cvNative.imgProcess(image, image.width, image.height, this.imgProcessParams)
         if (data) image.data.set(data)
         break
       }
@@ -206,7 +217,6 @@ export class ImageProcessor {
 
     return rects
   }
-
 
   private equalization(params: cvEqualizeHist) {
     switch (params[0]) {
