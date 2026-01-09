@@ -21,6 +21,7 @@ out/
 resources/*
 log.txt
 
+./dist
 *.pb
 *.onnx
 *_saved_model
