@@ -173,7 +173,7 @@ export class ImageProcessor {
     }
     this.tmpImg.data.set(this.processedImg.data)
 
-    console.log('params', params)
+    console.log('params', params, this._options)
     if (params.colorMap != null && params.colorMap != 0)
       this.cvWeb.applyColorMap(this.processedImg, this.processedImg, params.colorMap - 1)
 
