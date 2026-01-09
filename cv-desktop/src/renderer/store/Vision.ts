@@ -80,9 +80,9 @@ export const VisionStore = defineStore('VisionStore', {
       modelEngine: 'tensorflow', // tensorflow or onnx
 
       enableObjRec: false,
-      objRecModel: { name: 'mobilenet', type: ModelType.Detect },
+      objRecModel: { name: 'yolo11s-seg', type: ModelType.Segment },
 
-      faceDetect: false,
+      enableFaceDetect: false,
       drawFaceMesh: true,
       drawEigen: true,
       landmark: false,

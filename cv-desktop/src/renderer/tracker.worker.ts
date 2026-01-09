@@ -22,7 +22,10 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   model?: string,
   image?: ImageData
 }>) => {
-
+  if (event.data == null) {
+    ctx.postMessage({ loading: false, error: 'data invalid' })
+    return
+  }
   let cmds = Array.isArray(event.data.cmd) ? event.data.cmd : [event.data.cmd]
   for (let cmd of cmds) {
     let data = { loading: false }
@@ -70,7 +73,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
       }
     } catch (error) {
       console.error(error)
-      data = Object.assign(data, { error: error })
+      data = Object.assign(data, { error: (error as Error).message })
     } finally {
       ctx.postMessage(data)
     }
