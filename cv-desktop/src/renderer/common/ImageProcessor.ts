@@ -8,17 +8,15 @@ import {
 
 export class ImageProcessor {
   public _mode: IntergrateMode = IntergrateMode.WebAssembly
-  public imgProcessParams: any = {}
-  public objectRects: Array<{ x: number, y: number, width: number, height: number }>
+  private _options: any = {}
+  set options(options: any) { this._options = options }
 
   private cvWeb: typeof OpenCV
   private cvBackend: ICVAPI
   private cvNative: ICVAPI
 
   private _isInited: boolean = false
-  public get isInited() {
-    return this._isInited
-  }
+  public get isInited() { return this._isInited }
 
   private gammaTable = new Uint8Array(256)
   private lut: OpenCV.Mat
@@ -35,11 +33,12 @@ export class ImageProcessor {
   private gamma: number = 1.0
 
 
-  async init(mode: IntergrateMode) {
-    console.log('init', mode)
+  async init(mode: IntergrateMode, options?: any) {
     if (this.isInited && this._mode == mode) return
 
     this._mode = mode
+    this._options = options
+
     this._isInited = false
     switch (this._mode) {
       case IntergrateMode.WebAssembly:
@@ -82,15 +81,16 @@ export class ImageProcessor {
         this.cvBackend?.dispose()
         this.cvNative = window.cvNative
         await this.cvNative.init()
-        this._isInited = true
         break
       case IntergrateMode.Backend:
         this.dispose()
         this.cvNative?.dispose()
         this.cvBackend = window.cvBackend
         await this.cvBackend.init()
+
         break
     }
+    this._isInited = true
   }
 
   dispose() {
@@ -110,26 +110,26 @@ export class ImageProcessor {
     switch (this._mode) {
       case IntergrateMode.WebAssembly: {
         try {
-          this.imgProcess(image, image.width, image.height, this.imgProcessParams)
+          return await this.imgProcess(image, this._options)
         } catch (err) {
           console.error(err)
         }
         break
       }
       case IntergrateMode.Backend: {
-        let data = await this.cvBackend?.imgProcess(image, image.width, image.height, this.imgProcessParams)
+        let data = await this.cvBackend?.imgProcess(image, this._options)
         if (data) image.data.set(data)
-        break
+        return image
       }
       case IntergrateMode.Native: {
-        let data = await this.cvNative.imgProcess(image, image.width, image.height, this.imgProcessParams)
+        let data = await this.cvNative.imgProcess(image, this._options)
         if (data) image.data.set(data)
-        break
+        return image
       }
     }
   }
 
-  private imgProcess(frame: ImageData, width: number, height: number,
+  private async imgProcess(frame: ImageData,
     params: Partial<{
       isGray: boolean,
       rotate: number,
@@ -143,23 +143,24 @@ export class ImageProcessor {
       detector: cvDetector,
       canny: [number, number],
     }>) {
+    if (!this._isInited) throw Error('processor not inited!!')
 
     if (this.processedImg == null) {
-      this.processedImg = new this.cvWeb.Mat(height, width, this.cvWeb.CV_8UC4)
+      this.processedImg = new this.cvWeb.Mat(frame.height, frame.width, this.cvWeb.CV_8UC4)
     }
     if (this.tmpImg == null) {
-      this.tmpImg = new this.cvWeb.Mat(height, width, this.cvWeb.CV_8UC3)
+      this.tmpImg = new this.cvWeb.Mat(frame.height, frame.width, this.cvWeb.CV_8UC3)
     }
 
-    if (this.processedImg.cols !== width || this.processedImg.rows !== height) {
+    if (this.processedImg.cols !== frame.width || this.processedImg.rows !== frame.height) {
       this.processedImg.delete()
-      this.processedImg = new this.cvWeb.Mat(height, width, this.cvWeb.CV_8UC4)
+      this.processedImg = new this.cvWeb.Mat(frame.height, frame.width, this.cvWeb.CV_8UC4)
     }
 
-    if (this.tmpImg.cols !== width || this.tmpImg.rows !== height) {
+    if (this.tmpImg.cols !== frame.width || this.tmpImg.rows !== frame.height) {
       this.tmpImg.delete()
       this.hsvVec?.delete()
-      this.tmpImg = new this.cvWeb.Mat(height, width, this.cvWeb.CV_8UC3)
+      this.tmpImg = new this.cvWeb.Mat(frame.height, frame.width, this.cvWeb.CV_8UC3)
       this.hsvVec = new this.cvWeb.MatVector()
       this.hsvVec.push_back(this.tmpImg)
     }
@@ -168,20 +169,22 @@ export class ImageProcessor {
     this.cvWeb.cvtColor(this.processedImg, this.processedImg, this.cvWeb.COLOR_RGBA2BGR)
     if (this.tmpImg.type() != this.processedImg.type()) {
       this.tmpImg.delete()
-      this.tmpImg = new this.cvWeb.Mat(height, width, this.cvWeb.CV_8UC3)
+      this.tmpImg = new this.cvWeb.Mat(frame.height, frame.width, this.cvWeb.CV_8UC3)
     }
     this.tmpImg.data.set(this.processedImg.data)
 
-    if (params.colorMap != 0) this.cvWeb.applyColorMap(this.processedImg, this.processedImg, params.colorMap - 1)
+    console.log('params', params)
+    if (params.colorMap != null && params.colorMap != 0)
+      this.cvWeb.applyColorMap(this.processedImg, this.processedImg, params.colorMap - 1)
 
     if (params.isGray) {
       this.cvWeb.cvtColor(this.processedImg, this.processedImg, this.cvWeb.COLOR_BGR2GRAY)
       this.processedImg.copyTo(this.tmpImg)
     }
 
-    if (params.rotate != 0) {
-      let dsize = new this.cvWeb.Size(width, height)
-      let center = new this.cvWeb.Point(width / 2, height / 2)
+    if (params.rotate != null && params.rotate != 0) {
+      let dsize = new this.cvWeb.Size(frame.width, frame.height)
+      let center = new this.cvWeb.Point(frame.width / 2, frame.height / 2)
       let rotateMat = this.cvWeb.getRotationMatrix2D(center, params.rotate, 1)
       this.cvWeb.warpAffine(this.processedImg, this.processedImg, rotateMat, dsize)
       rotateMat.delete()
@@ -213,9 +216,10 @@ export class ImageProcessor {
     } else {
       this.cvWeb.cvtColor(this.processedImg, this.processedImg, this.cvWeb.COLOR_BGR2RGBA)
     }
+
     frame.data.set(this.processedImg.data)
 
-    return rects
+    return frame
   }
 
   private equalization(params: cvEqualizeHist) {

@@ -66,15 +66,15 @@
         </template>
       </van-cell>
 
-      <van-cell :disabled="!visionStore.faceDetect">
+      <van-cell :disabled="!visionStore.enableFaceDetect">
         <template #title>
-          <van-checkbox shape="square" v-model="visionStore.faceDetect">
+          <van-checkbox shape="square" v-model="visionStore.enableFaceDetect">
             <van-icon class-prefix="iconfont" name="face-rec" style="color: #e67e22;" />
             <span>{{ $t('cvControl.FaceRec') }}</span>
           </van-checkbox>
         </template>
         <template #label>
-          <van-row style="padding: 15px 0 5px 0;" v-show="visionStore.faceDetect">
+          <van-row style="padding: 15px 0 5px 0;" v-show="visionStore.enableFaceDetect">
             <van-checkbox v-model="visionStore.drawEigen">
               <van-icon class-prefix="iconfont" name="mesh" />
             </van-checkbox>
@@ -96,7 +96,7 @@
 
       <van-cell :disabled="!visionStore.genImage">
         <template #title>
-          <van-checkbox shape="square" v-model="visionStore.faceDetect">
+          <van-checkbox shape="square" v-model="visionStore.enableFaceDetect">
             <van-icon class-prefix="iconfont" name="face-rec" style="color: #e67e22;" />
             <span>{{ $t('cvControl.GenImage') }}</span>
           </van-checkbox>
@@ -409,7 +409,7 @@ const isWeb = window.isWeb
 const colorMapAnchor = useTemplateRef('colorMapAnchor')
 const modelName = ref<string>()
 
-watch(() => visionStore.faceDetect, (val, old) => {
+watch(() => visionStore.enableFaceDetect, (val, old) => {
   if (!val) {
     visionStore.live2d = false
   }
@@ -462,7 +462,7 @@ async function onModelUpload(data: any) {
 }
 
 .model-container {
-  width: 290px;
+  width: 280px;
   height: 260px;
   overflow: hidden scroll;
   padding-top: 10px;

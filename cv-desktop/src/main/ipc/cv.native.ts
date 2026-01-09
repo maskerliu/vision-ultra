@@ -51,7 +51,7 @@ class CVNative implements ICVAPI {
     lut = null
   }
 
-  async imgProcess(frame: ImageData, width: number, height: number,
+  async imgProcess(frame: ImageData,
     params: Partial<{
       isGray: boolean,
       rotate: number,
@@ -67,16 +67,16 @@ class CVNative implements ICVAPI {
     }>) {
 
     if (processedImg == null) {
-      processedImg = new cv.Mat(height, width, cv.CV_8UC4)
+      processedImg = new cv.Mat(frame.height, frame.width, cv.CV_8UC4)
     }
 
-    if (processedImg.cols !== width || processedImg.rows !== height) {
+    if (processedImg.cols !== frame.width || processedImg.rows !== frame.height) {
       processedImg.release()
-      processedImg = new cv.Mat(height, width, cv.CV_8UC4)
+      processedImg = new cv.Mat(frame.height, frame.width, cv.CV_8UC4)
     }
 
-    if (sharedData == null || sharedData.length !== height * width * 4) {
-      sharedData = new Uint8ClampedArray(height * width * 4)
+    if (sharedData == null || sharedData.length !== frame.height * frame.width * 4) {
+      sharedData = new Uint8ClampedArray(frame.height * frame.width * 4)
     }
 
     processedImg.setData(Buffer.from(frame.data.buffer))

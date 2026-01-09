@@ -120,7 +120,7 @@ export type cvDetector = [
 export interface ICVAPI {
   init(): Promise<void>
   dispose(): void
-  imgProcess(frame: ImageData, width: number, height: number, params: Partial<{
+  imgProcess(frame: ImageData, params: Partial<{
     isGray: boolean,
     rotate: number,
     colorMap: number,

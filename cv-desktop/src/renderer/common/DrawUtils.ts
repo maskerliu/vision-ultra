@@ -1,4 +1,5 @@
 import { NormalizedLandmark } from '@mediapipe/face_mesh'
+import { BoundingBox, FaceDetectResult } from '.'
 import { Def_Object_Labels } from './Annotations'
 import { MARK_COLORS, MarkColors } from './CVColors'
 import { FACEMESH_CONTOUR, TRIANGULATION } from './Triangulation'
@@ -16,30 +17,30 @@ export const LABEL_TO_COLOR = {
   faceOval: MarkColors.SILVERY,
 }
 
-export type FaceDetectResult = {
-  landmarks: Float16Array,
-  box: BoundingBox,
-  valid: boolean,
-  expire: number,
-}
+// export type FaceDetectResult = {
+//   landmarks: Float16Array,
+//   box: BoundingBox,
+//   valid: boolean,
+//   expire: number,
+// }
 
-export type ObjectDetectResult = {
-  classes: Uint8Array,
-  scores: Float16Array,
-  boxes: Float16Array,
-  objNum: number,
-  scale: [number, number],
-  expire: number,
-}
+// export type ObjectDetectResult = {
+//   classes: Uint8Array,
+//   scores: Float16Array,
+//   boxes: Float16Array,
+//   objNum: number,
+//   scale: [number, number],
+//   expire: number,
+// }
 
-export type BoundingBox = {
-  xMin: number,
-  yMin: number,
-  xMax: number,
-  yMax: number
-  width: number,
-  height: number
-}
+// export type BoundingBox = {
+//   xMin: number,
+//   yMin: number,
+//   xMax: number,
+//   yMax: number
+//   width: number,
+//   height: number
+// }
 
 export type KeyPoint = {
   x: number,

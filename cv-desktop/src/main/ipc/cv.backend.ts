@@ -40,7 +40,6 @@ export class CVBackend implements ICVAPI {
     const { loadOpenCV } = await import('@opencvjs/node')
     this.cvNode = await loadOpenCV()
 
-    console.log(WebAssembly.Module)
     this.bgSubtractor = new this.cvNode.BackgroundSubtractorMOG2(500, 16, true)
     this.gamma = 1.0
     this.lut = this.cvNode.matFromArray(256, 1, this.cvNode.CV_8UC1, this.gammaTable)
@@ -81,13 +80,7 @@ export class CVBackend implements ICVAPI {
     this.cvNode = null
   }
 
-  process(image: ImageData) {
-    if (!this.imgEnhance) return
-    this.imgProcess(image, image.width, image.height, this.imgProcessParams)
-
-  }
-
-  async imgProcess(frame: ImageData, width: number, height: number,
+  async imgProcess(frame: ImageData,
     params: Partial<{
       isGray: boolean,
       rotate: number,
@@ -103,34 +96,34 @@ export class CVBackend implements ICVAPI {
     }>) {
 
     if (this.processedImg == null) {
-      this.processedImg = new this.cvNode.Mat(height, width, this.cvNode.CV_8UC4)
+      this.processedImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC4)
     }
     if (this.tmpImg == null) {
-      this.tmpImg = new this.cvNode.Mat(height, width, this.cvNode.CV_8UC3)
+      this.tmpImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC3)
     }
 
-    if (this.processedImg.cols !== width || this.processedImg.rows !== height) {
+    if (this.processedImg.cols !== frame.width || this.processedImg.rows !== frame.height) {
       this.processedImg.delete()
-      this.processedImg = new this.cvNode.Mat(height, width, this.cvNode.CV_8UC4)
+      this.processedImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC4)
     }
 
-    if (this.tmpImg.cols !== width || this.tmpImg.rows !== height) {
+    if (this.tmpImg.cols !== frame.width || this.tmpImg.rows !== frame.height) {
       this.tmpImg.delete()
       this.hsvVec?.delete()
-      this.tmpImg = new this.cvNode.Mat(height, width, this.cvNode.CV_8UC3)
+      this.tmpImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC3)
       this.hsvVec = new this.cvNode.MatVector()
       this.hsvVec.push_back(this.tmpImg)
     }
 
-    if (this.sharedData == null || this.sharedData.length !== height * width * 4) {
-      this.sharedData = new Uint8ClampedArray(height * width * 4)
+    if (this.sharedData == null || this.sharedData.length !== frame.height * frame.width * 4) {
+      this.sharedData = new Uint8ClampedArray(frame.height * frame.width * 4)
     }
 
     this.processedImg.data.set(frame.data, 0)
     this.cvNode.cvtColor(this.processedImg, this.processedImg, this.cvNode.COLOR_RGBA2BGR)
     if (this.tmpImg.type() != this.processedImg.type()) {
       this.tmpImg.delete()
-      this.tmpImg = new this.cvNode.Mat(height, width, this.cvNode.CV_8UC3)
+      this.tmpImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC3)
     }
     this.tmpImg.data.set(this.processedImg.data)
 
@@ -142,8 +135,8 @@ export class CVBackend implements ICVAPI {
     }
 
     if (params.rotate != 0) {
-      let dsize = new this.cvNode.Size(width, height)
-      let center = new this.cvNode.Point(width / 2, height / 2)
+      let dsize = new this.cvNode.Size(frame.width, frame.height)
+      let center = new this.cvNode.Point(frame.width / 2, frame.height / 2)
       let rotateMat = this.cvNode.getRotationMatrix2D(center, params.rotate, 1)
       this.cvNode.warpAffine(this.processedImg, this.processedImg, rotateMat, dsize)
       rotateMat.delete()

@@ -12,9 +12,10 @@ export enum WorkerCMD {
   initImageProcessor = 'initImageProcessor',
   updateOptions = 'updateOptions',
   imageProcess = 'imageProcess',
+  findContours = 'findContours',
 
   initObjTracker = 'initObjTracker',
-  dispose = 'dispose',
+  dispose = 'disposeTracker',
   objRec = 'objRec',
 
   initFaceDetector = 'initFaceDetector',
@@ -28,6 +29,30 @@ export enum IntergrateMode {
   Native
 }
 
+export type FaceDetectResult = {
+  landmarks: Float16Array,
+  box: BoundingBox,
+  valid: boolean,
+  expire: number,
+}
+
+export type BoundingBox = {
+  xMin: number,
+  yMin: number,
+  xMax: number,
+  yMax: number
+  width: number,
+  height: number
+}
+
+export type ObjectDetectResult = {
+  classes: Uint8Array,
+  scores: Float16Array,
+  boxes: Float16Array,
+  objNum: number,
+  scale: [number, number],
+  expire: number,
+}
 
 export function generateUid(): string {
   let len = 8
