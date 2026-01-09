@@ -1,5 +1,4 @@
 .DS_Store
-dist/*
 build/*
 !build/version.json
 !build/installer.nsh
@@ -21,9 +20,9 @@ out/
 resources/*
 log.txt
 
-./dist
 *.pb
 *.onnx
 *_saved_model
 
 datasets
+cv-desktop/dist/**
