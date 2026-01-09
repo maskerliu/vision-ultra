@@ -1,7 +1,7 @@
 import Hls from 'hls.js'
-import { WorkerCMD } from '.'
-import { drawObjectDetectResult, drawTFFaceResult, FaceDetectResult, ObjectDetectResult } from './DrawUtils'
-import { ImageProcessor } from './ImageProcessor'
+import { FaceDetectResult, ObjectDetectResult, WorkerCMD } from '.'
+import { drawObjectDetectResult, drawTFFaceResult, } from './DrawUtils'
+import { WorkerManager } from './WorkerManager'
 
 export class VideoPlayer {
   private hls: Hls
@@ -30,6 +30,11 @@ export class VideoPlayer {
     this._imgProcessorWorker = value
   }
 
+  private _workerMgr: WorkerManager = null
+  set workerMgr(value: WorkerManager) {
+    this._workerMgr = value
+  }
+
   private _enableFace = false
   set enableFace(value: boolean) {
     this._enableFace = value
@@ -48,11 +53,6 @@ export class VideoPlayer {
   private _objects: ObjectDetectResult
   set objects(value: ObjectDetectResult) {
     this._objects = value
-  }
-
-  private _imgProcessor: ImageProcessor = null
-  set imgProcessor(value: ImageProcessor) {
-    this._imgProcessor = value
   }
 
   private mediaRecorder: MediaRecorder
@@ -100,7 +100,7 @@ export class VideoPlayer {
 
     this.offscreenCtx.drawImage(this.preVideo, 0, 0, this.offscreen.width, this.offscreen.height)
     this.frame.data.set(this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data)
-    this._imgProcessor?.process(this.frame)
+    // this._imgProcessor?.process(this.frame)
 
     this._imgProcessorWorker?.postMessage({ cmd: WorkerCMD.imageProcess, image: this.frame })
     this.previewCtx.putImageData(this.frame, 0, 0)
@@ -120,11 +120,12 @@ export class VideoPlayer {
     }
 
     if (this._face && this._face.valid && this._enableFace)
-      drawTFFaceResult(this.previewCtx, this._face, 'none', true, true)
+      drawTFFaceResult(this.previewCtx, this._workerMgr.face, 'none', true, true)
+
     if (this._objects && this._enableObject)
-      drawObjectDetectResult(this.previewCtx,
-        this._objects.boxes, this._objects.scores, this._objects.classes,
-        this._objects.objNum, this._objects.scale)
+      drawObjectDetectResult(this.previewCtx, this._workerMgr.objects.boxes,
+        this._workerMgr.objects.scores, this._workerMgr.objects.classes,
+        this._workerMgr.objects.objNum, this._workerMgr.objects.scale)
 
     this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '12px Arial'
