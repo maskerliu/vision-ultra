@@ -1,7 +1,7 @@
 import Hls from 'hls.js'
-import { FaceDetectResult, ObjectDetectResult, WorkerCMD } from '.'
 import { drawObjectDetectResult, drawTFFaceResult, } from './DrawUtils'
-import { WorkerManager } from './WorkerManager'
+import { WorkerManager, WorkerType } from './WorkerManager'
+import { WorkerCMD } from './misc'
 
 export class VideoPlayer {
   private hls: Hls
@@ -20,45 +20,14 @@ export class VideoPlayer {
   private flip: boolean = true
   private frame: ImageData
 
-  private _trackerWorker: Worker = null
-  set trackerWorker(value: Worker) {
-    this._trackerWorker = value
-  }
-
-  private _imgProcessorWorker: Worker = null
-  set imgProcessorWorker(value: Worker) {
-    this._imgProcessorWorker = value
-  }
-
   private _workerMgr: WorkerManager = null
   set workerMgr(value: WorkerManager) {
     this._workerMgr = value
   }
 
-  private _enableFace = false
-  set enableFace(value: boolean) {
-    this._enableFace = value
-  }
-
-  private _enableObject = false
-  set enableObject(value: boolean) {
-    this._enableObject = value
-  }
-
-  private _face: FaceDetectResult
-  set face(value: FaceDetectResult) {
-    this._face = value
-  }
-
-  private _objects: ObjectDetectResult
-  set objects(value: ObjectDetectResult) {
-    this._objects = value
-  }
-
   private mediaRecorder: MediaRecorder
 
-  private _faceFrames = 0
-  private _objFrames = 0
+  private _frames = 0
 
   constructor(video: HTMLVideoElement,
     priview: HTMLCanvasElement,
@@ -102,35 +71,37 @@ export class VideoPlayer {
     this.frame.data.set(this.offscreenCtx.getImageData(0, 0, this.offscreen.width, this.offscreen.height).data)
     // this._imgProcessor?.process(this.frame)
 
-    this._imgProcessorWorker?.postMessage({ cmd: WorkerCMD.imageProcess, image: this.frame })
+    this._workerMgr?.postMessage(WorkerType.cvProcess,
+      { cmd: WorkerCMD.process, image: this.frame },
+      [this.frame.data.buffer])
     this.previewCtx.putImageData(this.frame, 0, 0)
 
-    if (this._faceFrames == 3) {
-      if (this._enableFace) this._trackerWorker?.postMessage({ cmd: WorkerCMD.faceDetect, image: this.frame })
-      this._faceFrames = 0
+    if (this._frames == 6) {
+      this._workerMgr?.postMessage(WorkerType.objDetect,
+        { cmd: WorkerCMD.process, image: this.frame },
+        [this.frame.data.buffer])
+      this._workerMgr?.postMessage(WorkerType.faceDetect,
+        { cmd: WorkerCMD.process, image: this.frame },
+        [this.frame.data.buffer])
+      this._frames = 0
+    } else if (this._frames == 3) {
+      this._workerMgr?.postMessage(WorkerType.faceDetect,
+        { cmd: WorkerCMD.process, image: this.frame },
+        [this.frame.data.buffer])
     } else {
-      this._faceFrames++
+      this._frames++
     }
 
-    if (this._objFrames == 5) {
-      if (this._enableObject) this._trackerWorker?.postMessage({ cmd: WorkerCMD.objRec, image: this.frame })
-      this._objFrames = 0
-    } else {
-      this._objFrames++
-    }
+    drawTFFaceResult(this.previewCtx, this._workerMgr.face, 'none', true, true)
 
-    if (this._face && this._face.valid && this._enableFace)
-      drawTFFaceResult(this.previewCtx, this._workerMgr.face, 'none', true, true)
-
-    if (this._objects && this._enableObject)
-      drawObjectDetectResult(this.previewCtx, this._workerMgr.objects.boxes,
-        this._workerMgr.objects.scores, this._workerMgr.objects.classes,
-        this._workerMgr.objects.objNum, this._workerMgr.objects.scale)
+    drawObjectDetectResult(this.previewCtx, this._workerMgr.objects.boxes,
+      this._workerMgr.objects.scores, this._workerMgr.objects.classes,
+      this._workerMgr.objects.objNum, this._workerMgr.objects.scale)
 
     this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '12px Arial'
-    this.previewCtx.fillText(`Face: ${this._face ? this._face.expire : '-'}\n 
-      Object: ${this._objects ? this._objects.expire : '-'}`, 10, 20)
+    this.previewCtx.fillText(`Face: ${this._workerMgr.face ? this._workerMgr.face.expire : '-'}\n 
+      Object: ${this._workerMgr.objects ? this._workerMgr.objects.expire : '-'}`, 10, 20)
   }
 
 

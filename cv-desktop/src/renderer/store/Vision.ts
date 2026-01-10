@@ -3,10 +3,10 @@ import {
   cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
   cvFilterType, cvMorph, cvSharpen,
 } from '../../common'
-import { IntergrateMode, ModelType } from '../common'
+import { IntergrateMode, ModelType } from '../common/misc'
 
 
-class ImageParams {
+class CVOptions {
   isGray: boolean = false
   equalizeHist: boolean = false
   clahe: boolean = false // 自适应直方图均衡化
@@ -79,8 +79,8 @@ export const VisionStore = defineStore('VisionStore', {
       intergrateMode: IntergrateMode.WebAssembly, // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
       modelEngine: 'tensorflow', // tensorflow or onnx
 
-      enableObjRec: false,
-      objRecModel: { name: 'yolo11s-seg', type: ModelType.Segment },
+      enableObjDetect: false,
+      objDetectModel: { name: 'yolo11s-seg', type: ModelType.Segment },
 
       enableFaceDetect: false,
       drawFaceMesh: true,
@@ -91,8 +91,8 @@ export const VisionStore = defineStore('VisionStore', {
       genImage: false,
       ganModel: { name: 'AnimateGan', type: ModelType.GenImage },
 
-      imgEnhance: false,
-      imgParams: new ImageParams(),
+      enableCVProcess: false,
+      cvOptions: new CVOptions(),
 
       streamHistories: [] as string[],
     }

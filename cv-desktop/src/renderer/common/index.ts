@@ -1,58 +1,7 @@
 export * from './Annotations'
 export * from './CVColors'
-export * from './FaceDetector'
-export * from './ImageProcessor'
-export * from './ObjectTracker'
 export * from './ONNX'
 export { PushClient } from './PushClient'
-export * from './TFModel'
-export * from './VideoPlayer'
-
-export enum WorkerCMD {
-  initImageProcessor = 'initImageProcessor',
-  updateOptions = 'updateOptions',
-  imageProcess = 'imageProcess',
-  findContours = 'findContours',
-
-  initObjTracker = 'initObjTracker',
-  dispose = 'disposeTracker',
-  objRec = 'objRec',
-
-  initFaceDetector = 'initFaceDetector',
-  faceDetect = 'faceDetect',
-  faceCapture = 'faceCapture'
-}
-
-export enum IntergrateMode {
-  WebAssembly,
-  Backend,
-  Native
-}
-
-export type FaceDetectResult = {
-  landmarks: Float16Array,
-  box: BoundingBox,
-  valid: boolean,
-  expire: number,
-}
-
-export type BoundingBox = {
-  xMin: number,
-  yMin: number,
-  xMax: number,
-  yMax: number
-  width: number,
-  height: number
-}
-
-export type ObjectDetectResult = {
-  classes: Uint8Array,
-  scores: Float16Array,
-  boxes: Float16Array,
-  objNum: number,
-  scale: [number, number],
-  expire: number,
-}
 
 export function generateUid(): string {
   let len = 8

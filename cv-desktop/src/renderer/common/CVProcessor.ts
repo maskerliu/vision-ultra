@@ -1,12 +1,12 @@
 import { OpenCV } from '@opencvjs/web'
 import { showNotify } from 'vant'
-import { IntergrateMode } from '.'
 import {
   ICVAPI, cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
   cvFilterType, cvMorph, cvSharpen
 } from '../../common'
+import { IntergrateMode } from './misc'
 
-export class ImageProcessor {
+export class CVProcessor {
   public _mode: IntergrateMode = IntergrateMode.WebAssembly
   private _options: any = {}
   set options(options: any) { this._options = options }
@@ -47,7 +47,6 @@ export class ImageProcessor {
         const { loadOpenCV } = await import('@opencvjs/web')
         this.cvWeb = await loadOpenCV()
 
-        console.log(WebAssembly.Module)
         this.bgSubtractor = new this.cvWeb.BackgroundSubtractorMOG2(500, 16, true)
         this.gamma = 1.0
         this.lut = this.cvWeb.matFromArray(256, 1, this.cvWeb.CV_8UC1, this.gammaTable)
@@ -173,7 +172,6 @@ export class ImageProcessor {
     }
     this.tmpImg.data.set(this.processedImg.data)
 
-    console.log('params', params, this._options)
     if (params.colorMap != null && params.colorMap != 0)
       this.cvWeb.applyColorMap(this.processedImg, this.processedImg, params.colorMap - 1)
 

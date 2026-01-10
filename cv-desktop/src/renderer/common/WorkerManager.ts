@@ -1,10 +1,12 @@
 
-import { CVLabel, FaceDetectResult, MarkColors, ObjectDetectResult, WorkerCMD } from '.'
-import ImageProcessorWorker from '../imgProcessor.worker?worker'
-import TrackerWorker from '../tracker.worker?worker'
+import { CVLabel, MarkColors, } from '.'
+import CVProcessWorker from '../cvProcess.worker?worker'
+import FaceDetectWorker from '../faceDetect.worker?worker'
+import ObjDetectWorker from '../objDetect.worker?worker'
 import { drawTFFaceResult } from './DrawUtils'
+import { FaceDetectResult, ModelType, ObjectDetectResult, WorkerCMD } from './misc'
 
-export enum WorkerType { tracker, imageProcessor }
+export enum WorkerType { faceDetect, objDetect, cvProcess }
 export enum WorkerDrawMode { video, image }
 
 export type WorkerStatus = {
@@ -18,8 +20,7 @@ export class WorkerManager {
   private captureCtx: CanvasRenderingContext2D
   private maskCtx: CanvasRenderingContext2D
 
-  private trackerWorker: Worker
-  private imgProcessorWorker: Worker
+  private workers: Map<WorkerType, Worker> = new Map()
 
   private _workerStatus: WorkerStatus = {
     showLoading: false,
@@ -31,8 +32,15 @@ export class WorkerManager {
   private _drawMode: WorkerDrawMode = WorkerDrawMode.image
   set drawMode(val: WorkerDrawMode) { this._drawMode = val }
 
+
+  private _enableObjDetect = false
+  set enableObjDetect(val: boolean) { this._enableObjDetect = val }
+
   private _enableFaceDetect = false
   set enableFaceDetect(val: boolean) { this._enableFaceDetect = val }
+
+  private _enableCVProcess = false
+  set enableCVProcess(val: boolean) { this._enableCVProcess = val }
 
   private _drawFaceMesh = false
   set drawFaceMesh(val: boolean) { this._drawFaceMesh = val }
@@ -40,8 +48,6 @@ export class WorkerManager {
   private _drawEigen = false
   set drawEigen(val: boolean) { this._drawEigen = val }
 
-  private _enableObjRec = false
-  set enableObjRec(val: boolean) { this._enableObjRec = val }
 
   private _objects: ObjectDetectResult
   get objects(): ObjectDetectResult { return this._objects }
@@ -54,7 +60,6 @@ export class WorkerManager {
     this._annotationPanel = val
   }
 
-
   constructor(previewCtx: CanvasRenderingContext2D,
     captureCtx: CanvasRenderingContext2D,
     maskCtx: CanvasRenderingContext2D) {
@@ -63,53 +68,61 @@ export class WorkerManager {
     this.maskCtx = maskCtx
   }
 
-  public register(targets: Array<WorkerType>) {
+  public register(target: WorkerType, data?: any) {
+    if (this.workers.has(target)) return
 
-    for (let target of targets) {
-
-      if (target == WorkerType.tracker) {
-        if (this.trackerWorker == null) {
-          this.trackerWorker = new TrackerWorker()
-          this.trackerWorker.addEventListener('message', this.handleTrackerMessage.bind(this))
-        }
+    let worker: Worker
+    switch (target) {
+      case WorkerType.cvProcess: {
+        worker = new CVProcessWorker()
+        worker.addEventListener('message', this.handleCVProcessMessage.bind(this))
+        break
       }
-
-      if (target == WorkerType.imageProcessor) {
-        if (this.imgProcessorWorker == null) {
-          this.imgProcessorWorker = new ImageProcessorWorker()
-          this.imgProcessorWorker.addEventListener('message', this.handleImageProcessorMessage.bind(this))
-        }
+      case WorkerType.faceDetect: {
+        worker = new FaceDetectWorker()
+        worker.addEventListener('message', this.handleFaceDetectMessage.bind(this))
+        break
+      }
+      case WorkerType.objDetect: {
+        worker = new ObjDetectWorker()
+        worker.addEventListener('message', this.handleObjDetectMessage.bind(this))
+        break
       }
     }
+    this.workers.set(target, worker)
+
+    if (data != null) this.postMessage(target, data)
   }
 
+  private worker(type: WorkerType) {
+    return this.workers.get(type)
+  }
   public terminate(target: WorkerType) {
-    if (target == WorkerType.tracker) {
-      this.trackerWorker?.removeEventListener('message', this.handleTrackerMessage.bind(this))
-      this.trackerWorker?.terminate()
-      this.trackerWorker = null
-    }
-
-    if (target == WorkerType.imageProcessor) {
-      this.imgProcessorWorker?.removeEventListener('message', this.handleImageProcessorMessage.bind(this))
-      this.imgProcessorWorker?.terminate()
-      this.imgProcessorWorker = null
-    }
+    this.worker(target)?.terminate()
+    this.workers.delete(target)
   }
 
-  public postMessage(target: WorkerType, data: any, transfer?: Transferable[]) {
-    console.log('[main] post', target, data)
-    if (target == WorkerType.tracker) {
-      this.trackerWorker?.postMessage(data, transfer)
-    }
+  public postMessage(
+    target: WorkerType,
+    data: Partial<{
+      cmd: WorkerCMD,
+      modelTypes?: ModelType[],
+      model?: string,
+      image?: ImageData,
+      options?: any
+    }>,
+    transfer?: Transferable[]) {
 
-    if (target == WorkerType.imageProcessor) {
-      this.imgProcessorWorker?.postMessage(data, transfer)
-    }
+    console.log(`[main] ${target} post`, data)
+    this.worker(target)?.postMessage(data, transfer)
   }
 
-  private handleImageProcessorMessage(event: MessageEvent) {
-    console.log('[main] handle', event.data)
+  public handleMessage(event: MessageEvent) {
+
+  }
+
+  private handleCVProcessMessage(event: MessageEvent) {
+    console.log('[main] cvProcess', event.data)
     this._workerStatus.showLoading = false
     this._workerStatus.showProcess = false
 
@@ -120,10 +133,8 @@ export class WorkerManager {
         this.previewCtx.clearRect(0, 0, data.width, data.height)
         this.previewCtx.putImageData(data, 0, 0)
 
-        let cmds = []
-        if (this._enableFaceDetect) cmds.push(WorkerCMD.faceDetect)
-        if (this._enableObjRec) cmds.push(WorkerCMD.objRec)
-        if (cmds.length > 0) this.trackerWorker.postMessage({ cmd: cmds, image: data })
+        if (this._enableFaceDetect) this.worker(WorkerType.faceDetect).postMessage({ cmd: WorkerCMD.process, image: data })
+        if (this._enableObjDetect) this.worker(WorkerType.objDetect).postMessage({ cmd: WorkerCMD.process, image: data })
         break
       case 'contours':
         console.log(event.data.contours)
@@ -131,7 +142,30 @@ export class WorkerManager {
     }
   }
 
-  private handleTrackerMessage(event: MessageEvent) {
+  private handleFaceDetectMessage(event: MessageEvent<any>) {
+    console.log('[main] faceDetect', event.data)
+    this._workerStatus.showLoading = false
+    this._workerStatus.showProcess = false
+
+    switch (event.data.type) {
+      case 'face':
+        if (this._drawMode == WorkerDrawMode.image) {
+          drawTFFaceResult(this.previewCtx, event.data.face, 'none', this._drawEigen, true)
+        } else {
+
+        }
+
+        // live2dPanel.value?.animateLive2DModel(event.data.tface)
+        this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
+        if (this._drawFaceMesh) {
+          drawTFFaceResult(this.captureCtx, event.data.face, 'mesh', false, false, this.captureCtx.canvas.height)
+        }
+        break
+    }
+  }
+
+  private handleObjDetectMessage(event: MessageEvent) {
+    console.log('[main] objDetect', event.data)
     this._workerStatus.showLoading = false
     this._workerStatus.showProcess = false
     this._workerStatus.error = event.data.error ? event.data.error : null
@@ -158,19 +192,6 @@ export class WorkerManager {
         this.drawMask(event.data.boxes, event.data.classes, event.data.masks,
           event.data.objNum, event.data.width, event.data.height)
         break
-      case 'face':
-        if (this._drawMode == WorkerDrawMode.image) {
-          drawTFFaceResult(this.previewCtx, event.data.face, 'none', this._drawEigen, true)
-        } else {
-
-        }
-
-        // live2dPanel.value?.animateLive2DModel(event.data.tface)
-        this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
-        if (this._drawFaceMesh) {
-          drawTFFaceResult(this.captureCtx, event.data.face, 'mesh', false, false, this.captureCtx.canvas.height)
-        }
-        break
     }
   }
 
@@ -179,7 +200,7 @@ export class WorkerManager {
     let ratio = 640 / 160
     let length = 0
     let offset = 0
-    let contours = []
+
     if (width == null || width == 0 || height == null || height == 0) return
     const imageData = new ImageData(width, height)
     let rects = []
@@ -205,8 +226,9 @@ export class WorkerManager {
       }
 
       rects.push([x1, y1, x2 - x1, y2 - y1])
-      this.imgProcessorWorker?.postMessage({ cmd: WorkerCMD.findContours, masks, rects })
     }
+
+    // this.cvProcessWorker?.postMessage({ cmd: WorkerCMD.findContours, masks, rects })
 
     this.maskCtx.canvas.width = width
     this.maskCtx.canvas.height = height
@@ -219,6 +241,7 @@ export class WorkerManager {
     this.previewCtx.drawImage(this.maskCtx.canvas, 0, 0)
     this.previewCtx.restore()
 
+    let contours = []
     contours.forEach(points => {
       points.forEach(p => {
         p[0] *= sacle

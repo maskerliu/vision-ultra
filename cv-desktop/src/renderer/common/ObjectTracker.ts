@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
-import { ModelInfo, TFModel } from './TFModel'
+import { TFModel } from './TFModel'
+import { ModelInfo } from './misc'
 
 const MAX_OBJECTS_NUM: number = 20
 

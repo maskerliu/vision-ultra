@@ -1,23 +1,7 @@
 
 import * as tf from '@tensorflow/tfjs'
 import { baseDomain } from '../../common'
-
-export enum ModelType {
-  Unknown = -1,
-  Classify = 0,
-  Detect = 1,
-  Segment = 2,
-  OBB = 3,
-  Pose = 4,
-  GenImage = 5,
-  Face = 6
-}
-
-export type ModelInfo = {
-  name: string,
-  type: ModelType
-  desc?: string
-}
+import { ModelType } from './misc'
 
 const ModelClassSize = {
   'mobilenet': 90,
@@ -30,15 +14,15 @@ export class TFModel {
   private _name: string
   get name() { return this._name }
 
-  private modelWidth: number = 0
-  private modelHeight: number = 0
+  protected modelWidth: number = 0
+  protected modelHeight: number = 0
   public objNum: number = 0
   public scale: [number, number] = [1, 1]
   private type: ModelType
   private _classNum: number = 0
   get classNum() { return this._classNum }
 
-  private _isInited: boolean = false
+  protected _isInited: boolean = false
   get isInited() { return this._isInited }
 
   get inShape() {
