@@ -25,4 +25,4 @@ log.txt
 *_saved_model
 
 datasets
-cv-desktop/dist/**
+cv-desktop/dist/**/*

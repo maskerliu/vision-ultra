@@ -103,7 +103,8 @@
 import 'media-chrome'
 import { Col } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { VideoPlayer, WorkerCMD } from '../../common'
+import { WorkerCMD } from '../../common/misc'
+import { VideoPlayer } from '../../common/VideoPlayer'
 import { WorkerManager, WorkerStatus, WorkerType } from '../../common/WorkerManager'
 import { CommonStore, VisionStore } from '../../store'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
@@ -187,10 +188,6 @@ onMounted(async () => {
   workerMgr.annotationPanel = annotationPanel.value
 })
 
-
-
-
-
 async function onLiveStream() {
   visionStore.updateLiveStreamHistories(liveStreamUrl.value)
   videoPlayer?.open(liveStreamUrl.value, false)
@@ -214,7 +211,8 @@ async function onConfirmName() {
     return
   }
 
-  workerMgr.postMessage(WorkerType.tracker, { cmd: WorkerCMD.faceCapture, name: eigenName.value })
+  // todo
+  // workerMgr.postMessage(WorkerType.tracker, { cmd: [WorkerCMD.faceCapture], name: eigenName.value })
   eigenName.value = null
   showNameInputDialog.value = false
 }
@@ -252,46 +250,43 @@ async function onScan() {
   workerStatus.value.showProcess = true
   let frame = drawImage()
   if (frame != null) {
-    let cmds = []
-    if (visionStore.enableFaceDetect) cmds.push(WorkerCMD.faceDetect)
-    if (visionStore.enableObjRec) cmds.push(WorkerCMD.objRec)
-    if (cmds.length > 0) {
-      workerMgr.postMessage(WorkerType.tracker, { cmd: cmds, image: frame })
-    } else { workerStatus.value.showProcess = false }
+    if (visionStore.enableFaceDetect) {
+      workerMgr.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: frame })
+    }
+    if (visionStore.enableObjDetect) {
+      workerMgr.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: frame })
+    }
   }
 
 }
 
-function initWorker(worker: WorkerType) {
-  let data: any
-  switch (worker) {
-    case WorkerType.tracker:
-      data = {
-        cmd: WorkerCMD.initObjTracker,
-        model: JSON.stringify(visionStore.objRecModel)
-      }
+function initWorker(type: WorkerType) {
+  let data: {} = { cmd: WorkerCMD.init }
+  switch (type) {
+    case WorkerType.objDetect:
+      data = Object.assign(data, {
+        model: JSON.stringify(visionStore.objDetectModel)
+      })
       break
-    case WorkerType.imageProcessor:
-      data = {
-        cmd: WorkerCMD.initImageProcessor,
+    case WorkerType.faceDetect:
+      break
+    case WorkerType.cvProcess:
+      data = Object.assign(data, {
         mode: visionStore.intergrateMode,
-        options: JSON.stringify(visionStore.imgParams.value)
-      }
+        options: JSON.stringify(visionStore.cvOptions.value)
+      })
       break
   }
 
-  workerMgr.register([worker])
-  workerMgr.postMessage(worker, data)
+  workerMgr.register(type, data)
 }
 
 function drawImage() {
   let imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  if (visionStore.imgEnhance) {
-    workerMgr.postMessage(WorkerType.imageProcessor, {
-      cmd: WorkerCMD.imageProcess,
+  if (visionStore.enableCVProcess) {
+    workerMgr.postMessage(WorkerType.cvProcess, {
+      cmd: WorkerCMD.process,
       image: imgData,
-      width: imgData.width,
-      height: imgData.height
     }, [imgData.data.buffer])
     return null
   } else {
@@ -309,68 +304,60 @@ watch(
   { deep: true }
 )
 
-watch(() => visionStore.intergrateMode, async () => {
-  if (visionStore.imgEnhance) {
-    initWorker(WorkerType.imageProcessor)
+watch(() => visionStore.intergrateMode, async (val) => {
+  if (visionStore.enableCVProcess) {
+    workerStatus.value.showLoading = true
+    initWorker(WorkerType.faceDetect)
   }
 })
 
-watch(() => visionStore.enableObjRec, async (val, _) => {
-  videoPlayer.enableObject = val
+watch(() => visionStore.enableObjDetect, async (val, _) => {
+  workerMgr.enableObjDetect = val
   if (val) {
     workerStatus.value.showLoading = true
-    initWorker(WorkerType.tracker)
+    initWorker(WorkerType.objDetect)
   } else {
-    workerMgr.terminate(WorkerType.tracker)
+    workerMgr.terminate(WorkerType.objDetect)
   }
 })
 
-watch(() => visionStore.objRecModel, async () => {
+watch(() => visionStore.objDetectModel, async () => {
   workerStatus.value.showLoading = true
-  workerMgr.postMessage(WorkerType.tracker, {
-    cmd: WorkerCMD.initObjTracker,
-    model: JSON.stringify(visionStore.objRecModel)
+  workerMgr.postMessage(WorkerType.objDetect, {
+    cmd: WorkerCMD.init,
+    model: JSON.stringify(visionStore.objDetectModel)
   })
 })
 
 watch(() => visionStore.enableFaceDetect, async (val, _) => {
-  videoPlayer.enableFace = val
+  workerMgr.enableFaceDetect = val
   if (val) {
     workerStatus.value.showLoading = true
-    workerMgr.register([WorkerType.tracker])
-    workerMgr.postMessage(WorkerType.tracker, { cmd: WorkerCMD.initFaceDetector })
+    initWorker(WorkerType.faceDetect)
   } else {
-    workerMgr.terminate(WorkerType.tracker)
-    videoPlayer.face = null
+    workerMgr.terminate(WorkerType.faceDetect)
+    // workerMgr.face = null
   }
 })
 
-watch(() => visionStore.imgEnhance, async (val) => {
+watch(() => visionStore.enableCVProcess, async (val) => {
+  workerMgr.enableCVProcess = val
   if (val) {
     workerStatus.value.showLoading = true
-    initWorker(WorkerType.imageProcessor)
-    // workerMgr.register([WorkerType.imageProcessor])
+    initWorker(WorkerType.cvProcess)
   } else {
-    workerMgr.terminate(WorkerType.imageProcessor)
+    workerMgr.terminate(WorkerType.cvProcess)
   }
 
   if (!videoPlayer.isOpen) { drawImage() }
 })
 
-watch(() => visionStore.intergrateMode, async (val) => {
-  if (visionStore.imgEnhance) {
-    workerStatus.value.showLoading = true
-    initWorker(WorkerType.tracker)
-    // workerMgr.register([WorkerType.imageProcessor])
-  }
-})
-
 watch(
-  () => visionStore.imgParams,
+  () => visionStore.cvOptions,
   () => {
-    workerMgr.postMessage(WorkerType.imageProcessor, {
+    workerMgr.postMessage(WorkerType.cvProcess, {
       cmd: WorkerCMD.updateOptions,
-      options: JSON.stringify(visionStore.imgParams.value)
+      options: JSON.stringify(visionStore.cvOptions.value)
     })
 
     if (!videoPlayer.isOpen) { drawImage() }

@@ -79,7 +79,10 @@ export default {
 
     GenImage: 'Generate Image',
     GanModel: {
-      AnimateGan: 'AnimateGANv3'
+      Anime_Kpop: 'AnimateGANv3_Kpop',
+      Anime_Disney: 'AnimeGANv3_Disney',
+      Anime_OilPaint: 'AnimeGANv3_Oil-painting',
+      Anime_Ghibli: 'AnimeGANv3_Ghibli-o1'
     },
 
     ImgEnhance: 'Image Enhancement',
@@ -157,6 +160,7 @@ export default {
     labelPlaceholder: 'input label name',
     labelDefault: 'default',
     labelImport: 'Import Label',
+    cvtMaskContour: 'Convert mask to polygon'
   },
   faceRec: {
     nameInput: 'Please enter name',

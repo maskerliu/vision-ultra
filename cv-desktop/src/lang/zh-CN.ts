@@ -80,7 +80,10 @@ export default {
 
     GenImage: '生成图像',
     GanModel: {
-      AnimateGan: 'AnimateGANv3'
+      Anime_Kpop: 'AnimateGANv3_韩风',
+      Anime_Disney: 'AnimeGANv3_迪士尼',
+      Anime_OilPaint: 'AnimeGANv3_油画风',
+      Anime_Ghibli: 'AnimeGANv3_吉卜力风'
     },
 
     ImgEnhance: '图像增强',
@@ -154,6 +157,7 @@ export default {
     labelPlaceholder: '请输入标签',
     labelDefault: '默认标签',
     labelImport: '导入标签',
+    cvtMaskContour: '掩膜转化为轮廓'
   },
   faceRec: {
     nameInput: '请输入姓名',
