@@ -18,9 +18,9 @@
           </van-button>
         </template>
         <van-row style="width: 260px; padding: 5px">
-          <van-cell center title="covert masks to polygon">
+          <van-cell center :title="$t('anno.cvtMaskContour')">
             <template #right-icon>
-              <van-switch />
+              <van-switch v-model="visionStore.enableCVProcess" />
             </template>
           </van-cell>
           <van-cell center title="start with bounding box">
@@ -77,9 +77,11 @@ import * as fabric from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { AnnotationPanel, CVLabel, DrawType } from '../../common'
+import { VisionStore } from '../../store'
 import LabelGroupTab from './LabelGroupTab.vue'
 import MarkerGroupTab from './MarkerGroupTab.vue'
 
+const visionStore = VisionStore()
 const showRightBar = ref(true)
 const activeTab = ref(0)
 const labeTab = useTemplateRef<typeof LabelGroupTab>('labeTab')

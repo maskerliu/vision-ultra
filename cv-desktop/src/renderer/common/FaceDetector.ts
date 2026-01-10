@@ -1,8 +1,8 @@
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
 import { Face, TFace } from 'kalidokit'
-import { FaceDetectResult } from '.'
 import { baseDomain } from '../../common'
 import { FACE_DIMS, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from './DrawUtils'
+import { FaceDetectResult } from './misc'
 
 
 export class FaceDetector {
