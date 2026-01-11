@@ -17,7 +17,7 @@
             <van-icon class-prefix="iconfont" name="mark-Magic" />
           </van-button>
         </template>
-        <van-row style="width: 260px; padding: 5px">
+        <van-row style="width: 220px; padding: 5px">
           <van-cell center :title="$t('anno.cvtMaskContour')">
             <template #right-icon>
               <van-switch v-model="visionStore.enableCVProcess" />
@@ -240,8 +240,8 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
 }
 
 .right-bar {
-  height: calc(100vh - 80px);
-  margin-top: 32px;
+  height: calc(100vh - 48px);
+  margin-top: 16px;
   overflow-y: hidden;
 }
 

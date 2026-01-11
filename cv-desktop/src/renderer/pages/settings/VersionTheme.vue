@@ -92,6 +92,7 @@ import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()
 const i18n = useI18n()
+const { t } = useI18n()
 const versionChecking = ref<boolean>(false)
 const hasNewVersion = ref<boolean>(false)
 const showLangs = ref<boolean>(false)

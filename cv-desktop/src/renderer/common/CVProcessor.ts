@@ -78,15 +78,14 @@ export class CVProcessor {
       case IntergrateMode.Native:
         this.dispose()
         this.cvBackend?.dispose()
-        this.cvNative = window.cvNative
-        await this.cvNative.init()
+        // this.cvNative = window.cvNative
+        // await this.cvNative.init()
         break
       case IntergrateMode.Backend:
         this.dispose()
         this.cvNative?.dispose()
-        this.cvBackend = window.cvBackend
-        await this.cvBackend.init()
-
+        // this.cvBackend = window.cvBackend
+        // await this.cvBackend.init()
         break
     }
     this._isInited = true

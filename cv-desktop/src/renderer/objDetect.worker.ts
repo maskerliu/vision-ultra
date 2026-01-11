@@ -1,17 +1,9 @@
 
-import { FilesetResolver } from "@mediapipe/tasks-vision"
-import { baseDomain } from "../common"
 import { ObjectTracker } from "./common/ObjectTracker"
 import { ModelInfo, ModelType, WorkerCMD } from "./common/misc"
 
 const ctx: Worker = self as any
-let fileset: any = null
 let objTracker: ObjectTracker = new ObjectTracker()
-
-async function init() {
-  fileset = await FilesetResolver.forVisionTasks(
-    __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
-}
 
 ctx.addEventListener('message', async (event: MessageEvent<{
   cmd: WorkerCMD,
@@ -56,5 +48,3 @@ ctx.addEventListener('message', async (event: MessageEvent<{
     ctx.postMessage(data)
   }
 })
-
-init()
