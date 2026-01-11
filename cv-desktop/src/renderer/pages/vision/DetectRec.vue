@@ -4,43 +4,42 @@
       <apm-panel v-if="commonStore.showApm" />
     </Transition>
 
-    <van-row justify="space-between" style="height: 32px; margin-top: 30px;">
-      <van-row style="margin-left: 10px;">
-        <van-checkbox v-model="showAnnotationPanel">
-          <van-icon class-prefix="iconfont" name="mark" />
-        </van-checkbox>
-      </van-row>
-      <van-row style="padding: 0 10px 0 0;">
-        <van-image fit="cover" radius="10" width="32" height="32" :src="recFace" />
+    <van-row style="height: 30px;">
+      <van-button plain round size="mini" class="top-btn" style="margin-left:5px;"
+        :type="showAnnotationPanel ? 'primary' : 'default'" @click="showAnnotationPanel = !showAnnotationPanel">
+        <van-icon class-prefix="iconfont" name="mark" />
+      </van-button>
 
-        <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="openFolder">
-          <template #icon>
-            <van-icon class-prefix="iconfont" name="open" />
-          </template>
-        </van-button>
+      <van-button plain square size="mini" type="primary" class="top-btn" @click="openFolder">
+        <template #icon>
+          <van-icon class-prefix="iconfont" name="open" />
+        </template>
+      </van-button>
 
-        <van-button plain size="small" type="danger" style="margin-left: 15px;" @click="showNameInputDialog = true">
-          <template #icon>
-            <van-icon class-prefix="iconfont" name="capture" />
-          </template>
-        </van-button>
-        <van-button plain size="small" type="success" :loading="workerStatus.showProcess" style="margin-left: 15px;"
-          @click="onScan">
-          <template #icon>
-            <van-icon class-prefix="iconfont" name="face-rec" />
-          </template>
-        </van-button>
-        <van-button plain size="small" type="primary" style="margin-left: 15px;" @click="showLiveStreamInput = true">
-          <template #icon>
-            <van-icon class-prefix="iconfont" name="live-stream" />
-          </template>
-        </van-button>
-        <van-button plain size="small" type="default" style="margin-left: 15px;" @click="onClickCamera">
-          <template #icon>
-            <van-icon class-prefix="iconfont" name="camera" />
-          </template>
-        </van-button>
-      </van-row>
+      <van-button plain square size="mini" type="danger" class="top-btn" @click="showNameInputDialog = true">
+        <template #icon>
+          <van-icon class-prefix="iconfont" name="capture" />
+        </template>
+      </van-button>
+      <van-button plain square size="mini" type="success" class="top-btn" :loading="workerStatus.showProcess"
+        @click="onScan">
+        <template #icon>
+          <van-icon class-prefix="iconfont" name="face-rec" />
+        </template>
+      </van-button>
+      <van-button plain square size="mini" type="primary" class="top-btn" @click="showLiveStreamInput = true">
+        <template #icon>
+          <van-icon class-prefix="iconfont" name="live-stream" />
+        </template>
+      </van-button>
+      <van-button plain square size="mini" type="primary" class="top-btn" @click="onClickCamera">
+        <template #icon>
+          <van-icon class-prefix="iconfont" name="camera" />
+        </template>
+      </van-button>
+
+      <van-image fit="cover" radius="10" width="26" height="26" :src="recFace" style="margin-left: 10px;" />
+
     </van-row>
 
     <media-controller audio class="media-controller">
@@ -105,13 +104,11 @@ import { Col } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { WorkerCMD } from '../../common/misc'
 import { VideoPlayer } from '../../common/VideoPlayer'
-import { WorkerManager, WorkerStatus, WorkerType } from '../../common/WorkerManager'
+import { WorkerDrawMode, WorkerManager, WorkerStatus, WorkerType } from '../../common/WorkerManager'
 import { CommonStore, VisionStore } from '../../store'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
 import ApmPanel from '../components/ApmPanel.vue'
 import Live2dPanel from './Live2dPanel.vue'
-
-// const Live2dPanel = defineAsyncComponent({
 //   loader: () => import('./Live2dPanel.vue'),
 //   loadingComponent: Loading,
 //   hydrate: () => {
@@ -162,8 +159,6 @@ const workerStatus = ref<WorkerStatus>({
   error: null
 })
 
-
-
 onMounted(async () => {
   window.addEventListener('beforeunload', () => { videoPlayer?.close() })
 
@@ -181,18 +176,22 @@ onMounted(async () => {
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
 
-  videoPlayer = new VideoPlayer(preVideo.value, preview.value, offscreen.value, capture.value)
-
   workerMgr = new WorkerManager(previewCtx, captureCtx, maskCtx)
   workerMgr.workerStatus = workerStatus.value
   workerMgr.annotationPanel = annotationPanel.value
+  workerMgr.drawEigen = visionStore.drawEigen
+  workerMgr.drawFaceMesh = visionStore.drawFaceMesh
+
+  videoPlayer = new VideoPlayer(preVideo.value, preview.value, offscreen.value, capture.value)
+  videoPlayer.workerMgr = workerMgr
 })
 
 async function onLiveStream() {
   visionStore.updateLiveStreamHistories(liveStreamUrl.value)
-  videoPlayer?.open(liveStreamUrl.value, false)
+  await videoPlayer.open(liveStreamUrl.value, false)
   showLiveStreamInput.value = false
   showControlBar.value = true
+  workerMgr.drawMode = videoPlayer.isOpen ? WorkerDrawMode.video : WorkerDrawMode.image
 }
 
 function onDeleteHistory(idx: number) {
@@ -200,8 +199,9 @@ function onDeleteHistory(idx: number) {
 }
 
 async function onClickCamera() {
-  videoPlayer?.open()
+  await videoPlayer.open()
   showControlBar.value = true
+  workerMgr.drawMode = videoPlayer.isOpen ? WorkerDrawMode.video : WorkerDrawMode.image
 }
 
 async function onConfirmName() {
@@ -221,12 +221,13 @@ async function openFolder() {
 
   window.mainApi?.openFile((file: string) => {
     videoPlayer.close()
+    workerMgr.drawMode = WorkerDrawMode.image
     showControlBar.value = false
     var img = new Image()
     img.onload = async function () {
       let w = img.width, h = img.height
-      if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 67)) {
-        const ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 67) / h)
+      if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 35)) {
+        const ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 35) / h)
         w = img.width * ratio
         h = img.height * ratio
       }
@@ -249,15 +250,29 @@ async function onScan() {
 
   workerStatus.value.showProcess = true
   let frame = drawImage()
-  if (frame != null) {
-    if (visionStore.enableFaceDetect) {
-      workerMgr.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: frame })
-    }
-    if (visionStore.enableObjDetect) {
-      workerMgr.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: frame })
-    }
+  if (frame == null) return
+
+  workerMgr.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: frame })
+  workerMgr.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: frame })
+}
+
+function drawImage() {
+
+  if (videoPlayer.isOpen) return
+
+  let imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+  workerMgr.postMessage(WorkerType.cvProcess, {
+    cmd: WorkerCMD.process,
+    image: imgData,
+  }, [imgData.data.buffer])
+
+  if (!visionStore.enableCVProcess) {
+    previewCtx.clearRect(0, 0, imgData.width, imgData.height)
+    previewCtx.putImageData(imgData, 0, 0)
+    return imgData
   }
 
+  return null
 }
 
 function initWorker(type: WorkerType) {
@@ -279,21 +294,6 @@ function initWorker(type: WorkerType) {
   }
 
   workerMgr.register(type, data)
-}
-
-function drawImage() {
-  let imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  if (visionStore.enableCVProcess) {
-    workerMgr.postMessage(WorkerType.cvProcess, {
-      cmd: WorkerCMD.process,
-      image: imgData,
-    }, [imgData.data.buffer])
-    return null
-  } else {
-    previewCtx.clearRect(0, 0, imgData.width, imgData.height)
-    previewCtx.putImageData(imgData, 0, 0)
-    return imgData
-  }
 }
 
 watch(
@@ -340,6 +340,14 @@ watch(() => visionStore.enableFaceDetect, async (val, _) => {
   }
 })
 
+watch(() => visionStore.drawEigen, () => {
+  workerMgr.drawEigen = visionStore.drawEigen
+})
+
+watch(() => visionStore.drawFaceMesh, () => {
+  workerMgr.drawFaceMesh = visionStore.drawFaceMesh
+})
+
 watch(() => visionStore.enableCVProcess, async (val) => {
   workerMgr.enableCVProcess = val
   if (val) {
@@ -349,7 +357,7 @@ watch(() => visionStore.enableCVProcess, async (val) => {
     workerMgr.terminate(WorkerType.cvProcess)
   }
 
-  if (!videoPlayer.isOpen) { drawImage() }
+  drawImage()
 })
 
 watch(
@@ -359,14 +367,13 @@ watch(
       cmd: WorkerCMD.updateOptions,
       options: JSON.stringify(visionStore.cvOptions.value)
     })
-
-    if (!videoPlayer.isOpen) { drawImage() }
+    drawImage()
   },
   { deep: true }
 )
 
 </script>
-<style lang="css">
+<style lang="css" scoped>
 .v-enter-active,
 .v-leave-active {
   transition: opacity 0.5s ease;
@@ -377,10 +384,17 @@ watch(
   opacity: 0;
 }
 
+.top-btn {
+  width: 30px;
+  height: 26px;
+  margin: 3px 0 0 15px;
+  -webkit-app-region: no-drag;
+  z-index: 100;
+}
+
 .media-controller {
-  /* width: 100%; */
   margin-top: 5px;
-  height: calc(100% - 67px);
+  height: calc(100% - 35px);
   position: relative;
   display: flex;
   flex-direction: row;

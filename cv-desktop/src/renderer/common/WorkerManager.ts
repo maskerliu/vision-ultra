@@ -3,7 +3,6 @@ import { CVLabel, MarkColors, } from '.'
 import CVProcessWorker from '../cvProcess.worker?worker'
 import FaceDetectWorker from '../faceDetect.worker?worker'
 import ObjDetectWorker from '../objDetect.worker?worker'
-import { drawTFFaceResult } from './DrawUtils'
 import { FaceDetectResult, ModelType, ObjectDetectResult, WorkerCMD } from './misc'
 
 export enum WorkerType { faceDetect, objDetect, cvProcess }
@@ -32,7 +31,6 @@ export class WorkerManager {
   private _drawMode: WorkerDrawMode = WorkerDrawMode.image
   set drawMode(val: WorkerDrawMode) { this._drawMode = val }
 
-
   private _enableObjDetect = false
   set enableObjDetect(val: boolean) { this._enableObjDetect = val }
 
@@ -41,6 +39,7 @@ export class WorkerManager {
 
   private _enableCVProcess = false
   set enableCVProcess(val: boolean) { this._enableCVProcess = val }
+  get enableCVProcess() { return this._enableCVProcess }
 
   private _drawFaceMesh = false
   set drawFaceMesh(val: boolean) { this._drawFaceMesh = val }
@@ -48,17 +47,19 @@ export class WorkerManager {
   private _drawEigen = false
   set drawEigen(val: boolean) { this._drawEigen = val }
 
-
   private _objects: ObjectDetectResult
-  get objects(): ObjectDetectResult { return this._objects }
+  get objects(): ObjectDetectResult { return this._enableObjDetect ? this._objects : null }
 
   private _face: FaceDetectResult
-  get face(): FaceDetectResult { return this._face }
+  get face(): FaceDetectResult { return this._enableFaceDetect ? this._face : null }
+
+  private _frame: ImageData
+  get frame() { return this._frame }
 
   private _annotationPanel: any
-  set annotationPanel(val: any) {
-    this._annotationPanel = val
-  }
+  set annotationPanel(val: any) { this._annotationPanel = val }
+
+  private _frames = 0
 
   constructor(previewCtx: CanvasRenderingContext2D,
     captureCtx: CanvasRenderingContext2D,
@@ -112,8 +113,11 @@ export class WorkerManager {
       options?: any
     }>,
     transfer?: Transferable[]) {
+    // console.log(`[main] ${target} post`, data)
+    if (!this._enableCVProcess && target == WorkerType.cvProcess) return
+    if (!this._enableFaceDetect && target == WorkerType.faceDetect) return
+    if (!this._enableObjDetect && target == WorkerType.objDetect) return
 
-    console.log(`[main] ${target} post`, data)
     this.worker(target)?.postMessage(data, transfer)
   }
 
@@ -122,19 +126,34 @@ export class WorkerManager {
   }
 
   private handleCVProcessMessage(event: MessageEvent) {
-    console.log('[main] cvProcess', event.data)
+    // console.log('[main] cvProcess', event.data)
     this._workerStatus.showLoading = false
     this._workerStatus.showProcess = false
 
     switch (event.data.type) {
       case 'processed':
-        let data = event.data.result
+        this._frame = event.data.result
+        if (this._drawMode == WorkerDrawMode.video) {
+          if (this._frames == 6) {
+            this.postMessage(WorkerType.objDetect,
+              { cmd: WorkerCMD.process, image: this._frame },)
+            this.postMessage(WorkerType.faceDetect,
+              { cmd: WorkerCMD.process, image: this._frame },)
+            this._frames = 0
+          } else if (this._frames == 3) {
+            this.postMessage(WorkerType.faceDetect,
+              { cmd: WorkerCMD.process, image: this._frame },)
+          } else {
+            this._frames++
+          }
+        } else {
+          this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: this._frame },)
+          this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: this._frame },)
+        }
 
-        this.previewCtx.clearRect(0, 0, data.width, data.height)
-        this.previewCtx.putImageData(data, 0, 0)
-
-        if (this._enableFaceDetect) this.worker(WorkerType.faceDetect).postMessage({ cmd: WorkerCMD.process, image: data })
-        if (this._enableObjDetect) this.worker(WorkerType.objDetect).postMessage({ cmd: WorkerCMD.process, image: data })
+        console.log(this._frame.data.length)
+        this.previewCtx.clearRect(0, 0, this._frame.width, this._frame.height)
+        this.previewCtx.putImageData(this._frame, 0, 0)
         break
       case 'contours':
         console.log(event.data.contours)
@@ -143,23 +162,22 @@ export class WorkerManager {
   }
 
   private handleFaceDetectMessage(event: MessageEvent<any>) {
-    console.log('[main] faceDetect', event.data)
+    // console.log('[main] faceDetect', event.data)
     this._workerStatus.showLoading = false
     this._workerStatus.showProcess = false
 
     switch (event.data.type) {
       case 'face':
-        if (this._drawMode == WorkerDrawMode.image) {
-          drawTFFaceResult(this.previewCtx, event.data.face, 'none', this._drawEigen, true)
-        } else {
-
-        }
+        this._face = event.data.face
+        // if (this._drawMode == WorkerDrawMode.image) {
+        //   drawTFFaceResult(this.previewCtx, this._face, 'none', this._drawEigen, true)
+        //   if (this._drawFaceMesh) {
+        //     this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
+        //     drawTFFaceResult(this.captureCtx, this._face, 'mesh', false, false, this.captureCtx.canvas.height)
+        //   }
+        // }
 
         // live2dPanel.value?.animateLive2DModel(event.data.tface)
-        this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
-        if (this._drawFaceMesh) {
-          drawTFFaceResult(this.captureCtx, event.data.face, 'mesh', false, false, this.captureCtx.canvas.height)
-        }
         break
     }
   }

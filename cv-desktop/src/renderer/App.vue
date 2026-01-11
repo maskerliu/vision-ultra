@@ -119,6 +119,7 @@ function onOpenDebugPanel() {
 }
 
 :root {
+  --van-popover-radius: var(--van-radius-sm);
   --van-switch-size: 1.2rem;
   --van-radio-size: 1rem;
   --van-checkbox-size: 1rem;
