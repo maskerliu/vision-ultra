@@ -43,8 +43,9 @@ function onValueChanged() {
 </script>
 <style scoped>
 .slider-button {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 20px;
   padding: 0;
+  margin-bottom: 7px;
 }
 </style>

@@ -97,7 +97,7 @@
       <van-cell center :disabled="!visionStore.genImage">
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.genImage">
-            <van-icon class-prefix="iconfont" name="image-optimization" style="color: #16a085;" />
+            <van-icon class-prefix="iconfont" name="gen-image" style="color: #16a085;" />
             <span style="margin-left: 5px;">{{ $t('cvControl.GenImage') }}</span>
           </van-checkbox>
         </template>
@@ -108,7 +108,7 @@
             </template>
             <van-col class="model-container">
               <van-cell center clickable :title="$t(`cvControl.GanModel.${model.name}`)" title-class="van-ellipsis"
-                @click="onGanModelChanged(model)" v-for="model in GanModels">
+                style="margin-left: 4px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                 </template>
@@ -164,7 +164,7 @@
         style="scroll-margin-top: 50px;">
         <template #input>
           <van-popover v-model:show="showColorMaps" placement="bottom-end" :overlay="true" @open="checkPosition"
-            style="width: 300px;">
+            style="width: 285px;">
             <template #reference>
               <div style="width: 180px;">
                 {{ ColorMaps[visionStore.cvOptions.colorMap] }}
@@ -219,30 +219,6 @@
       </van-col>
     </van-cell-group>
 
-    <!-- contrast -->
-    <van-cell-group inset v-if="visionStore.cvOptions.isGray">
-      <template #title>
-        <van-checkbox shape="square" v-model="visionStore.cvOptions.enableContrast">
-          {{ $t('cvControl.Contrast') }}
-        </van-checkbox>
-      </template>
-      <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableContrast"
-        style="padding: 10px 15px;" v-model="visionStore.cvOptions.equalization[0]">
-        <van-radio name="equalizeHist" style="font-size: 0.8rem;">
-          {{ $t('cvControl.EqualizeHist') }}
-        </van-radio>
-        <van-radio name="clahe" style="font-size: 0.8rem;">
-          {{ $t('cvControl.CLAHE') }}
-        </van-radio>
-      </van-radio-group>
-      <van-col v-if="visionStore.cvOptions.equalization[0] == 'clahe' && visionStore.cvOptions.enableContrast">
-        <slider-field label="clip" :max="31" v-model:sliderValue="visionStore.cvOptions.equalization[1]" />
-        <slider-field label="sizeX" :max="31" v-model:sliderValue="visionStore.cvOptions.equalization[2]" />
-        <slider-field label="sizeY" :max="31" v-model:sliderValue="visionStore.cvOptions.equalization[3]" />
-      </van-col>
-
-    </van-cell-group>
-
     <!-- blur -->
     <van-cell-group inset>
       <template #title>
@@ -294,67 +270,98 @@
       </van-col>
     </van-cell-group>
 
-    <!-- filter -->
-    <van-cell-group inset v-if="visionStore.cvOptions.isGray">
-      <template #title>
-        <van-checkbox shape="square" v-model="visionStore.cvOptions.enableFilter">
-          {{ $t('cvControl.Filter') }}
-        </van-checkbox>
-      </template>
-      <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableFilter"
-        style="padding: 10px 15px;" v-model="visionStore.cvOptions.filter[0]">
-        <van-radio :name="idx" v-for="(item, idx) in FilterTypes">
-          {{ $t(`cvControl.FilterType.${item}`) }}
-        </van-radio>
-      </van-radio-group>
-
-      <van-col v-if="visionStore.cvOptions.enableFilter">
-        <slider-field label="dX" :min="0" :max="3" :step="0.1" v-model:sliderValue="visionStore.cvOptions.filter[1]" />
-        <slider-field label="dY" :min="0" :max="3" :step="0.1" v-model:sliderValue="visionStore.cvOptions.filter[2]" />
-        <slider-field label="scale" :max="31" v-model:sliderValue="visionStore.cvOptions.filter[3]" />
-        <slider-field label="size" :max="30" v-model:sliderValue="visionStore.cvOptions.filter[4]"
-          v-if="visionStore.cvOptions.filter[0] !== cvFilterType.scharr" />
-      </van-col>
-
-    </van-cell-group>
-
-    <van-cell-group inset :title="$t('cvControl.FeatExtract')">
-      <van-cell center :title="$t('cvControl.Canny')" :label="'[ ' + visionStore.cvOptions.canny.toString() + ' ]'">
+    <van-col v-show="visionStore.cvOptions.isGray">
+      <!-- contrast -->
+      <van-cell-group inset>
         <template #title>
-          <van-checkbox shape="square" v-model="visionStore.cvOptions.enableCanny">
-            <span>canny</span>
-            <span class="param-desc">{{ $t('cvControl.CannyDesc') }}</span>
+          <van-checkbox shape="square" v-model="visionStore.cvOptions.enableContrast">
+            {{ $t('cvControl.Contrast') }}
           </van-checkbox>
         </template>
-        <template #right-icon>
-          <van-slider range :max="160" :min="60" bar-height="4px" button-size="1.2rem" style="width: 60%;"
-            :disabled="!visionStore.cvOptions.enableCanny" v-model="visionStore.cvOptions.canny">
-          </van-slider>
+        <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableContrast"
+          style="padding: 10px 15px;" v-model="visionStore.cvOptions.equalization[0]">
+          <van-radio name="equalizeHist" style="font-size: 0.8rem;">
+            {{ $t('cvControl.EqualizeHist') }}
+          </van-radio>
+          <van-radio name="clahe" style="font-size: 0.8rem;">
+            {{ $t('cvControl.CLAHE') }}
+          </van-radio>
+        </van-radio-group>
+        <van-col v-if="visionStore.cvOptions.equalization[0] == 'clahe' && visionStore.cvOptions.enableContrast">
+          <slider-field label="clip" :max="31" v-model:sliderValue="visionStore.cvOptions.equalization[1]" />
+          <slider-field label="sizeX" :max="31" v-model:sliderValue="visionStore.cvOptions.equalization[2]" />
+          <slider-field label="sizeY" :max="31" v-model:sliderValue="visionStore.cvOptions.equalization[3]" />
+        </van-col>
+
+      </van-cell-group>
+
+      <!-- filter -->
+      <van-cell-group inset>
+        <template #title>
+          <van-checkbox shape="square" v-model="visionStore.cvOptions.enableFilter">
+            {{ $t('cvControl.Filter') }}
+          </van-checkbox>
         </template>
-      </van-cell>
-      <van-cell center :title="$t('cvControl.HoughLine')">
-        <template #right-icon>
-          <van-slider bar-height="4px" button-size="1.2rem" style="width: 60%;">
-          </van-slider>
-        </template>
-      </van-cell>
-      <van-cell center :title="$t('cvControl.HoughCircle')">
-        <template #right-icon>
-          <van-slider bar-height="4px" button-size="1.2rem" style="width: 60%;">
-          </van-slider>
-        </template>
-      </van-cell>
-    </van-cell-group>
+        <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableFilter"
+          style="padding: 10px 15px;" v-model="visionStore.cvOptions.filter[0]">
+          <van-radio :name="idx" v-for="(item, idx) in FilterTypes">
+            {{ $t(`cvControl.FilterType.${item}`) }}
+          </van-radio>
+        </van-radio-group>
+
+        <van-col v-if="visionStore.cvOptions.enableFilter">
+          <slider-field label="dX" :min="0" :max="3" :step="0.1"
+            v-model:sliderValue="visionStore.cvOptions.filter[1]" />
+          <slider-field label="dY" :min="0" :max="3" :step="0.1"
+            v-model:sliderValue="visionStore.cvOptions.filter[2]" />
+          <slider-field label="scale" :max="31" v-model:sliderValue="visionStore.cvOptions.filter[3]" />
+          <slider-field label="size" :max="30" v-model:sliderValue="visionStore.cvOptions.filter[4]"
+            v-if="visionStore.cvOptions.filter[0] !== cvFilterType.scharr" />
+        </van-col>
+
+      </van-cell-group>
+
+      <van-cell-group inset :title="$t('cvControl.FeatExtract')">
+        <van-cell center :title="$t('cvControl.Canny')" :label="'[ ' + visionStore.cvOptions.canny.toString() + ' ]'">
+          <template #title>
+            <van-checkbox shape="square" v-model="visionStore.cvOptions.enableCanny">
+              <span>canny</span>
+              <span class="param-desc">{{ $t('cvControl.CannyDesc') }}</span>
+            </van-checkbox>
+          </template>
+          <template #right-icon>
+            <van-slider range :max="160" :min="60" bar-height="4px" button-size="1.2rem" style="width: 60%;"
+              :disabled="!visionStore.cvOptions.enableCanny" v-model="visionStore.cvOptions.canny">
+            </van-slider>
+          </template>
+        </van-cell>
+        <van-cell center :title="$t('cvControl.HoughLine')">
+          <template #right-icon>
+            <van-slider bar-height="4px" button-size="1.2rem" style="width: 60%;">
+            </van-slider>
+          </template>
+        </van-cell>
+        <van-cell center :title="$t('cvControl.HoughCircle')">
+          <template #right-icon>
+            <van-slider bar-height="4px" button-size="1.2rem" style="width: 60%;">
+            </van-slider>
+          </template>
+        </van-cell>
+      </van-cell-group>
+    </van-col>
   </van-col>
 </template>
 <script lang="ts" setup>
 
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { cvBlurType, cvFilterType } from '../../../common'
 import { onnx } from '../../common'
 import { ModelInfo, ModelType } from '../../common/misc'
 import { VisionStore } from '../../store'
 import SliderField from '../components/SliderField.vue'
+
+const i18n = useI18n()
 
 const IntergrateModes = [
   { name: 'wasm', color: '#8e44ad' },
@@ -421,6 +428,11 @@ watch(() => visionStore.enableFaceDetect, (val, old) => {
 onMounted(() => {
   ObjRecModelGrop.set('Detect', DetectModels)
   ObjRecModelGrop.set('Segment', SegmentModels)
+
+  let i1 = i18n.t(`cvControl.MorphOpt.Open`).padEnd(15, '&nbsp;')
+  console.log(i1.length)
+  let i2 = i18n.t(`cvControl.MorphOpt.Dilate`).padEnd(15, '&nbsp;')
+  console.log(i2.length)
 })
 
 function checkPosition() {
@@ -465,7 +477,7 @@ async function onModelUpload(data: any) {
 }
 
 .model-container {
-  width: 280px;
+  width: 285px;
   height: 260px;
   overflow: hidden scroll;
   padding-top: 10px;

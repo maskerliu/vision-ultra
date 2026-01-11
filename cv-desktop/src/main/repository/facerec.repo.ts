@@ -1,5 +1,5 @@
 import * as lancedb from '@lancedb/lancedb'
-import { Field, FixedSizeList, Float16, Int64, List, Schema, Utf8, Vector } from 'apache-arrow'
+import { Field, FixedSizeList, Float16, Int64, List, Schema, Utf8 } from 'apache-arrow'
 import { injectable } from "inversify"
 import path from 'path'
 import "reflect-metadata"

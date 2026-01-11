@@ -4,16 +4,14 @@
     <van-col class="left-panel">
       <van-row justify="space-between">
         <van-row style="color: #c0392b;">
-          <van-icon class-prefix="iconfont" name="sjtu-logo" style="font-size: 1.4rem; margin: 5px 10px;" />
-          <van-icon class-prefix="iconfont" name="sjtu-name" style="font-size: 1.4rem; margin: 5px 0;" />
+          <van-icon class-prefix="iconfont" name="sjtu-logo" style="font-size: 1.4rem; margin: 7px 10px 0 15px;" />
+          <van-icon class-prefix="iconfont" name="sjtu-name" style="font-size: 1.4rem; margin: 6px 0 0 0;" />
         </van-row>
-        <div style="padding: 1px 0; position: relative; z-index: 100;">
-          <van-icon class-prefix="iconfont" class="left-panel-icon" name="apm" style="-webkit-app-region: no-drag;"
+        <div style="z-index: 100; -webkit-app-region: no-drag; margin: 2px 5px;">
+          <van-icon class-prefix="iconfont" name="apm" class="left-panel-icon"
             @click="commonStore.showApm = !commonStore.showApm" />
-          <van-icon class-prefix="iconfont" class="left-panel-icon" name="data" style="-webkit-app-region: no-drag;"
-            @click="openFaceDbMgr" />
-          <van-icon class-prefix="iconfont" class="left-panel-icon" name="setting" style="-webkit-app-region: no-drag;"
-            @click="openSettings">
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="data" @click="openFaceDbMgr" />
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="setting" @click="openSettings">
             <span class="badge-dot"></span>
           </van-icon>
         </div>
