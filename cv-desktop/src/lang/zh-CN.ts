@@ -78,6 +78,8 @@ export default {
       unet: 'u-net++',
     },
 
+    FaceRec: '人脸识别',
+
     GenImage: '生成图像',
     GanModel: {
       Anime_Kpop: 'AnimateGANv3_韩风',
@@ -145,10 +147,6 @@ export default {
     BackgroundSub: '背景减除',
     MeanShit: 'MeanShift',
     CamShift: 'CamShift',
-
-
-
-    FaceRec: '人脸识别'
   },
   anno: {
     object: '物体',

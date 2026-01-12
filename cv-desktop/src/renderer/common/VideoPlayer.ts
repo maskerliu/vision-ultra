@@ -24,7 +24,7 @@ export class VideoPlayer {
 
   private mediaRecorder: MediaRecorder
 
-  private _frames = 0
+  private _frames = 1
 
   constructor(video: HTMLVideoElement,
     preview: HTMLCanvasElement,
@@ -66,28 +66,38 @@ export class VideoPlayer {
 
     this.offscreenCtx.drawImage(this.preVideo, 0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
     let data = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+
     if (this._workerMgr.enableCVProcess) {
       this._workerMgr?.postMessage(WorkerType.cvProcess,
         { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
 
-      this.previewCtx.putImageData(this._workerMgr.frame, 0, 0)
+      if (this._workerMgr.frame)
+        this.previewCtx.putImageData(this._workerMgr.frame, 0, 0)
     } else {
-      this.previewCtx.putImageData(data, 0, 0)
-      if (this._frames == 6) {
-        this._workerMgr?.postMessage(WorkerType.objDetect,
-          { cmd: WorkerCMD.process, image: data })
+      this.previewCtx.drawImage(this.offscreenCtx.canvas, 0, 0)
+
+      if (this._frames == 8) {
         this._workerMgr?.postMessage(WorkerType.faceDetect,
-          { cmd: WorkerCMD.process, image: data })
-        this._frames = 0
-      } else if (this._frames == 3) {
-        this._workerMgr?.postMessage(WorkerType.faceDetect,
-          { cmd: WorkerCMD.process, image: data })
+          { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
+        this._frames = 1
       } else {
+        if (this._frames == 4) {
+          this._workerMgr?.postMessage(WorkerType.faceDetect,
+            { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
+        }
+
+        if (this._frames == 6) {
+          this._workerMgr?.postMessage(WorkerType.objDetect,
+            { cmd: WorkerCMD.process, image: data })
+        }
         this._frames++
       }
     }
 
     drawTFFaceResult(this.previewCtx, this._workerMgr.face, 'none', true, true)
+
+    this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
+    drawTFFaceResult(this.captureCtx, this._workerMgr.faceMesh, 'mesh', false, false, this.captureCtx.canvas.height)
 
     drawObjectDetectResult(this.previewCtx, this._workerMgr.objects?.boxes,
       this._workerMgr.objects?.scores, this._workerMgr.objects?.classes,
@@ -95,8 +105,8 @@ export class VideoPlayer {
 
     this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '12px Arial'
-    this.previewCtx.fillText(`Face: ${this._workerMgr.face ? this._workerMgr.face.expire : '-'}\n 
-      Object: ${this._workerMgr.objects ? this._workerMgr.objects.expire : '-'}`, 10, 20)
+    this.previewCtx.fillText(`Face: ${this._workerMgr.face ? this._workerMgr.face.expire : '-'}ms\n 
+      Object: ${this._workerMgr.objects ? this._workerMgr.objects.expire : '-'}ms`, 10, 10)
   }
 
 

@@ -3,6 +3,7 @@ import { CVLabel, MarkColors, } from '.'
 import CVProcessWorker from '../cvProcess.worker?worker'
 import FaceDetectWorker from '../faceDetect.worker?worker'
 import ObjDetectWorker from '../objDetect.worker?worker'
+import { drawTFFaceResult } from './DrawUtils'
 import { FaceDetectResult, ModelType, ObjectDetectResult, WorkerCMD } from './misc'
 
 export enum WorkerType { faceDetect, objDetect, cvProcess }
@@ -32,13 +33,39 @@ export class WorkerManager {
   set drawMode(val: WorkerDrawMode) { this._drawMode = val }
 
   private _enableObjDetect = false
-  set enableObjDetect(val: boolean) { this._enableObjDetect = val }
+  setEnableObjDetect(val: boolean, data?: any) {
+    this._enableObjDetect = val
+    if (val) {
+      this._workerStatus.showLoading = true
+      this.register(WorkerType.objDetect, Object.assign({ cmd: WorkerCMD.init }, data))
+    } else {
+      this.terminate(WorkerType.objDetect)
+    }
+  }
 
   private _enableFaceDetect = false
-  set enableFaceDetect(val: boolean) { this._enableFaceDetect = val }
+  set enableFaceDetect(val: boolean) {
+    this._enableFaceDetect = val
+
+    if (val) {
+      this._workerStatus.showLoading = true
+      this.register(WorkerType.faceDetect, { cmd: WorkerCMD.init })
+    } else {
+      this.terminate(WorkerType.faceDetect)
+    }
+  }
 
   private _enableCVProcess = false
-  set enableCVProcess(val: boolean) { this._enableCVProcess = val }
+  setEnableCVProcess(val: boolean, data?: any) {
+    this._enableCVProcess = val
+
+    if (val) {
+      this._workerStatus.showLoading = true
+      this.register(WorkerType.cvProcess, Object.assign({ cmd: WorkerCMD.init }, data))
+    } else {
+      this.terminate(WorkerType.cvProcess)
+    }
+  }
   get enableCVProcess() { return this._enableCVProcess }
 
   private _drawFaceMesh = false
@@ -52,6 +79,7 @@ export class WorkerManager {
 
   private _face: FaceDetectResult
   get face(): FaceDetectResult { return this._enableFaceDetect ? this._face : null }
+  get faceMesh(): FaceDetectResult { return this._drawEigen ? this._face : null }
 
   private _frame: ImageData
   get frame() { return this._frame }
@@ -59,7 +87,7 @@ export class WorkerManager {
   private _annotationPanel: any
   set annotationPanel(val: any) { this._annotationPanel = val }
 
-  private _frames = 0
+  private _frames = 1
 
   constructor(previewCtx: CanvasRenderingContext2D,
     captureCtx: CanvasRenderingContext2D,
@@ -107,10 +135,13 @@ export class WorkerManager {
     target: WorkerType,
     data: Partial<{
       cmd: WorkerCMD,
-      modelTypes?: ModelType[],
-      model?: string,
+      modelTypes?: ModelType[], // for obj rec 
+      model?: string, // for obj rec 
       image?: ImageData,
-      options?: any
+      frame?: SharedArrayBuffer,
+      width?: number,
+      height?: number,
+      options?: any // for cv process
     }>,
     transfer?: Transferable[]) {
     // console.log(`[main] ${target} post`, data)
@@ -134,24 +165,29 @@ export class WorkerManager {
       case 'processed':
         this._frame = event.data.result
         if (this._drawMode == WorkerDrawMode.video) {
-          if (this._frames == 6) {
-            this.postMessage(WorkerType.objDetect,
-              { cmd: WorkerCMD.process, image: this._frame },)
+
+          if (this._frames == 8) {
             this.postMessage(WorkerType.faceDetect,
-              { cmd: WorkerCMD.process, image: this._frame },)
-            this._frames = 0
-          } else if (this._frames == 3) {
-            this.postMessage(WorkerType.faceDetect,
-              { cmd: WorkerCMD.process, image: this._frame },)
+              { cmd: WorkerCMD.process, image: this._frame }, [this._frame.data.buffer])
+
+            this._frames = 1
           } else {
+            if (this._frames == 4) {
+              this.postMessage(WorkerType.faceDetect,
+                { cmd: WorkerCMD.process, image: this._frame }, [this._frame.data.buffer])
+            }
+
+            if (this._frames == 6) {
+              this.postMessage(WorkerType.objDetect,
+                { cmd: WorkerCMD.process, image: this._frame }, [this._frame.data.buffer])
+            }
             this._frames++
           }
         } else {
-          this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: this._frame },)
-          this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: this._frame },)
+          this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: this._frame })
+          this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: this._frame })
         }
 
-        console.log(this._frame.data.length)
         this.previewCtx.clearRect(0, 0, this._frame.width, this._frame.height)
         this.previewCtx.putImageData(this._frame, 0, 0)
         break
@@ -169,13 +205,13 @@ export class WorkerManager {
     switch (event.data.type) {
       case 'face':
         this._face = event.data.face
-        // if (this._drawMode == WorkerDrawMode.image) {
-        //   drawTFFaceResult(this.previewCtx, this._face, 'none', this._drawEigen, true)
-        //   if (this._drawFaceMesh) {
-        //     this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
-        //     drawTFFaceResult(this.captureCtx, this._face, 'mesh', false, false, this.captureCtx.canvas.height)
-        //   }
-        // }
+        if (this._drawMode == WorkerDrawMode.image) {
+          drawTFFaceResult(this.previewCtx, this._face, 'none', this._drawEigen, true)
+          this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
+          if (this._drawFaceMesh) {
+            drawTFFaceResult(this.captureCtx, this._face, 'mesh', false, false, this.captureCtx.canvas.height)
+          }
+        }
 
         // live2dPanel.value?.animateLive2DModel(event.data.tface)
         break
@@ -183,7 +219,7 @@ export class WorkerManager {
   }
 
   private handleObjDetectMessage(event: MessageEvent) {
-    console.log('[main] objDetect', event.data)
+    // console.log('[main] objDetect', event.data)
     this._workerStatus.showLoading = false
     this._workerStatus.showProcess = false
     this._workerStatus.error = event.data.error ? event.data.error : null

@@ -275,27 +275,6 @@ function drawImage() {
   return null
 }
 
-function initWorker(type: WorkerType) {
-  let data: {} = { cmd: WorkerCMD.init }
-  switch (type) {
-    case WorkerType.objDetect:
-      data = Object.assign(data, {
-        model: JSON.stringify(visionStore.objDetectModel)
-      })
-      break
-    case WorkerType.faceDetect:
-      break
-    case WorkerType.cvProcess:
-      data = Object.assign(data, {
-        mode: visionStore.intergrateMode,
-        options: JSON.stringify(visionStore.cvOptions.value)
-      })
-      break
-  }
-
-  workerMgr.register(type, data)
-}
-
 watch(
   () => workerStatus.value,
   () => {
@@ -304,22 +283,24 @@ watch(
   { deep: true }
 )
 
-watch(() => visionStore.intergrateMode, async (val) => {
-  if (visionStore.enableCVProcess) {
-    workerStatus.value.showLoading = true
-    initWorker(WorkerType.faceDetect)
+watch(
+  [
+    () => visionStore.intergrateMode,
+    () => visionStore.enableObjDetect,
+    () => visionStore.enableFaceDetect,
+    () => visionStore.enableCVProcess,
+  ],
+  async () => {
+    workerMgr.setEnableCVProcess(visionStore.enableCVProcess, {
+      mode: visionStore.intergrateMode,
+      options: JSON.stringify(visionStore.cvOptions.value)
+    })
+    workerMgr.setEnableObjDetect(visionStore.enableObjDetect, {
+      model: JSON.stringify(visionStore.objDetectModel)
+    })
+    workerMgr.enableFaceDetect = visionStore.enableFaceDetect
   }
-})
-
-watch(() => visionStore.enableObjDetect, async (val, _) => {
-  workerMgr.enableObjDetect = val
-  if (val) {
-    workerStatus.value.showLoading = true
-    initWorker(WorkerType.objDetect)
-  } else {
-    workerMgr.terminate(WorkerType.objDetect)
-  }
-})
+)
 
 watch(() => visionStore.objDetectModel, async () => {
   workerStatus.value.showLoading = true
@@ -329,34 +310,18 @@ watch(() => visionStore.objDetectModel, async () => {
   })
 })
 
-watch(() => visionStore.enableFaceDetect, async (val, _) => {
-  workerMgr.enableFaceDetect = val
-  if (val) {
-    workerStatus.value.showLoading = true
-    initWorker(WorkerType.faceDetect)
-  } else {
-    workerMgr.terminate(WorkerType.faceDetect)
-    // workerMgr.face = null
+watch(
+  [
+    () => visionStore.drawEigen,
+    () => visionStore.drawFaceMesh,
+  ],
+  () => {
+    workerMgr.drawEigen = visionStore.drawEigen
+    workerMgr.drawFaceMesh = visionStore.drawFaceMesh
   }
-})
+)
 
-watch(() => visionStore.drawEigen, () => {
-  workerMgr.drawEigen = visionStore.drawEigen
-})
-
-watch(() => visionStore.drawFaceMesh, () => {
-  workerMgr.drawFaceMesh = visionStore.drawFaceMesh
-})
-
-watch(() => visionStore.enableCVProcess, async (val) => {
-  workerMgr.enableCVProcess = val
-  if (val) {
-    workerStatus.value.showLoading = true
-    initWorker(WorkerType.cvProcess)
-  } else {
-    workerMgr.terminate(WorkerType.cvProcess)
-  }
-
+watch(() => visionStore.enableCVProcess, async () => {
   drawImage()
 })
 

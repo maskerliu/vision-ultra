@@ -15,7 +15,10 @@ async function init() {
 
 ctx.addEventListener('message', async (event: MessageEvent<{
   cmd: WorkerCMD,
-  image?: ImageData
+  image?: ImageData,
+  frame?: SharedArrayBuffer,
+  width?: number,
+  height?: number
 }>) => {
   if (event.data == null) {
     ctx.postMessage({ loading: false, error: 'data invalid' })
@@ -37,6 +40,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           face: faceDetector.face,
           tface: faceDetector.tface,
         })
+
         break
       case WorkerCMD.faceCapture:
         // await faceDetector.facCapture(event.data.image)
