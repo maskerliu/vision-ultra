@@ -247,13 +247,13 @@ async function openFolder() {
 }
 
 async function onScan() {
-
-  workerStatus.value.showProcess = true
   let frame = drawImage()
   if (frame == null) return
 
   workerMgr.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: frame })
   workerMgr.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: frame })
+  workerMgr.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image: frame })
+
 }
 
 function drawImage() {
@@ -288,6 +288,7 @@ watch(
     () => visionStore.intergrateMode,
     () => visionStore.enableObjDetect,
     () => visionStore.enableFaceDetect,
+    () => visionStore.enableImageGen,
     () => visionStore.enableCVProcess,
   ],
   async () => {
@@ -298,7 +299,12 @@ watch(
     workerMgr.setEnableObjDetect(visionStore.enableObjDetect, {
       model: JSON.stringify(visionStore.objDetectModel)
     })
+    workerMgr.setEnableImageGen(visionStore.enableImageGen, {
+      model: JSON.stringify(visionStore.ganModel)
+    })
     workerMgr.enableFaceDetect = visionStore.enableFaceDetect
+
+    if (!visionStore.enableFaceDetect) visionStore.live2d = visionStore.enableFaceDetect
   }
 )
 
@@ -307,6 +313,14 @@ watch(() => visionStore.objDetectModel, async () => {
   workerMgr.postMessage(WorkerType.objDetect, {
     cmd: WorkerCMD.init,
     model: JSON.stringify(visionStore.objDetectModel)
+  })
+})
+
+watch(() => visionStore.ganModel, async () => {
+  workerStatus.value.showLoading = true
+  workerMgr.postMessage(WorkerType.imageGen, {
+    cmd: WorkerCMD.init,
+    model: JSON.stringify(visionStore.ganModel)
   })
 })
 

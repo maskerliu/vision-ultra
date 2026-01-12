@@ -88,8 +88,8 @@ export const VisionStore = defineStore('VisionStore', {
       landmark: false,
       live2d: false,
 
-      genImage: false,
-      ganModel: { name: 'AnimateGan', type: ModelType.GenImage },
+      enableImageGen: false,
+      ganModel: { name: 'animeGANv3', type: ModelType.GenImage },
 
       enableCVProcess: false,
       cvOptions: new CVOptions(),
