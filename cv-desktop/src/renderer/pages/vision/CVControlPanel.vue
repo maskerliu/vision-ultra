@@ -76,11 +76,11 @@
         <template #label>
           <van-row style="padding: 15px 0 5px 0;" v-show="visionStore.enableFaceDetect">
             <van-checkbox v-model="visionStore.drawEigen">
-              <van-icon class-prefix="iconfont" name="mesh" />
+              <van-icon class-prefix="iconfont" name="eigen" />
             </van-checkbox>
 
             <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;">
-              <van-icon class-prefix="iconfont" name="eigen" />
+              <van-icon class-prefix="iconfont" name="mesh" />
             </van-checkbox>
 
             <van-checkbox v-model="visionStore.live2d" style="margin-left: 15px;">
@@ -149,16 +149,6 @@
           {{ $t('cvControl.ImgEnhance') }}
         </van-checkbox>
       </template>
-      <van-field :label="$t('cvControl.Gray')" type="number" input-align="right">
-        <template #input>
-          <van-switch v-model="visionStore.cvOptions.isGray"></van-switch>
-        </template>
-      </van-field>
-      <slider-field :label="$t('cvControl.Brightness')" :min="-1" :max="2" :step="0.1"
-        v-model:sliderValue="visionStore.cvOptions.gamma" />
-
-      <slider-field :label="$t('cvControl.Rotate')" :min="-180" :max="180" :step="15"
-        v-model:sliderValue="visionStore.cvOptions.rotate" />
 
       <van-field ref="colorMapAnchor" center clickable input-align="right" readonly :label="$t('cvControl.ColorMap')"
         style="scroll-margin-top: 50px;">
@@ -182,41 +172,16 @@
           </van-popover>
         </template>
       </van-field>
-
-      <!-- morphological operation -->
-      <van-cell center input-align="right">
-        <template #title>
-          <van-checkbox shape="square" v-model="visionStore.cvOptions.enableMorph">
-            {{ $t(`cvControl.Morph`) }}
-          </van-checkbox>
+      <van-field :label="$t('cvControl.Gray')" type="number" input-align="right">
+        <template #input>
+          <van-switch v-model="visionStore.cvOptions.isGray"></van-switch>
         </template>
-        <template #value>
-          <van-popover style="width: 200px;" overlay placement="bottom-end" v-model:show="showMorphOpts">
-            <template #reference>
-              <span style="font-size: var(--van-font-size-md)">
-                {{ $t(`cvControl.MorphOpt.${MorphOpts[visionStore.cvOptions.morph[0]]}`) }}
-              </span>
-            </template>
-            <van-radio-group direction="vertical"
-              style="width: 180px; height: 100px; padding: 10px 10px 0 10px; overflow: hidden scroll;"
-              v-model="visionStore.cvOptions.morph[0]">
-              <van-radio :name="idx" label-position="left" style="height: 1rem; margin-bottom: 15px;"
-                v-for="(morph, idx) in MorphOpts">
-                <span style="font-size: var(--van-font-size-md)">
-                  {{ $t(`cvControl.MorphOpt.${morph}`).padEnd(15, '&nbsp;') }}
-                </span>
-              </van-radio>
-            </van-radio-group>
-          </van-popover>
-        </template>
-      </van-cell>
+      </van-field>
+      <slider-field :label="$t('cvControl.Brightness')" :min="-1" :max="2" :step="0.1"
+        v-model:sliderValue="visionStore.cvOptions.gamma" />
 
-      <van-col v-if="visionStore.cvOptions.enableMorph">
-        <van-field center label="kernelX" input-align="right" type="number" v-model="visionStore.cvOptions.morph[1]" />
-        <van-field center label="kernelY" input-align="right" type="number" v-model="visionStore.cvOptions.morph[2]" />
-        <van-field center label="iterations" input-align="right" type="number"
-          v-model="visionStore.cvOptions.morph[3]" />
-      </van-col>
+      <slider-field :label="$t('cvControl.Rotate')" :min="-180" :max="180" :step="15"
+        v-model:sliderValue="visionStore.cvOptions.rotate" />
     </van-cell-group>
 
     <!-- blur -->
@@ -271,6 +236,42 @@
     </van-cell-group>
 
     <van-col v-show="visionStore.cvOptions.isGray">
+      <!-- morphological operation -->
+      <van-cell-group inset>
+        <van-cell center input-align="right">
+          <template #title>
+            <van-checkbox shape="square" v-model="visionStore.cvOptions.enableMorph">
+              {{ $t(`cvControl.Morph`) }}
+            </van-checkbox>
+          </template>
+          <template #value>
+            <van-popover style="width: 140px;" overlay :show-arrow="false" placement="bottom-end"
+              v-model:show="showMorphOpts">
+              <template #reference>
+                <span style="font-size: var(--van-font-size-md)">
+                  {{ $t(`cvControl.MorphOpt.${MorphOpts[visionStore.cvOptions.morph[0]]}`) }}
+                </span>
+              </template>
+              <van-radio-group direction="vertical"
+                style="height: 110px; padding: 10px 10px 0 10px; overflow: hidden scroll;"
+                v-model="visionStore.cvOptions.morph[0]">
+                <van-radio :name="idx" label-position="right" style="height: 1rem; margin-bottom: 15px;"
+                  v-for="(morph, idx) in MorphOpts">
+                  <span style="font-size: var(--van-font-size-md)">
+                    {{ $t(`cvControl.MorphOpt.${morph}`) }}
+                  </span>
+                </van-radio>
+              </van-radio-group>
+            </van-popover>
+          </template>
+        </van-cell>
+
+        <van-field center label="kernelX" input-align="right" type="number" v-model="visionStore.cvOptions.morph[1]" />
+        <van-field center label="kernelY" input-align="right" type="number" v-model="visionStore.cvOptions.morph[2]" />
+        <van-field center label="iterations" input-align="right" type="number"
+          v-model="visionStore.cvOptions.morph[3]" />
+      </van-cell-group>
+
       <!-- contrast -->
       <van-cell-group inset>
         <template #title>

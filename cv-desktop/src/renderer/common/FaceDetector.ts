@@ -84,10 +84,12 @@ export class FaceDetector {
       case 'tfjs': {
         let time = Date.now()
         let result = this.faceLandmarker?.detect(frame)
-        this._tface = Face.solve(result?.faceLandmarks[0], { runtime: 'mediapipe' })
-        landmarksToFace(result?.faceLandmarks[0], this._face, frame.width, frame.height)
-        this._face.expire = Date.now() - time
-        this.calacleFaceAngle()
+        if (result != null && result.faceLandmarks != null) {
+          this._tface = Face.solve(result?.faceLandmarks[0], { runtime: 'mediapipe' })
+          landmarksToFace(result?.faceLandmarks[0], this._face, frame.width, frame.height)
+          this._face.expire = Date.now() - time
+          this.calacleFaceAngle()
+        }
         break
       }
     }

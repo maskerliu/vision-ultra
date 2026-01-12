@@ -61,7 +61,7 @@ export default {
     ModelEngine: 'Model Engine',
     ModelImport: 'Import Model',
 
-    ObjDetect: 'Detect',
+    ObjRec: 'Object Detect',
     ObjSegment: 'Segment',
     ObjModel: {
       yolov6n: 'YOLOv6 (via meituan)',
@@ -77,7 +77,10 @@ export default {
       unet: 'u-net++',
     },
 
-    GenImage: 'Generate Image',
+
+    FaceRec: 'Face Recognize',
+
+    GenImage: 'Image Gen',
     GanModel: {
       Anime_Kpop: 'AnimateGANv3_Kpop',
       Anime_Disney: 'AnimeGANv3_Disney',
@@ -85,7 +88,7 @@ export default {
       Anime_Ghibli: 'AnimeGANv3_Ghibli-o1'
     },
 
-    ImgEnhance: 'Image Enhancement',
+    ImgEnhance: 'Image Enhance',
     Gray: 'Gray',
     Brightness: 'Brightness', // 亮度
     BrightnessDesc: 'Gamma correction',
@@ -131,8 +134,6 @@ export default {
       ScharrDesc: 'Enhanced version of Sobel operator',
     },
 
-
-
     FeatExtract: 'Feature Extract', // 特征提取
     Canny: 'Canny',
     CannyDesc: 'Effective edge detection',
@@ -147,10 +148,6 @@ export default {
     MeanShit: 'MeanShift',
     CamShift: 'CamShift',
 
-
-
-
-    FaceRec: 'Face Recognition'
 
   },
   anno: {
