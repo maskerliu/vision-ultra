@@ -10,7 +10,7 @@
         <div style="z-index: 100; -webkit-app-region: no-drag; margin: 2px 5px;">
           <van-icon class-prefix="iconfont" name="apm" class="left-panel-icon"
             @click="commonStore.showApm = !commonStore.showApm" />
-          <van-icon class-prefix="iconfont" class="left-panel-icon" name="data" @click="openFaceDbMgr" />
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="face-db" @click="openFaceDbMgr" />
           <van-icon class-prefix="iconfont" class="left-panel-icon" name="setting" @click="openSettings">
             <span class="badge-dot"></span>
           </van-icon>
