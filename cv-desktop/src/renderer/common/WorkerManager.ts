@@ -2,11 +2,12 @@
 import { CVLabel, MarkColors, } from '.'
 import CVProcessWorker from '../cvProcess.worker?worker'
 import FaceDetectWorker from '../faceDetect.worker?worker'
+import ImageGenWoker from '../imageGen.worker?worker'
 import ObjDetectWorker from '../objDetect.worker?worker'
 import { drawTFFaceResult } from './DrawUtils'
 import { FaceDetectResult, ModelType, ObjectDetectResult, WorkerCMD } from './misc'
 
-export enum WorkerType { faceDetect, objDetect, cvProcess }
+export enum WorkerType { faceDetect, objDetect, cvProcess, imageGen }
 export enum WorkerDrawMode { video, image }
 
 export type WorkerStatus = {
@@ -34,7 +35,10 @@ export class WorkerManager {
 
   private _enableObjDetect = false
   setEnableObjDetect(val: boolean, data?: any) {
+    if (this._enableObjDetect == val) return
+
     this._enableObjDetect = val
+
     if (val) {
       this._workerStatus.showLoading = true
       this.register(WorkerType.objDetect, Object.assign({ cmd: WorkerCMD.init }, data))
@@ -45,6 +49,8 @@ export class WorkerManager {
 
   private _enableFaceDetect = false
   set enableFaceDetect(val: boolean) {
+    if (this._enableFaceDetect == val) return
+
     this._enableFaceDetect = val
 
     if (val) {
@@ -57,6 +63,8 @@ export class WorkerManager {
 
   private _enableCVProcess = false
   setEnableCVProcess(val: boolean, data?: any) {
+    if (this._enableCVProcess == val) return
+
     this._enableCVProcess = val
 
     if (val) {
@@ -67,6 +75,21 @@ export class WorkerManager {
     }
   }
   get enableCVProcess() { return this._enableCVProcess }
+
+  private _enableImageGen = false
+  setEnableImageGen(val: boolean, data?: any) {
+    if (this._enableImageGen == val) return
+
+    this._enableImageGen = val
+
+    if (val) {
+      this._workerStatus.showLoading = true
+      this.register(WorkerType.imageGen, Object.assign({ cmd: WorkerCMD.init }, data))
+    } else {
+      this.terminate(WorkerType.imageGen)
+    }
+  }
+
 
   private _drawFaceMesh = false
   set drawFaceMesh(val: boolean) { this._drawFaceMesh = val }
@@ -97,7 +120,7 @@ export class WorkerManager {
     this.maskCtx = maskCtx
   }
 
-  public register(target: WorkerType, data?: any) {
+  private register(target: WorkerType, data?: any) {
     if (this.workers.has(target)) return
 
     let worker: Worker
@@ -117,18 +140,24 @@ export class WorkerManager {
         worker.addEventListener('message', this.handleObjDetectMessage.bind(this))
         break
       }
+      case WorkerType.imageGen:
+        worker = new ImageGenWoker()
+        worker.addEventListener('message', this.handleMessage.bind(this))
     }
+
     this.workers.set(target, worker)
 
     if (data != null) this.postMessage(target, data)
   }
 
-  private worker(type: WorkerType) {
-    return this.workers.get(type)
-  }
+  private worker(type: WorkerType) { return this.workers.get(type) }
+
   public terminate(target: WorkerType) {
     this.worker(target)?.terminate()
     this.workers.delete(target)
+
+    // this._workerStatus.showLoading = false
+    // this._workerStatus.showProcess = false
   }
 
   public postMessage(
@@ -148,12 +177,23 @@ export class WorkerManager {
     if (!this._enableCVProcess && target == WorkerType.cvProcess) return
     if (!this._enableFaceDetect && target == WorkerType.faceDetect) return
     if (!this._enableObjDetect && target == WorkerType.objDetect) return
+    if (!this._enableImageGen && target == WorkerType.imageGen) return
 
+    this._workerStatus.showLoading = true
     this.worker(target)?.postMessage(data, transfer)
   }
 
   public handleMessage(event: MessageEvent) {
+    this._workerStatus.showLoading = false
+    this._workerStatus.showProcess = false
 
+    switch (event.data.type) {
+      case 'generated':
+        let imageData = new ImageData(event.data.width, event.data.height)
+        imageData.data.set(event.data.image)
+        this.previewCtx.putImageData(imageData, 0, 0)
+        break
+    }
   }
 
   private handleCVProcessMessage(event: MessageEvent) {
