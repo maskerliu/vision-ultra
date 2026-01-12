@@ -82,10 +82,11 @@ export default {
 
     GenImage: '生成图像',
     GanModel: {
-      Anime_Kpop: 'AnimateGANv3_韩风',
-      Anime_Disney: 'AnimeGANv3_迪士尼',
-      Anime_OilPaint: 'AnimeGANv3_油画风',
-      Anime_Ghibli: 'AnimeGANv3_吉卜力风'
+      animeGANv3: 'AnimateGANv3',
+      anime_Kpop: 'AnimateGANv3_韩风',
+      anime_Disney: 'AnimeGANv3_迪士尼',
+      anime_OilPaint: 'AnimeGANv3_油画风',
+      anime_Ghibli: 'AnimeGANv3_吉卜力风'
     },
 
     ImgEnhance: '图像增强',

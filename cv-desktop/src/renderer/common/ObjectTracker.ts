@@ -3,18 +3,22 @@ import { TFModel } from './TFModel'
 import { ModelInfo } from './misc'
 
 const MAX_OBJECTS_NUM: number = 20
+const ModelClassSize = {
+  'mobilenet': 90,
+  'yolo': 80,
+  'deeplab': 151
+}
 
 export class ObjectTracker {
   private _model: TFModel = new TFModel()
 
   public objNum: number = 0
-  get modelScale() {
-    return this._model.scale
-  }
+  private _classNum: number = 0
+  get classNum() { return this._classNum }
 
-  get segmentScale() {
-    return this._model.scale
-  }
+  get modelScale() { return this._model.scale }
+
+  get segmentScale() { return this._model.scale }
 
   public boxes: Float16Array<ArrayBufferLike> = new Float16Array(MAX_OBJECTS_NUM * 4)
   public scores: Float16Array = new Float16Array(MAX_OBJECTS_NUM)
@@ -24,12 +28,16 @@ export class ObjectTracker {
   private _expire: number = 0
   get expire(): number { return this._expire }
 
+  get isInited() { return this._model.isInited }
+
   async init(info: ModelInfo) {
     await this._model.init(info.name, info.type)
+    this._classNum = ModelClassSize[this._model.name]
   }
 
   dispose() {
     this._model.dispose()
+    this.objNum = 0
     this._model = null
   }
 

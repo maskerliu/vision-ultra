@@ -94,9 +94,9 @@
 
       </van-cell>
 
-      <van-cell center :disabled="!visionStore.genImage">
+      <van-cell center :disabled="!visionStore.enableImageGen">
         <template #title>
-          <van-checkbox shape="square" v-model="visionStore.genImage">
+          <van-checkbox shape="square" v-model="visionStore.enableImageGen">
             <van-icon class-prefix="iconfont" name="gen-image" style="color: #16a085;" />
             <span style="margin-left: 5px;">{{ $t('cvControl.GenImage') }}</span>
           </van-checkbox>
@@ -354,7 +354,7 @@
 </template>
 <script lang="ts" setup>
 
-import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cvBlurType, cvFilterType } from '../../../common'
 import { onnx } from '../../common'
@@ -393,11 +393,11 @@ const SegmentModels = [
 
 const showGanModels = ref(false)
 const GanModels = [
-  { name: 'Anime_Kpop', desc: '2.0G', type: ModelType.GenImage },
-  { name: 'Anime_Disney', desc: '2.0G', type: ModelType.GenImage },
-  { name: 'Anime_OilPaint', desc: '2.0G', type: ModelType.GenImage },
-  { name: 'Anime_Ghibli', desc: '2.0G', type: ModelType.GenImage },
-  { name: 'Anime_OilPaint', desc: '2.0G', type: ModelType.GenImage },
+  { name: 'animeGANv3', desc: '1.2M', type: ModelType.GenImage },
+  { name: 'Anime_Kpop', desc: '1.2M', type: ModelType.GenImage },
+  { name: 'Anime_Disney', desc: '2.0M', type: ModelType.GenImage },
+  { name: 'Anime_OilPaint', desc: '4.6M', type: ModelType.GenImage },
+  { name: 'Anime_Ghibli', desc: '12.4M', type: ModelType.GenImage },
 ]
 
 const showMorphOpts = ref(false)
@@ -419,12 +419,6 @@ const isWeb = window.isWeb
 
 const colorMapAnchor = useTemplateRef('colorMapAnchor')
 const modelName = ref<string>()
-
-watch(() => visionStore.enableFaceDetect, (val, old) => {
-  if (!val) {
-    visionStore.live2d = false
-  }
-})
 
 onMounted(() => {
   ObjRecModelGrop.set('Detect', DetectModels)

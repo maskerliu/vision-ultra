@@ -82,10 +82,11 @@ export default {
 
     GenImage: 'Image Gen',
     GanModel: {
-      Anime_Kpop: 'AnimateGANv3_Kpop',
-      Anime_Disney: 'AnimeGANv3_Disney',
-      Anime_OilPaint: 'AnimeGANv3_Oil-painting',
-      Anime_Ghibli: 'AnimeGANv3_Ghibli-o1'
+      animeGANv3: 'AnimateGANv3',
+      anime_Kpop: 'AnimateGANv3_Kpop',
+      anime_Disney: 'AnimeGANv3_Disney',
+      anime_OilPaint: 'AnimeGANv3_Oil-painting',
+      anime_Ghibli: 'AnimeGANv3_Ghibli-o1'
     },
 
     ImgEnhance: 'Image Enhance',
