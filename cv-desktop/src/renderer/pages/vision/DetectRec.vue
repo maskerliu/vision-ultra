@@ -292,14 +292,14 @@ watch(
     () => visionStore.enableCVProcess,
   ],
   async () => {
-    workerMgr.setEnableCVProcess(visionStore.enableCVProcess, {
+    workerMgr.setCVProcess(visionStore.enableCVProcess, {
       mode: visionStore.intergrateMode,
       options: JSON.stringify(visionStore.cvOptions.value)
     })
-    workerMgr.setEnableObjDetect(visionStore.enableObjDetect, {
+    workerMgr.setObjDetect(visionStore.enableObjDetect, {
       model: JSON.stringify(visionStore.objDetectModel)
     })
-    workerMgr.setEnableImageGen(visionStore.enableImageGen, {
+    workerMgr.setImageGen(visionStore.enableImageGen, {
       model: JSON.stringify(visionStore.ganModel)
     })
     workerMgr.enableFaceDetect = visionStore.enableFaceDetect

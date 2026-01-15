@@ -91,6 +91,9 @@ export const VisionStore = defineStore('VisionStore', {
       enableImageGen: false,
       ganModel: { name: 'animeGANv3', type: ModelType.GenImage },
 
+      enableOCR: false,
+      ocrModel: { name: 'ocr', type: ModelType.OCR },
+
       enableCVProcess: false,
       cvOptions: new CVOptions(),
 

@@ -34,7 +34,7 @@ export class WorkerManager {
   set drawMode(val: WorkerDrawMode) { this._drawMode = val }
 
   private _enableObjDetect = false
-  setEnableObjDetect(val: boolean, data?: any) {
+  setObjDetect(val: boolean, data?: any) {
     if (this._enableObjDetect == val) return
 
     this._enableObjDetect = val
@@ -62,7 +62,7 @@ export class WorkerManager {
   }
 
   private _enableCVProcess = false
-  setEnableCVProcess(val: boolean, data?: any) {
+  setCVProcess(val: boolean, data?: any) {
     if (this._enableCVProcess == val) return
 
     this._enableCVProcess = val
@@ -77,7 +77,7 @@ export class WorkerManager {
   get enableCVProcess() { return this._enableCVProcess }
 
   private _enableImageGen = false
-  setEnableImageGen(val: boolean, data?: any) {
+  setImageGen(val: boolean, data?: any) {
     if (this._enableImageGen == val) return
 
     this._enableImageGen = val
@@ -89,7 +89,6 @@ export class WorkerManager {
       this.terminate(WorkerType.imageGen)
     }
   }
-
 
   private _drawFaceMesh = false
   set drawFaceMesh(val: boolean) { this._drawFaceMesh = val }
@@ -152,7 +151,7 @@ export class WorkerManager {
 
   private worker(type: WorkerType) { return this.workers.get(type) }
 
-  public terminate(target: WorkerType) {
+  private terminate(target: WorkerType) {
     this.worker(target)?.terminate()
     this.workers.delete(target)
 
@@ -163,27 +162,33 @@ export class WorkerManager {
   public postMessage(
     target: WorkerType,
     data: Partial<{
-      cmd: WorkerCMD,
-      modelTypes?: ModelType[], // for obj rec 
-      model?: string, // for obj rec 
-      image?: ImageData,
-      frame?: SharedArrayBuffer,
-      width?: number,
-      height?: number,
+      cmd: WorkerCMD
+      modelTypes?: ModelType[] // for obj rec 
+      model?: string // for obj rec 
+      image?: ImageData
+      frame?: SharedArrayBuffer
+      width?: number
+      height?: number
       options?: any // for cv process
+      masks?: Array<Uint8Array>
+      rects?: Array<[number, number, number, number]>
     }>,
     transfer?: Transferable[]) {
+
     // console.log(`[main] ${target} post`, data)
     if (!this._enableCVProcess && target == WorkerType.cvProcess) return
     if (!this._enableFaceDetect && target == WorkerType.faceDetect) return
     if (!this._enableObjDetect && target == WorkerType.objDetect) return
     if (!this._enableImageGen && target == WorkerType.imageGen) return
 
-    this._workerStatus.showLoading = true
+    if (target == WorkerType.faceDetect && data.cmd == WorkerCMD.process)
+      this._workerStatus.showLoading = false
+    else
+      this._workerStatus.showLoading = true
     this.worker(target)?.postMessage(data, transfer)
   }
 
-  public handleMessage(event: MessageEvent) {
+  private handleMessage(event: MessageEvent) {
     this._workerStatus.showLoading = false
     this._workerStatus.showProcess = false
 
@@ -233,6 +238,7 @@ export class WorkerManager {
         break
       case 'contours':
         console.log(event.data.contours)
+        this.drawContours(event.data.contours)
         break
     }
   }
@@ -265,87 +271,80 @@ export class WorkerManager {
     this._workerStatus.error = event.data.error ? event.data.error : null
 
     switch (event.data.type) {
-      case 'object':
-        if (this._drawMode == WorkerDrawMode.image) {
-          this._annotationPanel?.drawAnnotations(event.data.boxes,
-            event.data.scores, event.data.classes,
-            event.data.objNum, event.data.scale)
-        } else {
-          // drawObjectDetectResult(previewCtx,
-          //   event.data.boxes, event.data.scores, event.data.classes,
-          //   event.data.objNum, event.data.scale)
-        }
-        break
       case 'mask':
-        this._annotationPanel?.drawAnnotations(event.data.boxes,
-          event.data.scores, event.data.classes,
-          event.data.objNum, event.data.scale)
+        this._objects = event.data
+        this._annotationPanel?.drawAnnotations(this._objects.boxes,
+          this._objects.scores, this._objects.classes,
+          this._objects.objNum, this._objects.scale)
 
-        this.drawOverlay(event.data.overlay, event.data.width, event.data.height, event.data.scale)
-
-        this.drawMask(event.data.boxes, event.data.classes, event.data.masks,
-          event.data.objNum, event.data.width, event.data.height)
+        this.drawOverlay()
+        this.drawMask()
         break
     }
   }
 
-  private drawMask(boxes: Float16Array, classes: Uint8Array, masks: Array<Uint8Array>,
-    objNum: number, width: number, height: number) {
-    let ratio = 640 / 160
+  private drawMask() {
     let length = 0
     let offset = 0
 
-    if (width == null || width == 0 || height == null || height == 0) return
-    const imageData = new ImageData(width, height)
+    if (this._objects.segSize == null || this._objects.segSize[0] <= 0 || this._objects.segSize[1] <= 0) return
+
+    const imageData = new ImageData(this._objects.segSize[0], this._objects.segSize[1])
     let rects = []
-    for (let i = 0; i < objNum; ++i) {
-      let label: CVLabel = this._annotationPanel?.getLabel(classes[i])
+    for (let i = 0; i < this._objects.objNum; ++i) {
+      let label: CVLabel = this._annotationPanel?.getLabel(this._objects.classes[i])
       let [r, g, b] = MarkColors.hexToRgb(label.color)
       let i4 = i * 4
-      const y1 = Math.round(boxes[i4] / ratio)
-      const x1 = Math.round(boxes[i4 + 1] / ratio)
-      const y2 = Math.round(boxes[i4 + 2] / ratio)
-      const x2 = Math.round(boxes[i4 + 3] / ratio)
+      const y1 = Math.round(this._objects.boxes[i4] / this._objects.segScale[1])
+      const x1 = Math.round(this._objects.boxes[i4 + 1] / this._objects.segScale[0])
+      const y2 = Math.round(this._objects.boxes[i4 + 2] / this._objects.segScale[1])
+      const x2 = Math.round(this._objects.boxes[i4 + 3] / this._objects.segScale[0])
       length = (y2 - y1) * (x2 - x1)
       offset += length
       for (let row = x1; row < x2; ++row) {
         for (let col = y1; col < y2; ++col) {
-          let id = col * width + row
+          let id = col * this._objects.segSize[0] + row
           let absId = (col - y1) * (x2 - x1) + row - x1
           imageData.data[id * 4] = 255 - r
           imageData.data[id * 4 + 1] = 255 - g
           imageData.data[id * 4 + 2] = 155 - b
-          imageData.data[id * 4 + 3] += masks[i][absId] == 0 ? 0 : 200
+          imageData.data[id * 4 + 3] += this._objects.masks[i][absId] == 0 ? 0 : 200
         }
       }
 
       rects.push([x1, y1, x2 - x1, y2 - y1])
     }
 
-    // this.cvProcessWorker?.postMessage({ cmd: WorkerCMD.findContours, masks, rects })
-
-    this.maskCtx.canvas.width = width
-    this.maskCtx.canvas.height = height
+    this.maskCtx.canvas.width = this._objects.segSize[0]
+    this.maskCtx.canvas.height = this._objects.segSize[1]
     this.maskCtx.clearRect(0, 0, this.maskCtx.canvas.width, this.maskCtx.canvas.height)
     this.maskCtx.putImageData(imageData, 0, 0)
 
-    let sacle = Math.max(this.previewCtx.canvas.width, this.previewCtx.canvas.height) / Math.max(width, height)
     this.previewCtx.save()
-    this.previewCtx.scale(sacle, sacle)
+    this.previewCtx.scale(this.objects.scale[0] * this._objects.segScale[0],
+      this.objects.scale[1] * this._objects.segScale[1])
     this.previewCtx.drawImage(this.maskCtx.canvas, 0, 0)
     this.previewCtx.restore()
 
-    let contours = []
+    this.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.findContours, masks: this._objects.masks, rects })
+  }
+
+
+  private drawContours(contours: Array<[number, number]>) {
     contours.forEach(points => {
       points.forEach(p => {
-        p[0] *= sacle
-        p[1] *= sacle
+        p[0] *= this.objects.scale[0] * this._objects.segScale[0]
+        p[1] *= this.objects.scale[1] * this._objects.segScale[1]
       })
     })
 
+    this.previewCtx.save()
+    // this.previewCtx.scale(this.objects.scale[0] * this._objects.segScale[0],
+    //   this.objects.scale[1] * this._objects.segScale[1])
+
     for (let i = 0; i < contours.length; ++i) {
       let points = contours[i]
-      let label: CVLabel = this._annotationPanel?.getLabel(classes[i])
+      let label: CVLabel = this._annotationPanel?.getLabel(this._objects.classes[i])
       let [r, g, b] = MarkColors.hexToRgb(label.color)
       this.previewCtx.beginPath()
       this.previewCtx.moveTo(points[0][0], points[0][1])
@@ -353,21 +352,24 @@ export class WorkerManager {
         this.previewCtx.lineTo(points[j][0], points[j][1])
       }
       this.previewCtx.closePath()
-      this.previewCtx.lineWidth = 2
+      this.previewCtx.lineWidth = 1.5
       this.previewCtx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.8)`
       this.previewCtx.stroke()
     }
+
+    this.previewCtx.restore()
   }
 
-  private drawOverlay(overlay: Uint8Array, width: number, height: number, scale: [number, number]) {
-    if (overlay == null) return
-
+  private drawOverlay() {
+    if (this._objects.overlay == null) return
     let labels = new Map()
+    let width = Math.round(this.previewCtx.canvas.width / this._objects.scale[0])
+    let height = Math.round(this.previewCtx.canvas.height / this._objects.scale[1])
     let imageData = new ImageData(width, height)
-    for (let row = 0; row < imageData.width; ++row) {
-      for (let col = 0; col < imageData.height; ++col) {
-        let idx = row * imageData.height + col
-        let id = overlay[idx]
+    for (let row = 0; row < width; ++row) {
+      for (let col = 0; col < height; ++col) {
+        let idx = row * height + col
+        let id = this._objects.overlay[idx]
         if (id == undefined) {
           // console.log('undefined', row, col, idx)
           continue
@@ -390,13 +392,13 @@ export class WorkerManager {
       }
     }
 
-    this.maskCtx.canvas.width = width
-    this.maskCtx.canvas.height = height
+    this.maskCtx.canvas.width = Math.round(this.previewCtx.canvas.width * this._objects.scale[0])
+    this.maskCtx.canvas.height = Math.round(this.previewCtx.canvas.height * this._objects.scale[1])
     this.maskCtx.clearRect(0, 0, this.maskCtx.canvas.width, this.maskCtx.canvas.height)
     this.maskCtx.putImageData(imageData, 0, 0)
 
     this.previewCtx.save()
-    this.previewCtx.scale(scale[0], scale[1])
+    this.previewCtx.scale(this._objects.scale[0], this._objects.scale[1])
     this.previewCtx.drawImage(this.maskCtx.canvas, 0, 0)
     this.previewCtx.restore()
   }
