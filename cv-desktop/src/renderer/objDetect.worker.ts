@@ -27,18 +27,18 @@ ctx.addEventListener('message', async (event: MessageEvent<{
       case WorkerCMD.process:
         let result = await objTracker.detect(event.data.image)
         data = Object.assign(data, {
+          type: 'mask',
           boxes: objTracker.boxes,
           scores: objTracker.scores,
           classes: objTracker.classes,
           objNum: objTracker.objNum,
           expire: objTracker.expire,
           overlay: result?.overlay,
-          width: result?.width,
-          height: result?.height,
+          scale: objTracker.scale,
           masks: objTracker.masks,
-          scale: objTracker.modelScale,
+          segSize: objTracker.segSize,
+          segScale: objTracker.segScale
         })
-        data['type'] = 'mask'
         break
     }
   } catch (error) {

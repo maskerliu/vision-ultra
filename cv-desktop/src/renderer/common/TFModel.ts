@@ -9,6 +9,7 @@ export class TFModel {
   get name() { return this._name }
 
   private _type: ModelType
+  get type() { return this._type }
 
   public modelWidth: number = 0
   public modelHeight: number = 0
@@ -31,8 +32,8 @@ export class TFModel {
 
     await tf.ready()
 
-    if (name == 'deeplabv3') {
-      let modelUrl = 'https://tfhub.dev/tensorflow/tfjs-model/deeplab/ade20k/1/default/1/model.json'
+    if (name == 'deeplab-cityspace1') {
+      let modelUrl = 'https://tfhub.dev/tensorflow/tfjs-model/deeplab/cityscapes/1/default/1/model.json?tfjs-format=file'
       this.model = await tf.loadGraphModel(modelUrl)
     } else {
       let modelPath = `static/${name}_web_model/model.json`
@@ -52,14 +53,14 @@ export class TFModel {
     this.modelWidth = this.model.inputs[0].shape[1]
     this.modelHeight = this.model.inputs[0].shape[2]
 
-    if (name == 'deeplab') {
+    if (name.indexOf('deeplab') != -1) {
       this.modelWidth = this.modelHeight = 513
     }
     if (name == 'animeGANv3') {
       this.modelWidth = this.modelHeight = 255
     }
 
-    // console.log(this.model)
+    console.log(this.model)
     // console.log(this.model.inputs[0].shape, this.modelWidth, this.modelHeight)
 
     this._isInited = true
@@ -78,27 +79,35 @@ export class TFModel {
 
     let input = this.preprocess(image)
     let result: tf.Tensor | tf.Tensor[] = null
+    let argKey = this.model.inputs[0].name
+    let params = {}
+    params[argKey] = input
 
     switch (this.name) {
       case 'mobilenet':
-        result = await this.model.executeAsync(input)
+        result = await this.model.executeAsync(params)
         break
       case 'animeGANv3':
-        result = this.model.execute({ test: input })
+      case 'deeplab-ade':
+      case 'deeplab-cityspace':
+        result = this.model.execute(params)
         break
       default:
-        result = this.model.execute(input)
+        result = this.model.execute(params)
         break
-    }
-    if (this._name == 'mobilenet') {
-      result = await this.model.executeAsync(input)
-    } else {
-      result = this.model.execute(input)
     }
     input.dispose()
     return result
   }
 
+  private needResize() {
+    return (this.name == 'animeGANv3') || (this.name.indexOf('deeplab') != -1)
+  }
+
+  private needPaddingSize(input: tf.Tensor) {
+
+
+  }
   protected preprocess(image: ImageData) {
     return tf.tidy(() => {
       const img = tf.browser.fromPixels(image)
@@ -106,31 +115,19 @@ export class TFModel {
       this.scale[0] = maxSize / this.modelWidth
       this.scale[1] = maxSize / this.modelHeight
 
-      if (this.name == 'animeGANv3') {
-        const resizeRatio = this.modelWidth / maxSize
-        const targetWidth = Math.round(image.width * resizeRatio)
-        const targetHeight = Math.round(image.height * resizeRatio)
-        return tf.image.resizeBilinear(img, [targetHeight, targetWidth])
-          .expandDims(0).div(255.0).cast('float32')
+      let dtype = this.model.inputs[0].dtype
+      if (this.needResize()) {
+        const width = Math.round(image.width / this.scale[0])
+        const height = Math.round(image.height / this.scale[1])
+        return tf.image.resizeBilinear(img, [height, width])
+          .div(255.0).expandDims(0).cast(dtype)
       }
 
-      // this mean is for mobilenet
+      // any size mobilenet
       if (this.name == 'mobilenet') {
         this.scale[0] = this.scale[1] = 1
         return tf.expandDims(img)
       }
-
-      // scale to model size
-      if (this.name == 'deeplab') {
-        const resizeRatio = this.modelWidth / maxSize
-        const targetWidth = Math.round(image.width * resizeRatio)
-        const targetHeight = Math.round(image.height * resizeRatio)
-        return tf.image
-          .resizeBilinear(img, [targetHeight, targetWidth])
-          .expandDims(0).cast('int32')
-      }
-
-
 
       // pad image to model size 
       const padded = img.pad([
@@ -138,9 +135,8 @@ export class TFModel {
         [0, maxSize - image.width],
         [0, 0],
       ])
-      return tf.image
-        .resizeBilinear(padded as any, [this.modelHeight, this.modelWidth])
-        .div(255.0).expandDims(0)
+      return tf.image.resizeBilinear(padded as any, [this.modelHeight, this.modelWidth])
+        .div(255.0).expandDims(0).cast(dtype)
     })
   }
 }

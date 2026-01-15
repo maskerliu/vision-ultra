@@ -1,108 +1,136 @@
 <template>
-  <div class="apm-panel">
-    <canvas ref="apmPanel" width="200" height="100" style="margin: 5px;"></canvas>
+  <div class="apm-panel" ref="apmPanel">
   </div>
 </template>
 <script lang="ts" setup>
 
+import * as echarts from 'echarts'
 import { onMounted, useTemplateRef } from 'vue'
 
-const apmPanel = useTemplateRef<HTMLCanvasElement>('apmPanel')
+const apmPanel = useTemplateRef<HTMLElement>('apmPanel')
 
 // FPS计算变量
 let fps = 0
 let frameCount = 0
-let lastTime = performance.now()
+let last = performance.now()
 const fpsHistory = []
 const maxHistoryLength = 20
 
+let fpsData = []
+let fpsChart: echarts.ECharts
 // 性能统计
 let minFps = Infinity
 let maxFps = 0
 onMounted(() => {
+  // updateFps()
+  fpsChart = echarts.init(apmPanel.value)
+  const option = {
+    backgroundColor: "transparent",
+    tooltip: {
+      trigger: "axis",
+      formatter: function (params) {
+        const time = new Date(params[0].value[0])
+        const fps = params[0].value[1]
+        return `${time.getMinutes().toString().padStart(2, "0")}:${time
+          .getSeconds()
+          .toString()
+          .padStart(2, "0")}<br/>FPS: ${fps.toFixed(1)}`
+      },
+      backgroundColor: "rgba(0,0,0,0.8)",
+      borderColor: "#0072ff",
+      textStyle: { color: "#fff" },
+    },
+    grid: {
+      left: "3%",
+      right: "4%",
+      bottom: "10%",
+      top: "10%",
+      containLabel: true,
+    },
+    xAxis: {
+      type: "time",
+      boundaryGap: false,
+      axisLine: { lineStyle: { color: "#666" } },
+      axisLabel: { color: "#aaa" },
+      splitLine: {
+        show: true,
+        lineStyle: { color: "rgba(255,255,255,0.1)" },
+      },
+    },
+    yAxis: {
+      type: "value",
+      min: 0,
+      max: 120,
+      axisLine: { lineStyle: { color: "#666" } },
+      axisLabel: { color: "#aaa" },
+      splitLine: {
+        show: true,
+        lineStyle: { color: "rgba(255,255,255,0.1)" },
+      },
+      splitArea: {
+        show: true,
+        areaStyle: {
+          color: [
+            "rgba(255, 65, 108, 0.1)",
+            "rgba(247, 151, 30, 0.1)",
+            "rgba(33, 147, 176, 0.1)",
+            "rgba(0, 176, 155, 0.1)",
+          ],
+        },
+      },
+    },
+    series: [
+      {
+        name: "FPS",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 3, color: "#00c6ff" },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: "rgba(0, 198, 255, 0.4)" },
+            { offset: 1, color: "rgba(0, 198, 255, 0.05)" },
+          ]),
+        },
+        data: fpsData,
+      },
+      {
+        name: "目标帧率",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        lineStyle: {
+          width: 1,
+          color: "rgba(255,255,255,0.3)",
+          type: "dashed",
+        },
+        data: [],
+      },
+    ],
+    visualMap: {
+      show: false,
+      dimension: 1,
+      pieces: [
+        { gt: 55, lte: 120, color: "#00b09b" },
+        { gt: 45, lte: 55, color: "#2193b0" },
+        { gt: 30, lte: 45, color: "#f7971e" },
+        { gt: 0, lte: 30, color: "#ff416c" },
+      ],
+    },
+  }
+  fpsChart.setOption(option)
+
   updateFps()
 })
-
-function drawFpsPanel(canvas: HTMLCanvasElement) {
-  if (!canvas) return
-  let ctx = canvas.getContext('2d', { willReadFrequently: true })
-  // 清空画布
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-  // 绘制网格线
-  ctx.strokeStyle = '#ecf0f1'
-  ctx.lineWidth = 0.5
-
-  // 水平网格线
-  for (let i = 0; i < 5; i++) {
-    const y = (canvas.height - 4) - (i * (canvas.height - 4) / 5) - 2
-    ctx.beginPath()
-    ctx.moveTo(20, y + 0.5)
-    ctx.lineTo(canvas.width - 10, y + 0.5)
-    ctx.stroke()
-
-    // 绘制FPS值
-    ctx.fillStyle = 'white'
-    ctx.font = '8px sans-serif'
-    ctx.fillText(String(i * 20), 5, y + 3)
-  }
-
-  // 绘制FPS数据线
-  if (fpsHistory.length > 1) {
-    ctx.strokeStyle = '#16a085'
-    ctx.fillStyle = '#16a085'
-    ctx.lineWidth = 2
-    ctx.beginPath()
-
-    const sliceWidth = (canvas.width - 30) / (maxHistoryLength)
-
-    for (let i = 0; i < fpsHistory.length; i++) {
-      const x = i * sliceWidth + 20
-      // 将FPS值映射到画布高度（假设最大FPS为100）
-      const y = canvas.height - (fpsHistory[i] / 100 * canvas.height)
-      ctx.rect(x, y - 4, sliceWidth - 0.5, canvas.height - y)
-      // if (i === 0) {
-      //   // ctx.moveTo(x, y+2 + 0.5)
-      //   ctx.rect(x, y, sliceWidth - 0.5, canvas.height - y + 0.5)
-      //   // ctx.arc(x, y, 5, 0, Math.PI * 2, false)
-      // } else {
-      //   // ctx.lineTo(x, y + 0.5)
-      //   ctx.rect(x, y, sliceWidth - 0.5, canvas.height - y + 0.5)
-      //   // ctx.arc(x, y, 5, 0, Math.PI * 2, false)
-      // }
-    }
-
-    ctx.fill()
-  }
-
-  // 绘制当前FPS值
-  ctx.fillStyle = '#2ecc71'
-  ctx.font = '10px sans-serif'
-  ctx.fillText(`FPS: ${fps.toFixed(1)}`, 20, 15)
-
-  // 绘制性能指示器
-  let indicatorColor = '#2ecc71' // 绿色 - 良好
-  if (fps < 30) {
-    indicatorColor = '#e74c3c' // 红色 - 差
-  } else if (fps < 50) {
-    indicatorColor = '#f1c40f' // 橙色 - 中等
-  }
-
-  // 绘制指示圆点
-  ctx.fillStyle = indicatorColor
-  ctx.beginPath()
-  ctx.arc(canvas.width - 20, 10, 5, 0, Math.PI * 2)
-  ctx.fill()
-}
 
 // 更新FPS计算
 function updateFps() {
   frameCount++
-  const currentTime = performance.now()
+  const now = performance.now()
 
   // 每100毫秒计算一次FPS
-  if (currentTime - lastTime >= 80) {
-    fps = (frameCount * 1000) / (currentTime - lastTime)
+  if (now - last >= 100) {
+    fps = (frameCount * 1000) / (now - last)
 
     // 更新统计数据
     if (fps < minFps) minFps = fps
@@ -110,16 +138,20 @@ function updateFps() {
 
     // 添加到历史记录
     fpsHistory.push(fps)
+    fpsData.push([now % 10, fps])
     if (fpsHistory.length > maxHistoryLength) {
-      fpsHistory.shift()
+      fpsData.shift()
     }
 
     // 重置计数器
     frameCount = 0
-    lastTime = currentTime
+    last = now
 
+    const targetData = fpsData.map((point) => [point[0], 60])
     // 重绘面板
-    drawFpsPanel(apmPanel.value)
+    fpsChart.setOption({
+      series: [{ data: fpsData }, { data: targetData }],
+    })
   }
 
   // 继续循环
@@ -129,12 +161,12 @@ function updateFps() {
 <style scoped>
 .apm-panel {
   position: absolute;
-  top: 120px;
-  left: 5px;
+  top: 37px;
+  right: 15rem;
   width: 210px;
   height: 110px;
   z-index: 1000;
-  background-color: #2c3e50AA;
+  background-color: #00000088;
   border: 1px solid #f1f2f699;
   border-radius: 5px;
   box-shadow: 0px 12px 8px -12px #000;
