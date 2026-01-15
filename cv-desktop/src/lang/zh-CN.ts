@@ -65,28 +65,34 @@ export default {
     ObjDetect: '检测',
     ObjSegment: '分割',
     ObjModel: {
-      yolov6n: 'YOLOv6 (via 美团)',
       yolov8n: 'YOLOv8 (via Ultralytics)',
-      yolov10n: 'YOLOv10(清华大学)',
+      yolov10s: 'YOLOv10(清华大学)',
       yolo11n: 'YOLO11n(lastest)',
       yolo11s: 'YOLO11s(lastest)',
       mobilenet: 'MobileNetv2',
-      deeplab: 'Deeplabv3',
+      'deeplab-ade': 'Deeplabv3-ADE20K',
+      'deeplab-cityscapes': 'Deeplabv3-Cityspace',
       'yolo11n-seg': 'Yolo11n',
       'yolo11s-seg': 'Yolo11s ',
+      'yolo11m-seg': 'Yolo11m',
       sam: 'Segment Anything',
       unet: 'u-net++',
     },
 
     FaceRec: '人脸识别',
 
-    GenImage: '生成图像',
+    GenImage: '图生图',
     GanModel: {
       animeGANv3: 'AnimateGANv3',
       anime_Kpop: 'AnimateGANv3_韩风',
       anime_Disney: 'AnimeGANv3_迪士尼',
       anime_OilPaint: 'AnimeGANv3_油画风',
       anime_Ghibli: 'AnimeGANv3_吉卜力风'
+    },
+
+    OCR: 'OCR',
+    OcrModel: {
+
     },
 
     ImgEnhance: '图像增强',

@@ -20,9 +20,11 @@ out/
 resources/*
 log.txt
 
+*.pt
 *.pb
 *.onnx
 *_saved_model
 
 datasets
 cv-desktop/dist/**/*
+

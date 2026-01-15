@@ -28,14 +28,18 @@ export type BoundingBox = {
   height: number
 }
 
-export type ObjectDetectResult = {
+export type ObjectDetectResult = Partial<{
   classes: Uint8Array,
   scores: Float16Array,
   boxes: Float16Array,
   objNum: number,
   scale: [number, number],
+  overlay: Uint8Array
+  masks: Array<Uint8Array>
+  segScale: [number, number]
+  segSize: [number, number],
   expire: number,
-}
+}>
 
 export enum IntergrateMode {
   WebAssembly,
@@ -51,7 +55,8 @@ export enum ModelType {
   OBB = 3,
   Pose = 4,
   GenImage = 5,
-  Face = 6
+  Face = 6,
+  OCR = 7
 }
 
 export type ModelInfo = {

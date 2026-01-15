@@ -62,17 +62,19 @@ export default {
     ModelImport: 'Import Model',
 
     ObjRec: 'Object Detect',
+    ObjDetect: 'Detect',
     ObjSegment: 'Segment',
     ObjModel: {
-      yolov6n: 'YOLOv6 (via meituan)',
       yolov8n: 'YOLOv8 (via Ultralytics)',
-      yolov10n: 'YOLOv10(via Tsinghua university)',
+      yolov10s: 'YOLOv10(via Tsinghua university)',
       yolo11n: 'YOLO11n(lastest)',
       yolo11s: 'YOLO11s(lastest)',
       mobilenet: 'MobileNetv2',
-      deeplab: 'Deeplabv3',
+      'deeplab-ade': 'Deeplabv3-ADE20K',
+      'deeplab-cityspace': 'Deeplabv3-Cityspace',
       'yolo11n-seg': 'Yolo11n',
       'yolo11s-seg': 'Yolo11s',
+      'yolo11m-seg': 'Yolo11m',
       sam: 'Segment Anything',
       unet: 'u-net++',
     },
@@ -80,13 +82,18 @@ export default {
 
     FaceRec: 'Face Recognize',
 
-    GenImage: 'Image Gen',
+    GenImage: 'Image2Image',
     GanModel: {
       animeGANv3: 'AnimateGANv3',
       anime_Kpop: 'AnimateGANv3_Kpop',
       anime_Disney: 'AnimeGANv3_Disney',
       anime_OilPaint: 'AnimeGANv3_Oil-painting',
       anime_Ghibli: 'AnimeGANv3_Ghibli-o1'
+    },
+
+    OCR: 'OCR',
+    OcrModel: {
+
     },
 
     ImgEnhance: 'Image Enhance',

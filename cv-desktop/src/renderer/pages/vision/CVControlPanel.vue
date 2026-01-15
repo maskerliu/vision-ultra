@@ -118,6 +118,30 @@
         </template>
       </van-cell>
 
+      <van-cell center :disabled="!visionStore.enableOCR">
+        <template #title>
+          <van-checkbox shape="square" v-model="visionStore.enableOCR">
+            <van-icon class-prefix="iconfont" name="ocr" style="color: #1B9CFC;" />
+            <span style="margin-left: 5px;">{{ $t('cvControl.OCR') }}</span>
+          </van-checkbox>
+        </template>
+        <template #value>
+          <van-popover v-model:show="showOCRModels" :show-arrow="false" placement="bottom-end" overlay>
+            <template #reference>
+              {{ visionStore.ocrModel.name }}
+            </template>
+            <van-col class="model-container">
+              <van-cell center clickable :title="$t(`cvControl.GanModel.${model.name}`)" title-class="van-ellipsis"
+                style="margin-left: 4px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
+                <template #right-icon>
+                  <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                </template>
+              </van-cell>
+            </van-col>
+          </van-popover>
+        </template>
+      </van-cell>
+
       <van-checkbox shape="square" v-model="visionStore.cvOptions.enableDetect" style="margin: 15px;">
         Opencv
       </van-checkbox>
@@ -378,15 +402,17 @@ const showObjRecModels = ref(false)
 const ObjRecModelGrop = new Map<string, Array<ModelInfo>>()
 const DetectModels = [
   { name: 'yolov8n', desc: '3.2M', type: ModelType.Detect },
-  { name: 'yolov10n', desc: '2.3M', type: ModelType.Detect },
+  { name: 'yolov10s', desc: '7.2M', type: ModelType.Detect },
   { name: 'yolo11n', desc: '2.6M', type: ModelType.Detect },
-  { name: 'yolo11s', desc: '2.3M', type: ModelType.Detect },
+  { name: 'yolo11s', desc: '9.4M', type: ModelType.Detect },
   { name: 'mobilenet', desc: '', type: ModelType.Detect }
 ]
 const SegmentModels = [
-  { name: 'deeplab', desc: '', type: ModelType.Segment },
-  { name: 'yolo11n-seg', desc: '2.6M', type: ModelType.Segment },
+  { name: 'deeplab-ade', desc: 'class: 150', type: ModelType.Segment },
+  { name: 'deeplab-cityspace', desc: 'class: 20', type: ModelType.Segment },
+  { name: 'yolo11n-seg', desc: 'class: 80', type: ModelType.Segment },
   { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.Segment },
+  { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.Segment },
   { name: 'unet', desc: '', type: ModelType.Segment },
   { name: 'sam', desc: '38.9M', type: ModelType.Segment }
 ]
@@ -394,11 +420,13 @@ const SegmentModels = [
 const showGanModels = ref(false)
 const GanModels = [
   { name: 'animeGANv3', desc: '1.2M', type: ModelType.GenImage },
-  { name: 'Anime_Kpop', desc: '1.2M', type: ModelType.GenImage },
-  { name: 'Anime_Disney', desc: '2.0M', type: ModelType.GenImage },
-  { name: 'Anime_OilPaint', desc: '4.6M', type: ModelType.GenImage },
-  { name: 'Anime_Ghibli', desc: '12.4M', type: ModelType.GenImage },
+  { name: 'anime_Kpop', desc: '1.2M', type: ModelType.GenImage },
+  { name: 'anime_Disney', desc: '2.0M', type: ModelType.GenImage },
+  { name: 'anime_OilPaint', desc: '4.6M', type: ModelType.GenImage },
+  { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.GenImage },
 ]
+
+const showOCRModels = ref(false)
 
 const showMorphOpts = ref(false)
 const MorphOpts = ['Erode', 'Dilate', 'Open', 'Close', 'Gradient', 'TopHat', 'BlackHat']
