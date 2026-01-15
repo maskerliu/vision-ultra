@@ -309,7 +309,7 @@ watch(
 )
 
 watch(() => visionStore.objDetectModel, async () => {
-  workerStatus.value.showLoading = true
+  // workerStatus.value.showLoading = true
   workerMgr.postMessage(WorkerType.objDetect, {
     cmd: WorkerCMD.init,
     model: JSON.stringify(visionStore.objDetectModel)
@@ -317,7 +317,7 @@ watch(() => visionStore.objDetectModel, async () => {
 })
 
 watch(() => visionStore.ganModel, async () => {
-  workerStatus.value.showLoading = true
+  // workerStatus.value.showLoading = true
   workerMgr.postMessage(WorkerType.imageGen, {
     cmd: WorkerCMD.init,
     model: JSON.stringify(visionStore.ganModel)

@@ -1,5 +1,4 @@
 import Hls from 'hls.js'
-import { drawObjectDetectResult, drawTFFaceResult, } from './DrawUtils'
 import { WorkerManager, WorkerType } from './WorkerManager'
 import { WorkerCMD } from './misc'
 
@@ -71,8 +70,7 @@ export class VideoPlayer {
       this._workerMgr?.postMessage(WorkerType.cvProcess,
         { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
 
-      if (this._workerMgr.frame)
-        this.previewCtx.putImageData(this._workerMgr.frame, 0, 0)
+      this._workerMgr.drawPreview()
     } else {
       this.previewCtx.drawImage(this.offscreenCtx.canvas, 0, 0)
 
@@ -86,22 +84,16 @@ export class VideoPlayer {
             { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
         }
 
-        if (this._frames == 6) {
+        if (this._frames == 5) {
           this._workerMgr?.postMessage(WorkerType.objDetect,
-            { cmd: WorkerCMD.process, image: data })
+            { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
         }
         this._frames++
       }
     }
 
-    drawTFFaceResult(this.previewCtx, this._workerMgr.face, 'none', true, true)
-
-    this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
-    drawTFFaceResult(this.captureCtx, this._workerMgr.faceMesh, 'mesh', false, false, this.captureCtx.canvas.height)
-
-    drawObjectDetectResult(this.previewCtx, this._workerMgr.objects?.boxes,
-      this._workerMgr.objects?.scores, this._workerMgr.objects?.classes,
-      this._workerMgr.objects?.objNum, this._workerMgr.objects?.scale)
+    this._workerMgr.drawFace()
+    this._workerMgr.drawObjects()
 
     this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '12px Arial'

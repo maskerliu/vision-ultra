@@ -40,14 +40,12 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           face: faceDetector.face,
           tface: faceDetector.tface,
         })
-
         break
       case WorkerCMD.faceCapture:
         // await faceDetector.facCapture(event.data.image)
         break
     }
   } catch (error) {
-    console.error(error)
     data = Object.assign(data, { error: (error as Error).message })
   } finally {
     ctx.postMessage(data)
