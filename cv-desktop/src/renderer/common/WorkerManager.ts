@@ -4,7 +4,7 @@ import CVProcessWorker from '../cvProcess.worker?worker'
 import FaceDetectWorker from '../faceDetect.worker?worker'
 import ImageGenWoker from '../imageGen.worker?worker'
 import ObjDetectWorker from '../objDetect.worker?worker'
-import { drawTFFaceResult } from './DrawUtils'
+import { drawObjectDetectResult, drawTFFaceResult } from './DrawUtils'
 import { FaceDetectResult, ModelType, ObjectDetectResult, WorkerCMD } from './misc'
 
 export enum WorkerType { faceDetect, objDetect, cvProcess, imageGen }
@@ -126,17 +126,17 @@ export class WorkerManager {
     switch (target) {
       case WorkerType.cvProcess: {
         worker = new CVProcessWorker()
-        worker.addEventListener('message', this.handleCVProcessMessage.bind(this))
+        worker.addEventListener('message', this.onCVProcessMessage.bind(this))
         break
       }
       case WorkerType.faceDetect: {
         worker = new FaceDetectWorker()
-        worker.addEventListener('message', this.handleFaceDetectMessage.bind(this))
+        worker.addEventListener('message', this.onFaceDetectMessage.bind(this))
         break
       }
       case WorkerType.objDetect: {
         worker = new ObjDetectWorker()
-        worker.addEventListener('message', this.handleObjDetectMessage.bind(this))
+        worker.addEventListener('message', this.onObjDetectMessage.bind(this))
         break
       }
       case WorkerType.imageGen:
@@ -181,7 +181,7 @@ export class WorkerManager {
     if (!this._enableObjDetect && target == WorkerType.objDetect) return
     if (!this._enableImageGen && target == WorkerType.imageGen) return
 
-    if (target == WorkerType.faceDetect && data.cmd == WorkerCMD.process)
+    if ((target == WorkerType.faceDetect || target == WorkerType.cvProcess) && data.cmd == WorkerCMD.process)
       this._workerStatus.showLoading = false
     else
       this._workerStatus.showLoading = true
@@ -201,40 +201,42 @@ export class WorkerManager {
     }
   }
 
-  private handleCVProcessMessage(event: MessageEvent) {
+  private onCVProcessMessage(event: MessageEvent) {
     // console.log('[main] cvProcess', event.data)
     this._workerStatus.showLoading = false
     this._workerStatus.showProcess = false
 
     switch (event.data.type) {
       case 'processed':
-        this._frame = event.data.result
+        if (this._frame == null) {
+          this._frame = new ImageData(event.data.result.width, event.data.result.height)
+        }
+        this._frame.data.set(event.data.result.data)
         if (this._drawMode == WorkerDrawMode.video) {
 
-          if (this._frames == 8) {
+          if (this._frames == 6) {
             this.postMessage(WorkerType.faceDetect,
-              { cmd: WorkerCMD.process, image: this._frame }, [this._frame.data.buffer])
+              { cmd: WorkerCMD.process, image: event.data.result }, [event.data.result.data.buffer])
 
             this._frames = 1
           } else {
-            if (this._frames == 4) {
+            if (this._frames == 3) {
               this.postMessage(WorkerType.faceDetect,
-                { cmd: WorkerCMD.process, image: this._frame }, [this._frame.data.buffer])
+                { cmd: WorkerCMD.process, image: event.data.result }, [event.data.result.data.buffer])
             }
 
-            if (this._frames == 6) {
+            if (this._frames == 5) {
               this.postMessage(WorkerType.objDetect,
-                { cmd: WorkerCMD.process, image: this._frame }, [this._frame.data.buffer])
+                { cmd: WorkerCMD.process, image: event.data.result }, [event.data.result.data.buffer])
             }
             this._frames++
           }
         } else {
-          this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: this._frame })
-          this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: this._frame })
-        }
+          this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: event.data.result })
+          this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: event.data.result })
 
-        this.previewCtx.clearRect(0, 0, this._frame.width, this._frame.height)
-        this.previewCtx.putImageData(this._frame, 0, 0)
+          this.drawPreview()
+        }
         break
       case 'contours':
         console.log(event.data.contours)
@@ -243,7 +245,7 @@ export class WorkerManager {
     }
   }
 
-  private handleFaceDetectMessage(event: MessageEvent<any>) {
+  private onFaceDetectMessage(event: MessageEvent<any>) {
     // console.log('[main] faceDetect', event.data)
     this._workerStatus.showLoading = false
     this._workerStatus.showProcess = false
@@ -252,11 +254,7 @@ export class WorkerManager {
       case 'face':
         this._face = event.data.face
         if (this._drawMode == WorkerDrawMode.image) {
-          drawTFFaceResult(this.previewCtx, this._face, 'none', this._drawEigen, true)
-          this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
-          if (this._drawFaceMesh) {
-            drawTFFaceResult(this.captureCtx, this._face, 'mesh', false, false, this.captureCtx.canvas.height)
-          }
+          this.drawFace()
         }
 
         // live2dPanel.value?.animateLive2DModel(event.data.tface)
@@ -264,7 +262,8 @@ export class WorkerManager {
     }
   }
 
-  private handleObjDetectMessage(event: MessageEvent) {
+
+  private onObjDetectMessage(event: MessageEvent) {
     // console.log('[main] objDetect', event.data)
     this._workerStatus.showLoading = false
     this._workerStatus.showProcess = false
@@ -282,6 +281,28 @@ export class WorkerManager {
         break
     }
   }
+
+  public drawPreview() {
+    if (this._frame != null) {
+      this.previewCtx.clearRect(0, 0, this._frame.width, this._frame.height)
+      this.previewCtx.putImageData(this._frame, 0, 0)
+    }
+  }
+
+  public drawFace() {
+    drawTFFaceResult(this.previewCtx, this._face, 'none', this._drawEigen, true)
+    this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
+    if (this._drawFaceMesh) {
+      drawTFFaceResult(this.captureCtx, this._face, 'mesh', false, false, this.captureCtx.canvas.height)
+    }
+  }
+
+  public drawObjects() {
+    drawObjectDetectResult(this.previewCtx, this.objects?.boxes,
+      this.objects?.scores, this.objects?.classes,
+      this.objects?.objNum, this.objects?.scale)
+  }
+
 
   private drawMask() {
     let length = 0
@@ -328,7 +349,6 @@ export class WorkerManager {
 
     this.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.findContours, masks: this._objects.masks, rects })
   }
-
 
   private drawContours(contours: Array<[number, number]>) {
     contours.forEach(points => {
