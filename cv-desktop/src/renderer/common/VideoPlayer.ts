@@ -70,7 +70,7 @@ export class VideoPlayer {
       this._workerMgr?.postMessage(WorkerType.cvProcess,
         { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
 
-      this._workerMgr.drawPreview()
+      this._workerMgr.onDraw()
     } else {
       this.previewCtx.drawImage(this.offscreenCtx.canvas, 0, 0)
 
@@ -151,8 +151,5 @@ export class VideoPlayer {
     if (this.preVideo.srcObject) {
       (this.preVideo.srcObject as MediaStream).getTracks().forEach(track => track.stop())
     }
-
-    // this.offscreenCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height)
-    // this.previewCtx.clearRect(0, 0, this.preview.width, this.preview.height)
   }
 }
