@@ -402,7 +402,8 @@ const showObjRecModels = ref(false)
 const ObjRecModelGrop = new Map<string, Array<ModelInfo>>()
 const DetectModels = [
   { name: 'yolov8n', desc: '3.2M', type: ModelType.Detect },
-  { name: 'yolov10n', desc: '7.2M', type: ModelType.Detect },
+  { name: 'yolov10n', desc: '2.3M', type: ModelType.Detect },
+  { name: 'yolov10s', desc: '7.2M', type: ModelType.Detect },
   { name: 'yolo11n', desc: '2.6M', type: ModelType.Detect },
   { name: 'yolo11s', desc: '9.4M', type: ModelType.Detect },
   { name: 'mobilenet', desc: '', type: ModelType.Detect }
@@ -413,6 +414,7 @@ const SegmentModels = [
   { name: 'yolo11n-seg', desc: 'class: 80', type: ModelType.Segment },
   { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.Segment },
   { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.Segment },
+  { name: 'yolo26s-seg', desc: '10.4', type: ModelType.Segment },
   { name: 'unet', desc: '', type: ModelType.Segment },
   { name: 'sam', desc: '38.9M', type: ModelType.Segment }
 ]

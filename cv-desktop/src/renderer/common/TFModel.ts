@@ -88,6 +88,11 @@ export class TFModel {
         result = await this.model.executeAsync(params)
         break
       case 'animeGANv3':
+        result = tf.tidy(() => {
+          // const wrapper = input.div(255.0)
+          // params[argKey] = input
+          return this.model.execute(params)
+        })
       case 'deeplab-ade':
       case 'deeplab-cityspace':
         result = this.model.execute(params)
@@ -119,14 +124,13 @@ export class TFModel {
       if (this.needResize()) {
         const width = Math.round(image.width / this.scale[0])
         const height = Math.round(image.height / this.scale[1])
-        return tf.image.resizeBilinear(img, [height, width])
-          .div(255.0).expandDims(0).cast(dtype)
+        return tf.image.resizeBilinear(img, [height, width]).expandDims().cast(dtype)
       }
 
       // any size mobilenet
       if (this.name == 'mobilenet') {
         this.scale[0] = this.scale[1] = 1
-        return tf.expandDims(img)
+        return tf.expandDims(img).cast(dtype)
       }
 
       // pad image to model size 
