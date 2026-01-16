@@ -88,6 +88,7 @@ export class AnnotationPanel {
       stroke: '#2C3A47',
       fill: '#ecf0f1',
       strokeWidth: 0,
+      width: 50,
       shadow: new fabric.Shadow({
         color: 'rgb(49, 41, 41)',
         blur: 4,
@@ -202,8 +203,13 @@ export class AnnotationPanel {
   }
 
   private updateLabelText() {
-    this.labelText.set('text', `${this._activeObjects[0]?.get('label')} ${this._activeObjects[0]?.get('score')}% \n${this._activeObjects[0]?.get('uuid')}`)
+    this.labelText.set('text', `${this._activeObjects[0]?.get('label')} ${this._activeObjects[0]?.get('score')}% \n${this._activeObjects[0]?.get('uuid')?.substr(0, 8)}`)
     this.labelText.left = Math.round(this._activeObjects[0].left + this._activeObjects[0].width * this._activeObjects[0].scaleX + 10)
+
+    if (this.labelText.left > this._canvas.width - this.labelText.width) {
+      this.labelText.left = Math.round(this.labelText.left - 20 - this.labelText.width)
+    }
+
     this.labelText.top = Math.round(this._activeObjects[0].top)
     this.labelText.visible = true
 

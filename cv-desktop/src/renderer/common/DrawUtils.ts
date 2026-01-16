@@ -72,7 +72,7 @@ function drawPath(ctx: CanvasRenderingContext2D, points: Float16Array, start: nu
 
 function drawFaceCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
   ctx.strokeStyle = MarkColors.SILVERY
-  ctx.lineWidth = 3
+  ctx.lineWidth = 6
 
   const w = box.width / 6
   //   [box.xMin + w, box.yMin], [box.xMin, box.yMin], [box.xMin, box.yMin + w]
@@ -199,7 +199,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   switch (mesh) {
     case 'mesh':
       ctx.strokeStyle = MarkColors.SILVERY
-      ctx.lineWidth = 0.5
+      ctx.lineWidth = 1
       for (let i = 0; i < TRIANGULATION.length / 3; i++) {
         [TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2]].forEach((val, idx) => {
           SharedPaths.mesh[i * 3 * FACE_DIMS + idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * normilize + orginX
@@ -224,7 +224,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   if (!eigen) return
   for (const [label, contour] of Object.entries(FACEMESH_CONTOUR)) {
     ctx.strokeStyle = LABEL_TO_COLOR[label]
-    ctx.lineWidth = 2
+    ctx.lineWidth = 3
     contour.forEach((val, idx) => {
       SharedPaths[label][idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * normilize + orginX
       SharedPaths[label][idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * normilize + originY

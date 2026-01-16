@@ -196,7 +196,10 @@ export class WorkerManager {
       case 'generated':
         let imageData = new ImageData(event.data.width, event.data.height)
         imageData.data.set(event.data.image)
+        this.previewCtx.save()
+        this.previewCtx.scale(4, 4)
         this.previewCtx.putImageData(imageData, 0, 0)
+        this.previewCtx.restore()
         break
     }
   }
@@ -322,7 +325,9 @@ export class WorkerManager {
     let length = 0
     let offset = 0
 
-    if (this._objects.segSize == null || this._objects.segSize[0] <= 0 || this._objects.segSize[1] <= 0) return
+    if (this._objects.segSize == null ||
+      this._objects.segSize[0] <= 0 || this._objects.segSize[1] <= 0 ||
+      this._objects.masks == null) return
 
     const imageData = new ImageData(this._objects.segSize[0], this._objects.segSize[1])
     let rects = []
