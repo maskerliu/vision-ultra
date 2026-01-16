@@ -96,9 +96,9 @@ export class VideoPlayer {
     this._workerMgr.drawObjects()
 
     this.previewCtx.fillStyle = '#ff4757'
-    this.previewCtx.font = '12px Arial'
+    this.previewCtx.font = '24px Arial'
     this.previewCtx.fillText(`Face: ${this._workerMgr.face ? this._workerMgr.face.expire : '-'}ms\n 
-      Object: ${this._workerMgr.objects ? this._workerMgr.objects.expire : '-'}ms`, 10, 10)
+      Object: ${this._workerMgr.objects ? this._workerMgr.objects.expire : '-'}ms`, 20, 20)
   }
 
 
@@ -115,7 +115,12 @@ export class VideoPlayer {
 
     try {
       if (url == null) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { min: 720, ideal: 1280, max: 1920 },
+            height: { min: 776, ideal: 720, max: 1080 }
+          }
+        })
         this.preVideo.srcObject = stream
         this.flip = flip
       } else {
@@ -125,6 +130,13 @@ export class VideoPlayer {
         if (url.endsWith('.m3u8') && Hls.isSupported()) {
           this.hls.loadSource(url)
           this.hls.attachMedia(this.preVideo)
+          this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            var variants = this.hls.levels // 获取所有变体（质量等级）信息
+            variants.forEach(function (variant) {
+              console.log('Variant:', variant)
+              console.log('Bitrate:', variant.bitrate) // 打印每个变体的码率
+            })
+          })
           this.flip = false
           this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
             this.preVideo.play()

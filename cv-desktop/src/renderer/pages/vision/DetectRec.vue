@@ -140,10 +140,7 @@ const recFace = ref<string>()
 const isEigenNameValid = ref(true)
 const isWeb = window.isWeb
 
-// const canvasW = ref(640)
-// const canvasH = ref(480)
-
-const previewSize = ref<[number, number]>([640, 480])
+const previewSize = ref<[number, number]>([640, 360])
 const annotationPanel = useTemplateRef<typeof AnnotationPanel>('annotationPanel')
 
 const showLoading = inject<Ref<boolean>>('showLoading')
@@ -174,11 +171,11 @@ onMounted(async () => {
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   previewCtx.imageSmoothingEnabled = false
-  // previewCtx.scale(dpr, dpr)
+  previewCtx.scale(1 / dpr, 1 / dpr)
 
   maskCtx = mask.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
-  offscreenCtx.scale(1 / dpr, 1 / dpr)
+  // offscreenCtx.scale(dpr, dpr)
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
 
   updateSize()
@@ -232,20 +229,20 @@ async function openFolder() {
     showControlBar.value = false
     var img = new Image()
     img.onload = async function () {
-      let w = img.width / dpr, h = img.height / dpr, ratio = 1
-      if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 35)) {
-        ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 35) / h)
+      let w = img.width, h = img.height, ratio = 1
+      if (w > previewParent.value.$el.clientWidth * dpr || h > (previewParent.value.$el.clientHeight - 35) * dpr) {
+        ratio = Math.min(previewParent.value.$el.clientWidth * dpr / w, (previewParent.value.$el.clientHeight - 35) * dpr / h)
       }
-      w = img.width / dpr * ratio
-      h = img.height / dpr * ratio
+      w = img.width * ratio
+      h = img.height * ratio
 
-      previewSize.value = [Math.round(w), Math.round(h)]
+      previewSize.value = [Math.round(w / dpr), Math.round(h / dpr)]
 
-      preview.value.style.width = Math.round(w) + 'px'
-      preview.value.style.height = Math.round(h) + 'px'
+      preview.value.style.width = Math.round(w / dpr) + 'px'
+      preview.value.style.height = Math.round(h / dpr) + 'px'
 
-      offscreen.value.width = preview.value.width = mask.value.width = Math.round(w) * dpr
-      offscreen.value.height = preview.value.height = mask.value.height = Math.round(h) * dpr
+      offscreen.value.width = preview.value.width = mask.value.width = Math.round(w)
+      offscreen.value.height = preview.value.height = mask.value.height = Math.round(h)
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
 
