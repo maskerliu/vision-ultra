@@ -44,7 +44,7 @@
 
     <media-controller audio class="media-controller">
       <Transition>
-        <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-size="[canvasW, canvasH]" />
+        <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-size="previewSize" />
       </Transition>
       <!-- <van-empty v-show="hasPreview" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 2000;" /> -->
       <canvas ref="preview"></canvas>
@@ -140,8 +140,10 @@ const recFace = ref<string>()
 const isEigenNameValid = ref(true)
 const isWeb = window.isWeb
 
-const canvasW = ref(640)
-const canvasH = ref(480)
+// const canvasW = ref(640)
+// const canvasH = ref(480)
+
+const previewSize = ref<[number, number]>([640, 480])
 const annotationPanel = useTemplateRef<typeof AnnotationPanel>('annotationPanel')
 
 const showLoading = inject<Ref<boolean>>('showLoading')
@@ -151,6 +153,8 @@ let maskCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let captureCtx: CanvasRenderingContext2D
 let videoPlayer: VideoPlayer = null
+
+const dpr = window.devicePixelRatio || 1
 
 let workerMgr: WorkerManager = null
 const workerStatus = ref<WorkerStatus>({
@@ -166,15 +170,18 @@ onMounted(async () => {
     console.log(previewParent.value.$el.clientWidth, previewParent.value.$el.clientHeight)
   })
 
-  preview.value.width = canvasW.value
-  preview.value.height = canvasH.value
-  offscreen.value.width = canvasW.value
-  offscreen.value.height = canvasH.value
+
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
+  previewCtx.imageSmoothingEnabled = false
+  // previewCtx.scale(dpr, dpr)
+
   maskCtx = mask.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
+  offscreenCtx.scale(1 / dpr, 1 / dpr)
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
+
+  updateSize()
 
   workerMgr = new WorkerManager(previewCtx, captureCtx, maskCtx)
   workerMgr.workerStatus = workerStatus.value
@@ -225,54 +232,58 @@ async function openFolder() {
     showControlBar.value = false
     var img = new Image()
     img.onload = async function () {
-      let w = img.width, h = img.height
+      let w = img.width / dpr, h = img.height / dpr, ratio = 1
       if (w > previewParent.value.$el.clientWidth || h > (previewParent.value.$el.clientHeight - 35)) {
-        const ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 35) / h)
-        w = img.width * ratio
-        h = img.height * ratio
+        ratio = Math.min(previewParent.value.$el.clientWidth / w, (previewParent.value.$el.clientHeight - 35) / h)
       }
-      offscreen.value.width = preview.value.width = mask.value.width = w
-      offscreen.value.height = preview.value.height = mask.value.height = h
+      w = img.width / dpr * ratio
+      h = img.height / dpr * ratio
 
-      canvasW.value = w
-      canvasH.value = h
+      previewSize.value = [Math.round(w), Math.round(h)]
 
+      preview.value.style.width = Math.round(w) + 'px'
+      preview.value.style.height = Math.round(h) + 'px'
+
+      offscreen.value.width = preview.value.width = mask.value.width = Math.round(w) * dpr
+      offscreen.value.height = preview.value.height = mask.value.height = Math.round(h) * dpr
       offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
       offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
 
-      onScan()
+      drawImage()
     }
     img.src = file
   })
 }
 
 async function onScan() {
-  let frame = drawImage()
-  if (frame == null) return
-
-  workerMgr.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: frame })
-  workerMgr.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: frame })
-  workerMgr.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image: frame })
-
+  drawImage()
 }
 
 function drawImage() {
 
-  if (videoPlayer.isOpen) return
+  if (workerMgr?.drawMode == WorkerDrawMode.video) return
 
-  let imgData = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  workerMgr.postMessage(WorkerType.cvProcess, {
-    cmd: WorkerCMD.process,
-    image: imgData,
-  }, [imgData.data.buffer])
-
+  let image = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
   if (!visionStore.enableCVProcess) {
-    previewCtx.clearRect(0, 0, imgData.width, imgData.height)
-    previewCtx.putImageData(imgData, 0, 0)
-    return imgData
-  }
+    previewCtx.clearRect(0, 0, image.width, image.height)
+    previewCtx.drawImage(offscreen.value, 0, 0)
 
-  return null
+    workerMgr.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image })
+    workerMgr.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image })
+    workerMgr.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image })
+  } else {
+    workerMgr.postMessage(WorkerType.cvProcess,
+      { cmd: WorkerCMD.process, image, },
+      [image.data.buffer])
+  }
+}
+
+function updateSize() {
+  preview.value.style.width = previewSize.value[0] + 'px'
+  preview.value.style.height = previewSize.value[1] + 'px'
+
+  offscreen.value.width = preview.value.width = mask.value.width = previewSize.value[0] * dpr
+  offscreen.value.height = preview.value.height = mask.value.height = previewSize.value[1] * dpr
 }
 
 watch(

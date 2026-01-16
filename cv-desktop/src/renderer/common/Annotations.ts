@@ -85,18 +85,19 @@ export class AnnotationPanel {
     this.labelText = new fabric.FabricText(`-- 0.0%`, {
       fontSize: 12,
       fontFamily: 'sans-serif',
-      stroke: '#ecf0f1',
+      stroke: '#2C3A47',
+      fill: '#ecf0f1',
+      strokeWidth: 0,
       shadow: new fabric.Shadow({
-        color: 'rgb(0,0,0)',
-        blur: 2,
-        offsetX: 4,
+        color: 'rgb(49, 41, 41)',
+        blur: 4,
+        offsetX: 2,
         offsetY: 4,
         affectStroke: true,
         includeDefaultValues: true,
         nonScaling: false
       }),
       lineHeight: 1.2,
-      strokeWidth: 1,
       selectable: false,
       visible: false
     })
@@ -128,8 +129,10 @@ export class AnnotationPanel {
     for (let key of this._markerGroup.keys()) {
       this._markerGroup.set(key, [])
     }
+    this._canvas.remove(this.labelText)
     this._canvas.clear()
     this.addGrid()
+    this._canvas.add(this.labelText)
     this._canvas.requestRenderAll()
   }
 
@@ -200,8 +203,8 @@ export class AnnotationPanel {
 
   private updateLabelText() {
     this.labelText.set('text', `${this._activeObjects[0]?.get('label')} ${this._activeObjects[0]?.get('score')}% \n${this._activeObjects[0]?.get('uuid')}`)
-    this.labelText.left = this._activeObjects[0].left + this._activeObjects[0].width * this._activeObjects[0].scaleX + 10
-    this.labelText.top = this._activeObjects[0].top
+    this.labelText.left = Math.round(this._activeObjects[0].left + this._activeObjects[0].width * this._activeObjects[0].scaleX + 10)
+    this.labelText.top = Math.round(this._activeObjects[0].top)
     this.labelText.visible = true
 
     this._canvas.bringObjectToFront(this.labelText)

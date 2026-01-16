@@ -66,6 +66,7 @@ export default {
     ObjSegment: 'Segment',
     ObjModel: {
       yolov8n: 'YOLOv8 (via Ultralytics)',
+      yolov10n: 'YOLOv10(via Tsinghua university)',
       yolov10s: 'YOLOv10(via Tsinghua university)',
       yolo11n: 'YOLO11n(lastest)',
       yolo11s: 'YOLO11s(lastest)',

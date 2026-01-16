@@ -402,7 +402,7 @@ const showObjRecModels = ref(false)
 const ObjRecModelGrop = new Map<string, Array<ModelInfo>>()
 const DetectModels = [
   { name: 'yolov8n', desc: '3.2M', type: ModelType.Detect },
-  { name: 'yolov10s', desc: '7.2M', type: ModelType.Detect },
+  { name: 'yolov10n', desc: '7.2M', type: ModelType.Detect },
   { name: 'yolo11n', desc: '2.6M', type: ModelType.Detect },
   { name: 'yolo11s', desc: '9.4M', type: ModelType.Detect },
   { name: 'mobilenet', desc: '', type: ModelType.Detect }
@@ -500,7 +500,7 @@ async function onModelUpload(data: any) {
 }
 
 .model-container {
-  width: 285px;
+  width: 288px;
   height: 260px;
   overflow: hidden scroll;
   padding-top: 10px;
