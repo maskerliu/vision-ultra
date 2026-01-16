@@ -208,19 +208,23 @@ export class WorkerManager {
 
     switch (event.data.type) {
       case 'processed':
-        if (this._frame == null) {
+        if (this._frame == null ||
+          this._frame.width != event.data.result.width ||
+          this._frame.height != event.data.height) {
           this._frame = new ImageData(event.data.result.width, event.data.result.height)
         }
+
         this._frame.data.set(event.data.result.data)
+
         if (this._drawMode == WorkerDrawMode.video) {
 
-          if (this._frames == 6) {
+          if (this._frames == 8) {
             this.postMessage(WorkerType.faceDetect,
               { cmd: WorkerCMD.process, image: event.data.result }, [event.data.result.data.buffer])
 
             this._frames = 1
           } else {
-            if (this._frames == 3) {
+            if (this._frames == 4) {
               this.postMessage(WorkerType.faceDetect,
                 { cmd: WorkerCMD.process, image: event.data.result }, [event.data.result.data.buffer])
             }
@@ -234,13 +238,24 @@ export class WorkerManager {
         } else {
           this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: event.data.result })
           this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: event.data.result })
+          this.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image: event.data.result })
 
-          this.drawPreview()
+          this.onDraw()
         }
         break
       case 'contours':
-        console.log(event.data.contours)
+        event.data.contours.forEach(points => {
+          points.forEach(p => {
+            p[0] *= this.objects.scale[0] * this._objects.segScale[0]
+            p[1] *= this.objects.scale[1] * this._objects.segScale[1]
+          })
+        })
+
         this.drawContours(event.data.contours)
+
+        this._annotationPanel?.drawAnnotations(this._objects.boxes,
+          this._objects.scores, this._objects.classes,
+          this._objects.objNum, this._objects.scale, event.data.contours)
         break
     }
   }
@@ -282,7 +297,7 @@ export class WorkerManager {
     }
   }
 
-  public drawPreview() {
+  public onDraw() {
     if (this._frame != null) {
       this.previewCtx.clearRect(0, 0, this._frame.width, this._frame.height)
       this.previewCtx.putImageData(this._frame, 0, 0)
@@ -302,7 +317,6 @@ export class WorkerManager {
       this.objects?.scores, this.objects?.classes,
       this.objects?.objNum, this.objects?.scale)
   }
-
 
   private drawMask() {
     let length = 0
@@ -351,16 +365,12 @@ export class WorkerManager {
   }
 
   private drawContours(contours: Array<[number, number]>) {
-    contours.forEach(points => {
-      points.forEach(p => {
-        p[0] *= this.objects.scale[0] * this._objects.segScale[0]
-        p[1] *= this.objects.scale[1] * this._objects.segScale[1]
-      })
-    })
-
-    this.previewCtx.save()
-    // this.previewCtx.scale(this.objects.scale[0] * this._objects.segScale[0],
-    //   this.objects.scale[1] * this._objects.segScale[1])
+    // contours.forEach(points => {
+    //   points.forEach(p => {
+    //     p[0] *= this.objects.scale[0] * this._objects.segScale[0]
+    //     p[1] *= this.objects.scale[1] * this._objects.segScale[1]
+    //   })
+    // })
 
     for (let i = 0; i < contours.length; ++i) {
       let points = contours[i]
@@ -376,8 +386,6 @@ export class WorkerManager {
       this.previewCtx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.8)`
       this.previewCtx.stroke()
     }
-
-    this.previewCtx.restore()
   }
 
   private drawOverlay() {

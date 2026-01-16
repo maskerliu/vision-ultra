@@ -171,20 +171,21 @@ function getLabel(id: number) {
 }
 
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
-  objNum: number, scale: [number, number]) {
+  objNum: number, scale: [number, number], contours?: Array<[number, number]>) {
   annotationPanel.clear()
   if (objNum == 0) return
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
 
+  const dpr = window.devicePixelRatio
   for (let i = 0; i < objNum; ++i) {
     score = (scores[i] * 100).toFixed(1)
     // if (scores[i] * 100 < 30) continue
 
     let label = labeTab.value.getLabel(classes[i])
-    y1 = boxes[i * 4] * scale[1]
-    x1 = boxes[i * 4 + 1] * scale[0]
-    y2 = boxes[i * 4 + 2] * scale[1]
-    x2 = boxes[i * 4 + 3] * scale[0]
+    y1 = boxes[i * 4] * scale[1] / dpr
+    x1 = boxes[i * 4 + 1] * scale[0] / dpr
+    y2 = boxes[i * 4 + 2] * scale[1] / dpr
+    x2 = boxes[i * 4 + 3] * scale[0] / dpr
     let rect = annotationPanel.genRect(x1, y1, x2, y2)
     rect.set(AnnotationPanel.genLabelOption(label))
     rect.set({ score, uuid: uuidv4() })
