@@ -18,7 +18,7 @@ defineExpose({ animateLive2DModel })
 onMounted(async () => {
   let options: Live2DModelOptions = {
     // autoAnimate: false,
-    scale: 4,
+    scale: 1,
     randomMotion: false,
     // enablePan: false,
     doubleClickReset: false,

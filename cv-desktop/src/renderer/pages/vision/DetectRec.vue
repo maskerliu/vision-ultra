@@ -61,13 +61,13 @@
       </media-control-bar>
     </media-controller>
 
-    <live2d-panel ref="live2dPanel" v-if="visionStore.live2d" />
+    <live2d-panel ref="live2dPanel" v-show="visionStore.live2d" />
 
     <Transition>
       <div ref="eigenFace" class="eigen-face" v-show="visionStore.enableFaceDetect">
-        <canvas ref="capture" width="120" height="140"></canvas>
-        <canvas ref="masklayer" width="120" height="140"
-          style="position: absolute; top: 5px; left: 5px; z-index: 3000; display: none;"></canvas>
+        <canvas ref="capture" width="220" height="280" style="width: 120px; height: 140px;"></canvas>
+        <canvas ref="masklayer" width="220" height="280"
+          style="width: 120px; height: 140px; position: absolute; top: 5px; left: 5px; z-index: 3000;"></canvas>
       </div>
     </Transition>
 
@@ -109,12 +109,6 @@ import { CommonStore, VisionStore } from '../../store'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
 import ApmPanel from '../components/ApmPanel.vue'
 import Live2dPanel from './Live2dPanel.vue'
-//   loader: () => import('./Live2dPanel.vue'),
-//   loadingComponent: Loading,
-//   hydrate: () => {
-//     console.info('loaded')
-//   }
-// })
 
 const visionStore = VisionStore()
 const commonStore = CommonStore()
@@ -128,8 +122,10 @@ const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
-const live2dPanel = useTemplateRef('live2dPanel')
+const annotationPanel = useTemplateRef<typeof AnnotationPanel>('annotationPanel')
+const live2dPanel = useTemplateRef<typeof Live2dPanel>('live2dPanel')
 
+const previewSize = ref<[number, number]>([640, 360])
 const showAnnotationPanel = ref(true)
 const showNameInputDialog = ref(false)
 const showLiveStreamInput = ref(false)
@@ -140,15 +136,13 @@ const recFace = ref<string>()
 const isEigenNameValid = ref(true)
 const isWeb = window.isWeb
 
-const previewSize = ref<[number, number]>([640, 360])
-const annotationPanel = useTemplateRef<typeof AnnotationPanel>('annotationPanel')
-
 const showLoading = inject<Ref<boolean>>('showLoading')
 
 let previewCtx: CanvasRenderingContext2D
-let maskCtx: CanvasRenderingContext2D
 let offscreenCtx: CanvasRenderingContext2D
 let captureCtx: CanvasRenderingContext2D
+let masklayerCtx: CanvasRenderingContext2D
+let maskCtx: CanvasRenderingContext2D
 let videoPlayer: VideoPlayer = null
 
 const dpr = window.devicePixelRatio || 1
@@ -160,6 +154,8 @@ const workerStatus = ref<WorkerStatus>({
   error: null
 })
 
+let img: HTMLImageElement = null
+
 onMounted(async () => {
   window.addEventListener('beforeunload', () => { videoPlayer?.close() })
 
@@ -167,24 +163,22 @@ onMounted(async () => {
     console.log(previewParent.value.$el.clientWidth, previewParent.value.$el.clientHeight)
   })
 
-
-
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   previewCtx.imageSmoothingEnabled = false
-  previewCtx.scale(1 / dpr, 1 / dpr)
 
   maskCtx = mask.value.getContext('2d', { willReadFrequently: true })
   offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
-  // offscreenCtx.scale(dpr, dpr)
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
+  masklayerCtx = masklayer.value.getContext('2d', { willReadFrequently: true })
 
   updateSize()
 
-  workerMgr = new WorkerManager(previewCtx, captureCtx, maskCtx)
+  workerMgr = new WorkerManager(previewCtx, captureCtx, masklayerCtx, maskCtx)
   workerMgr.workerStatus = workerStatus.value
-  workerMgr.annotationPanel = annotationPanel.value
   workerMgr.drawEigen = visionStore.drawEigen
   workerMgr.drawFaceMesh = visionStore.drawFaceMesh
+  workerMgr.annotationPanel = annotationPanel.value
+  workerMgr.live2dPanel = live2dPanel.value
 
   videoPlayer = new VideoPlayer(preVideo.value, preview.value, offscreen.value, capture.value)
   videoPlayer.workerMgr = workerMgr
@@ -203,6 +197,7 @@ function onDeleteHistory(idx: number) {
 }
 
 async function onClickCamera() {
+  previewSize.value = [640, 360]
   await videoPlayer.open()
   showControlBar.value = true
   workerMgr.drawMode = videoPlayer.isOpen ? WorkerDrawMode.video : WorkerDrawMode.image
@@ -214,6 +209,8 @@ async function onConfirmName() {
     showNameInputDialog.value = true
     return
   }
+
+  workerMgr.faceCapture(eigenName.value)
 
   // todo
   // workerMgr.postMessage(WorkerType.tracker, { cmd: [WorkerCMD.faceCapture], name: eigenName.value })
@@ -227,8 +224,8 @@ async function openFolder() {
     videoPlayer.close()
     workerMgr.drawMode = WorkerDrawMode.image
     showControlBar.value = false
-    var img = new Image()
-    img.onload = async function () {
+    img = new Image()
+    img.onload = function () {
       let w = img.width, h = img.height, ratio = 1
       if (w > previewParent.value.$el.clientWidth * dpr || h > (previewParent.value.$el.clientHeight - 35) * dpr) {
         ratio = Math.min(previewParent.value.$el.clientWidth * dpr / w, (previewParent.value.$el.clientHeight - 35) * dpr / h)
@@ -237,16 +234,6 @@ async function openFolder() {
       h = img.height * ratio
 
       previewSize.value = [Math.round(w / dpr), Math.round(h / dpr)]
-
-      preview.value.style.width = Math.round(w / dpr) + 'px'
-      preview.value.style.height = Math.round(h / dpr) + 'px'
-
-      offscreen.value.width = preview.value.width = mask.value.width = Math.round(w)
-      offscreen.value.height = preview.value.height = mask.value.height = Math.round(h)
-      offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
-      offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
-
-      drawImage()
     }
     img.src = file
   })
@@ -261,17 +248,15 @@ function drawImage() {
   if (workerMgr?.drawMode == WorkerDrawMode.video) return
 
   let image = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
-  if (!visionStore.enableCVProcess) {
-    previewCtx.clearRect(0, 0, image.width, image.height)
-    previewCtx.drawImage(offscreen.value, 0, 0)
-
-    workerMgr.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image })
-    workerMgr.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image })
-    workerMgr.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image })
+  if (visionStore.enableCVProcess) {
+    workerMgr?.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image, }, [image.data.buffer])
   } else {
-    workerMgr.postMessage(WorkerType.cvProcess,
-      { cmd: WorkerCMD.process, image, },
-      [image.data.buffer])
+    previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
+    previewCtx?.drawImage(offscreen.value, 0, 0)
+
+    workerMgr?.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image })
+    workerMgr?.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image })
+    workerMgr?.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image })
   }
 }
 
@@ -281,7 +266,19 @@ function updateSize() {
 
   offscreen.value.width = preview.value.width = mask.value.width = previewSize.value[0] * dpr
   offscreen.value.height = preview.value.height = mask.value.height = previewSize.value[1] * dpr
+
+  offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
+  if (img != null) {
+    offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
+    img = null
+  }
+
+  drawImage()
 }
+
+watch(() => previewSize.value, () => {
+  updateSize()
+})
 
 watch(
   () => workerStatus.value,
@@ -312,12 +309,11 @@ watch(
     })
     workerMgr.enableFaceDetect = visionStore.enableFaceDetect
 
-    if (!visionStore.enableFaceDetect) visionStore.live2d = visionStore.enableFaceDetect
+    if (!visionStore.enableFaceDetect) visionStore.live2d = false
   }
 )
 
 watch(() => visionStore.objDetectModel, async () => {
-  // workerStatus.value.showLoading = true
   workerMgr.postMessage(WorkerType.objDetect, {
     cmd: WorkerCMD.init,
     model: JSON.stringify(visionStore.objDetectModel)
@@ -325,7 +321,6 @@ watch(() => visionStore.objDetectModel, async () => {
 })
 
 watch(() => visionStore.ganModel, async () => {
-  // workerStatus.value.showLoading = true
   workerMgr.postMessage(WorkerType.imageGen, {
     cmd: WorkerCMD.init,
     model: JSON.stringify(visionStore.ganModel)
