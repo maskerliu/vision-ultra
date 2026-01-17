@@ -1,4 +1,5 @@
-import { NormalizedLandmark } from '@mediapipe/face_mesh'
+
+import { NormalizedLandmark } from '@mediapipe/tasks-vision'
 import { Def_Object_Labels } from './Annotations'
 import { MARK_COLORS, MarkColors } from './CVColors'
 import { BoundingBox, FaceDetectResult } from './misc'
@@ -139,10 +140,9 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceDetec
   face.box.width = xMax - xMin
   face.box.height = yMax - yMin
 
-  let normilize = Math.max(face.box.width, face.box.height)
   for (let i = 0; i < face.landmarks.length; i += FACE_DIMS) {
-    face.landmarks[i] = (face.landmarks[i] - face.box.xMin) / normilize
-    face.landmarks[i + 1] = (face.landmarks[i + 1] - face.box.yMin) / normilize
+    face.landmarks[i] = (face.landmarks[i] - face.box.xMin) / face.box.width
+    face.landmarks[i + 1] = (face.landmarks[i + 1] - face.box.yMin) / face.box.height
   }
 
   face.valid = true
@@ -185,12 +185,17 @@ export function drawObjectDetectResult(ctx: CanvasRenderingContext2D,
 
 export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   face: FaceDetectResult, mesh: 'mesh' | 'dot' | 'none' = 'none',
-  eigen = false, boundingBox = false, scale?: number) {
+  eigen = false, boundingBox = false, size?: [number, number]) {
   CREATE_SHARE_PATHS()
   if (face?.landmarks == null || face?.landmarks?.length === 0) return
-  let normilize = scale ? scale : Math.max(face.box.width, face.box.height)
-  let orginX = scale ? 0 : face.box.xMin
-  let originY = scale ? 0 : face.box.yMin
+  let orginX = face.box.xMin, originY = face.box.yMin, normilize = Math.max(face.box.width, face.box.height)
+  let scale = [face.box.width, face.box.height]
+  if (size) {
+    scale[0] = size[0]
+    scale[1] = size[1]
+    orginX = 0
+    originY = 0
+  }
 
   if (boundingBox && face.box != null) {
     drawFaceCorner(ctx, face.box)
@@ -202,8 +207,8 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
       ctx.lineWidth = 1
       for (let i = 0; i < TRIANGULATION.length / 3; i++) {
         [TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2]].forEach((val, idx) => {
-          SharedPaths.mesh[i * 3 * FACE_DIMS + idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * normilize + orginX
-          SharedPaths.mesh[i * 3 * FACE_DIMS + idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * normilize + originY
+          SharedPaths.mesh[i * 3 * FACE_DIMS + idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * scale[0] + orginX
+          SharedPaths.mesh[i * 3 * FACE_DIMS + idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * scale[1] + originY
           if (FACE_DIMS == 3) SharedPaths.mesh[i * 3 * FACE_DIMS + idx * FACE_DIMS + 2] = face.landmarks[val * FACE_DIMS + 2]
         })
         drawPath(ctx, SharedPaths.mesh, i * 3 * FACE_DIMS, i * 3 * FACE_DIMS + 3 * FACE_DIMS, true)
@@ -213,8 +218,8 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
       ctx.fillStyle = MarkColors.SILVERY
       for (let i = 0; i < NUM_KEYPOINTS; i++) {
         ctx.beginPath()
-        ctx.arc(face.landmarks[i * FACE_DIMS] * normilize + orginX,
-          face.landmarks[i * FACE_DIMS + 1] * normilize + originY, 1.5 /* radius */, 0, 2 * Math.PI)
+        ctx.arc(face.landmarks[i * FACE_DIMS] * scale[0] + orginX,
+          face.landmarks[i * FACE_DIMS + 1] * scale[1] + originY, 1.5 /* radius */, 0, 2 * Math.PI)
         ctx.fill()
         ctx.closePath()
       }
@@ -226,18 +231,18 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
     ctx.strokeStyle = LABEL_TO_COLOR[label]
     ctx.lineWidth = 3
     contour.forEach((val, idx) => {
-      SharedPaths[label][idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * normilize + orginX
-      SharedPaths[label][idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * normilize + originY
+      SharedPaths[label][idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * scale[0] + orginX
+      SharedPaths[label][idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * scale[1] + originY
       if (FACE_DIMS == 3) SharedPaths[label][idx * FACE_DIMS + 2] = face.landmarks[val * FACE_DIMS + 2]
     })
     drawPath(ctx, SharedPaths[label], 0, SharedPaths[label].length)
   }
 }
 
-export function getFaceContour(face: FaceDetectResult, scale: number = 1, orginX: number = 0, originY: number = 0) {
+export function getFaceContour(face: FaceDetectResult, size: [number, number], orginX: number = 0, originY: number = 0) {
   FACEMESH_CONTOUR.faceOval.forEach((val, idx) => {
-    SharedPaths.faceOval[idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * scale + orginX
-    SharedPaths.faceOval[idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * scale + originY
+    SharedPaths.faceOval[idx * FACE_DIMS] = face.landmarks[val * FACE_DIMS] * size[0] + orginX
+    SharedPaths.faceOval[idx * FACE_DIMS + 1] = face.landmarks[val * FACE_DIMS + 1] * size[1] + originY
     if (FACE_DIMS == 3) SharedPaths.faceOval[idx * FACE_DIMS + 2] = face.landmarks[val * FACE_DIMS + 2]
   })
 

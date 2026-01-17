@@ -9,7 +9,7 @@ import webpack, { Configuration } from 'webpack'
 // import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 import TerserPlugin from 'terser-webpack-plugin'
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
-import pkg from '../../package.json' assert { type: "json" }
+import pkg from '../package.json' assert { type: "json" }
 import { BaseConfig } from './webpack.base.config'
 
 const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
