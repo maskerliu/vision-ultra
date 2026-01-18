@@ -17,7 +17,7 @@ defineExpose({ animateLive2DModel })
 
 onMounted(async () => {
   let options: Live2DModelOptions = {
-    // autoAnimate: false,
+    autoAnimate: false,
     scale: 1,
     randomMotion: false,
     // enablePan: false,
@@ -43,7 +43,7 @@ function animateLive2DModel(face: TFace) {
 
 function rigFace(result: TFace, lerpAmount = 0.7) {
 
-  liveModel.eyeBlink = undefined
+  // liveModel.eyeBlink = undefined
 
   const dampener = 0.3
   let Params: Array<{ name: string, value: number, lerp?: number }> = [
@@ -59,6 +59,7 @@ function rigFace(result: TFace, lerpAmount = 0.7) {
   ]
 
   for (let param of Params) {
+    console.log(param.name, liveModel.getParameterValue(param.name))
     liveModel.setParameter(param.name,
       lerp(param.value, liveModel.getParameterValue(param.name), param.lerp ? param.lerp : lerpAmount)
     )
@@ -68,16 +69,8 @@ function rigFace(result: TFace, lerpAmount = 0.7) {
   // Interpolate based on old blendshape, then stabilize blink with `Kalidokit` helper function.
   let stabilizedEyes = Face.stabilizeBlink(
     {
-      l: lerp(
-        result.eye.l,
-        liveModel.getParameterValue("ParamEyeLOpen"),
-        0.7
-      ),
-      r: lerp(
-        result.eye.r,
-        liveModel.getParameterValue("ParamEyeROpen"),
-        0.7
-      )
+      l: lerp(result.eye.l, liveModel.getParameterValue("ParamEyeLOpen"), 0.7),
+      r: lerp(result.eye.r, liveModel.getParameterValue("ParamEyeROpen"), 0.7)
     },
     result.head.y
   )

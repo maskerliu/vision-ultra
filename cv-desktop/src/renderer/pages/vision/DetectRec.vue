@@ -1,9 +1,5 @@
 <template>
   <van-col ref="previewParent">
-    <Transition>
-      <apm-panel v-if="commonStore.showApm" />
-    </Transition>
-
     <van-row style="height: 30px;">
       <van-button plain round size="mini" class="top-btn" style="margin-left:5px;"
         :type="showAnnotationPanel ? 'primary' : 'default'" @click="showAnnotationPanel = !showAnnotationPanel">
@@ -107,7 +103,6 @@ import { VideoPlayer } from '../../common/VideoPlayer'
 import { WorkerDrawMode, WorkerManager, WorkerStatus, WorkerType } from '../../common/WorkerManager'
 import { CommonStore, VisionStore } from '../../store'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
-import ApmPanel from '../components/ApmPanel.vue'
 import Live2dPanel from './Live2dPanel.vue'
 
 const visionStore = VisionStore()
@@ -393,7 +388,7 @@ watch(
   right: 15px;
   padding: 5px;
   border-radius: 12px;
-  border: 2px solid #f1f2f699;
+  border: 1px solid #f1f2f6d8;
   background-color: #2f3542;
   z-index: 2000;
 }

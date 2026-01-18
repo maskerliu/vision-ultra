@@ -1,6 +1,11 @@
 <template>
   <van-row>
     <div class="drag-bar" v-if="!isWeb"></div>
+
+    <Transition>
+      <apm-panel v-if="commonStore.showApm" />
+    </Transition>
+
     <van-col class="left-panel">
       <van-row justify="space-between">
         <van-row style="color: #c0392b;">
@@ -36,6 +41,7 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 import { ConfigProviderTheme, Loading } from 'vant'
 import { defineAsyncComponent, inject, onMounted, provide, Ref, ref, watch } from 'vue'
 import { CommonStore } from '../../store'
+import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
 import CvControlPanel from './CVControlPanel.vue'
 import FaceDbMgr from './FaceDbMgr.vue'
