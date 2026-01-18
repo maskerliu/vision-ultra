@@ -44,8 +44,8 @@
       </Transition>
       <!-- <van-empty v-show="hasPreview" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 2000;" /> -->
       <canvas ref="preview"></canvas>
-      <canvas ref="offscreen" style="display: none;"></canvas>
-      <canvas ref="mask" style="display: none;"></canvas>
+      <!-- <canvas ref="offscreen" style="display: none;"></canvas> -->
+      <canvas ref="mask" style="display: block; position: absolute; top: 50px; left: 50px;"></canvas>
       <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
       <media-control-bar style="position: absolute; bottom: 0; left: 0; right: 0;" v-if="showControlBar">
         <media-play-button></media-play-button>
@@ -111,7 +111,7 @@ const commonStore = CommonStore()
 const previewParent = useTemplateRef<typeof Col>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
-const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
+// const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
 const mask = useTemplateRef<HTMLCanvasElement>('mask')
 const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
@@ -134,7 +134,8 @@ const isWeb = window.isWeb
 const showLoading = inject<Ref<boolean>>('showLoading')
 
 let previewCtx: CanvasRenderingContext2D
-let offscreenCtx: CanvasRenderingContext2D
+let offscreen: OffscreenCanvas
+let offscreenCtx: OffscreenCanvasRenderingContext2D
 let captureCtx: CanvasRenderingContext2D
 let masklayerCtx: CanvasRenderingContext2D
 let maskCtx: CanvasRenderingContext2D
@@ -162,20 +163,22 @@ onMounted(async () => {
   previewCtx.imageSmoothingEnabled = false
 
   maskCtx = mask.value.getContext('2d', { willReadFrequently: true })
-  offscreenCtx = offscreen.value.getContext('2d', { willReadFrequently: true })
+
+  offscreen = new OffscreenCanvas(preview.value.width, preview.value.height)
+  offscreenCtx = offscreen.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
   masklayerCtx = masklayer.value.getContext('2d', { willReadFrequently: true })
 
   updateSize()
 
-  workerMgr = new WorkerManager(previewCtx, captureCtx, masklayerCtx, maskCtx)
+  workerMgr = new WorkerManager(previewCtx, captureCtx, maskCtx)
   workerMgr.workerStatus = workerStatus.value
   workerMgr.drawEigen = visionStore.drawEigen
   workerMgr.drawFaceMesh = visionStore.drawFaceMesh
   workerMgr.annotationPanel = annotationPanel.value
   workerMgr.live2dPanel = live2dPanel.value
 
-  videoPlayer = new VideoPlayer(preVideo.value, preview.value, offscreen.value, capture.value)
+  videoPlayer = new VideoPlayer(preVideo.value, preview.value)
   videoPlayer.workerMgr = workerMgr
 })
 
@@ -242,12 +245,12 @@ function drawImage() {
 
   if (workerMgr?.drawMode == WorkerDrawMode.video) return
 
-  let image = offscreenCtx.getImageData(0, 0, offscreen.value.width, offscreen.value.height)
+  let image = offscreenCtx.getImageData(0, 0, offscreen.width, offscreen.height)
   if (visionStore.enableCVProcess) {
     workerMgr?.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image, }, [image.data.buffer])
   } else {
     previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
-    previewCtx?.drawImage(offscreen.value, 0, 0)
+    previewCtx?.drawImage(offscreen, 0, 0)
 
     workerMgr?.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image })
     workerMgr?.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image })
@@ -259,12 +262,12 @@ function updateSize() {
   preview.value.style.width = previewSize.value[0] + 'px'
   preview.value.style.height = previewSize.value[1] + 'px'
 
-  offscreen.value.width = preview.value.width = mask.value.width = previewSize.value[0] * dpr
-  offscreen.value.height = preview.value.height = mask.value.height = previewSize.value[1] * dpr
+  offscreen.width = preview.value.width = mask.value.width = previewSize.value[0] * dpr
+  offscreen.height = preview.value.height = mask.value.height = previewSize.value[1] * dpr
 
-  offscreenCtx.clearRect(0, 0, offscreen.value.width, offscreen.value.height)
+  offscreenCtx.clearRect(0, 0, offscreen.width, offscreen.height)
   if (img != null) {
-    offscreenCtx.drawImage(img, 0, 0, offscreen.value.width, offscreen.value.height)
+    offscreenCtx.drawImage(img, 0, 0, offscreen.width, offscreen.height)
     img = null
   }
 

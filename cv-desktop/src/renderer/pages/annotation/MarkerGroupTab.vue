@@ -47,7 +47,7 @@
 import * as fabric from 'fabric'
 import { Cell, Popup } from 'vant'
 import { onMounted, ref, useTemplateRef } from 'vue'
-import { AnnotationPanel, CVLabel, DrawType } from '../../common'
+import { AnnotationManager, CVLabel, DrawType } from '../../common'
 
 const activeMarkerGroup = ref(DrawType.Rect) // 展开的标注组
 const curMarker = ref<fabric.FabricObject>()
@@ -142,7 +142,7 @@ function showLabelSearchResult(type: DrawType, idx: number) {
 }
 
 function updateMarkerLabel(label: CVLabel) {
-  curMarker.value.set(AnnotationPanel.genLabelOption(label))
+  curMarker.value.set(AnnotationManager.genLabelOption(label))
   curMarker.value.canvas.requestRenderAll()
   showLabelSearch.value = false
 }

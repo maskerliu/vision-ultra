@@ -87,27 +87,24 @@ export class ObjectTracker {
       this.scores.set(scoresTF?.dataSync().slice(0, this.objNum))
       this.classes.set(classesTF?.dataSync().slice(0, this.objNum))
 
-      let maskCoeffsTF: tf.Tensor
-      if (YoloSeg.indexOf(this._model.name) != -1) {
-        if (result[3] == null) return null
-        maskCoeffsTF = result[3].gather(nms, 0)
+      if (result[3]) {
+        const maskCoeffsTF = result[3].gather(nms, 0)
         return this.generateMasks(maskCoeffsTF, res[1])
       }
     })
 
-    tf.dispose([res, ...result])
     this._expire = Date.now() - time
 
-    if (YoloSeg.indexOf(this._model.name) != -1) {
-      let wrapper = res as tf.Tensor[]
-      let [height, width] = wrapper[1].shape.slice(1)
+    if (overlay != null) {
+      let [height, width] = res[1].shape.slice(1)
       this._segSize[0] = width
       this._segSize[1] = height
       this._segScale[0] = this._model.modelWidth / width
       this._segScale[1] = this._model.modelHeight / height
       await this.yolo11nSegment(overlay)
-      tf.dispose([...wrapper])
     }
+
+    tf.dispose([res, ...result, overlay])
   }
 
   /**
@@ -128,8 +125,7 @@ export class ObjectTracker {
    */
   private async yoyoCommon(res: tf.Tensor | tf.Tensor[]) {
     return tf.tidy(() => {
-      let boxes: tf.Tensor, scores: tf.Tensor, classes: tf.Tensor, maskCoeffs: tf.Tensor
-      let transRes: tf.Tensor
+      let boxes: tf.Tensor, scores: tf.Tensor, classes: tf.Tensor, maskCoeffs: tf.Tensor, transRes: tf.Tensor
 
       if (this._model.name == 'yolov10n') {
         transRes = res[1]
@@ -145,7 +141,7 @@ export class ObjectTracker {
         boxes = tf.concat([y1, x1, y2, x2,], 2).squeeze()
         scores = transRes.slice([0, 0, 4], [-1, -1, 1]).squeeze()
         classes = transRes.slice([0, 0, 5], [-1, -1, 1]).squeeze()
-        return [boxes, scores, classes, maskCoeffs]
+        return [boxes, scores, classes, null]
       }
 
       if (this._model.name == 'yolo26s-seg') {
@@ -218,8 +214,6 @@ export class ObjectTracker {
       tf.dispose([iou, binary])
       i++
     }
-
-    tf.dispose([overlay])
   }
 
   private generateMasks(maskCoeffs: tf.Tensor, proto: tf.Tensor) {
