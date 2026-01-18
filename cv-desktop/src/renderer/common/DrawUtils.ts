@@ -73,7 +73,7 @@ function drawPath(ctx: CanvasRenderingContext2D, points: Float16Array, start: nu
 
 function drawFaceCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
   ctx.strokeStyle = MarkColors.SILVERY
-  ctx.lineWidth = 6
+  ctx.lineWidth = 4
 
   const w = box.width / 6
   //   [box.xMin + w, box.yMin], [box.xMin, box.yMin], [box.xMin, box.yMin + w]
