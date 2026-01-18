@@ -80,7 +80,7 @@ export const VisionStore = defineStore('VisionStore', {
       modelEngine: 'tensorflow', // tensorflow or onnx
 
       enableObjDetect: false,
-      objDetectModel: { name: 'deeplab-ade', type: ModelType.Segment },
+      objDetectModel: { name: 'yolo11m-seg', type: ModelType.Segment },
 
       enableFaceDetect: false,
       drawFaceMesh: true,

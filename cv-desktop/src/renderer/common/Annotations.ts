@@ -37,7 +37,7 @@ export enum DrawType {
 }
 
 
-export class AnnotationPanel {
+export class AnnotationManager {
   private _canvas: fabric.Canvas
   private _drawType: DrawType = DrawType.Select
   private _label: CVLabel
@@ -225,7 +225,7 @@ export class AnnotationPanel {
       }
 
       this.drawingObject = this.genPoly(this.polyTmpPoints, this._drawType)
-      this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
+      this.drawingObject.set(AnnotationManager.genLabelOption(this._label))
       this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
       this.drawingObject.set({ evented: false, selectable: false })
       if (this._drawType == DrawType.MultiLine) this.drawingObject.set({ fill: 'transparent' })
@@ -253,14 +253,14 @@ export class AnnotationPanel {
       this.onPolyDrawing = true
 
       let circle = this.genCircle(pointer.x - 6, pointer.y - 6, pointer.x + 6, pointer.y + 6)
-      circle.set(AnnotationPanel.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
+      circle.set(AnnotationManager.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
       circle.set({ strokeWidth: 1, selectable: false, evented: false })
       if (this.polyTmpPoints.length == 0) circle.set({ fill: '#f39c12', strokeWidth: 2 })
       this._canvas.add(circle)
       this.polyTmpObjects.push(circle)
 
       this.drawingObject = this.genLine(pointer.x, pointer.y, pointer.x, pointer.y)
-      this.drawingObject.set(AnnotationPanel.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
+      this.drawingObject.set(AnnotationManager.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
       this.drawingObject.set({ strokeWidth: 2, selectable: false, evented: false })
       this._canvas.add(this.drawingObject)
       this.polyTmpObjects.push(this.drawingObject)
@@ -283,7 +283,7 @@ export class AnnotationPanel {
         break
     }
 
-    this.drawingObject.set(AnnotationPanel.genLabelOption(this._label))
+    this.drawingObject.set(AnnotationManager.genLabelOption(this._label))
     this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
     this.drawingObject.set({ evented: false, selectable: false })
     this._canvas.add(this.drawingObject)
@@ -358,7 +358,7 @@ export class AnnotationPanel {
 
   genRect(x1: number, y1: number, x2: number, y2: number) {
 
-    const rect = new fabric.Rect(AnnotationPanel.CommonObjectOptions)
+    const rect = new fabric.Rect(AnnotationManager.CommonObjectOptions)
     rect.set({
       left: x1,
       top: y1,
@@ -376,7 +376,7 @@ export class AnnotationPanel {
 
   genCircle(x1: number, y1: number, x2: number, y2: number) {
 
-    const circle = new fabric.Circle(AnnotationPanel.CommonObjectOptions)
+    const circle = new fabric.Circle(AnnotationManager.CommonObjectOptions)
     circle.set({
       left: x1,
       top: y1,
@@ -392,16 +392,16 @@ export class AnnotationPanel {
   }
 
   genLine(x1: number, y1: number, x2: number, y2: number) {
-    const line = new fabric.Line([x1, y1, x2, y2], AnnotationPanel.CommonObjectOptions)
+    const line = new fabric.Line([x1, y1, x2, y2], AnnotationManager.CommonObjectOptions)
     return line
   }
 
   genPoly(points: fabric.XY[], type: DrawType) {
     let poly: fabric.Polygon | fabric.Polyline
     if (type == DrawType.Polygon)
-      poly = new fabric.Polygon(points, AnnotationPanel.genCommonOption())
+      poly = new fabric.Polygon(points, AnnotationManager.genCommonOption())
     if (type == DrawType.MultiLine)
-      poly = new fabric.Polyline(points, AnnotationPanel.genCommonOption())
+      poly = new fabric.Polyline(points, AnnotationManager.genCommonOption())
 
     poly.set({ editing: true })
     poly.on('mousedblclick', () => {
@@ -478,24 +478,24 @@ export class AnnotationPanel {
     ]
 
     let rect = this.genRect(120, 200, 220, 280)
-    rect.set(AnnotationPanel.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
+    rect.set(AnnotationManager.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
     rect.set('score', '90.4')
     rect.set('uuid', uuidv4())
     this._canvas.add(rect)
 
     rect = this.genRect(240, 250, 320, 380)
-    rect.set(AnnotationPanel.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
+    rect.set(AnnotationManager.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
     rect.set('score', '90.4')
     rect.set('uuid', uuidv4())
     this._canvas.add(rect)
 
     let poly = this.genPoly(points, DrawType.Polygon)
-    poly.set(AnnotationPanel.genLabelOption({ id: 0, name: 'person', color: '#e74c3c' }))
+    poly.set(AnnotationManager.genLabelOption({ id: 0, name: 'person', color: '#e74c3c' }))
     poly.set('score', '90.4')
     poly.set('uuid', uuidv4())
     this._canvas.add(poly)
 
-    let path = new fabric.Path('M 10 10 C 20 20, 40 20, 50 10 C 250,30 300,50 300,100 ', AnnotationPanel.genCommonOption())
+    let path = new fabric.Path('M 10 10 C 20 20, 40 20, 50 10 C 250,30 300,50 300,100 ', AnnotationManager.genCommonOption())
     path.set({ fill: 'transparent', stroke: '#e74c3c', })
     path.set({ left: 100, top: 100 })
     this._canvas.add(path)

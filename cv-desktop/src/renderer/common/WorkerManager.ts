@@ -21,7 +21,7 @@ export type WorkerStatus = {
 export class WorkerManager {
   private previewCtx: CanvasRenderingContext2D
   private captureCtx: CanvasRenderingContext2D
-  private masklayerCtx: CanvasRenderingContext2D
+  private masklayerCtx: OffscreenCanvasRenderingContext2D
   private maskCtx: CanvasRenderingContext2D
 
   private workers: Map<WorkerType, Worker> = new Map()
@@ -120,11 +120,11 @@ export class WorkerManager {
 
   constructor(previewCtx: CanvasRenderingContext2D,
     captureCtx: CanvasRenderingContext2D,
-    masklayerCtx: CanvasRenderingContext2D,
     maskCtx: CanvasRenderingContext2D) {
     this.previewCtx = previewCtx
     this.captureCtx = captureCtx
-    this.masklayerCtx = masklayerCtx
+    let masklayer = new OffscreenCanvas(captureCtx.canvas.width, captureCtx.canvas.height)
+    this.masklayerCtx = masklayer.getContext('2d')
     this.maskCtx = maskCtx
   }
 
@@ -261,7 +261,7 @@ export class WorkerManager {
           })
         })
 
-        this.drawContours(event.data.contours)
+        // this.drawContours(event.data.contours)
 
         this._annotationPanel?.drawAnnotations(this.objects.boxes,
           this.objects.scores, this.objects.classes,
@@ -313,11 +313,11 @@ export class WorkerManager {
   }
 
   public drawFace() {
-    drawTFFaceResult(this.previewCtx, this._face, 'none', this._drawEigen, true)
+    drawTFFaceResult(this.previewCtx, this.face, 'none', this._drawEigen, true)
     this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
     this.masklayerCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
     if (this._drawFaceMesh) {
-      drawTFFaceResult(this.captureCtx, this._face, 'mesh', false, false,
+      drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false,
         [this.captureCtx.canvas.width, this.captureCtx.canvas.height])
     }
   }
@@ -355,43 +355,41 @@ export class WorkerManager {
   }
 
   private drawMask() {
-
+    const dpr = window.devicePixelRatio
     if (this.objects == null || this.objects.objNum == 0 || this.objects.segSize == null ||
       this.objects.segSize[0] <= 0 || this.objects.segSize[1] <= 0 ||
       this.objects.masks == null) return
 
-    let length = 0
-    let offset = 0
-    const imageData = new ImageData(this.objects.segSize[0], this.objects.segSize[1])
+    let offscreen = new OffscreenCanvas(this.objects.segSize[0], this.objects.segSize[1])
+    let offscreenCtx = offscreen.getContext('2d')
+    this.maskCtx.canvas.width = this.objects.segSize[0]
+    this.maskCtx.canvas.height = this.objects.segSize[1]
     let rects = []
     for (let i = 0; i < this.objects.objNum; ++i) {
       let label: CVLabel = this._annotationPanel?.getLabel(this.objects.classes[i])
       let [r, g, b] = MarkColors.hexToRgb(label.color)
       let i4 = i * 4
-      const y1 = this.objects.boxes[i4] / this.objects.segScale[1]
-      const x1 = this.objects.boxes[i4 + 1] / this.objects.segScale[0]
-      const y2 = this.objects.boxes[i4 + 2] / this.objects.segScale[1]
-      const x2 = this.objects.boxes[i4 + 3] / this.objects.segScale[0]
-      length = (y2 - y1) * (x2 - x1)
-      offset += length
-      for (let row = x1; row < x2; ++row) {
-        for (let col = y1; col < y2; ++col) {
-          let id = col * this.objects.segSize[0] + row
-          let absId = (col - y1) * (x2 - x1) + row - x1
-          imageData.data[id * 4] = 255 - r
-          imageData.data[id * 4 + 1] = 255 - g
-          imageData.data[id * 4 + 2] = 155 - b
-          imageData.data[id * 4 + 3] += this.objects.masks[i][absId] == 0 ? 0 : 200
+      const y1 = Math.round(this.objects.boxes[i4] / this.objects.segScale[1])
+      const x1 = Math.round(this.objects.boxes[i4 + 1] / this.objects.segScale[0])
+      const y2 = Math.round(this.objects.boxes[i4 + 2] / this.objects.segScale[1])
+      const x2 = Math.round(this.objects.boxes[i4 + 3] / this.objects.segScale[0])
+      let mask = new ImageData(x2 - x1, y2 - y1)
+      for (let col = 0; col < mask.height; ++col) {
+        for (let row = 0; row < mask.width; ++row) {
+          let id = col * mask.width + row
+          if (this.objects.masks[i][id] != 0) {
+            mask.data[id * 4] = 255 - r
+            mask.data[id * 4 + 1] = 255 - g
+            mask.data[id * 4 + 2] = 255 - b
+            mask.data[id * 4 + 3] = 200
+          }
         }
       }
-
+      offscreenCtx.clearRect(0, 0, offscreen.width, offscreen.height)
+      offscreenCtx.putImageData(mask, x1, y1)
+      this.maskCtx.drawImage(offscreen, 0, 0)
       rects.push([x1, y1, x2 - x1, y2 - y1])
     }
-
-    this.maskCtx.canvas.width = this.objects.segSize[0]
-    this.maskCtx.canvas.height = this.objects.segSize[1]
-    this.maskCtx.clearRect(0, 0, this.maskCtx.canvas.width, this.maskCtx.canvas.height)
-    this.maskCtx.putImageData(imageData, 0, 0)
 
     this.previewCtx.save()
     this.previewCtx.scale(this.objects.scale[0] * this.objects.segScale[0],

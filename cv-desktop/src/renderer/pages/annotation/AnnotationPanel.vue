@@ -76,7 +76,7 @@
 import * as fabric from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
-import { AnnotationPanel, CVLabel, DrawType } from '../../common'
+import { AnnotationManager, CVLabel, DrawType } from '../../common'
 import { VisionStore } from '../../store'
 import LabelGroupTab from './LabelGroupTab.vue'
 import MarkerGroupTab from './MarkerGroupTab.vue'
@@ -103,17 +103,17 @@ const DrawTypes: Array<DrawType> = [
   DrawType.Select, DrawType.Rect, DrawType.Circle, DrawType.Polygon, DrawType.Line, DrawType.MultiLine
 ]
 
-let annotationPanel: AnnotationPanel
+let annoMgr: AnnotationManager
 
-const { canvasSize = [640, 480] } = defineProps<{
+const { canvasSize = [640, 360] } = defineProps<{
   canvasSize: [number, number]
 }>()
 
 defineExpose({ drawAnnotations, getLabel })
 
 watch(() => canvasSize, (val, _) => {
-  annotationPanel.resize(val[0], val[1])
-  annotationPanel.showGrid(true)
+  annoMgr.resize(val[0], val[1])
+  annoMgr.showGrid(true)
 })
 
 watch(() => searchKeyword.value, () => {
@@ -125,31 +125,30 @@ watch(() => activeLabel.value, () => {
 })
 
 watch(() => activeMarkers.value, () => {
-  console.log(activeMarkers.value)
   showPolyTolerance.value = activeMarkers.value[0]?.type == fabric.Polygon.type
 })
 
 onMounted(() => {
-  annotationPanel = new AnnotationPanel(annotationCanvas.value!, canvasSize[0], canvasSize[1])
-  annotationPanel.markerGroup = markerGroup.value as any
-  annotationPanel.activeObjects = activeMarkers.value as any
+  annoMgr = new AnnotationManager(annotationCanvas.value!, canvasSize[0], canvasSize[1])
+  annoMgr.markerGroup = markerGroup.value as any
+  annoMgr.activeObjects = activeMarkers.value as any
 
   activeLabel.value = labeTab.value.getLabel(1)
-  annotationPanel.label = activeLabel.value
+  annoMgr.label = activeLabel.value
   searchKeyword.value = activeLabel.value?.name
 
   for (let i = 1; i < DrawTypes.length; ++i) {
     markerGroup.value.set(DrawTypes[i], [])
   }
 
-  annotationPanel.mock()
-  annotationPanel.showGrid(true)
+  annoMgr.mock()
+  annoMgr.showGrid(true)
 })
 
 function changeLabel(label: CVLabel) {
   activeLabel.value = label
   searchKeyword.value = label.name
-  annotationPanel.label = label
+  annoMgr.label = label
   showLabelSearch.value = false
 }
 
@@ -163,7 +162,7 @@ function onMagic() {
 
 function onDrawSelect(type: DrawType) {
   curDrawType.value = type
-  annotationPanel.changeDrawType(type)
+  annoMgr.changeDrawType(type)
 }
 
 function getLabel(id: number) {
@@ -172,7 +171,7 @@ function getLabel(id: number) {
 
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number], contours?: Array<[number, number]>) {
-  annotationPanel.clear()
+  annoMgr.clear()
   if (objNum == 0) return
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
 
@@ -182,19 +181,30 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
     // if (scores[i] * 100 < 30) continue
 
     let label = labeTab.value.getLabel(classes[i])
-    y1 = boxes[i * 4] * scale[1] / dpr
-    x1 = boxes[i * 4 + 1] * scale[0] / dpr
-    y2 = boxes[i * 4 + 2] * scale[1] / dpr
-    x2 = boxes[i * 4 + 3] * scale[0] / dpr
-    let rect = annotationPanel.genRect(x1, y1, x2, y2)
-    rect.set(AnnotationPanel.genLabelOption(label))
-    rect.set({ score, uuid: uuidv4() })
-    annotationPanel.add(rect)
+
+
+    if (contours && contours[i] && contours[i].length > 8) {
+      let points = contours[i].map(it => { return { x: it[0] / dpr, y: it[1] / dpr } })
+      let poly = annoMgr.genPoly(points, DrawType.Polygon)
+      poly.set(AnnotationManager.genLabelOption(label))
+      poly.set({ score, uuid: uuidv4() })
+      annoMgr.add(poly)
+    } else {
+      y1 = boxes[i * 4] * scale[1] / dpr
+      x1 = boxes[i * 4 + 1] * scale[0] / dpr
+      y2 = boxes[i * 4 + 2] * scale[1] / dpr
+      x2 = boxes[i * 4 + 3] * scale[0] / dpr
+      let rect = annoMgr.genRect(x1, y1, x2, y2)
+      rect.set(AnnotationManager.genLabelOption(label))
+      rect.set({ score, uuid: uuidv4() })
+      annoMgr.add(rect)
+    }
+
   }
-  annotationPanel.requestRenderAll()
+  annoMgr.requestRenderAll()
 
   for (let i = 1; i < DrawTypes.length; ++i) {
-    markerGroup.value.set(DrawTypes[i], annotationPanel.getObjects(DrawTypes[i]))
+    markerGroup.value.set(DrawTypes[i], annoMgr.getObjects(DrawTypes[i]))
   }
 }
 </script>
