@@ -11,8 +11,7 @@ export class VideoPlayer {
   private previewCtx: CanvasRenderingContext2D
 
   // private offscreen: HTMLCanvasElement
-  private offscreenCtx: CanvasRenderingContext2D
-  private captureCtx: CanvasRenderingContext2D
+  private offscreenCtx: OffscreenCanvasRenderingContext2D
 
   private animationId: number
   private flip: boolean = true
@@ -27,8 +26,6 @@ export class VideoPlayer {
 
   constructor(video: HTMLVideoElement,
     preview: HTMLCanvasElement,
-    offscreen: HTMLCanvasElement,
-    capture: HTMLCanvasElement,
     flip: boolean = true) {
     this.hls = new Hls()
 
@@ -37,8 +34,8 @@ export class VideoPlayer {
     // this.offscreen = offscreen
 
     this.previewCtx = preview.getContext('2d', { willReadFrequently: true })
+    let offscreen = new OffscreenCanvas(preview.width, preview.height)
     this.offscreenCtx = offscreen.getContext('2d', { willReadFrequently: true })
-    this.captureCtx = capture.getContext('2d', { willReadFrequently: true })
 
     this.previewCtx.imageSmoothingEnabled = true
     this.previewCtx.imageSmoothingQuality = 'high'

@@ -59,7 +59,7 @@ function rigFace(result: TFace, lerpAmount = 0.7) {
   ]
 
   for (let param of Params) {
-    console.log(param.name, liveModel.getParameterValue(param.name))
+    // console.log(param.name, liveModel.getParameterValue(param.name))
     liveModel.setParameter(param.name,
       lerp(param.value, liveModel.getParameterValue(param.name), param.lerp ? param.lerp : lerpAmount)
     )
