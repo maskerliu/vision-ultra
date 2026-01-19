@@ -86,7 +86,7 @@ export const VisionStore = defineStore('VisionStore', {
       drawFaceMesh: true,
       drawEigen: true,
       landmark: false,
-      live2d: false,
+      live2d: true,
 
       enableImageGen: false,
       ganModel: { name: 'animeGANv3', type: ModelType.GenImage },

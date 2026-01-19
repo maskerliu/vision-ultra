@@ -199,8 +199,6 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
     originY = 0
   }
 
-  console.log(scale)
-
   if (boundingBox && face.box != null) {
     drawFaceCorner(ctx, face.box)
   }

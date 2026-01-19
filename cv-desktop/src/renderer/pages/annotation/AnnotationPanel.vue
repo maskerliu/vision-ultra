@@ -82,7 +82,7 @@ import LabelGroupTab from './LabelGroupTab.vue'
 import MarkerGroupTab from './MarkerGroupTab.vue'
 
 const visionStore = VisionStore()
-const showRightBar = ref(true)
+const showRightBar = ref(false)
 const activeTab = ref(0)
 const labeTab = useTemplateRef<typeof LabelGroupTab>('labeTab')
 const annotationCanvas = useTemplateRef<HTMLCanvasElement>('annotationCanvas')
@@ -117,7 +117,7 @@ watch(() => canvasSize, (val, _) => {
 })
 
 watch(() => searchKeyword.value, () => {
-  searchLabels.value = labeTab.value.searchLabel(searchKeyword.value)
+  searchLabels.value = labeTab.value?.searchLabel(searchKeyword.value)
 })
 
 watch(() => activeLabel.value, () => {
@@ -133,7 +133,7 @@ onMounted(() => {
   annoMgr.markerGroup = markerGroup.value as any
   annoMgr.activeObjects = activeMarkers.value as any
 
-  activeLabel.value = labeTab.value.getLabel(1)
+  activeLabel.value = labeTab.value?.getLabel(1)
   annoMgr.label = activeLabel.value
   searchKeyword.value = activeLabel.value?.name
 

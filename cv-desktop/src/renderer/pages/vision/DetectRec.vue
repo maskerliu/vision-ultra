@@ -110,7 +110,6 @@ const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
 const mask = useTemplateRef<HTMLCanvasElement>('mask')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
-const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
 const annotationPanel = useTemplateRef<typeof AnnotationPanel>('annotationPanel')
 const live2dPanel = useTemplateRef<typeof Live2dPanel>('live2dPanel')
@@ -162,8 +161,9 @@ onMounted(async () => {
   offscreenCtx = offscreen.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
 
-  updateSize()
+  console.log(captureCtx)
 
+  updateSize()
   workerMgr = new WorkerManager(previewCtx, captureCtx, maskCtx)
   workerMgr.workerStatus = workerStatus.value
   workerMgr.drawEigen = visionStore.drawEigen
