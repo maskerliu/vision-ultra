@@ -8,23 +8,12 @@ npm-debug.log
 npm-debug.log.*
 thumbs.db
 !.gitkeep
-# yarn.lock
 package-lock.json
 .yarn/*
 .idea/*
-# .vscode/*
 *.log
 SharePerferences/*
 UserData/**/*
-out/
-resources/*
 log.txt
-
-*.pt
-*.pb
-*.onnx
-*_saved_model
-
 datasets
-cv-desktop/dist/**/*
 
