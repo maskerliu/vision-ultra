@@ -44,7 +44,6 @@
       </Transition>
       <!-- <van-empty v-show="hasPreview" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 2000;" /> -->
       <canvas ref="preview"></canvas>
-      <!-- <canvas ref="offscreen" style="display: none;"></canvas> -->
       <canvas ref="mask" style="display: block; position: absolute; top: 50px; left: 50px;"></canvas>
       <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
       <media-control-bar style="position: absolute; bottom: 0; left: 0; right: 0;" v-if="showControlBar">
@@ -62,8 +61,6 @@
     <Transition>
       <div ref="eigenFace" class="eigen-face" v-show="visionStore.enableFaceDetect">
         <canvas ref="capture" width="220" height="280" style="width: 120px; height: 140px;"></canvas>
-        <canvas ref="masklayer" width="220" height="280"
-          style="width: 120px; height: 140px; position: absolute; top: 5px; left: 5px; z-index: 3000;"></canvas>
       </div>
     </Transition>
 
@@ -111,9 +108,7 @@ const commonStore = CommonStore()
 const previewParent = useTemplateRef<typeof Col>('previewParent')
 const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
-// const offscreen = useTemplateRef<HTMLCanvasElement>('offscreen')
 const mask = useTemplateRef<HTMLCanvasElement>('mask')
-const eigenFace = useTemplateRef<HTMLDivElement>('eigenFace')
 const capture = useTemplateRef<HTMLCanvasElement>('capture')
 const masklayer = useTemplateRef<HTMLCanvasElement>('masklayer')
 
@@ -137,7 +132,6 @@ let previewCtx: CanvasRenderingContext2D
 let offscreen: OffscreenCanvas
 let offscreenCtx: OffscreenCanvasRenderingContext2D
 let captureCtx: CanvasRenderingContext2D
-let masklayerCtx: CanvasRenderingContext2D
 let maskCtx: CanvasRenderingContext2D
 let videoPlayer: VideoPlayer = null
 
@@ -167,7 +161,6 @@ onMounted(async () => {
   offscreen = new OffscreenCanvas(preview.value.width, preview.value.height)
   offscreenCtx = offscreen.getContext('2d', { willReadFrequently: true })
   captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
-  masklayerCtx = masklayer.value.getContext('2d', { willReadFrequently: true })
 
   updateSize()
 
@@ -228,8 +221,8 @@ async function openFolder() {
       if (w > previewParent.value.$el.clientWidth * dpr || h > (previewParent.value.$el.clientHeight - 35) * dpr) {
         ratio = Math.min(previewParent.value.$el.clientWidth * dpr / w, (previewParent.value.$el.clientHeight - 35) * dpr / h)
       }
-      w = img.width * ratio
-      h = img.height * ratio
+      w *= ratio
+      h *= ratio
 
       previewSize.value = [Math.round(w / dpr), Math.round(h / dpr)]
     }
