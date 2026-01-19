@@ -140,6 +140,8 @@ export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceDetec
   face.box.width = xMax - xMin
   face.box.height = yMax - yMin
 
+  face.ratio = width / height
+  let normilize = Math.max(face.box.width, face.box.height)
   for (let i = 0; i < face.landmarks.length; i += FACE_DIMS) {
     face.landmarks[i] = (face.landmarks[i] - face.box.xMin) / face.box.width
     face.landmarks[i + 1] = (face.landmarks[i + 1] - face.box.yMin) / face.box.height
@@ -188,7 +190,7 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
   eigen = false, boundingBox = false, size?: [number, number]) {
   CREATE_SHARE_PATHS()
   if (face?.landmarks == null || face?.landmarks?.length === 0) return
-  let orginX = face.box.xMin, originY = face.box.yMin, normilize = Math.max(face.box.width, face.box.height)
+  let orginX = face.box.xMin, originY = face.box.yMin
   let scale = [face.box.width, face.box.height]
   if (size) {
     scale[0] = size[0]
@@ -196,6 +198,8 @@ export function drawTFFaceResult(ctx: CanvasRenderingContext2D,
     orginX = 0
     originY = 0
   }
+
+  console.log(scale)
 
   if (boundingBox && face.box != null) {
     drawFaceCorner(ctx, face.box)

@@ -17,6 +17,7 @@ export type FaceDetectResult = {
   box: BoundingBox,
   valid: boolean,
   expire: number,
+  ratio: number,
 }
 
 export type BoundingBox = {

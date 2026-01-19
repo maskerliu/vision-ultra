@@ -124,7 +124,7 @@ export class WorkerManager {
     this.previewCtx = previewCtx
     this.captureCtx = captureCtx
     let masklayer = new OffscreenCanvas(captureCtx.canvas.width, captureCtx.canvas.height)
-    this.masklayerCtx = masklayer.getContext('2d')
+    this.masklayerCtx = masklayer.getContext('2d', { willReadFrequently: true })
     this.maskCtx = maskCtx
   }
 
@@ -314,6 +314,13 @@ export class WorkerManager {
 
   public drawFace() {
     drawTFFaceResult(this.previewCtx, this.face, 'none', this._drawEigen, true)
+
+    let ratio = Math.min(this.captureCtx.canvas.width / this.face.box.width,
+      this.captureCtx.canvas.height / this.face.box.height)
+    let finalW = Math.ceil(this.face.box.width * ratio)
+    let finalH = Math.ceil(this.face.box.height * ratio)
+    this.captureCtx.canvas.width = finalW
+    this.captureCtx.canvas.height = finalH
     this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
     this.masklayerCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
     if (this._drawFaceMesh) {
@@ -465,15 +472,22 @@ export class WorkerManager {
       return
     }
 
+
     this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
     this.masklayerCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
 
-    // this.masklayerCtx.clearRect(0, 0, this.masklayer.width, this.masklayer.height)
+    let ratio = Math.min(this.captureCtx.canvas.width / this.face.box.width,
+      this.captureCtx.canvas.height / this.face.box.height)
+
+    let finalW = Math.round(this.face.box.width * ratio)
+    let finalH = Math.round(this.face.box.height * ratio)
+
+    this.masklayerCtx.canvas.width = this.captureCtx.canvas.width = finalW
+    this.masklayerCtx.canvas.height = this.captureCtx.canvas.height = finalH
     this.captureCtx.drawImage(this.previewCtx.canvas,
-      this.face.box.xMin, this.face.box.yMin, this.face.box.width, this.face.box.height,
-      0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
-    let imageData = this.captureCtx.getImageData(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
-    let faceOval = getFaceContour(this.face, [this.captureCtx.canvas.width, this.captureCtx.canvas.height])
+      this.face.box.xMin, this.face.box.yMin, this.face.box.width, this.face.box.height, 0, 0, finalW, finalH,)
+    let imageData = this.captureCtx.getImageData(0, 0, finalW, finalH)
+    let faceOval = getFaceContour(this.face, [finalW, finalH])
     let region = new Path2D()
     region.moveTo(faceOval[0], faceOval[1])
     this.masklayerCtx.moveTo(faceOval[0], faceOval[1])
@@ -483,7 +497,7 @@ export class WorkerManager {
     region.closePath()
     this.masklayerCtx.fillStyle = '#ff000088'
     this.masklayerCtx.fill(region)
-    let maskImgData = this.masklayerCtx.getImageData(0, 0, this.masklayerCtx.canvas.width, this.masklayerCtx.canvas.height)
+    let maskImgData = this.masklayerCtx.getImageData(0, 0, finalW, finalH)
     for (let i = 0; i < maskImgData.data.length; i += 4) {
       if (maskImgData.data[i + 3] != 136) {
         maskImgData.data[i + 3] = 0

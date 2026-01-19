@@ -37,6 +37,7 @@ export class FaceDetector {
       box: { xMin: 0, yMin: 0, xMax: 0, yMax: 0, width: 0, height: 0 },
       valid: false,
       expire: 0,
+      ratio: 0
     }
 
     let filesetResolver = await FilesetResolver.forVisionTasks(
