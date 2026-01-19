@@ -313,6 +313,8 @@ export class WorkerManager {
   }
 
   public drawFace() {
+    if (this.face == null) return
+
     drawTFFaceResult(this.previewCtx, this.face, 'none', this._drawEigen, true)
 
     let ratio = Math.min(this.captureCtx.canvas.width / this.face.box.width,
