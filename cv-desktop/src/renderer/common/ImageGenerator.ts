@@ -1,24 +1,20 @@
 
 import * as tf from '@tensorflow/tfjs'
 import { ModelInfo } from './misc'
-import { TFModel } from './TFModel'
+import { Model } from './Model'
 
 export class ImageGenerator {
 
-  protected model: TFModel = new TFModel()
-
-  private genData: Uint8ClampedArray
+  protected model: Model = new Model()
 
   get isInited() { return this.model.isInited }
 
   async init(info: ModelInfo) {
-    await this.model.init(info.name, info.type)
-
-    this.genData = new Uint8ClampedArray(this.model.modelWidth * this.model.modelHeight * 4)
+    await this.model.init(info)
   }
 
-  dispose() {
-    this.model?.dispose()
+  async dispose() {
+    await this.model?.dispose()
     this.model = null
   }
 
