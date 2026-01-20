@@ -166,7 +166,7 @@ function onDrawSelect(type: DrawType) {
 }
 
 function getLabel(id: number) {
-  return labeTab.value.getLabel(id)
+  return labeTab.value?.getLabel(id)
 }
 
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
@@ -174,14 +174,14 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   annoMgr.clear()
   if (objNum == 0) return
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
-
   const dpr = window.devicePixelRatio
+  if (labeTab.value == null) return
+
   for (let i = 0; i < objNum; ++i) {
     score = (scores[i] * 100).toFixed(1)
     // if (scores[i] * 100 < 30) continue
 
-    let label = labeTab.value.getLabel(classes[i])
-
+    let label = getLabel(classes[i])
 
     if (contours && contours[i] && contours[i].length > 8) {
       let points = contours[i].map(it => { return { x: it[0] / dpr, y: it[1] / dpr } })

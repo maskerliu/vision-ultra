@@ -3,7 +3,7 @@ import {
   cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
   cvFilterType, cvMorph, cvSharpen,
 } from '../../common'
-import { IntergrateMode, ModelType } from '../common/misc'
+import { IntergrateMode, ModelEngine, ModelType } from '../common/misc'
 
 
 class CVOptions {
@@ -77,16 +77,16 @@ export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
       intergrateMode: IntergrateMode.WebAssembly, // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
-      modelEngine: 'tensorflow', // tensorflow or onnx
+      modelEngine: ModelEngine.tensorflow, // tensorflow or onnx
 
       enableObjDetect: false,
-      objDetectModel: { name: 'yolo11m-seg', type: ModelType.Segment },
+      objDetectModel: { name: 'yolo11m-seg', type: ModelType.Segment, engine: ModelEngine.tensorflow },
 
       enableFaceDetect: false,
       drawFaceMesh: true,
       drawEigen: true,
       landmark: false,
-      live2d: true,
+      live2d: false,
 
       enableImageGen: false,
       ganModel: { name: 'animeGANv3', type: ModelType.GenImage },

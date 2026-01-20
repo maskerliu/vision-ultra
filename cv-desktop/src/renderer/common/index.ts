@@ -1,6 +1,5 @@
 export * from './Annotations'
 export * from './CVColors'
-export * from './ONNX'
 export { PushClient } from './PushClient'
 
 export function generateUid(): string {

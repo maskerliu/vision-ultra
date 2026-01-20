@@ -20,7 +20,7 @@ export type WorkerStatus = {
 
 export class WorkerManager {
   private previewCtx: CanvasRenderingContext2D
-  private captureCtx: CanvasRenderingContext2D
+  private eigenCtx: CanvasRenderingContext2D
   private masklayerCtx: OffscreenCanvasRenderingContext2D
   private maskCtx: CanvasRenderingContext2D
 
@@ -122,7 +122,7 @@ export class WorkerManager {
     captureCtx: CanvasRenderingContext2D,
     maskCtx: CanvasRenderingContext2D) {
     this.previewCtx = previewCtx
-    this.captureCtx = captureCtx
+    this.eigenCtx = captureCtx
     let masklayer = new OffscreenCanvas(captureCtx.canvas.width, captureCtx.canvas.height)
     this.masklayerCtx = masklayer.getContext('2d', { willReadFrequently: true })
     this.maskCtx = maskCtx
@@ -317,17 +317,16 @@ export class WorkerManager {
 
     drawTFFaceResult(this.previewCtx, this.face, 'none', this._drawEigen, true)
 
-    let ratio = Math.min(this.captureCtx.canvas.width / this.face.box.width,
-      this.captureCtx.canvas.height / this.face.box.height)
+    let ratio = Math.min(this.eigenCtx.canvas.width / this.face.box.width,
+      this.eigenCtx.canvas.height / this.face.box.height)
     let finalW = Math.ceil(this.face.box.width * ratio)
     let finalH = Math.ceil(this.face.box.height * ratio)
-    this.captureCtx.canvas.width = finalW
-    this.captureCtx.canvas.height = finalH
-    this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
-    this.masklayerCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
+    this.eigenCtx.canvas.width = finalW
+    this.eigenCtx.canvas.height = finalH
+    this.eigenCtx.clearRect(0, 0, finalW, finalH)
+    this.masklayerCtx.clearRect(0, 0, finalW, finalH)
     if (this._drawFaceMesh) {
-      drawTFFaceResult(this.captureCtx, this.face, 'mesh', false, false,
-        [this.captureCtx.canvas.width, this.captureCtx.canvas.height])
+      drawTFFaceResult(this.eigenCtx, this.face, 'mesh', false, false, [finalW, finalH])
     }
   }
 
@@ -376,6 +375,7 @@ export class WorkerManager {
     let rects = []
     for (let i = 0; i < this.objects.objNum; ++i) {
       let label: CVLabel = this._annotationPanel?.getLabel(this.objects.classes[i])
+      if (label == null) continue
       let [r, g, b] = MarkColors.hexToRgb(label.color)
       let i4 = i * 4
       const y1 = Math.round(this.objects.boxes[i4] / this.objects.segScale[1])
@@ -475,20 +475,20 @@ export class WorkerManager {
     }
 
 
-    this.captureCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
-    this.masklayerCtx.clearRect(0, 0, this.captureCtx.canvas.width, this.captureCtx.canvas.height)
+    this.eigenCtx.clearRect(0, 0, this.eigenCtx.canvas.width, this.eigenCtx.canvas.height)
+    this.masklayerCtx.clearRect(0, 0, this.eigenCtx.canvas.width, this.eigenCtx.canvas.height)
 
-    let ratio = Math.min(this.captureCtx.canvas.width / this.face.box.width,
-      this.captureCtx.canvas.height / this.face.box.height)
+    let ratio = Math.min(this.eigenCtx.canvas.width / this.face.box.width,
+      this.eigenCtx.canvas.height / this.face.box.height)
 
     let finalW = Math.round(this.face.box.width * ratio)
     let finalH = Math.round(this.face.box.height * ratio)
 
-    this.masklayerCtx.canvas.width = this.captureCtx.canvas.width = finalW
-    this.masklayerCtx.canvas.height = this.captureCtx.canvas.height = finalH
-    this.captureCtx.drawImage(this.previewCtx.canvas,
+    this.masklayerCtx.canvas.width = this.eigenCtx.canvas.width = finalW
+    this.masklayerCtx.canvas.height = this.eigenCtx.canvas.height = finalH
+    this.eigenCtx.drawImage(this.previewCtx.canvas,
       this.face.box.xMin, this.face.box.yMin, this.face.box.width, this.face.box.height, 0, 0, finalW, finalH,)
-    let imageData = this.captureCtx.getImageData(0, 0, finalW, finalH)
+    let imageData = this.eigenCtx.getImageData(0, 0, finalW, finalH)
     let faceOval = getFaceContour(this.face, [finalW, finalH])
     let region = new Path2D()
     region.moveTo(faceOval[0], faceOval[1])
@@ -508,7 +508,7 @@ export class WorkerManager {
     }
 
     this.masklayerCtx.putImageData(maskImgData, 0, 0)
-    this.captureCtx.putImageData(imageData, 0, 0)
+    this.eigenCtx.putImageData(imageData, 0, 0)
     // this.calacleFaceAngle()
     // this.imgProcessor.imgProcessParams['rotate'] = this._faceAngle
     // this.imgProcessor?.process(imageData)
@@ -516,7 +516,7 @@ export class WorkerManager {
     // this.captureCtx.putImageData(imageData, 0, 0)
     return
 
-    this.captureCtx.canvas.toBlob(async (blob) => {
+    this.eigenCtx.canvas.toBlob(async (blob) => {
       try {
         await FaceRec.registe(name, this.face.landmarks, new File([blob], 'avatar.png', { type: 'image/png' }))
         showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })

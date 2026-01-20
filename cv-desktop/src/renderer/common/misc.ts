@@ -48,6 +48,11 @@ export enum IntergrateMode {
   Native
 }
 
+export enum ModelEngine {
+  tensorflow,
+  onnx
+}
+
 export enum ModelType {
   Unknown = -1,
   Classify = 0,
@@ -64,4 +69,5 @@ export type ModelInfo = {
   name: string,
   type: ModelType
   desc?: string
+  engine?: ModelEngine
 }

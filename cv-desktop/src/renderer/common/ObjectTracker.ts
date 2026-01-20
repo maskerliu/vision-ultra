@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
-import { TFModel } from './TFModel'
+import { Model } from './Model'
 import { ModelInfo, ModelType } from './misc'
 
 const MAX_OBJECTS_NUM: number = 20
@@ -13,7 +13,7 @@ const YoloCommon = ['yolov8n', 'yolo11n', 'yolo11s', 'yolo11m']
 const YoloSeg = ['yolo26s-seg', 'yolo11m-seg', 'yolo11s-seg', 'yolo11n-seg']
 
 export class ObjectTracker {
-  private _model: TFModel = new TFModel()
+  private _model: Model = new Model()
 
   public objNum: number = 0
   private _classNum: number = 0
@@ -41,12 +41,12 @@ export class ObjectTracker {
   get isInited() { return this._model.isInited }
 
   async init(info: ModelInfo) {
-    await this._model.init(info.name, info.type)
+    await this._model.init(info)
     this._classNum = ModelClassSize[this._model.name]
   }
 
-  dispose() {
-    this._model.dispose()
+  async dispose() {
+    await this._model.dispose()
     this.objNum = 0
     this._model = null
   }
@@ -99,8 +99,8 @@ export class ObjectTracker {
       let [height, width] = res[1].shape.slice(1)
       this._segSize[0] = width
       this._segSize[1] = height
-      this._segScale[0] = this._model.modelWidth / width
-      this._segScale[1] = this._model.modelHeight / height
+      this._segScale[0] = this._model.inShape[1] / width
+      this._segScale[1] = this._model.inShape[0] / height
       await this.yolo11nSegment(overlay)
     }
 

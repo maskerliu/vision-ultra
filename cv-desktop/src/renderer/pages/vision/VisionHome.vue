@@ -38,21 +38,22 @@
 <script lang="ts" setup>
 
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import { ConfigProviderTheme, Loading } from 'vant'
-import { defineAsyncComponent, inject, onMounted, provide, Ref, ref, watch } from 'vue'
+import { ConfigProviderTheme } from 'vant'
+import { inject, onMounted, provide, Ref, ref, watch } from 'vue'
 import { CommonStore } from '../../store'
 import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
 import CvControlPanel from './CVControlPanel.vue'
+import DetectRec from './DetectRec.vue'
 import FaceDbMgr from './FaceDbMgr.vue'
 
-const DetectRec = defineAsyncComponent({
-  loader: () => import('./DetectRec.vue'),
-  loadingComponent: Loading,
-  hydrate: () => {
-    console.info('loaded')
-  }
-})
+// const DetectRec = defineAsyncComponent({
+//   loader: () => import('./DetectRec.vue'),
+//   loadingComponent: Loading,
+//   hydrate: () => {
+//     console.info('loaded')
+//   }
+// })
 
 const isWeb = window.isWeb
 const theme = inject<Ref<ConfigProviderTheme>>('theme')

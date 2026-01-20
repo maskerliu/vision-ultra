@@ -18,7 +18,7 @@
       <van-cell center :title="$t('cvControl.ModelEngine')">
         <template #right-icon>
           <van-radio-group v-model="visionStore.modelEngine" direction="horizontal">
-            <van-radio :name="engine.name" v-for="engine in ModelEngines">
+            <van-radio :name="engine.value" v-for="engine in ModelEngines">
               <van-icon class-prefix="iconfont" :name="engine.name" :style="{ color: engine.color }" />
             </van-radio>
           </van-radio-group>
@@ -381,8 +381,7 @@
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cvBlurType, cvFilterType } from '../../../common'
-import { onnx } from '../../common'
-import { ModelInfo, ModelType } from '../../common/misc'
+import { ModelEngine, ModelInfo, ModelType } from '../../common/misc'
 import { VisionStore } from '../../store'
 import SliderField from '../components/SliderField.vue'
 
@@ -394,8 +393,8 @@ const IntergrateModes = [
   { name: 'native', color: '#3498db' }
 ]
 const ModelEngines = [
-  { name: 'onnx', color: '##95a5a6' },
-  { name: 'tensorflow', color: '#e67e22' }
+  { name: 'onnx', color: '##95a5a6', value: ModelEngine.onnx },
+  { name: 'tensorflow', color: '#e67e22', value: ModelEngine.tensorflow }
 ]
 
 const showObjRecModels = ref(false)
@@ -451,6 +450,7 @@ const colorMapAnchor = useTemplateRef('colorMapAnchor')
 const modelName = ref<string>()
 
 onMounted(() => {
+
   ObjRecModelGrop.set('Detect', DetectModels)
   ObjRecModelGrop.set('Segment', SegmentModels)
 
@@ -467,7 +467,7 @@ function checkPosition() {
 }
 
 function onObjRecModelChanged(model: ModelInfo) {
-  visionStore.objDetectModel = model
+  visionStore.objDetectModel = Object.assign(model, { engine: visionStore.modelEngine })
   showObjRecModels.value = false
 }
 
@@ -483,13 +483,13 @@ function onColorMapChanged(idx: number) {
 }
 
 async function onModelUpload(data: any) {
-  var reader = new FileReader()
-  reader.readAsArrayBuffer(data.file)
-  reader.onload = async function () {
-    let arrayBuffer = reader.result as ArrayBuffer
-    let model = await onnx.createModelCpu(arrayBuffer)
-    console.log(model)
-  }
+  // var reader = new FileReader()
+  // reader.readAsArrayBuffer(data.file)
+  // reader.onload = async function () {
+  //   let arrayBuffer = reader.result as ArrayBuffer
+  //   let model = await onnx.createModelCpu(arrayBuffer)
+  //   console.log(model)
+  // }
 }
 
 </script>
@@ -506,6 +506,7 @@ async function onModelUpload(data: any) {
   height: 260px;
   overflow: hidden scroll;
   padding-top: 10px;
+  padding-left: 4px;
   background-color: var(--van-gray-1);
 }
 </style>
