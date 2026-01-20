@@ -48,12 +48,17 @@ from pathlib import Path
 # modelv6.export(format="tfjs", half=True)
 
 
-model = YOLO("./yoloe-26s-seg-pf.pt")
-model.model
+# model = YOLO("./yoloe-26s-seg-pf.pt")
+# model.model
 # names = ["person", "bus"]
 # model.set_classes(names, model.get_text_pe(names))
 # results = model("bus.jpg")
 # for result in results:
 #     print(result.masks)
 
-model.export(format="tfjs", half=False, int8=True)
+# model.export(format="tfjs", half=False, int8=True)
+
+
+import easyocr
+reader = easyocr.Reader(['ch_sim','en']) # this needs to run only once to load the model into memory
+result = reader.readtext('ocr.webp')
