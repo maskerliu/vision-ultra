@@ -24,7 +24,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
         await imageGenerator.init(JSON.parse(event.data.model))
         break
       case WorkerCMD.dispose:
-        imageGenerator.dispose()
+        await imageGenerator.dispose()
         break
       case WorkerCMD.process:
         const result = await imageGenerator.generate(event.data.image)

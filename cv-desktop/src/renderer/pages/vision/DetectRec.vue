@@ -45,7 +45,7 @@
       <!-- <van-empty v-show="hasPreview" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 2000;" /> -->
       <canvas ref="preview"></canvas>
       <canvas ref="mask" style="display: block; position: absolute; top: 50px; left: 50px;"></canvas>
-      <video ref="preVideo" slot="media" autoplay style="display: none;"></video>
+      <video ref="video" slot="media" autoplay style="display: none;"></video>
       <media-control-bar style="position: absolute; bottom: 0; left: 0; right: 0;" v-if="showControlBar">
         <media-play-button></media-play-button>
         <media-time-display showduration></media-time-display>
@@ -59,8 +59,8 @@
     <live2d-panel ref="live2dPanel" v-show="visionStore.live2d" />
 
     <Transition>
-      <div ref="eigenFace" class="eigen-face" v-show="visionStore.enableFaceDetect">
-        <canvas ref="capture" width="220" height="280" style="width: 120px; height: 140px;"></canvas>
+      <div class="eigen-face" v-show="visionStore.enableFaceDetect">
+        <canvas ref="eigen" width="220" height="280" style="width: 120px; height: 140px;"></canvas>
       </div>
     </Transition>
 
@@ -70,13 +70,13 @@
         :error-message="$t('faceRec.nameInputError')" :error="!isEigenNameValid" />
     </van-dialog>
 
-    <van-popup v-model:show="showLiveStreamInput" position="center" :style="{ width: '50%' }" round>
+    <van-popup v-model:show="showLiveStreamInput" position="center" style="width: 50%;" round>
       <van-field center v-model="liveStreamUrl">
         <template #left-icon>
           <van-icon class-prefix="iconfont" name="stream-url" />
         </template>
         <template #right-icon>
-          <van-button type="primary" plain size="small" @click="onLiveStream">确认</van-button>
+          <van-button type="primary" plain size="mini" @click="onLiveStream">{{ $t('common.done') }}</van-button>
         </template>
       </van-field>
       <van-row style="padding: 10px 5px 5px 15px;">
@@ -98,18 +98,17 @@ import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { WorkerCMD } from '../../common/misc'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { WorkerDrawMode, WorkerManager, WorkerStatus, WorkerType } from '../../common/WorkerManager'
-import { CommonStore, VisionStore } from '../../store'
+import { VisionStore } from '../../store'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
 import Live2dPanel from './Live2dPanel.vue'
 
 const visionStore = VisionStore()
-const commonStore = CommonStore()
 
 const previewParent = useTemplateRef<typeof Col>('previewParent')
-const preVideo = useTemplateRef<HTMLVideoElement>('preVideo')
+const video = useTemplateRef<HTMLVideoElement>('video')
 const preview = useTemplateRef<HTMLCanvasElement>('preview')
 const mask = useTemplateRef<HTMLCanvasElement>('mask')
-const capture = useTemplateRef<HTMLCanvasElement>('capture')
+const eigen = useTemplateRef<HTMLCanvasElement>('eigen')
 
 const annotationPanel = useTemplateRef<typeof AnnotationPanel>('annotationPanel')
 const live2dPanel = useTemplateRef<typeof Live2dPanel>('live2dPanel')
@@ -130,7 +129,7 @@ const showLoading = inject<Ref<boolean>>('showLoading')
 let previewCtx: CanvasRenderingContext2D
 let offscreen: OffscreenCanvas
 let offscreenCtx: OffscreenCanvasRenderingContext2D
-let captureCtx: CanvasRenderingContext2D
+let eigenCtx: CanvasRenderingContext2D
 let maskCtx: CanvasRenderingContext2D
 let videoPlayer: VideoPlayer = null
 
@@ -159,19 +158,19 @@ onMounted(async () => {
 
   offscreen = new OffscreenCanvas(preview.value.width, preview.value.height)
   offscreenCtx = offscreen.getContext('2d', { willReadFrequently: true })
-  captureCtx = capture.value.getContext('2d', { willReadFrequently: true })
+  eigenCtx = eigen.value.getContext('2d', { willReadFrequently: true })
 
-  console.log(captureCtx)
+  console.log(eigenCtx)
 
   updateSize()
-  workerMgr = new WorkerManager(previewCtx, captureCtx, maskCtx)
+  workerMgr = new WorkerManager(previewCtx, eigenCtx, maskCtx)
   workerMgr.workerStatus = workerStatus.value
   workerMgr.drawEigen = visionStore.drawEigen
   workerMgr.drawFaceMesh = visionStore.drawFaceMesh
   workerMgr.annotationPanel = annotationPanel.value
   workerMgr.live2dPanel = live2dPanel.value
 
-  videoPlayer = new VideoPlayer(preVideo.value, preview.value)
+  videoPlayer = new VideoPlayer(video.value, preview.value)
   videoPlayer.workerMgr = workerMgr
 })
 
@@ -282,6 +281,7 @@ watch(
 watch(
   [
     () => visionStore.intergrateMode,
+    () => visionStore.modelEngine,
     () => visionStore.enableObjDetect,
     () => visionStore.enableFaceDetect,
     () => visionStore.enableImageGen,

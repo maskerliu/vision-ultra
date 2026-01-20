@@ -22,7 +22,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
         await objTracker.init(JSON.parse(event.data.model) as ModelInfo)
         break
       case WorkerCMD.dispose:
-        objTracker.dispose()
+        await objTracker.dispose()
         break
       case WorkerCMD.process:
         let result = await objTracker.detect(event.data.image)
