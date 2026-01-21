@@ -49,7 +49,7 @@ import { Cell, Popup } from 'vant'
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { AnnotationManager, CVLabel, DrawType } from '../../common'
 
-const activeMarkerGroup = ref(DrawType.Rect) // 展开的标注组
+const activeMarkerGroup = ref(DrawType.Rect)
 const curMarker = ref<fabric.FabricObject>()
 const labelRefGroup = ref<Map<DrawType, Array<typeof Cell>>>(new Map())
 const MarkerOpts = ['pin', 'lock', 'visible']

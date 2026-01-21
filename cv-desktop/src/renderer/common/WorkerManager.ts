@@ -9,7 +9,7 @@ import ObjDetectWorker from '../objDetect.worker?worker'
 import { drawTFFaceResult, FACE_DIMS, getFaceContour } from './DrawUtils'
 import { FaceDetectResult, ModelType, ObjectDetectResult, WorkerCMD } from './misc'
 
-export enum WorkerType { faceDetect, objDetect, cvProcess, imageGen }
+export enum WorkerType { unknown = -1, faceDetect, objDetect, cvProcess, imageGen }
 export enum WorkerDrawMode { video, image }
 
 export type WorkerStatus = {
@@ -37,61 +37,11 @@ export class WorkerManager {
   set drawMode(val: WorkerDrawMode) { this._drawMode = val }
 
   private _enableObjDetect = false
-  setObjDetect(val: boolean, data?: any) {
-    if (this._enableObjDetect == val) return
-
-    this._enableObjDetect = val
-
-    if (val) {
-      this._workerStatus.showLoading = true
-      this.register(WorkerType.objDetect, Object.assign({ cmd: WorkerCMD.init }, data))
-    } else {
-      this.terminate(WorkerType.objDetect)
-    }
-  }
-
   private _enableFaceDetect = false
-  set enableFaceDetect(val: boolean) {
-    if (this._enableFaceDetect == val) return
-
-    this._enableFaceDetect = val
-
-    if (val) {
-      this._workerStatus.showLoading = true
-      this.register(WorkerType.faceDetect, { cmd: WorkerCMD.init })
-    } else {
-      this.terminate(WorkerType.faceDetect)
-    }
-  }
-
   private _enableCVProcess = false
   get enableCVProcess() { return this._enableCVProcess }
-  setCVProcess(val: boolean, data?: any) {
-    if (this._enableCVProcess == val) return
-
-    this._enableCVProcess = val
-
-    if (val) {
-      this._workerStatus.showLoading = true
-      this.register(WorkerType.cvProcess, Object.assign({ cmd: WorkerCMD.init }, data))
-    } else {
-      this.terminate(WorkerType.cvProcess)
-    }
-  }
 
   private _enableImageGen = false
-  setImageGen(val: boolean, data?: any) {
-    if (this._enableImageGen == val) return
-
-    this._enableImageGen = val
-
-    if (val) {
-      this._workerStatus.showLoading = true
-      this.register(WorkerType.imageGen, Object.assign({ cmd: WorkerCMD.init }, data))
-    } else {
-      this.terminate(WorkerType.imageGen)
-    }
-  }
 
   private _drawFaceMesh = false
   set drawFaceMesh(val: boolean) { this._drawFaceMesh = val }
@@ -126,6 +76,30 @@ export class WorkerManager {
     let masklayer = new OffscreenCanvas(captureCtx.canvas.width, captureCtx.canvas.height)
     this.masklayerCtx = masklayer.getContext('2d', { willReadFrequently: true })
     this.maskCtx = maskCtx
+  }
+
+  setParam(param: string, val: boolean, metadata?: any, anyway: boolean = false) {
+
+    if (this[`_${param}`] == val && !anyway) return
+
+    this[`_${param}`] = val
+
+    let type = WorkerType.unknown
+    if (param == 'enableCVProcess') {
+      type = WorkerType.cvProcess
+    } else if (param == 'enableObjDetect') {
+      type = WorkerType.objDetect
+    } else if (param == 'enableFaceDetect') {
+      type = WorkerType.faceDetect
+    }
+
+    if (val) {
+      this._workerStatus.showLoading = true
+      if (anyway) { this.terminate(type) }
+      this.register(type, Object.assign({ cmd: WorkerCMD.init }, metadata))
+    } else {
+      this.terminate(type)
+    }
   }
 
   private register(target: WorkerType, data?: any) {
@@ -310,6 +284,11 @@ export class WorkerManager {
   public onDraw() {
     if (this._frame == null) return
     this.previewCtx.putImageData(this._frame, 0, 0)
+
+    this.previewCtx.fillStyle = '#ff4757'
+    this.previewCtx.font = '24px Arial'
+    this.previewCtx.fillText(`Face: ${this.face ? this.face.expire : '-'}ms\n 
+      Object: ${this.objects ? this.objects.expire : '-'}ms`, 20, 20)
   }
 
   public drawFace() {
@@ -331,6 +310,7 @@ export class WorkerManager {
   }
 
   public drawObjects() {
+
     if (this.objects == null || this.objects.objNum == 0) return
 
     this.previewCtx.font = `16px Arial`
@@ -373,15 +353,25 @@ export class WorkerManager {
     this.maskCtx.canvas.width = this.objects.segSize[0]
     this.maskCtx.canvas.height = this.objects.segSize[1]
     let rects = []
-    for (let i = 0; i < this.objects.objNum; ++i) {
+    let i = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0
+    for (i = 0; i < this.objects.objNum; ++i) {
       let label: CVLabel = this._annotationPanel?.getLabel(this.objects.classes[i])
       if (label == null) continue
       let [r, g, b] = MarkColors.hexToRgb(label.color)
       let i4 = i * 4
-      const y1 = Math.round(this.objects.boxes[i4] / this.objects.segScale[1])
-      const x1 = Math.round(this.objects.boxes[i4 + 1] / this.objects.segScale[0])
-      const y2 = Math.round(this.objects.boxes[i4 + 2] / this.objects.segScale[1])
-      const x2 = Math.round(this.objects.boxes[i4 + 3] / this.objects.segScale[0])
+      // const y1 = Math.round(this.objects.boxes[i4] / this.objects.segScale[1])
+      // const x1 = Math.round(this.objects.boxes[i4 + 1] / this.objects.segScale[0])
+      // const y2 = Math.round(this.objects.boxes[i4 + 2] / this.objects.segScale[1])
+      // const x2 = Math.round(this.objects.boxes[i4 + 3] / this.objects.segScale[0])
+
+      y1 = Math.ceil(this.objects.boxes[i4] / this.objects.segScale[1])
+      x1 = Math.ceil(this.objects.boxes[i4 + 1] / this.objects.segScale[0])
+      y2 = Math.ceil(this.objects.boxes[i4 + 2] / this.objects.segScale[1])
+      x2 = Math.ceil(this.objects.boxes[i4 + 3] / this.objects.segScale[0])
+      x1 = x1 < 0 ? 0 : x1
+      y1 = y1 < 0 ? 0 : y1
+      x2 = x2 > this.objects.segSize[1] ? this.objects.segSize[1] : x2
+      y2 = y2 > this.objects.segSize[0] ? this.objects.segSize[0] : y2
       let mask = new ImageData(x2 - x1, y2 - y1)
       for (let col = 0; col < mask.height; ++col) {
         for (let row = 0; row < mask.width; ++row) {
