@@ -77,10 +77,10 @@ export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
       intergrateMode: IntergrateMode.WebAssembly, // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
-      modelEngine: ModelEngine.tensorflow, // tensorflow or onnx
+      modelEngine: ModelEngine.onnx, // tensorflow or onnx
 
       enableObjDetect: false,
-      objDetectModel: { name: 'yolo11m-seg', type: ModelType.Segment, engine: ModelEngine.tensorflow },
+      objDetectModel: { name: 'yolo11n-seg', type: ModelType.Segment, engine: ModelEngine.tensorflow },
 
       enableFaceDetect: false,
       drawFaceMesh: true,
