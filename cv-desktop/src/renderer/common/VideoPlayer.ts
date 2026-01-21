@@ -92,10 +92,7 @@ export class VideoPlayer {
     this._workerMgr.drawFace()
     this._workerMgr.drawObjects()
 
-    this.previewCtx.fillStyle = '#ff4757'
-    this.previewCtx.font = '24px Arial'
-    this.previewCtx.fillText(`Face: ${this._workerMgr.face ? this._workerMgr.face.expire : '-'}ms\n 
-      Object: ${this._workerMgr.objects ? this._workerMgr.objects.expire : '-'}ms`, 20, 20)
+
   }
 
 

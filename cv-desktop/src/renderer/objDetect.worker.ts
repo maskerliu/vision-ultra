@@ -39,6 +39,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           segSize: objTracker.segSize,
           segScale: objTracker.segScale
         })
+        console.log(data)
         break
     }
   } catch (error) {
