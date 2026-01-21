@@ -281,28 +281,32 @@ watch(
 watch(
   [
     () => visionStore.intergrateMode,
-    () => visionStore.modelEngine,
     () => visionStore.enableObjDetect,
     () => visionStore.enableFaceDetect,
     () => visionStore.enableImageGen,
     () => visionStore.enableCVProcess,
   ],
   async () => {
-    workerMgr.setCVProcess(visionStore.enableCVProcess, {
+
+    workerMgr.setParam('enableCVProcess', visionStore.enableCVProcess, {
       mode: visionStore.intergrateMode,
       options: JSON.stringify(visionStore.cvOptions.value)
     })
-    workerMgr.setObjDetect(visionStore.enableObjDetect, {
-      model: JSON.stringify(visionStore.objDetectModel)
-    })
-    workerMgr.setImageGen(visionStore.enableImageGen, {
-      model: JSON.stringify(visionStore.ganModel)
-    })
-    workerMgr.enableFaceDetect = visionStore.enableFaceDetect
+
+    let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
+    workerMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model })
+    workerMgr.setParam('enableFaceDetect', visionStore.enableFaceDetect)
+    model = JSON.stringify(visionStore.ganModel)
+    workerMgr.setParam('enableImageGen', visionStore.enableImageGen, { model })
 
     if (!visionStore.enableFaceDetect) visionStore.live2d = false
   }
 )
+
+watch(() => visionStore.modelEngine, async () => {
+  let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
+  workerMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model }, true)
+})
 
 watch(() => visionStore.objDetectModel, async () => {
   workerMgr.postMessage(WorkerType.objDetect, {

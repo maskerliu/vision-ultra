@@ -11,10 +11,6 @@
           </van-radio-group>
         </template>
       </van-cell>
-    </van-cell-group>
-
-    <!-- ML framework mode -->
-    <van-cell-group style="margin-top: 10px;" inset>
       <van-cell center :title="$t('cvControl.ModelEngine')">
         <template #right-icon>
           <van-radio-group v-model="visionStore.modelEngine" direction="horizontal">
@@ -24,14 +20,6 @@
           </van-radio-group>
         </template>
       </van-cell>
-      <van-uploader accept=".onnx" :preview-image="false" :after-read="onModelUpload">
-        <van-cell center :title="$t('cvControl.ModelImport')" :value="modelName" clickable style="width: 100%;">
-          <template #icon>
-            <van-icon class-prefix="iconfont" name="file-upload" style="font-size: 1rem;" />
-          </template>
-        </van-cell>
-      </van-uploader>
-
     </van-cell-group>
 
     <!-- object detect & segment & face recognize-->
@@ -467,7 +455,7 @@ function checkPosition() {
 }
 
 function onObjRecModelChanged(model: ModelInfo) {
-  visionStore.objDetectModel = Object.assign(model, { engine: visionStore.modelEngine })
+  visionStore.objDetectModel = Object.assign(model, { engine: visionStore.modelEngine },)
   showObjRecModels.value = false
 }
 

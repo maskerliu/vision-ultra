@@ -78,6 +78,12 @@ export class ObjectTracker {
       nms = tmp
     }
 
+    console.log(result)
+    // result[0].print()
+    result[1].print()
+    result[2].print()
+    console.log(nms)
+
     const overlay = tf.tidy(() => {
       const boxesTF = result[0].gather(nms, 0)
       const scoresTF = result[1].gather(nms, 0)
@@ -92,6 +98,8 @@ export class ObjectTracker {
         return this.generateMasks(maskCoeffsTF, res[1])
       }
     })
+
+    console.log(overlay)
 
     this._expire = Date.now() - time
 
@@ -147,14 +155,22 @@ export class ObjectTracker {
       if (this._model.name == 'yolo26s-seg') {
         transRes = res[0]
       } else if (YoloCommon.indexOf(this._model.name) != -1) {
-        transRes = (res as tf.Tensor).transpose([0, 2, 1])
+        transRes = res as tf.Tensor
       } else if (YoloSeg.indexOf(this._model.name) != -1) {
-        transRes = (res[0] as tf.Tensor).transpose([0, 2, 1])
+        transRes = res[0]
       }
 
       if (transRes == null) return null
 
+      if (transRes.shape[1] < transRes.shape[2]) {
+        transRes = transRes.transpose([0, 2, 1])
+      }
+
       if (transRes.shape[2] == 116) { // yolo common with segment
+
+        console.log(transRes)
+        transRes.print()
+
         const w = transRes.slice([0, 0, 2], [-1, -1, 1])
         const h = transRes.slice([0, 0, 3], [-1, -1, 1])
         const x1 = transRes.slice([0, 0, 0], [-1, -1, 1]).sub(w.div(2))
@@ -199,21 +215,31 @@ export class ObjectTracker {
   private async yolo11nSegment(overlay: tf.Tensor) {
     if (overlay == null) return
     let offset = 0
-    let i = 0
+    let i = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0
     while (i < this.objNum) {
-      let i4 = i * 4
-      const y1 = Math.round(this.boxes[i4] / this._segScale[1])
-      const x1 = Math.round(this.boxes[i4 + 1] / this._segScale[0])
-      const y2 = Math.round(this.boxes[i4 + 2] / this._segScale[1])
-      const x2 = Math.round(this.boxes[i4 + 3] / this._segScale[0])
-      const iou = overlay.slice([i, y1, x1], [1, y2 - y1, x2 - x1])
-      const binary = tf.tidy(() => iou.greater(0.5).squeeze().cast('int32'))
-      let data = await binary.data()
-      this._masks[i] = data as Uint8Array
-      offset += (y2 - y1) * (x2 - x1)
-      tf.dispose([iou, binary])
+      try {
+        let i4 = i * 4
+        y1 = Math.ceil(this.boxes[i4] / this._segScale[1])
+        x1 = Math.ceil(this.boxes[i4 + 1] / this._segScale[0])
+        y2 = Math.ceil(this.boxes[i4 + 2] / this._segScale[1])
+        x2 = Math.ceil(this.boxes[i4 + 3] / this._segScale[0])
+        x1 = x1 < 0 ? 0 : x1
+        y1 = y1 < 0 ? 0 : y1
+        x2 = x2 > this._segSize[1] ? this._segSize[1] : x2
+        y2 = y2 > this._segSize[0] ? this._segSize[0] : y2
+
+        const iou = overlay.slice([i, y1, x1], [1, y2 - y1, x2 - x1])
+        const binary = tf.tidy(() => iou.greater(0.5).squeeze().cast('int32'))
+        let data = await binary.data()
+        this._masks[i] = data as Uint8Array
+        offset += (y2 - y1) * (x2 - x1)
+        tf.dispose([iou, binary])
+      } catch (err) {
+        console.error(i, y1, x1, y2, x2, err)
+      }
       i++
     }
+    console.log(this._masks)
   }
 
   private generateMasks(maskCoeffs: tf.Tensor, proto: tf.Tensor) {

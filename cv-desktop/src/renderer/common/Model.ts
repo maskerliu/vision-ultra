@@ -8,13 +8,9 @@ export class Model {
   protected model: tf.GraphModel
   protected session: ort.InferenceSession
 
-  private _modelEngine = ModelEngine.tensorflow
-
-  private _name: string
-  get name() { return this._name }
-
-  private _type: ModelType
-  get type() { return this._type }
+  private _info: ModelInfo
+  get name() { return this._info.name }
+  get type() { return this._info.type }
 
   // public modelWidth: number = 0
   // public modelHeight: number = 0
@@ -29,18 +25,18 @@ export class Model {
   get inShape() { return this._inShape }
 
   async init(info: ModelInfo) {
-    if (this._isInited && this.name == info.name) return
-    if (name == null) return
+    console.log(info)
+    if (this._isInited && this.name == info.name && this._info.engine == info.engine) return
+    if (info.name == null) return
     if (info.type == ModelType.Unknown) throw new Error('model type is unknown')
 
     this.dispose()
     this._isInited = false
-    this._name = info.name
-    this._type = info.type
+    this._info = info
 
     await tf.ready()
 
-    switch (this._modelEngine) {
+    switch (this._info.engine) {
       case ModelEngine.tensorflow:
         await this.loadTfModel(info.name)
         break
@@ -56,7 +52,6 @@ export class Model {
       this._inShape[0] = this._inShape[1] = 255
     }
 
-    console.log(this.model)
     // console.log(this.model.inputs[0].shape, this.modelWidth, this.modelHeight)
 
     this._isInited = true
@@ -86,6 +81,7 @@ export class Model {
     this._inName = input.name
     this._inType = input.dtype
     this._inShape = input.shape.slice(1, 3) as [number, number]
+    console.log(this.model)
   }
 
   private async loadOrtModel(name: string) {
@@ -110,6 +106,7 @@ export class Model {
     this._inName = input.name
     this._inType = input.type
     this._inShape = input.shape.slice(2) as [number, number]
+    console.log(this.session)
   }
 
   async dispose() {
@@ -121,39 +118,54 @@ export class Model {
   }
 
   async run(image: ImageData) {
-    if (!this._isInited || this.model == null) {
+    if (!this._isInited || (this.model == null && this.session == null)) {
       return
     }
 
     let input = await this.preprocess(image)
     let result: tf.Tensor | tf.Tensor[] = null
-    let argKey = this.model.inputs[0].name
     let params = {}
-    params[argKey] = input
+    params[this._inName] = input
 
-    let res = await this.session?.run(params)
-
-    switch (this.name) {
-      case 'mobilenet':
-        result = await this.model.executeAsync(params)
+    switch (this._info.engine) {
+      case ModelEngine.onnx:
+        let res = await this.session?.run(params)
+        result = tf.tidy(() => {
+          result = []
+          for (let i = 0; i < this.session.outputNames.length; ++i) {
+            let key = this.session.outputNames[i]
+            let out = res[key] as any
+            if (i == 0) {
+              result[0] = tf.tensor(out.cpuData, out.dims, out.dtype)
+            } else {
+              result[1] = tf.tensor(out.cpuData, out.dims, out.dtype).transpose([0, 2, 3, 1])
+            }
+          }
+          return result
+        })
         break
-      case 'animeGANv3':
-      case 'deeplab-ade':
-      case 'deeplab-cityspace':
-      default:
-        result = this.model.execute(params)
-        break
+      case ModelEngine.tensorflow: {
+        switch (this.name) {
+          case 'mobilenet':
+            result = await this.model.executeAsync(params)
+            break
+          case 'animeGANv3':
+          case 'deeplab-ade':
+          case 'deeplab-cityspace':
+          default:
+            result = this.model.execute(params)
+            break
+        }
+      }
     }
+
+    // console.log(result)
     input.dispose()
     return result
   }
 
 
-  async runOnnx(image: ImageData) {
-    if (!this._isInited || this.model == null) {
-      return
-    }
-
+  async onnxRun(image: ImageData) {
     let input = await this.preprocess(image)
     let result: ort.InferenceSession.ReturnType = null
     let argKey = this.session.inputMetadata[0].name
@@ -205,10 +217,11 @@ export class Model {
         .div(255.0).expandDims(0).cast(this._inType as tf.DataType)
     })
 
-    switch (this._modelEngine) {
+    switch (this._info.engine) {
       case ModelEngine.onnx:
         let data = await (result as tf.Tensor).data()
-        return new ort.Tensor(this._inType as any, data, this._inShape)
+        return new ort.Tensor(this._inType as any, data,
+          (this.session.inputMetadata[0] as any).shape)
       case ModelEngine.tensorflow:
         return result
     }
