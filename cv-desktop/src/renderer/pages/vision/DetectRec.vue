@@ -160,18 +160,19 @@ onMounted(async () => {
   offscreenCtx = offscreen.getContext('2d', { willReadFrequently: true })
   eigenCtx = eigen.value.getContext('2d', { willReadFrequently: true })
 
-  console.log(eigenCtx)
 
-  updateSize()
-  workerMgr = new WorkerManager(previewCtx, eigenCtx, maskCtx)
+  workerMgr = new WorkerManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
   workerMgr.workerStatus = workerStatus.value
   workerMgr.drawEigen = visionStore.drawEigen
   workerMgr.drawFaceMesh = visionStore.drawFaceMesh
   workerMgr.annotationPanel = annotationPanel.value
   workerMgr.live2dPanel = live2dPanel.value
+  workerMgr.updateSize(previewSize.value[0], previewSize.value[1])
 
-  videoPlayer = new VideoPlayer(video.value, preview.value)
+  videoPlayer = new VideoPlayer(video.value, previewCtx, offscreenCtx)
   videoPlayer.workerMgr = workerMgr
+
+
 })
 
 async function onLiveStream() {
@@ -224,50 +225,20 @@ async function openFolder() {
       h *= ratio
 
       previewSize.value = [Math.round(w / dpr), Math.round(h / dpr)]
+      workerMgr.updateSize(Math.round(w / dpr), Math.round(h / dpr))
+      workerMgr.onDraw(img)
+      img = null
     }
     img.src = file
   })
 }
 
 async function onScan() {
-  drawImage()
-}
-
-function drawImage() {
-
-  if (workerMgr?.drawMode == WorkerDrawMode.video) return
-
-  let image = offscreenCtx.getImageData(0, 0, offscreen.width, offscreen.height)
-  if (visionStore.enableCVProcess) {
-    workerMgr?.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image, }, [image.data.buffer])
-  } else {
-    previewCtx.clearRect(0, 0, preview.value.width, preview.value.height)
-    previewCtx?.drawImage(offscreen, 0, 0)
-
-    workerMgr?.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image })
-    workerMgr?.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image })
-    workerMgr?.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image })
-  }
-}
-
-function updateSize() {
-  preview.value.style.width = previewSize.value[0] + 'px'
-  preview.value.style.height = previewSize.value[1] + 'px'
-
-  offscreen.width = preview.value.width = mask.value.width = previewSize.value[0] * dpr
-  offscreen.height = preview.value.height = mask.value.height = previewSize.value[1] * dpr
-
-  offscreenCtx.clearRect(0, 0, offscreen.width, offscreen.height)
-  if (img != null) {
-    offscreenCtx.drawImage(img, 0, 0, offscreen.width, offscreen.height)
-    img = null
-  }
-
-  drawImage()
+  workerMgr?.onDraw()
 }
 
 watch(() => previewSize.value, () => {
-  updateSize()
+
 })
 
 watch(
@@ -334,7 +305,7 @@ watch(
 )
 
 watch(() => visionStore.enableCVProcess, async () => {
-  drawImage()
+  workerMgr?.onDraw()
 })
 
 watch(
@@ -344,7 +315,7 @@ watch(
       cmd: WorkerCMD.updateOptions,
       options: JSON.stringify(visionStore.cvOptions.value)
     })
-    drawImage()
+    workerMgr?.onDraw()
   },
   { deep: true }
 )
