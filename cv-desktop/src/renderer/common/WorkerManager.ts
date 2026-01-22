@@ -18,8 +18,11 @@ export type WorkerStatus = {
   error?: string
 }
 
+const dpr = window.devicePixelRatio || 1
+
 export class WorkerManager {
   private previewCtx: CanvasRenderingContext2D
+  private offscreenCtx: OffscreenCanvasRenderingContext2D
   private eigenCtx: CanvasRenderingContext2D
   private masklayerCtx: OffscreenCanvasRenderingContext2D
   private maskCtx: CanvasRenderingContext2D
@@ -58,10 +61,16 @@ export class WorkerManager {
 
   private _frame: ImageData
   get frame() { return this._frame }
+  set frame(val: ImageData) {
+    if (this._frame == null || this._frame.width != val.width || this._frame.height != val.height) {
+      this.updateSize(val.width, val.height)
+    }
+
+    this._frame = val
+  }
 
   private _annotationPanel: any
   set annotationPanel(val: any) { this._annotationPanel = val }
-
 
   private _live2dPanel: any
   set live2dPanel(val: any) { this._live2dPanel = val }
@@ -69,12 +78,14 @@ export class WorkerManager {
   private _frames = 1
 
   constructor(previewCtx: CanvasRenderingContext2D,
+    offscreenCtx: OffscreenCanvasRenderingContext2D,
     captureCtx: CanvasRenderingContext2D,
     maskCtx: CanvasRenderingContext2D) {
     this.previewCtx = previewCtx
+    this.offscreenCtx = offscreenCtx
     this.eigenCtx = captureCtx
     let masklayer = new OffscreenCanvas(captureCtx.canvas.width, captureCtx.canvas.height)
-    this.masklayerCtx = masklayer.getContext('2d', { willReadFrequently: true })
+    this.masklayerCtx = masklayer.getContext('2d')
     this.maskCtx = maskCtx
   }
 
@@ -281,14 +292,48 @@ export class WorkerManager {
     }
   }
 
-  public onDraw() {
-    if (this._frame == null) return
-    this.previewCtx.putImageData(this._frame, 0, 0)
+  public updateSize(width: number, height: number) {
 
-    this.previewCtx.fillStyle = '#ff4757'
-    this.previewCtx.font = '24px Arial'
-    this.previewCtx.fillText(`Face: ${this.face ? this.face.expire : '-'}ms\n 
-      Object: ${this.objects ? this.objects.expire : '-'}ms`, 20, 20)
+    if (this.previewCtx.canvas.width == width * dpr && this.previewCtx.canvas.height == height * dpr) return
+
+    this.previewCtx.canvas.style.width = width + 'px'
+    this.previewCtx.canvas.style.height = height + 'px'
+
+    this.offscreenCtx.canvas.width = this.previewCtx.canvas.width = this.maskCtx.canvas.width = width * dpr
+    this.offscreenCtx.canvas.height = this.previewCtx.canvas.height = this.maskCtx.canvas.height = height * dpr
+
+    this._annotationPanel.resize(width, height)
+  }
+
+  public onDraw(img?: HTMLImageElement) {
+    // if (this._frame == null) return
+
+    // this.offscreenCtx.putImageData(this._frame, 0, 0)
+    // if (this.drawMode == WorkerDrawMode.video || img == null) return
+
+    if (img != null) {
+      this.offscreenCtx.drawImage(img, 0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+      this._frame = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+    }
+
+    if (this._frame != null) this.offscreenCtx.putImageData(this._frame, 0, 0)
+
+    let image = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+    this.offscreenCtx.fillStyle = '#ff4757'
+    this.offscreenCtx.font = '24px Arial'
+    this.offscreenCtx.fillText(`Face: ${this.face ? this.face.expire : '-'}ms\n 
+      Object: ${this.objects ? this.objects.expire : '-'}ms`, 20, 30)
+
+    if (this.enableCVProcess) {
+      this.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image, }, [image.data.buffer])
+    } else {
+      this.previewCtx.drawImage(this.offscreenCtx.canvas, 0, 0)
+      this._annotationPanel?.drawImage(this.previewCtx.canvas)
+
+      this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image })
+      this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image })
+      this.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image })
+    }
   }
 
   public drawFace() {

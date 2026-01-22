@@ -6,11 +6,7 @@ export class VideoPlayer {
   private hls: Hls
 
   private preVideo: HTMLVideoElement
-
-  // private preview: HTMLCanvasElement
   private previewCtx: CanvasRenderingContext2D
-
-  // private offscreen: HTMLCanvasElement
   private offscreenCtx: OffscreenCanvasRenderingContext2D
 
   private animationId: number
@@ -25,17 +21,15 @@ export class VideoPlayer {
   private _frames = 1
 
   constructor(video: HTMLVideoElement,
-    preview: HTMLCanvasElement,
+    previewCtx: CanvasRenderingContext2D,
+    offscreenCtx: OffscreenCanvasRenderingContext2D,
     flip: boolean = true) {
     this.hls = new Hls()
 
     this.preVideo = video
-    // this.preview = priview
-    // this.offscreen = offscreen
 
-    this.previewCtx = preview.getContext('2d', { willReadFrequently: true })
-    let offscreen = new OffscreenCanvas(preview.width, preview.height)
-    this.offscreenCtx = offscreen.getContext('2d', { willReadFrequently: true })
+    this.previewCtx = previewCtx
+    this.offscreenCtx = offscreenCtx
 
     this.previewCtx.imageSmoothingEnabled = true
     this.previewCtx.imageSmoothingQuality = 'high'
@@ -46,53 +40,55 @@ export class VideoPlayer {
   async processFrame() {
     if (this.preVideo.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) return
 
-    this.offscreenCtx.canvas.width = this.previewCtx.canvas.width = this.preVideo.videoWidth
-    this.offscreenCtx.canvas.height = this.previewCtx.canvas.height = this.preVideo.videoHeight
-
+    console.log(this.preVideo.videoWidth / 2, this.preVideo.videoHeight / 2)
     if (this.frame == null ||
-      this.frame.width != this.offscreenCtx.canvas.width ||
-      this.frame.height != this.offscreenCtx.canvas.height) {
-      this.frame = new ImageData(this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+      this.frame.width != this.preVideo.videoWidth ||
+      this.frame.height != this.preVideo.videoHeight) {
+      // this.workerMgr?.updateSize(this.preVideo.videoWidth / 2, this.preVideo.videoHeight / 2)
+      // this.frame = new ImageData(this.preVideo.videoWidth / 2, this.preVideo.videoHeight / 2)
+
+      // this.offscreenCtx.canvas.width = this.previewCtx.canvas.width = this.preVideo.videoWidth
+      // this.offscreenCtx.canvas.height = this.previewCtx.canvas.height = this.preVideo.videoHeight
     }
 
-    if (this.flip) {
-      this.offscreenCtx.scale(-1, 1)
-      this.offscreenCtx.translate(-this.offscreenCtx.canvas.width, 0)
-    }
 
-    this.offscreenCtx.drawImage(this.preVideo, 0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
-    let data = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+    // if (this.flip) {
+    //   this.offscreenCtx.scale(-1, 1)
+    //   this.offscreenCtx.translate(-this.offscreenCtx.canvas.width, 0)
+    // }
+
+    this.offscreenCtx.drawImage(this.preVideo, 0, 0)
+    let image = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
 
     if (this._workerMgr.enableCVProcess) {
       this._workerMgr?.postMessage(WorkerType.cvProcess,
-        { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
+        { cmd: WorkerCMD.process, image }, [image.data.buffer])
 
-      this._workerMgr.onDraw()
+      // this._workerMgr.onDraw()
     } else {
-      this.previewCtx.drawImage(this.offscreenCtx.canvas, 0, 0)
+      this._workerMgr.frame = image
 
       if (this._frames == 8) {
         this._workerMgr?.postMessage(WorkerType.faceDetect,
-          { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
+          { cmd: WorkerCMD.process, image }, [image.data.buffer])
         this._frames = 1
       } else {
         if (this._frames == 4) {
           this._workerMgr?.postMessage(WorkerType.faceDetect,
-            { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
+            { cmd: WorkerCMD.process, image }, [image.data.buffer])
         }
 
         if (this._frames == 5) {
           this._workerMgr?.postMessage(WorkerType.objDetect,
-            { cmd: WorkerCMD.process, image: data }, [data.data.buffer])
+            { cmd: WorkerCMD.process, image }, [image.data.buffer])
         }
         this._frames++
       }
     }
 
+    // this._workerMgr.onDraw()
     this._workerMgr.drawFace()
     this._workerMgr.drawObjects()
-
-
   }
 
 
