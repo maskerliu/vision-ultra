@@ -39,11 +39,12 @@ export enum DrawType {
 
 export class AnnotationManager {
   private _canvas: fabric.Canvas
+  private _lstPos: fabric.XY = { x: 0, y: 0 }
+  private _cursorPoint: fabric.Point = new fabric.Point(0, 0)
+  private _isDragging = false
   private _drawType: DrawType = DrawType.Select
   private _label: CVLabel
-  set label(label: CVLabel) {
-    this._label = label
-  }
+  set label(label: CVLabel) { this._label = label }
 
   private _markerGroup: Map<DrawType, Array<fabric.FabricObject>>
   set markerGroup(markerGroup: Map<DrawType, Array<fabric.FabricObject>>) {
@@ -79,7 +80,8 @@ export class AnnotationManager {
     this._canvas = new fabric.Canvas(canvas, {
       width, height,
       backgroundColor: '#55555520',
-      selection: false
+      selection: false,
+      allowTouchScrolling: true
     })
 
     this.labelText = new fabric.FabricText(`-- 0.0%`, {
@@ -166,12 +168,31 @@ export class AnnotationManager {
     this._canvas.requestRenderAll()
   }
 
+  resetScaleAndMove() {
+    this._canvas.setZoom(1)
+    this._canvas.viewportTransform = [1, 0, 0, 1, 0, 0]
+  }
+
   private registeCanvasEvent() {
 
-    this._canvas.on('mouse:move', e => this.onMouseMove(e))
-    this._canvas.on('mouse:down', e => this.onMouseDown(e))
-    this._canvas.on('mouse:up', e => this.onMouseUp(e))
-    this._canvas.on('mouse:dblclick', e => this.onMouseDblClick(e))
+    this._canvas.on('mouse:wheel', opt => {
+      let delta = opt.e.deltaY
+      let zoom = this._canvas.getZoom()
+
+      // 控制缩放范围在 0.01~20 的区间内
+      zoom *= 0.999 ** delta
+      if (zoom > 20) zoom = 20
+      if (zoom < 0.01) zoom = 0.01
+
+      this._cursorPoint.x = opt.e.offsetX
+      this._cursorPoint.y = opt.e.offsetY
+      this._canvas.zoomToPoint(this._cursorPoint, zoom)
+    })
+
+    this._canvas.on('mouse:move', this.onMouseMove.bind(this))
+    this._canvas.on('mouse:down', this.onMouseDown.bind(this))
+    this._canvas.on('mouse:up', this.onMouseUp.bind(this))
+    this._canvas.on('mouse:dblclick', this.onMouseDblClick.bind(this))
 
 
     this._canvas.on('object:moving', e => {
@@ -243,9 +264,13 @@ export class AnnotationManager {
   }
 
   private onMouseDown(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
-    if (this._drawType == DrawType.Select) return
-
     const pointer = this._canvas.getViewportPoint(e.e)
+    this._lstPos.x = pointer.x
+    this._lstPos.y = pointer.y
+    this._isDragging = this._activeObjects.length == 0 || this._activeObjects[0] == null
+
+    if (this._drawType == DrawType.Select || this._isDragging) return
+
     this.mouseFrom = pointer
     this.onDrawing = true
 
@@ -292,8 +317,17 @@ export class AnnotationManager {
   }
 
   private onMouseMove(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
-    if (!this.onDrawing || this._drawType == DrawType.Select) return
     const pointer = this._canvas.getViewportPoint(e.e)
+    if (this._isDragging) {
+      let vpt = this._canvas.viewportTransform // 聚焦视图的转换
+      vpt[4] += pointer.x - this._lstPos.x
+      vpt[5] += pointer.y - this._lstPos.y
+      this._canvas.requestRenderAll() // 重新渲染
+      this._lstPos.x = pointer.x
+      this._lstPos.y = pointer.y
+    }
+
+    if (!this.onDrawing || this._drawType == DrawType.Select || this._isDragging) return
     switch (this._drawType) {
       case DrawType.Rect:
         const width = pointer.x - this.mouseFrom.x
@@ -331,6 +365,8 @@ export class AnnotationManager {
   }
 
   private onMouseUp(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
+    this._canvas.setViewportTransform(this._canvas.viewportTransform) // 设置此画布实例的视口转换  
+    this._isDragging = false // 关闭移动状态
 
     if (!this.onDrawing || this._drawType == DrawType.Select) return
 
@@ -355,6 +391,12 @@ export class AnnotationManager {
     }
   }
 
+  genImage(canvas: HTMLCanvasElement) {
+
+    let img = new fabric.FabricImage(canvas)
+    this._canvas.backgroundImage = img
+    this._canvas.requestRenderAll()
+  }
 
   genRect(x1: number, y1: number, x2: number, y2: number) {
 
