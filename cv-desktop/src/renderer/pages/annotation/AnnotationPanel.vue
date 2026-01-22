@@ -11,6 +11,10 @@
         <van-icon class-prefix="iconfont" :name="'mark-' + type" />
       </van-button>
 
+      <van-button square block hairline type="default" @click="annoMgr.resetScaleAndMove()">
+        <van-icon class-prefix="iconfont" :name="'mark-fit'" />
+      </van-button>
+
       <van-popover v-model:show="showMagic" placement="right-start">
         <template #reference>
           <van-button square block hairline style="width: 2.5rem">
@@ -100,7 +104,8 @@ const showPolyTolerance = ref(false)
 const polyTolerance = ref(1)
 
 const DrawTypes: Array<DrawType> = [
-  DrawType.Select, DrawType.Rect, DrawType.Circle, DrawType.Polygon, DrawType.Line, DrawType.MultiLine
+  DrawType.Select,
+  DrawType.Rect, DrawType.Circle, DrawType.Polygon, DrawType.Line, DrawType.MultiLine
 ]
 
 let annoMgr: AnnotationManager
@@ -109,12 +114,7 @@ const { canvasSize = [640, 360] } = defineProps<{
   canvasSize: [number, number]
 }>()
 
-defineExpose({ drawAnnotations, getLabel })
-
-watch(() => canvasSize, (val, _) => {
-  annoMgr.resize(val[0], val[1])
-  annoMgr.showGrid(true)
-})
+defineExpose({ resize, drawImage, drawAnnotations, getLabel })
 
 watch(() => searchKeyword.value, () => {
   searchLabels.value = labeTab.value?.searchLabel(searchKeyword.value)
@@ -129,6 +129,7 @@ watch(() => activeMarkers.value, () => {
 })
 
 onMounted(() => {
+  console.log(canvasSize[0], canvasSize[1])
   annoMgr = new AnnotationManager(annotationCanvas.value!, canvasSize[0], canvasSize[1])
   annoMgr.markerGroup = markerGroup.value as any
   annoMgr.activeObjects = activeMarkers.value as any
@@ -144,6 +145,12 @@ onMounted(() => {
   annoMgr.mock()
   annoMgr.showGrid(true)
 })
+
+function resize(width: number, height: number) {
+  if (canvasSize[0] == width && canvasSize[1] == height) return
+  annoMgr.resize(width, height)
+  annoMgr.showGrid(true)
+}
 
 function changeLabel(label: CVLabel) {
   activeLabel.value = label
@@ -167,6 +174,10 @@ function onDrawSelect(type: DrawType) {
 
 function getLabel(id: number) {
   return labeTab.value?.getLabel(id)
+}
+
+function drawImage(offscreen: HTMLCanvasElement) {
+  annoMgr.genImage(offscreen)
 }
 
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
