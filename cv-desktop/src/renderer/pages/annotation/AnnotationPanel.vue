@@ -11,7 +11,7 @@
         <van-icon class-prefix="iconfont" :name="'mark-' + type" />
       </van-button>
 
-      <van-button square block hairline type="default" @click="annoMgr.resetScaleAndMove()">
+      <van-button square block hairline type="default" @click="AnnoMgr?.resetScaleAndMove()">
         <van-icon class-prefix="iconfont" :name="'mark-fit'" />
       </van-button>
 
@@ -36,7 +36,7 @@
       </van-popover>
     </van-col>
 
-    <van-field class="active-label" v-model="searchKeyword" :style="{ borderColor: activeLabel?.color }"
+    <van-field class="active-label" v-model="searchKeyword" :style="{ borderColor: AnnoMgr?.label?.color }"
       @click="showLabelSearch = true">
     </van-field>
 
@@ -47,7 +47,7 @@
           v-if="searchLabels == null || searchLabels.length == 0" />
         <van-cell :title="label.name" center clickable v-for="label in searchLabels" @click="changeLabel(label)">
           <template #right-icon>
-            <van-icon class-prefix="iconfont" name="success" v-if="label.id == activeLabel?.id" />
+            <van-icon class-prefix="iconfont" name="success" v-if="label.id == AnnoMgr?.label?.id" />
           </template>
         </van-cell>
       </van-list>
@@ -70,7 +70,7 @@
       <van-tabs v-model:active="activeTab" sticky>
         <marker-group-tab v-model:marker-group="markerGroup" v-model:active-markers="activeMarkers as any"
           :search-labels="markerSearchLabels" @searchLabels="onMarkerLabelSearch" />
-        <label-group-tab ref="labeTab" v-model:active-label="activeLabel" />
+        <label-group-tab ref="labeTab" />
       </van-tabs>
     </van-popup>
   </van-row>
@@ -79,7 +79,7 @@
 
 import * as fabric from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
-import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { onMounted, provide, ref, useTemplateRef, watch } from 'vue'
 import { AnnotationManager, CVLabel, DrawType } from '../../common'
 import { VisionStore } from '../../store'
 import LabelGroupTab from './LabelGroupTab.vue'
@@ -94,7 +94,7 @@ const showMagic = ref(false)
 const curDrawType = ref(DrawType.Select)
 const markerGroup = ref<Map<DrawType, Array<fabric.FabricObject>>>(new Map())
 const activeMarkers = ref<Array<fabric.FabricObject>>([])
-const activeLabel = ref<CVLabel>(null)
+// const activeLabel = ref<CVLabel>(null)
 const showLabelSearch = ref(false)
 const searchKeyword = ref('')
 const searchLabels = ref([])
@@ -114,29 +114,19 @@ const { canvasSize = [640, 360] } = defineProps<{
   canvasSize: [number, number]
 }>()
 
+const AnnoMgr = ref<AnnotationManager>()
+
+provide('annoMgr', AnnoMgr)
+
 defineExpose({ resize, drawImage, drawAnnotations, getLabel })
 
-watch(() => searchKeyword.value, () => {
-  searchLabels.value = labeTab.value?.searchLabel(searchKeyword.value)
-})
-
-watch(() => activeLabel.value, () => {
-  searchKeyword.value = activeLabel.value?.name
-})
-
-watch(() => activeMarkers.value, () => {
-  showPolyTolerance.value = activeMarkers.value[0]?.type == fabric.Polygon.type
-})
-
 onMounted(() => {
-  console.log(canvasSize[0], canvasSize[1])
   annoMgr = new AnnotationManager(annotationCanvas.value!, canvasSize[0], canvasSize[1])
-  annoMgr.markerGroup = markerGroup.value as any
   annoMgr.activeObjects = activeMarkers.value as any
 
-  activeLabel.value = labeTab.value?.getLabel(1)
-  annoMgr.label = activeLabel.value
-  searchKeyword.value = activeLabel.value?.name
+  AnnoMgr.value = annoMgr
+
+  searchKeyword.value = AnnoMgr.value.label?.name
 
   for (let i = 1; i < DrawTypes.length; ++i) {
     markerGroup.value.set(DrawTypes[i], [])
@@ -148,12 +138,14 @@ onMounted(() => {
 
 function resize(width: number, height: number) {
   if (canvasSize[0] == width && canvasSize[1] == height) return
+  annotationCanvas.value.style.width = canvasSize[0] + 'px'
+  annotationCanvas.value.style.height = canvasSize[1] + 'px'
   annoMgr.resize(width, height)
   annoMgr.showGrid(true)
 }
 
 function changeLabel(label: CVLabel) {
-  activeLabel.value = label
+  AnnoMgr.value.label = label
   searchKeyword.value = label.name
   annoMgr.label = label
   showLabelSearch.value = false
@@ -185,7 +177,7 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   annoMgr.clear()
   if (objNum == 0) return
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
-  const dpr = window.devicePixelRatio
+  const dpr = window.devicePixelRatio || 1
   if (labeTab.value == null) return
 
   for (let i = 0; i < objNum; ++i) {
@@ -210,7 +202,6 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
       rect.set({ score, uuid: uuidv4() })
       annoMgr.add(rect)
     }
-
   }
   annoMgr.requestRenderAll()
 
@@ -218,6 +209,23 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
     markerGroup.value.set(DrawTypes[i], annoMgr.getObjects(DrawTypes[i]))
   }
 }
+
+watch(() => searchKeyword.value, () => {
+  searchLabels.value = labeTab.value?.searchLabel(searchKeyword.value)
+})
+
+// watch(() => activeLabel.value, () => {
+//   searchKeyword.value = activeLabel.value?.name
+// })
+
+watch(() => markerGroup.value, () => {
+
+}, { deep: 2 })
+
+watch(() => activeMarkers.value, () => {
+  showPolyTolerance.value = activeMarkers.value[0]?.type == fabric.Polygon.type
+})
+
 </script>
 
 <style lang="css" scoped>
@@ -245,7 +253,8 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   top: 3px;
   left: 3rem;
   width: 10rem;
-  border: 1px solid;
+  padding: 5px;
+  border: 2px solid;
   border-radius: 5px;
   z-index: 500;
 }

@@ -32,7 +32,7 @@ export default {
       btnSend: '发送'
     },
     resources: {
-      title: '静态资源管理',
+      title: '模型管理',
       upload: '上传文件',
       manage: '远程资源管理',
       cv: {
@@ -58,7 +58,7 @@ export default {
   },
   cvControl: {
     IntergrateMode: '集成模式',
-    ModelEngine: '模型引擎',
+    ModelEngine: '模型框架',
     ModelImport: '模型导入',
 
     ObjRec: '目标识别',

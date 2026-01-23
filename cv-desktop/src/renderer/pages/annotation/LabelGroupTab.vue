@@ -39,7 +39,7 @@
         <van-list v-else style="width: calc(15rem - 4px); height: calc(100vh - 280px); overflow-y: scroll;">
           <van-cell :placeholder="$t('anno.labelPlaceholder')" center clickable
             v-for="labelKey of labelGroup.get(key).labels.keys()"
-            @click="activeLabel = labelGroup.get(key).labels.get(labelKey)">
+            @click="annoMgr.label = labelGroup.get(key).labels.get(labelKey)">
             <template #title>
               <div class="color-block" :style="{ borderColor: labelGroup.get(key).labels.get(labelKey).color }">
                 {{ labelGroup.get(key).labels.get(labelKey).name }}
@@ -58,12 +58,14 @@
 <script setup lang="ts">
 
 import { UploaderFileListItem } from 'vant'
-import { onMounted, ref } from 'vue'
+import { inject, onMounted, Ref, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CVLabel, Def_Object_Labels } from '../../common/Annotations'
+import { AnnotationManager, CVLabel, Def_Object_Labels } from '../../common/Annotations'
 import { MARK_COLORS } from '../../common/CVColors'
 
+
 const { t } = useI18n()
+const annoMgr = inject<Ref<AnnotationManager>>('annoMgr')
 const labelGroup = ref<Map<string, { labels: Map<string, CVLabel>, active: boolean }>>(new Map())
 const collapsedLabelGroup = ref() // 展开的标签组
 let activeLabelGroup: string = null
@@ -92,6 +94,7 @@ onMounted(() => {
 
   labelGroup.value.set(defaultKey, { labels: defLabels, active: true })
   updateLabelGroup(defaultKey)
+  annoMgr.value.label = getLabel(1)
 })
 
 function onColorSpaceChanged(key: string) {
