@@ -72,7 +72,7 @@
             </van-checkbox>
 
             <van-checkbox v-model="visionStore.live2d" style="margin-left: 15px;">
-              <van-icon class-prefix="iconfont" name="live2d" />
+              <van-icon class-prefix="iconfont" name="live2d" style="color: #FC427B;" />
             </van-checkbox>
           </van-row>
         </template>

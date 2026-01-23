@@ -46,15 +46,13 @@ export class AnnotationManager {
   private _label: CVLabel
   set label(label: CVLabel) { this._label = label }
 
-  private _markerGroup: Map<DrawType, Array<fabric.FabricObject>>
-  set markerGroup(markerGroup: Map<DrawType, Array<fabric.FabricObject>>) {
-    this._markerGroup = markerGroup
-  }
-
   private _activeObjects: fabric.FabricObject[] = []
   set activeObjects(data: fabric.FabricObject[]) {
     this._activeObjects = data
+    this._canvas.requestRenderAll()
   }
+  get activeObjects() { return this._activeObjects }
+
   private defCtrl = fabric.controlsUtils.createObjectDefaultControls()
   private labelText: fabric.FabricText
 
@@ -112,7 +110,8 @@ export class AnnotationManager {
 
   resize(width: number, height: number) {
     this._canvas.setDimensions({ width, height })
-    this.clear()
+    this._canvas.clear()
+    // this.clear()
   }
 
   add(object: fabric.FabricObject) {
@@ -124,21 +123,28 @@ export class AnnotationManager {
     this._canvas.requestRenderAll()
   }
 
-  getObjects(type: DrawType) {
-    return this._canvas.getObjects(type as string)
-  }
+  getObjects(type: DrawType) { return this._canvas.getObjects(type as string) }
 
   clear() {
-    for (let key of this._markerGroup.keys()) {
-      this._markerGroup.set(key, [])
-    }
+    [DrawType.Circle, DrawType.Rect, DrawType.Polygon, DrawType.MultiLine, DrawType.Line].forEach(it => {
+      let objects = this._canvas.getObjects(it)
+      this._canvas.remove(...objects)
+    })
     this._canvas.remove(this.labelText)
-    this._canvas.clear()
+
     this.addGrid()
     this._canvas.add(this.labelText)
     this._canvas.requestRenderAll()
   }
 
+  remove(type: DrawType, object: fabric.FabricObject) {
+    this._canvas.remove(object)
+
+    // let objects = this._canvas.getObjects(type).filter(it => it.get('uuid') == object.get('uuid'))
+    // let group = this._markerGroup.get(type)
+    // let idx = group.findIndex((it) => it.get('uuid') == object.get('uuid'))
+    // group.splice(idx, 1)
+  }
   requestRenderAll() {
     this._canvas.requestRenderAll()
   }
@@ -253,7 +259,7 @@ export class AnnotationManager {
       this._canvas.add(this.drawingObject)
       this._canvas.remove(...this.polyTmpObjects)
 
-      this._markerGroup.get(this._drawType).push(this.drawingObject)
+      // this._markerGroup.get(this._drawType).push(this.drawingObject)
       this.polyTmpPoints = []
       this.polyTmpObjects = []
       this.onPolyDrawing = false
@@ -267,7 +273,7 @@ export class AnnotationManager {
     const pointer = this._canvas.getViewportPoint(e.e)
     this._lstPos.x = pointer.x
     this._lstPos.y = pointer.y
-    this._isDragging = this._activeObjects.length == 0 || this._activeObjects[0] == null
+    this._isDragging = (this._activeObjects.length == 0 || this._activeObjects[0] == null) && this._drawType == DrawType.Select
 
     if (this._drawType == DrawType.Select || this._isDragging) return
 
@@ -318,7 +324,7 @@ export class AnnotationManager {
 
   private onMouseMove(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
     const pointer = this._canvas.getViewportPoint(e.e)
-    if (this._isDragging) {
+    if (this._isDragging && this._drawType == DrawType.Select) {
       let vpt = this._canvas.viewportTransform // 聚焦视图的转换
       vpt[4] += pointer.x - this._lstPos.x
       vpt[5] += pointer.y - this._lstPos.y
@@ -365,8 +371,8 @@ export class AnnotationManager {
   }
 
   private onMouseUp(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
-    this._canvas.setViewportTransform(this._canvas.viewportTransform) // 设置此画布实例的视口转换  
-    this._isDragging = false // 关闭移动状态
+    this._canvas.setViewportTransform(this._canvas.viewportTransform)
+    this._isDragging = false
 
     if (!this.onDrawing || this._drawType == DrawType.Select) return
 
@@ -378,7 +384,7 @@ export class AnnotationManager {
           this._canvas.remove(this.drawingObject)
           showNotify({ message: 'The object is too small', type: 'danger', duration: 500 })
         } else {
-          this._markerGroup.get(this._drawType).push(this.drawingObject)
+          // this._markerGroup.get(this._drawType).push(this.drawingObject)
           this._canvas.add(this.drawingObject)
           this._canvas.setActiveObject(this.drawingObject)
 
@@ -393,7 +399,10 @@ export class AnnotationManager {
 
   genImage(canvas: HTMLCanvasElement) {
 
-    let img = new fabric.FabricImage(canvas)
+    let img = new fabric.FabricImage(canvas, {
+      scaleX: 0.5,
+      scaleY: 0.5
+    })
     this._canvas.backgroundImage = img
     this._canvas.requestRenderAll()
   }
@@ -475,7 +484,7 @@ export class AnnotationManager {
     if (!this._canvas) return
 
     const gridSize = 40
-    const gridColor = 'rgba(200, 200, 200, 0.5)'
+    const gridColor = 'rgba(200, 200, 200, 0.9)'
 
     this.gridGroup = new fabric.Group([], { visible: false, selectable: false, evented: false, })
     // 垂直网格线
@@ -584,9 +593,9 @@ export class AnnotationManager {
       path.setCoords()
       this._canvas.requestRenderAll()
     })
-    for (let key of this._markerGroup.keys()) {
-      this._markerGroup.set(key, this._canvas.getObjects(key))
-    }
+    // for (let key of this._markerGroup.keys()) {
+    //   this._markerGroup.set(key, this._canvas.getObjects(key))
+    // }
   }
 
   static genLabelOption(label: CVLabel) {
