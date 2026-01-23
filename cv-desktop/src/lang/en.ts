@@ -58,7 +58,7 @@ export default {
   },
   cvControl: {
     IntergrateMode: 'Integrate Mode',
-    ModelEngine: 'Model Engine',
+    ModelEngine: 'Model Framework',
     ModelImport: 'Import Model',
 
     ObjRec: 'Object Detect',

@@ -59,15 +59,9 @@ export class WorkerManager {
   get face(): FaceDetectResult { return this._enableFaceDetect ? this._face : null }
   get faceMesh(): FaceDetectResult { return this._drawEigen ? this._face : null }
 
-  private _frame: ImageData
-  get frame() { return this._frame }
-  set frame(val: ImageData) {
-    if (this._frame == null || this._frame.width != val.width || this._frame.height != val.height) {
-      this.updateSize(val.width, val.height)
-    }
-
-    this._frame = val
-  }
+  private _processed: ImageData
+  private _origin: ImageData
+  get origin() { return this._origin }
 
   private _annotationPanel: any
   set annotationPanel(val: any) { this._annotationPanel = val }
@@ -203,40 +197,8 @@ export class WorkerManager {
 
     switch (event.data.type) {
       case 'processed':
-        if (this._frame == null ||
-          this._frame.width != event.data.result.width ||
-          this._frame.height != event.data.height) {
-          this._frame = new ImageData(event.data.result.width, event.data.result.height)
-        }
-
-        this._frame.data.set(event.data.result.data)
-
-        if (this._drawMode == WorkerDrawMode.video) {
-
-          if (this._frames == 8) {
-            this.postMessage(WorkerType.faceDetect,
-              { cmd: WorkerCMD.process, image: event.data.result }, [event.data.result.data.buffer])
-
-            this._frames = 1
-          } else {
-            if (this._frames == 4) {
-              this.postMessage(WorkerType.faceDetect,
-                { cmd: WorkerCMD.process, image: event.data.result }, [event.data.result.data.buffer])
-            }
-
-            if (this._frames == 5) {
-              this.postMessage(WorkerType.objDetect,
-                { cmd: WorkerCMD.process, image: event.data.result }, [event.data.result.data.buffer])
-            }
-            this._frames++
-          }
-        } else {
-          this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image: event.data.result })
-          this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image: event.data.result })
-          this.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image: event.data.result })
-
-          this.onDraw()
-        }
+        this._processed = event.data.result
+        if (this._drawMode == WorkerDrawMode.image) this.onDraw()
         break
       case 'contours':
         event.data.contours.forEach(points => {
@@ -305,34 +267,63 @@ export class WorkerManager {
     this._annotationPanel.resize(width, height)
   }
 
-  public onDraw(img?: HTMLImageElement) {
-    // if (this._frame == null) return
+  public flip(val: boolean) {
+    if (val) {
+      this.offscreenCtx.scale(-1, 1)
+      this.offscreenCtx.translate(-this.offscreenCtx.canvas.width, 0)
+    }
+  }
 
-    // this.offscreenCtx.putImageData(this._frame, 0, 0)
-    // if (this.drawMode == WorkerDrawMode.video || img == null) return
-
-    if (img != null) {
-      this.offscreenCtx.drawImage(img, 0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
-      this._frame = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+  public onDraw(data?: HTMLImageElement | HTMLVideoElement) {
+    if (data != null) {
+      this.offscreenCtx.drawImage(data, 0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+      this._origin = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
     }
 
-    if (this._frame != null) this.offscreenCtx.putImageData(this._frame, 0, 0)
+    if (this._enableCVProcess) {
+      if (this._processed) {
+        this.offscreenCtx.putImageData(this._processed, 0, 0)
+        this._processed = null
+      } else {
+        this.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image: this._origin, })
+        return
+      }
+    }
 
     let image = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
-    this.offscreenCtx.fillStyle = '#ff4757'
-    this.offscreenCtx.font = '24px Arial'
-    this.offscreenCtx.fillText(`Face: ${this.face ? this.face.expire : '-'}ms\n 
+    this._origin = image
+    this.previewCtx.drawImage(this.offscreenCtx.canvas, 0, 0)
+    this._annotationPanel?.drawImage(this.previewCtx.canvas)
+    this.previewCtx.fillStyle = '#ff4757'
+    this.previewCtx.font = '24px Arial'
+    this.previewCtx.fillText(`Face: ${this.face ? this.face.expire : '-'}ms\n 
       Object: ${this.objects ? this.objects.expire : '-'}ms`, 20, 30)
 
-    if (this.enableCVProcess) {
-      this.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image, }, [image.data.buffer])
-    } else {
-      this.previewCtx.drawImage(this.offscreenCtx.canvas, 0, 0)
-      this._annotationPanel?.drawImage(this.previewCtx.canvas)
-
+    if (this._drawMode == WorkerDrawMode.image) {
+      // this.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image, }, [image.data.buffer])
       this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image })
       this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image })
       this.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image })
+    } else {
+
+      // if (this._enableCVProcess) {
+      //   this.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image, })
+      // }
+
+      if (this._frames == 8) {
+        this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image }, [image.data.buffer])
+
+        this._frames = 1
+      } else {
+        if (this._frames == 4) {
+          this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image }, [image.data.buffer])
+        }
+
+        if (this._frames == 5) {
+          this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image }, [image.data.buffer])
+        }
+        this._frames++
+      }
     }
   }
 

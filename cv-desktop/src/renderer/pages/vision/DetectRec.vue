@@ -20,7 +20,7 @@
       <van-button plain square size="mini" type="success" class="top-btn" :loading="workerStatus.showProcess"
         @click="onScan">
         <template #icon>
-          <van-icon class-prefix="iconfont" name="face-rec" />
+          <van-icon class-prefix="iconfont" name="scan" />
         </template>
       </van-button>
       <van-button plain square size="mini" type="primary" class="top-btn" @click="showLiveStreamInput = true">
@@ -169,10 +169,8 @@ onMounted(async () => {
   workerMgr.live2dPanel = live2dPanel.value
   workerMgr.updateSize(previewSize.value[0], previewSize.value[1])
 
-  videoPlayer = new VideoPlayer(video.value, previewCtx, offscreenCtx)
+  videoPlayer = new VideoPlayer(video.value)
   videoPlayer.workerMgr = workerMgr
-
-
 })
 
 async function onLiveStream() {
@@ -225,9 +223,6 @@ async function openFolder() {
       h *= ratio
 
       previewSize.value = [Math.round(w / dpr), Math.round(h / dpr)]
-      workerMgr.updateSize(Math.round(w / dpr), Math.round(h / dpr))
-      workerMgr.onDraw(img)
-      img = null
     }
     img.src = file
   })
@@ -238,7 +233,9 @@ async function onScan() {
 }
 
 watch(() => previewSize.value, () => {
-
+  workerMgr.updateSize(previewSize.value[0], previewSize.value[1])
+  workerMgr.onDraw(img)
+  img = null
 })
 
 watch(
@@ -311,11 +308,17 @@ watch(() => visionStore.enableCVProcess, async () => {
 watch(
   () => visionStore.cvOptions,
   () => {
-    workerMgr.postMessage(WorkerType.cvProcess, {
+    workerMgr?.postMessage(WorkerType.cvProcess, {
       cmd: WorkerCMD.updateOptions,
       options: JSON.stringify(visionStore.cvOptions.value)
     })
-    workerMgr?.onDraw()
+
+    if (workerMgr?.origin) {
+      console.log('hell')
+      workerMgr?.postMessage(WorkerType.cvProcess,
+        { cmd: WorkerCMD.process, image: workerMgr.origin, }
+      )
+    }
   },
   { deep: true }
 )

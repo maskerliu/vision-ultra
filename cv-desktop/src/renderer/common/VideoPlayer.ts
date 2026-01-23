@@ -1,13 +1,10 @@
 import Hls from 'hls.js'
-import { WorkerManager, WorkerType } from './WorkerManager'
-import { WorkerCMD } from './misc'
+import { WorkerManager } from './WorkerManager'
 
 export class VideoPlayer {
   private hls: Hls
 
   private preVideo: HTMLVideoElement
-  private previewCtx: CanvasRenderingContext2D
-  private offscreenCtx: OffscreenCanvasRenderingContext2D
 
   private animationId: number
   private flip: boolean = true
@@ -17,22 +14,15 @@ export class VideoPlayer {
   set workerMgr(value: WorkerManager) { this._workerMgr = value }
 
   private mediaRecorder: MediaRecorder
+  private _once = false
 
-  private _frames = 1
-
-  constructor(video: HTMLVideoElement,
-    previewCtx: CanvasRenderingContext2D,
-    offscreenCtx: OffscreenCanvasRenderingContext2D,
-    flip: boolean = true) {
+  constructor(video: HTMLVideoElement, flip: boolean = true) {
     this.hls = new Hls()
 
     this.preVideo = video
 
-    this.previewCtx = previewCtx
-    this.offscreenCtx = offscreenCtx
-
-    this.previewCtx.imageSmoothingEnabled = true
-    this.previewCtx.imageSmoothingQuality = 'high'
+    // this.previewCtx.imageSmoothingEnabled = true
+    // this.previewCtx.imageSmoothingQuality = 'high'
 
     this.flip = flip
   }
@@ -40,55 +30,15 @@ export class VideoPlayer {
   async processFrame() {
     if (this.preVideo.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) return
 
-    console.log(this.preVideo.videoWidth / 2, this.preVideo.videoHeight / 2)
-    if (this.frame == null ||
-      this.frame.width != this.preVideo.videoWidth ||
-      this.frame.height != this.preVideo.videoHeight) {
-      // this.workerMgr?.updateSize(this.preVideo.videoWidth / 2, this.preVideo.videoHeight / 2)
-      // this.frame = new ImageData(this.preVideo.videoWidth / 2, this.preVideo.videoHeight / 2)
-
-      // this.offscreenCtx.canvas.width = this.previewCtx.canvas.width = this.preVideo.videoWidth
-      // this.offscreenCtx.canvas.height = this.previewCtx.canvas.height = this.preVideo.videoHeight
+    if (!this._once) {
+      this._workerMgr?.updateSize(640, 360)
+      this._workerMgr?.flip(this.flip)
+      this._once = true
     }
 
-
-    // if (this.flip) {
-    //   this.offscreenCtx.scale(-1, 1)
-    //   this.offscreenCtx.translate(-this.offscreenCtx.canvas.width, 0)
-    // }
-
-    this.offscreenCtx.drawImage(this.preVideo, 0, 0)
-    let image = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
-
-    if (this._workerMgr.enableCVProcess) {
-      this._workerMgr?.postMessage(WorkerType.cvProcess,
-        { cmd: WorkerCMD.process, image }, [image.data.buffer])
-
-      // this._workerMgr.onDraw()
-    } else {
-      this._workerMgr.frame = image
-
-      if (this._frames == 8) {
-        this._workerMgr?.postMessage(WorkerType.faceDetect,
-          { cmd: WorkerCMD.process, image }, [image.data.buffer])
-        this._frames = 1
-      } else {
-        if (this._frames == 4) {
-          this._workerMgr?.postMessage(WorkerType.faceDetect,
-            { cmd: WorkerCMD.process, image }, [image.data.buffer])
-        }
-
-        if (this._frames == 5) {
-          this._workerMgr?.postMessage(WorkerType.objDetect,
-            { cmd: WorkerCMD.process, image }, [image.data.buffer])
-        }
-        this._frames++
-      }
-    }
-
-    // this._workerMgr.onDraw()
-    this._workerMgr.drawFace()
-    this._workerMgr.drawObjects()
+    this._workerMgr?.onDraw(this.preVideo)
+    this._workerMgr?.drawFace()
+    this._workerMgr?.drawObjects()
   }
 
 
@@ -97,9 +47,11 @@ export class VideoPlayer {
   }
 
   async open(url?: string, flip: boolean = true) {
+    this._once = false
     if (this.preVideo.srcObject && url == null) {
       this.close()
       this.preVideo.srcObject = null
+
       return
     }
 

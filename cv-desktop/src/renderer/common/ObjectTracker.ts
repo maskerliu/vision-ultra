@@ -78,11 +78,11 @@ export class ObjectTracker {
       nms = tmp
     }
 
-    console.log(result)
+    // console.log(result)
     // result[0].print()
-    result[1].print()
-    result[2].print()
-    console.log(nms)
+    // result[1].print()
+    // result[2].print()
+    // console.log(nms)
 
     const overlay = tf.tidy(() => {
       const boxesTF = result[0].gather(nms, 0)
@@ -98,8 +98,6 @@ export class ObjectTracker {
         return this.generateMasks(maskCoeffsTF, res[1])
       }
     })
-
-    console.log(overlay)
 
     this._expire = Date.now() - time
 
@@ -168,8 +166,8 @@ export class ObjectTracker {
 
       if (transRes.shape[2] == 116) { // yolo common with segment
 
-        console.log(transRes)
-        transRes.print()
+        // console.log(transRes)
+        // transRes.print()
 
         const w = transRes.slice([0, 0, 2], [-1, -1, 1])
         const h = transRes.slice([0, 0, 3], [-1, -1, 1])
@@ -239,7 +237,7 @@ export class ObjectTracker {
       }
       i++
     }
-    console.log(this._masks)
+    // console.log(this._masks)
   }
 
   private generateMasks(maskCoeffs: tf.Tensor, proto: tf.Tensor) {
