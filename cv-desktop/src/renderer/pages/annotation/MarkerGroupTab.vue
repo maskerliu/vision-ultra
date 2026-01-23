@@ -30,7 +30,7 @@
                   @click.stop="onMarkerStatusChanged(marker as any, opt)">
                 </van-icon>
                 <van-icon class-prefix="iconfont" name="delete" style="color: #e74c3c"
-                  @click.stop="onMarkerStatusChanged(marker, 'delete', key, idx as number)" />
+                  @click.stop="onMarkerStatusChanged(marker, 'delete', key)" />
               </van-row>
             </template>
             <template #label>
@@ -46,9 +46,10 @@
 
 import * as fabric from 'fabric'
 import { Cell, Popup } from 'vant'
-import { onMounted, ref, useTemplateRef } from 'vue'
+import { inject, onMounted, Ref, ref, useTemplateRef } from 'vue'
 import { AnnotationManager, CVLabel, DrawType } from '../../common'
 
+const annoMgr = inject<Ref<AnnotationManager>>('annoMgr')
 const activeMarkerGroup = ref(DrawType.Rect)
 const curMarker = ref<fabric.FabricObject>()
 const labelRefGroup = ref<Map<DrawType, Array<typeof Cell>>>(new Map())
@@ -95,7 +96,7 @@ function getMarkerStatus(marker: fabric.FabricObject, status: string) {
   return marker.get(status)
 }
 
-function onMarkerStatusChanged(object: fabric.FabricObject, status: string, group?: number, idx?: number) {
+function onMarkerStatusChanged(object: fabric.FabricObject, status: string, type?: string) {
   curMarker.value = object
   let val = object.get(status) == null ? false : object.get(status)
   let params = {}
@@ -105,7 +106,7 @@ function onMarkerStatusChanged(object: fabric.FabricObject, status: string, grou
   switch (status) {
     case 'selected':
       object.canvas.setActiveObject(object)
-      // console.log(object.get('uuid'), object.get('type'), object.get('selectable'), object.get('evented'),)
+      // annoMgr.value.activeObjects = [object]
       break
     case 'pin':
       object.set({
@@ -123,11 +124,10 @@ function onMarkerStatusChanged(object: fabric.FabricObject, status: string, grou
       object.set({ visible: val })
       break
     case 'delete':
-      markerGroup.value.get(group).splice(idx, 1)
-      object.canvas.remove(object)
+      annoMgr.value.remove(type as DrawType, object)
       break
   }
-  object.canvas.requestRenderAll()
+  annoMgr.value.requestRenderAll()
 }
 
 function handleSearch(e: any) {
@@ -143,7 +143,7 @@ function showLabelSearchResult(type: DrawType, idx: number) {
 
 function updateMarkerLabel(label: CVLabel) {
   curMarker.value.set(AnnotationManager.genLabelOption(label))
-  curMarker.value.canvas.requestRenderAll()
+  annoMgr.value.requestRenderAll()
   showLabelSearch.value = false
 }
 

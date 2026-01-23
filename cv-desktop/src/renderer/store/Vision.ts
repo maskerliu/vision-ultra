@@ -76,8 +76,8 @@ class CVOptions {
 export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
-      intergrateMode: IntergrateMode.WebAssembly, // 1: opencv.js wasm  2: opencv.js node 3: opencv4nodejs
-      modelEngine: ModelEngine.onnx, // tensorflow or onnx
+      intergrateMode: IntergrateMode.WebAssembly,
+      modelEngine: ModelEngine.tensorflow,
 
       enableObjDetect: false,
       objDetectModel: { name: 'yolo11n-seg', type: ModelType.Segment, engine: ModelEngine.tensorflow },
