@@ -44,7 +44,7 @@
       </Transition>
       <!-- <van-empty v-show="hasPreview" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 2000;" /> -->
       <canvas ref="preview"></canvas>
-      <canvas ref="mask" style="display: block; position: absolute; top: 50px; left: 50px;"></canvas>
+      <canvas ref="mask" style="display: none; position: absolute; top: 50px; left: 50px;"></canvas>
       <video ref="video" slot="media" autoplay style="display: none;"></video>
       <media-control-bar style="position: absolute; bottom: 0; left: 0; right: 0;" v-if="showControlBar">
         <media-play-button></media-play-button>
@@ -314,7 +314,6 @@ watch(
     })
 
     if (workerMgr?.origin) {
-      console.log('hell')
       workerMgr?.postMessage(WorkerType.cvProcess,
         { cmd: WorkerCMD.process, image: workerMgr.origin, }
       )
@@ -358,7 +357,7 @@ watch(
   height: 140px;
   object-fit: contain;
   position: absolute;
-  top: 100px;
+  top: 50px;
   right: 15px;
   padding: 5px;
   border-radius: 12px;

@@ -164,7 +164,7 @@ export class ObjectTracker {
         transRes = transRes.transpose([0, 2, 1])
       }
 
-      if (transRes.shape[2] == 116) { // yolo common with segment
+      if (transRes.shape[2] >= 84) { // yolo common with segment
 
         // console.log(transRes)
         // transRes.print()
@@ -177,7 +177,7 @@ export class ObjectTracker {
         const classScores = transRes.slice([0, 0, 4], [-1, -1, 80]).squeeze()
         scores = classScores.max(1)
         classes = classScores.argMax(1)
-        maskCoeffs = transRes.slice([0, 0, 4 + 80], [-1, -1, 32]).squeeze()
+        if (transRes.shape[2] == 116) maskCoeffs = transRes.slice([0, 0, 4 + 80], [-1, -1, 32]).squeeze()
       } else if (transRes.shape[2] == 38) {
         const y2 = transRes.slice([0, 0, 3], [-1, -1, 1])
         const x2 = transRes.slice([0, 0, 2], [-1, -1, 1])
