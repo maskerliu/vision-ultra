@@ -291,38 +291,38 @@ export class WorkerManager {
     }
 
     let image = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
-    this._origin = image
+    if (this._origin == null)
+      this._origin = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+
     this.previewCtx.drawImage(this.offscreenCtx.canvas, 0, 0)
-    this._annotationPanel?.drawImage(this.previewCtx.canvas)
+    this._annotationPanel?.drawImage(this.offscreenCtx.canvas)
     this.previewCtx.fillStyle = '#ff4757'
     this.previewCtx.font = '24px Arial'
     this.previewCtx.fillText(`Face: ${this.face ? this.face.expire : '-'}ms\n 
       Object: ${this.objects ? this.objects.expire : '-'}ms`, 20, 30)
 
     if (this._drawMode == WorkerDrawMode.image) {
-      // this.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image, }, [image.data.buffer])
       this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image })
       this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image })
       this.postMessage(WorkerType.imageGen, { cmd: WorkerCMD.process, image })
     } else {
-
-      // if (this._enableCVProcess) {
-      //   this.postMessage(WorkerType.cvProcess, { cmd: WorkerCMD.process, image, })
-      // }
-
-      if (this._frames == 8) {
-        this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image }, [image.data.buffer])
-
-        this._frames = 1
-      } else {
-        if (this._frames == 4) {
+      switch (this._frames) {
+        case 9:
           this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image }, [image.data.buffer])
-        }
-
-        if (this._frames == 5) {
+          this._frames = 1
+          break
+        case 3:
+        case 6:
+          this.postMessage(WorkerType.faceDetect, { cmd: WorkerCMD.process, image }, [image.data.buffer])
+          this._frames++
+          break
+        case 5:
           this.postMessage(WorkerType.objDetect, { cmd: WorkerCMD.process, image }, [image.data.buffer])
-        }
-        this._frames++
+          this._frames++
+          break
+        default:
+          this._frames++
+          break
       }
     }
   }

@@ -1,6 +1,7 @@
 import * as fabric from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
-import { showNotify } from 'vant'
+import { showNotify, showToast } from 'vant'
+import { Ref } from 'vue'
 import { MarkColors } from './CVColors'
 
 export const Def_Object_Labels = [
@@ -43,15 +44,16 @@ export class AnnotationManager {
   private _cursorPoint: fabric.Point = new fabric.Point(0, 0)
   private _isDragging = false
   private _drawType: DrawType = DrawType.Select
-  private _label: CVLabel
-  set label(label: CVLabel) { this._label = label }
+  private _label: Ref<CVLabel>
+  set label(label: Ref<CVLabel>) { this._label = label }
 
-  private _activeObjects: fabric.FabricObject[] = []
-  set activeObjects(data: fabric.FabricObject[]) {
-    this._activeObjects = data
-    this._canvas.requestRenderAll()
-  }
-  get activeObjects() { return this._activeObjects }
+  private _activeObject: Ref<fabric.FabricObject>
+  set activeObject(val: Ref) { this._activeObject = val }
+  get activeObject() { return this._activeObject }
+
+  private _objNum: Ref<number>
+  get objNum() { return this._objNum }
+  set objNum(val: Ref) { this._objNum = val }
 
   private defCtrl = fabric.controlsUtils.createObjectDefaultControls()
   private labelText: fabric.FabricText
@@ -139,7 +141,6 @@ export class AnnotationManager {
 
   remove(type: DrawType, object: fabric.FabricObject) {
     this._canvas.remove(object)
-
     // let objects = this._canvas.getObjects(type).filter(it => it.get('uuid') == object.get('uuid'))
     // let group = this._markerGroup.get(type)
     // let idx = group.findIndex((it) => it.get('uuid') == object.get('uuid'))
@@ -210,34 +211,35 @@ export class AnnotationManager {
     })
 
     this._canvas.on('selection:created', e => {
-      this._activeObjects[0] = e.selected?.[0] || null
+      this._activeObject.value = e.selected?.[0] || null
 
       this.updateLabelText()
     })
 
     this._canvas.on('selection:updated', e => {
-      this._activeObjects[0] = e.selected?.[0] || null
+      this._activeObject.value = e.selected?.[0] || null
 
-      this._canvas.bringObjectToFront(this._activeObjects[0])
+      this._canvas.bringObjectToFront(this._activeObject.value)
       this.updateLabelText()
     })
 
     this._canvas.on('selection:cleared', e => {
       this._canvas.discardActiveObject()
       this.labelText.visible = false
-      this._activeObjects[0] = null
+      this._activeObject.value = null
     })
   }
 
   private updateLabelText() {
-    this.labelText.set('text', `${this._activeObjects[0]?.get('label')} ${this._activeObjects[0]?.get('score')}% \n${this._activeObjects[0]?.get('uuid')?.substr(0, 8)}`)
-    this.labelText.left = Math.round(this._activeObjects[0].left + this._activeObjects[0].width * this._activeObjects[0].scaleX + 10)
+    let obj = this._activeObject.value
+    this.labelText.set('text', `${obj?.get('label')} ${obj?.get('score')}% \n${obj?.get('uuid')?.substr(0, 8)}`)
+    this.labelText.left = Math.round(obj?.left + obj?.width * obj?.scaleX + 10)
 
     if (this.labelText.left > this._canvas.width - this.labelText.width) {
       this.labelText.left = Math.round(this.labelText.left - 20 - this.labelText.width)
     }
 
-    this.labelText.top = Math.round(this._activeObjects[0].top)
+    this.labelText.top = Math.round(obj?.top)
     this.labelText.visible = true
 
     this._canvas.bringObjectToFront(this.labelText)
@@ -252,13 +254,13 @@ export class AnnotationManager {
       }
 
       this.drawingObject = this.genPoly(this.polyTmpPoints, this._drawType)
-      this.drawingObject.set(AnnotationManager.genLabelOption(this._label))
+      this.drawingObject.set(AnnotationManager.genLabelOption(this._label.value))
       this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
       this.drawingObject.set({ evented: false, selectable: false })
       if (this._drawType == DrawType.MultiLine) this.drawingObject.set({ fill: 'transparent' })
       this._canvas.add(this.drawingObject)
       this._canvas.remove(...this.polyTmpObjects)
-
+      this._objNum.value++
       // this._markerGroup.get(this._drawType).push(this.drawingObject)
       this.polyTmpPoints = []
       this.polyTmpObjects = []
@@ -273,7 +275,7 @@ export class AnnotationManager {
     const pointer = this._canvas.getViewportPoint(e.e)
     this._lstPos.x = pointer.x
     this._lstPos.y = pointer.y
-    this._isDragging = (this._activeObjects.length == 0 || this._activeObjects[0] == null) && this._drawType == DrawType.Select
+    this._isDragging = this._activeObject.value == null && this._drawType == DrawType.Select
 
     if (this._drawType == DrawType.Select || this._isDragging) return
 
@@ -314,7 +316,7 @@ export class AnnotationManager {
         break
     }
 
-    this.drawingObject.set(AnnotationManager.genLabelOption(this._label))
+    this.drawingObject.set(AnnotationManager.genLabelOption(this._label.value))
     this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
     this.drawingObject.set({ evented: false, selectable: false })
     this._canvas.add(this.drawingObject)
@@ -325,10 +327,10 @@ export class AnnotationManager {
   private onMouseMove(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
     const pointer = this._canvas.getViewportPoint(e.e)
     if (this._isDragging && this._drawType == DrawType.Select) {
-      let vpt = this._canvas.viewportTransform // 聚焦视图的转换
+      let vpt = this._canvas.viewportTransform
       vpt[4] += pointer.x - this._lstPos.x
       vpt[5] += pointer.y - this._lstPos.y
-      this._canvas.requestRenderAll() // 重新渲染
+      this._canvas.requestRenderAll()
       this._lstPos.x = pointer.x
       this._lstPos.y = pointer.y
     }
@@ -371,8 +373,11 @@ export class AnnotationManager {
   }
 
   private onMouseUp(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
-    this._canvas.setViewportTransform(this._canvas.viewportTransform)
-    this._isDragging = false
+    if (this._isDragging) {
+      this._canvas.setViewportTransform(this._canvas.viewportTransform)
+      this._isDragging = false
+      return
+    }
 
     if (!this.onDrawing || this._drawType == DrawType.Select) return
 
@@ -380,18 +385,19 @@ export class AnnotationManager {
       case DrawType.Rect:
       case DrawType.Circle:
       case DrawType.Line:
-        if (this.drawingObject.width < 10 || this.drawingObject.height < 10) {
+        if (this.drawingObject.width < 20 || this.drawingObject.height < 20) {
           this._canvas.remove(this.drawingObject)
-          showNotify({ message: 'The object is too small', type: 'danger', duration: 500 })
+          showToast({ message: 'The object is too small', duration: 500 })
         } else {
           // this._markerGroup.get(this._drawType).push(this.drawingObject)
-          this._canvas.add(this.drawingObject)
+          // this._canvas.add(this.drawingObject)
           this._canvas.setActiveObject(this.drawingObject)
 
           this.drawingObject = null
           this.mouseFrom = null
           this.onDrawing = false
           this._canvas.requestRenderAll()
+          this._objNum.value++
         }
         break
     }
@@ -534,7 +540,7 @@ export class AnnotationManager {
     rect.set('uuid', uuidv4())
     this._canvas.add(rect)
 
-    rect = this.genRect(240, 250, 320, 380)
+    rect = this.genRect(240, 250, 320, 360)
     rect.set(AnnotationManager.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
     rect.set('score', '90.4')
     rect.set('uuid', uuidv4())
@@ -545,57 +551,6 @@ export class AnnotationManager {
     poly.set('score', '90.4')
     poly.set('uuid', uuidv4())
     this._canvas.add(poly)
-
-    let path = new fabric.Path('M 10 10 C 20 20, 40 20, 50 10 C 250,30 300,50 300,100 ', AnnotationManager.genCommonOption())
-    path.set({ fill: 'transparent', stroke: '#e74c3c', })
-    path.set({ left: 100, top: 100 })
-    this._canvas.add(path)
-
-    let arr = []
-    for (let i = 0; i < path.path.length; ++i) {
-      switch (path.path[i][0]) {
-        case 'M':
-          arr.push({ x: path.path[i][1], y: path.path[i][2] })
-          break
-        case 'C':
-          // arr.push({ x: path.path[i][1], y: path.path[i][2] })
-          // arr.push({ x: path.path[i][3], y: path.path[i][4] })
-          arr.push({ x: path.path[i][5], y: path.path[i][6] })
-      }
-    }
-
-    let ctrlPoly = this.genPoly(arr, DrawType.MultiLine)
-    ctrlPoly.set({ left: 100, top: 100 })
-    ctrlPoly.set({ fill: 'transparent', stroke: '#e74c3c', })
-    this._canvas.add(ctrlPoly)
-    ctrlPoly.setCoords()
-
-    let pathCtrls = ctrlPoly.controls
-    for (let key in pathCtrls) {
-      pathCtrls[key].mouseUpHandler = (eventData) => {
-        // console.log(key, pathCtrls[key].x, pathCtrls[key].y)
-      }
-    }
-
-    // pathCtrls.keys()((ctrl, key) => {
-    //   ctrl.mouseUpHandler = (eventData) => {
-    //     console.log(key, ctrl.x, ctrl.y)
-    //   }
-    // })
-    path.set({ editing: true })
-    path.on('mousedblclick', () => {
-      if (poly.get('editing')) {
-        // path.controls = fabric.controlsUtils.createPolyControls(ctrlPoly)
-        path.set({ cornerStyle: 'circle', hasBorders: false, editing: false })
-      } else {
-        path.set({ cornerStyle: 'rect', hasBorders: true, controls: this.defCtrl, editing: true })
-      }
-      path.setCoords()
-      this._canvas.requestRenderAll()
-    })
-    // for (let key of this._markerGroup.keys()) {
-    //   this._markerGroup.set(key, this._canvas.getObjects(key))
-    // }
   }
 
   static genLabelOption(label: CVLabel) {

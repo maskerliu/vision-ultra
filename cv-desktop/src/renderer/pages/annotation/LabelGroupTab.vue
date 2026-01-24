@@ -39,7 +39,7 @@
         <van-list v-else style="width: calc(15rem - 4px); height: calc(100vh - 280px); overflow-y: scroll;">
           <van-cell :placeholder="$t('anno.labelPlaceholder')" center clickable
             v-for="labelKey of labelGroup.get(key).labels.keys()"
-            @click="annoMgr.label = labelGroup.get(key).labels.get(labelKey)">
+            @click="activeLabel = labelGroup.get(key).labels.get(labelKey)">
             <template #title>
               <div class="color-block" :style="{ borderColor: labelGroup.get(key).labels.get(labelKey).color }">
                 {{ labelGroup.get(key).labels.get(labelKey).name }}
@@ -82,9 +82,6 @@ defineExpose({ getLabel, searchLabel })
 
 onMounted(() => {
 
-  // let defLabels = Def_Object_Labels.map((label, idx) => {
-  //   return { id: idx, name: label, color: MARK_COLORS.get(idx, colorSpace.value) }
-  // })
   let defLabels = new Map()
   Def_Object_Labels.forEach((label, idx) => {
     defLabels.set(`${idx}`, { id: idx, name: label, color: MARK_COLORS.get(idx, colorSpace.value) })
@@ -94,7 +91,7 @@ onMounted(() => {
 
   labelGroup.value.set(defaultKey, { labels: defLabels, active: true })
   updateLabelGroup(defaultKey)
-  annoMgr.value.label = getLabel(1)
+  activeLabel.value = getLabel(1)
 })
 
 function onColorSpaceChanged(key: string) {

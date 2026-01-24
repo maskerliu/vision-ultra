@@ -55,6 +55,7 @@ onMounted(async () => {
 
   liveModel = new Live2DCubismModel(live2d.value, options)
   await liveModel.load('./static/hiyori/Hiyori.model3.json')
+  // await liveModel.load('./static/hibiki/hibiki.model3.json')
 
   params.value = liveModel.parameters
   values.value = new Array<number>(params.value.count)
