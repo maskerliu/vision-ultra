@@ -16,10 +16,10 @@
       <van-collapse-item :name="key" :title="key" :value="markerGroup.get(key).length"
         v-for="key of markerGroup.keys()">
         <van-empty image-size="80" v-if="markerGroup.get(key) == null || markerGroup.get(key).length == 0" />
-        <van-list v-else style="max-height: calc(100vh - 330px); overflow: hidden scroll;">
+        <van-list v-else style="max-height: calc(100vh - 300px); overflow: hidden scroll;">
           <van-cell center :border="true" clickable class="marker" v-for="(marker, idx) in markerGroup.get(key)"
             :ref="(el: any) => setMarkerRef(el, key, idx as number)"
-            :style="{ borderColor: marker.get('stroke'), backgroundColor: activeMarkers[0]?.get('uuid') == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
+            :style="{ borderColor: marker.get('stroke'), backgroundColor: activeMarker?.get('uuid') == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
             @click="onMarkerStatusChanged(marker as any, 'selected')">
             <template #title>
               <van-row>
@@ -29,7 +29,7 @@
                   :name="opt + (getMarkerStatus(marker as any, opt) ? '' : '-n')"
                   @click.stop="onMarkerStatusChanged(marker as any, opt)">
                 </van-icon>
-                <van-icon class-prefix="iconfont" name="delete" style="color: #e74c3c"
+                <van-icon class-prefix="iconfont" name="delete" class="label-option" style="color: #e74c3c"
                   @click.stop="onMarkerStatusChanged(marker, 'delete', key)" />
               </van-row>
             </template>
@@ -60,13 +60,13 @@ const showLabelSearch = ref(false)
 const markerGroup = defineModel('markerGroup', {
   required: true,
   default: new Map(),
-  type: Map<number, fabric.FabricObject[]>
+  type: Map<DrawType, fabric.FabricObject[]>
 })
 
-const activeMarkers = defineModel('activeMarkers', {
-  required: true,
+const activeMarker = defineModel('activeMarker', {
+  required: false,
   default: null,
-  type: Array<fabric.FabricObject>
+  type: fabric.FabricObject
 })
 
 defineProps<{
@@ -106,7 +106,6 @@ function onMarkerStatusChanged(object: fabric.FabricObject, status: string, type
   switch (status) {
     case 'selected':
       object.canvas.setActiveObject(object)
-      // annoMgr.value.activeObjects = [object]
       break
     case 'pin':
       object.set({
@@ -125,6 +124,7 @@ function onMarkerStatusChanged(object: fabric.FabricObject, status: string, type
       break
     case 'delete':
       annoMgr.value.remove(type as DrawType, object)
+      markerGroup.value.set(type, annoMgr.value.getObjects(type as DrawType))
       break
   }
   annoMgr.value.requestRenderAll()
@@ -136,7 +136,7 @@ function handleSearch(e: any) {
 
 function showLabelSearchResult(type: DrawType, idx: number) {
   if (labelSearchRef.value.popupRef.value) {
-    labelSearchRef.value.popupRef.value.style.top = labelRefGroup.value.get(type)[idx].$el.getBoundingClientRect().top + 26 + 'px'
+    labelSearchRef.value.popupRef.value.style.top = labelRefGroup.value.get(type)[idx].$el.getBoundingClientRect().bottom + 12 + 'px'
   }
   showLabelSearch.value = !showLabelSearch.value
 }
@@ -156,18 +156,18 @@ function updateMarkerLabel(label: CVLabel) {
 }
 
 .label-option {
-  margin-right: 5px;
+  margin-right: 8px;
 }
 
 .marker {
   width: calc(100% - 3px);
   border: 1px solid;
   border-radius: 5px;
-  margin: 4px 0 0 2px;
+  margin: 3px 0 0 2px;
 }
 
 .marker-input {
-  width: 55%;
+  width: 50%;
   border: 0;
   background-color: transparent;
 }
