@@ -8,7 +8,6 @@ export class VideoPlayer {
 
   private animationId: number
   private flip: boolean = true
-  private frame: ImageData
 
   private _workerMgr: WorkerManager = null
   set workerMgr(value: WorkerManager) { this._workerMgr = value }
@@ -18,12 +17,7 @@ export class VideoPlayer {
 
   constructor(video: HTMLVideoElement, flip: boolean = true) {
     this.hls = new Hls()
-
     this.preVideo = video
-
-    // this.previewCtx.imageSmoothingEnabled = true
-    // this.previewCtx.imageSmoothingQuality = 'high'
-
     this.flip = flip
   }
 

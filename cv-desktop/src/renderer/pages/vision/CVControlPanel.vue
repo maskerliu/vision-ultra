@@ -250,7 +250,7 @@
     <van-col v-show="visionStore.cvOptions.isGray">
       <!-- morphological operation -->
       <van-cell-group inset>
-        <van-cell center input-align="right">
+        <van-cell center input-align="right" style="scroll-margin-top: 50px;">
           <template #title>
             <van-checkbox shape="square" v-model="visionStore.cvOptions.enableMorph">
               {{ $t(`cvControl.Morph`) }}
@@ -258,7 +258,7 @@
           </template>
           <template #value>
             <van-popover style="width: 140px;" overlay :show-arrow="false" placement="bottom-end"
-              v-model:show="showMorphOpts">
+              v-model:show="showMorphOpts" @open="checkPosition">
               <template #reference>
                 <span style="font-size: var(--van-font-size-md)">
                   {{ $t(`cvControl.MorphOpt.${MorphOpts[visionStore.cvOptions.morph[0]]}`) }}
