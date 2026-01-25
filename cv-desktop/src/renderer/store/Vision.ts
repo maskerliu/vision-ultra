@@ -81,6 +81,7 @@ export const VisionStore = defineStore('VisionStore', {
 
       enableObjDetect: false,
       objDetectModel: { name: 'yolo11n-seg', type: ModelType.Segment, engine: ModelEngine.tensorflow },
+      genContour: false,
 
       enableFaceDetect: false,
       drawFaceMesh: true,
