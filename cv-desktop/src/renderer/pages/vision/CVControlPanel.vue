@@ -441,11 +441,6 @@ onMounted(() => {
 
   ObjRecModelGrop.set('Detect', DetectModels)
   ObjRecModelGrop.set('Segment', SegmentModels)
-
-  let i1 = i18n.t(`cvControl.MorphOpt.Open`).padEnd(15, '&nbsp;')
-  console.log(i1.length)
-  let i2 = i18n.t(`cvControl.MorphOpt.Dilate`).padEnd(15, '&nbsp;')
-  console.log(i2.length)
 })
 
 function checkPosition() {

@@ -1,9 +1,9 @@
 <template>
   <van-cell-group inset title=" ">
-    <van-field center label-width="7rem" :readonly="true">
+    <van-field center label-align="left" label-width="7rem" :readonly="true">
       <template #label>
         <van-icon class-prefix="iconfont" name="theme" />
-        {{ $t('settings.sys.theme').padStart(10, '&nbsp;') }}
+        {{ $t('settings.sys.theme') }}
       </template>
       <template #right-icon>
         <van-radio-group v-model="theme" direction="horizontal" style="height: 26px;" @change="onThemeChanged">
@@ -19,10 +19,10 @@
       </template>
     </van-field>
 
-    <van-field center input-align="right" label-width="7rem" :readonly="true">
+    <van-field center label-align="left" input-align="right" label-width="7rem" :readonly="true">
       <template #label>
         <van-icon class-prefix="iconfont" name="fontsize" />
-        {{ $t('settings.sys.fontsize').padStart(10, '&nbsp;') }}
+        {{ $t('settings.sys.fontsize') }}
       </template>
       <template #input>
         <van-slider v-model="fontSize" min="7" max="10" @change="updateFontsize"
@@ -30,16 +30,15 @@
       </template>
     </van-field>
 
-    <van-field center input-align="right" label-width="7rem" :readonly="true">
+    <van-field center label-align="left" input-align="right" label-width="7rem" :readonly="true">
       <template #label>
         <van-icon class-prefix="iconfont" name="version-update" />
-        {{ $t('settings.sys.version').padStart(11, '&nbsp;') }}
+        {{ $t('settings.sys.version') }}
       </template>
       <template #input>
         <div style="height: 33px;display: flex; align-items: center; justify-content: center;" @click="onVersionCheck">
           <span>{{ commonStore.bizConfig.appVersion }}</span>
         </div>
-
       </template>
       <template #right-icon>
         <van-loading v-if="versionChecking" />
@@ -49,10 +48,10 @@
       </template>
     </van-field>
 
-    <van-field center input-align="right" label-width="7rem" :readonly="true">
+    <van-field center label-align="left" input-align="right" label-width="7rem" :readonly="true">
       <template #label>
         <van-icon class-prefix="iconfont" name="lang" />
-        {{ $t('settings.sys.lang').padStart(11, '&nbsp;') }}
+        {{ $t('settings.sys.lang') }}
       </template>
       <template #input>
         <van-popover v-model:show="showLangs" placement="bottom-end" style="min-width: 140px">

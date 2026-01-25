@@ -4,9 +4,7 @@
       <van-collapse-item name="colorSpace" title="Color Space" value=" " style="width: 15rem;">
         <van-grid clickable :column-num="2" style="width: 15rem;">
           <van-grid-item v-for="key in MARK_COLORS.palettes" @click="onColorSpaceChanged(key)">
-            <div v-if="key == colorSpace"
-              style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; border: 2px solid #1989fa;">
-            </div>
+            <div v-if="key == colorSpace" class="color-space"></div>
             <van-image radius="5" :src="`/static/${key}.png`"></van-image>
           </van-grid-item>
         </van-grid>
@@ -67,7 +65,7 @@ import { MARK_COLORS } from '../../common/CVColors'
 const { t } = useI18n()
 const annoMgr = inject<Ref<AnnotationManager>>('annoMgr')
 const labelGroup = ref<Map<string, { labels: Map<string, CVLabel>, active: boolean }>>(new Map())
-const collapsedLabelGroup = ref() // 展开的标签组
+const collapsedLabelGroup = ref()
 let activeLabelGroup: string = null
 const labelName = ref('')
 const colorSpace = ref('defo')
@@ -165,5 +163,14 @@ function deleteLabelGroup(key: string) {
   padding: 1px 10px;
   margin-right: 10px;
   border-radius: 5px;
+}
+
+.color-space {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border: 2px solid #1989fa;
 }
 </style>

@@ -332,8 +332,7 @@ export class WorkerManager {
 
     drawTFFaceResult(this.previewCtx, this.face, 'none', this._drawEigen, true)
 
-    let ratio = Math.min(this.eigenCtx.canvas.width / this.face.box.width,
-      this.eigenCtx.canvas.height / this.face.box.height)
+    let ratio = Math.min(220 / this.face.box.width, 280 / this.face.box.height)
     let finalW = Math.ceil(this.face.box.width * ratio)
     let finalH = Math.ceil(this.face.box.height * ratio)
     this.eigenCtx.canvas.width = finalW
