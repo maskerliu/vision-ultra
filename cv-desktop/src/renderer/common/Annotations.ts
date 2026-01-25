@@ -150,6 +150,36 @@ export class AnnotationManager {
     this._canvas.requestRenderAll()
   }
 
+  drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
+    objNum: number, scale: [number, number], contours?: Array<[number, number]>, dpr: number = 1) {
+
+    this.clear()
+    if (objNum == 0) return
+    let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
+    for (let i = 0; i < objNum; ++i) {
+      score = (scores[i] * 100).toFixed(1)
+      // if (scores[i] * 100 < 30) continue
+
+      if (contours && contours[i] && contours[i].length > 8) {
+        let points = contours[i].map(it => { return { x: it[0] / dpr, y: it[1] / dpr } })
+        let poly = this.genPoly(points, DrawType.Polygon)
+        poly.set(AnnotationManager.genLabelOption(this._label.value))
+        poly.set({ score, uuid: uuidv4() })
+        this.add(poly)
+      } else {
+        y1 = boxes[i * 4] * scale[1] / dpr
+        x1 = boxes[i * 4 + 1] * scale[0] / dpr
+        y2 = boxes[i * 4 + 2] * scale[1] / dpr
+        x2 = boxes[i * 4 + 3] * scale[0] / dpr
+        let rect = this.genRect(x1, y1, x2, y2)
+        rect.set(AnnotationManager.genLabelOption(this._label.value))
+        rect.set({ score, uuid: uuidv4() })
+        this.add(rect)
+      }
+    }
+    this.requestRenderAll()
+  }
+
   changeDrawType(type: DrawType) {
     this._drawType = type
     this._canvas.defaultCursor = type == DrawType.Select ? 'default' : 'crosshair'

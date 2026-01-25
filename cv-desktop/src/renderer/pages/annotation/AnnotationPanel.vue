@@ -28,7 +28,7 @@
         <van-row style="width: 220px; padding: 5px">
           <van-cell center :title="$t('anno.cvtMaskContour')">
             <template #right-icon>
-              <van-switch v-model="visionStore.enableCVProcess" />
+              <van-switch v-model="visionStore.genContour" />
             </template>
           </van-cell>
           <van-cell center title="start with bounding box">
@@ -157,6 +157,9 @@ function onMagic() {
   showMagic.value = !showMagic.value
 }
 
+function onGenContourChanged() {
+
+}
 function onDrawSelect(type: DrawType) {
   curDrawType.value = type
   annoMgr.value.changeDrawType(type)
@@ -171,8 +174,6 @@ function drawImage(offscreen: HTMLCanvasElement) {
 }
 
 function updateMarkerGroup() {
-
-  console.log(annoMgr.value.objNum)
   for (let i = 1; i < DrawTypes.length; ++i) {
     markerGroup.value.set(DrawTypes[i], annoMgr.value.getObjects(DrawTypes[i]))
   }
@@ -180,11 +181,13 @@ function updateMarkerGroup() {
 
 function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
   objNum: number, scale: [number, number], contours?: Array<[number, number]>) {
-  annoMgr.value.clear()
-  if (objNum == 0) return
+
+  if (objNum == 0 || labeTab.value == null) return
+
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
   const dpr = window.devicePixelRatio || 1
-  if (labeTab.value == null) return
+
+  // annoMgr.value.drawAnnotations(boxes, scores, classes, objNum, scale, contours, window.devicePixelRatio || 1)
 
   for (let i = 0; i < objNum; ++i) {
     score = (scores[i] * 100).toFixed(1)
@@ -198,16 +201,17 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
       poly.set(AnnotationManager.genLabelOption(label))
       poly.set({ score, uuid: uuidv4() })
       annoMgr.value.add(poly)
-    } else {
-      y1 = boxes[i * 4] * scale[1] / dpr
-      x1 = boxes[i * 4 + 1] * scale[0] / dpr
-      y2 = boxes[i * 4 + 2] * scale[1] / dpr
-      x2 = boxes[i * 4 + 3] * scale[0] / dpr
-      let rect = annoMgr.value.genRect(x1, y1, x2, y2)
-      rect.set(AnnotationManager.genLabelOption(label))
-      rect.set({ score, uuid: uuidv4() })
-      annoMgr.value.add(rect)
+      continue
     }
+
+    y1 = boxes[i * 4] * scale[1] / dpr
+    x1 = boxes[i * 4 + 1] * scale[0] / dpr
+    y2 = boxes[i * 4 + 2] * scale[1] / dpr
+    x2 = boxes[i * 4 + 3] * scale[0] / dpr
+    let rect = annoMgr.value.genRect(x1, y1, x2, y2)
+    rect.set(AnnotationManager.genLabelOption(label))
+    rect.set({ score, uuid: uuidv4() })
+    annoMgr.value.add(rect)
   }
   annoMgr.value.requestRenderAll()
 
@@ -228,6 +232,10 @@ watch(() => objNum.value, () => {
 
 watch(() => activeMarker?.value, () => {
   showPolyTolerance.value = activeMarker?.value?.type == fabric.Polygon.type
+})
+
+watch(() => visionStore.genContour, (val, _) => {
+  if (val) visionStore.enableCVProcess = true
 })
 
 </script>

@@ -119,6 +119,7 @@ function onOpenDebugPanel() {
 }
 
 :root {
+  --van-grid-item-content-padding: 8px;
   --van-popover-radius: var(--van-radius-sm);
   --van-switch-size: 1.2rem;
   --van-radio-size: 1rem;

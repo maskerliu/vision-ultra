@@ -1,5 +1,4 @@
 import { OpenCV } from '@opencvjs/web'
-import { showNotify } from 'vant'
 import {
   ICVAPI, cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
   cvFilterType, cvMorph, cvSharpen
@@ -78,14 +77,14 @@ export class CVProcessor {
       case IntergrateMode.Native:
         this.dispose()
         this.cvBackend?.dispose()
-        // this.cvNative = window.cvNative
-        // await this.cvNative.init()
+        this.cvNative = window.cvNative
+        await this.cvNative.init()
         break
       case IntergrateMode.Backend:
         this.dispose()
         this.cvNative?.dispose()
-        // this.cvBackend = window.cvBackend
-        // await this.cvBackend.init()
+        this.cvBackend = window.cvBackend
+        await this.cvBackend.init()
         break
     }
     this._isInited = true
@@ -101,10 +100,6 @@ export class CVProcessor {
   }
 
   async process(image: ImageData) {
-    if (this._mode != IntergrateMode.WebAssembly && window.isWeb) {
-      showNotify({ type: 'danger', message: '当前环境不支持' })
-      return
-    }
     switch (this._mode) {
       case IntergrateMode.WebAssembly: {
         try {
@@ -115,7 +110,9 @@ export class CVProcessor {
         break
       }
       case IntergrateMode.Backend: {
+        console.log(this.cvBackend)
         let data = await this.cvBackend?.imgProcess(image, this._options)
+        console.log(data)
         if (data) image.data.set(data)
         return image
       }
@@ -328,7 +325,6 @@ export class CVProcessor {
     }
   }
 
-  // 使用背景减除方法
   private detect(type: string, threshold: number, minSize: number) {
     let kernel: OpenCV.Mat
     switch (type) {
@@ -426,16 +422,12 @@ export class CVProcessor {
     let finalCoordinates = []
     if (maxCnt) {
       let cnt = contours.get(maxCnt)
-
-      // 计算轮廓周长，用于设定逼近精度
       let epsilon = 0.008 * this.cvWeb.arcLength(cnt, true)
       let approx = new this.cvWeb.Mat()
-
-      // 关键函数：进行多边形逼近，得到平滑边框
       this.cvWeb.approxPolyDP(cnt, approx, epsilon, true)
 
       for (let i = 0; i < approx.rows; i++) {
-        finalCoordinates.push([approx.data32S[i * 2], approx.data32S[i * 2 + 1]]) // 以 [x, y] 数组形式存储
+        finalCoordinates.push([approx.data32S[i * 2], approx.data32S[i * 2 + 1]])
       }
       approx.delete()
     }
