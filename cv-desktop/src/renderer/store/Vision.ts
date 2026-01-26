@@ -2,8 +2,8 @@ import { defineStore } from 'pinia'
 import {
   cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
   cvFilterType, cvMorph, cvSharpen,
-} from '../../common'
-import { IntergrateMode, ModelEngine, ModelType } from '../common/misc'
+  IntergrateMode, ModelEngine, ModelType,
+} from '../../common/ipc.api'
 
 
 class CVOptions {

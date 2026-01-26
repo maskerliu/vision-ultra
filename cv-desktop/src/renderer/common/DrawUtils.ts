@@ -1,8 +1,8 @@
 
 import { NormalizedLandmark } from '@mediapipe/tasks-vision'
+import { BoundingBox, FaceDetectResult } from '../../common'
 import { Def_Object_Labels } from './Annotations'
 import { MARK_COLORS, MarkColors } from './CVColors'
-import { BoundingBox, FaceDetectResult } from './misc'
 import { FACEMESH_CONTOUR, TRIANGULATION } from './Triangulation'
 
 export const NUM_KEYPOINTS = 478

@@ -1,8 +1,8 @@
 
-import { FilesetResolver } from "@mediapipe/tasks-vision"
-import { baseDomain } from "../common"
-import { FaceDetector } from "./common/FaceDetector"
-import { WorkerCMD } from "./common/misc"
+import { FilesetResolver } from '@mediapipe/tasks-vision'
+import { baseDomain } from '../common'
+import { ProcessorCMD } from '../common/ipc.api'
+import { FaceDetector } from './common/FaceDetector'
 
 const ctx: Worker = self as any
 let fileset: any = null
@@ -14,7 +14,7 @@ async function init() {
 }
 
 ctx.addEventListener('message', async (event: MessageEvent<{
-  cmd: WorkerCMD,
+  cmd: ProcessorCMD,
   image?: ImageData,
   frame?: SharedArrayBuffer,
   width?: number,
@@ -27,13 +27,13 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   let data = { loading: false }
   try {
     switch (event.data.cmd) {
-      case WorkerCMD.init:
+      case ProcessorCMD.init:
         await faceDetector.init()
         break
-      case WorkerCMD.dispose:
+      case ProcessorCMD.dispose:
         faceDetector.dispose()
         break
-      case WorkerCMD.process:
+      case ProcessorCMD.process:
         await faceDetector.detect(event.data.image)
         data = Object.assign(data, {
           type: 'face',
@@ -41,7 +41,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
           tface: faceDetector.tface,
         })
         break
-      case WorkerCMD.faceCapture:
+      case ProcessorCMD.faceCapture:
         // await faceDetector.facCapture(event.data.image)
         break
     }
