@@ -58,7 +58,6 @@
   "dependencies": {
     "@lancedb/lancedb": "^0.22.3",
     "@opencvjs/node": "4.12.0-release.1",
-    "@u4/opencv4nodejs": "^7.1.2",
     "apache-arrow": "18.1.0",
     "axios": "^1.13.1",
     "compression": "^1.8.1",
@@ -124,8 +123,8 @@
     "cv-canvas": "link:./../cv-canvas",
     "del": "^8.0.1",
     "echarts": "^6.0.0",
-    "electron": "38.4.0",
-    "electron-builder": "^26.0.12",
+    "electron": "40.0.0",
+    "electron-builder": "^26.4.0",
     "fabric": "6.9.0",
     "file-loader": "^6.2.0",
     "hls.js": "^1.6.15",

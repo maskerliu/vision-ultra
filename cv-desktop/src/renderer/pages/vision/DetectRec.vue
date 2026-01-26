@@ -95,9 +95,10 @@
 import 'media-chrome'
 import { Col } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { WorkerCMD } from '../../common/misc'
+import { ProcessorCMD } from '../../../common'
+import { DrawMode, ProcessorStatus, ProcessorType } from '../../common/BaseManager'
 import { VideoPlayer } from '../../common/VideoPlayer'
-import { WorkerDrawMode, WorkerManager, WorkerStatus, WorkerType } from '../../common/WorkerManager'
+import { WorkerManager } from '../../common/WorkerManager'
 import { VisionStore } from '../../store'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
 import Live2dPanel from './Live2dPanel.vue'
@@ -136,7 +137,7 @@ let videoPlayer: VideoPlayer = null
 const dpr = window.devicePixelRatio || 1
 
 let workerMgr: WorkerManager = null
-const workerStatus = ref<WorkerStatus>({
+const workerStatus = ref<ProcessorStatus>({
   showLoading: false,
   showProcess: false,
   error: null
@@ -178,7 +179,7 @@ async function onLiveStream() {
   await videoPlayer.open(liveStreamUrl.value, false)
   showLiveStreamInput.value = false
   showControlBar.value = true
-  workerMgr.drawMode = videoPlayer.isOpen ? WorkerDrawMode.video : WorkerDrawMode.image
+  workerMgr.drawMode = videoPlayer.isOpen ? DrawMode.video : DrawMode.image
 }
 
 function onDeleteHistory(idx: number) {
@@ -189,7 +190,7 @@ async function onClickCamera() {
   previewSize.value = [640, 360]
   await videoPlayer.open()
   showControlBar.value = true
-  workerMgr.drawMode = videoPlayer.isOpen ? WorkerDrawMode.video : WorkerDrawMode.image
+  workerMgr.drawMode = videoPlayer.isOpen ? DrawMode.video : DrawMode.image
 }
 
 async function onConfirmName() {
@@ -211,7 +212,7 @@ async function openFolder() {
 
   window.mainApi?.openFile((file: string) => {
     videoPlayer.close()
-    workerMgr.drawMode = WorkerDrawMode.image
+    workerMgr.drawMode = DrawMode.image
     showControlBar.value = false
     img = new Image()
     img.onload = function () {
@@ -229,6 +230,7 @@ async function openFolder() {
 }
 
 async function onScan() {
+  workerStatus.value.showProcess = true
   workerMgr?.onDraw()
 }
 
@@ -277,15 +279,15 @@ watch(() => visionStore.modelEngine, async () => {
 })
 
 watch(() => visionStore.objDetectModel, async () => {
-  workerMgr.postMessage(WorkerType.objDetect, {
-    cmd: WorkerCMD.init,
+  workerMgr.postMessage(ProcessorType.objDetect, {
+    cmd: ProcessorCMD.init,
     model: JSON.stringify(visionStore.objDetectModel)
   })
 })
 
 watch(() => visionStore.ganModel, async () => {
-  workerMgr.postMessage(WorkerType.imageGen, {
-    cmd: WorkerCMD.init,
+  workerMgr.postMessage(ProcessorType.imageGen, {
+    cmd: ProcessorCMD.init,
     model: JSON.stringify(visionStore.ganModel)
   })
 })
@@ -308,14 +310,14 @@ watch(() => visionStore.enableCVProcess, async () => {
 watch(
   () => visionStore.cvOptions,
   () => {
-    workerMgr?.postMessage(WorkerType.cvProcess, {
-      cmd: WorkerCMD.updateOptions,
+    workerMgr?.postMessage(ProcessorType.cvProcess, {
+      cmd: ProcessorCMD.updateOptions,
       options: JSON.stringify(visionStore.cvOptions.value)
     })
 
     if (workerMgr?.origin) {
-      workerMgr?.postMessage(WorkerType.cvProcess,
-        { cmd: WorkerCMD.process, image: workerMgr.origin, }
+      workerMgr?.postMessage(ProcessorType.cvProcess,
+        { cmd: ProcessorCMD.process, image: workerMgr.origin, }
       )
     }
   },

@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron'
 import { IMainAPI, MainAPICMD } from '../common'
 import { BizConfig } from '../common/base.models'
 
-let mainApi: IMainAPI = {
+const mainApi: IMainAPI = {
   relaunch() {
     ipcRenderer.invoke(MainAPICMD.Relaunch)
   },

@@ -368,8 +368,7 @@
 
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { cvBlurType, cvFilterType } from '../../../common'
-import { ModelEngine, ModelInfo, ModelType } from '../../common/misc'
+import { cvBlurType, cvFilterType, ModelEngine, ModelInfo, ModelType } from '../../../common'
 import { VisionStore } from '../../store'
 import SliderField from '../components/SliderField.vue'
 
@@ -378,7 +377,6 @@ const i18n = useI18n()
 const IntergrateModes = [
   { name: 'wasm', color: '#8e44ad' },
   { name: 'nodejs', color: '#2ecc71' },
-  { name: 'native', color: '#3498db' }
 ]
 const ModelEngines = [
   { name: 'onnx', color: '##95a5a6', value: ModelEngine.onnx },

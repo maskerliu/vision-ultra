@@ -6,6 +6,7 @@ import {
 
 export class CVBackend implements ICVAPI {
   private sharedData: Uint8ClampedArray
+  private _options: any = {}
 
   public imgEnhance: boolean = false
   public imgProcessParams: any = {}
@@ -33,10 +34,11 @@ export class CVBackend implements ICVAPI {
   private gamma: number = 1.0
 
 
-  async init() {
+  async init(options?: any) {
     if (this.isInited) return
 
     this._isInited = false
+    this._options = options
     const { loadOpenCV } = await import('@opencvjs/node')
     this.cvNode = await loadOpenCV()
 
@@ -69,15 +71,25 @@ export class CVBackend implements ICVAPI {
     roiVec.delete()
 
     this._isInited = true
+
+    return
   }
 
-  dispose() {
+  terminate() {
     if (this.processedImg) this.processedImg.delete()
     if (this.tmpImg) this.tmpImg.delete()
     if (this.lut) this.lut.delete()
     if (this.hsvVec) this.hsvVec.delete()
     this._isInited = false
     this.cvNode = null
+  }
+
+  async process(image: ImageData) {
+    try {
+      return await this.imgProcess(image, this._options)
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   async imgProcess(frame: ImageData,
