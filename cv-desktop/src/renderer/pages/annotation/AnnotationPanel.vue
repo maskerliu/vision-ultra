@@ -157,9 +157,6 @@ function onMagic() {
   showMagic.value = !showMagic.value
 }
 
-function onGenContourChanged() {
-
-}
 function onDrawSelect(type: DrawType) {
   curDrawType.value = type
   annoMgr.value.changeDrawType(type)
