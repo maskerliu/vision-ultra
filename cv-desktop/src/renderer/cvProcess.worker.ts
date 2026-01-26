@@ -1,12 +1,12 @@
-import { CVProcessor } from "./common/CVProcessor"
-import { IntergrateMode, WorkerCMD } from "./common/misc"
+import { IntergrateMode, ProcessorCMD } from '../common/ipc.api'
+import { CVProcessor } from './common/CVProcessor'
 
 const ctx: Worker = self as any
 
 const processor = new CVProcessor()
 
 ctx.onmessage = async (event: MessageEvent<{
-  cmd: WorkerCMD,
+  cmd: ProcessorCMD,
   image?: ImageData,
   width?: number,
   height?: number,
@@ -23,12 +23,12 @@ ctx.onmessage = async (event: MessageEvent<{
   try {
     // console.log('[worker] cvPorcess', processor.isInited, event.data)
     switch (event.data.cmd) {
-      case WorkerCMD.init:
+      case ProcessorCMD.init:
         await processor?.init(event.data.mode, event.data.options ? JSON.parse(event.data.options) : null)
         data = Object.assign(data, { message: 'image processor inited' })
         ctx.postMessage(data)
         break
-      case WorkerCMD.updateOptions:
+      case ProcessorCMD.updateOptions:
         if (!processor.isInited) {
           data = Object.assign(data, { error: 'processor not inited' })
           ctx.postMessage(data)
@@ -39,7 +39,7 @@ ctx.onmessage = async (event: MessageEvent<{
         data = Object.assign(data, { message: 'image processor options updated' })
         ctx.postMessage(data)
         break
-      case WorkerCMD.process:
+      case ProcessorCMD.process:
         if (!processor.isInited) {
           data = Object.assign(data, { error: 'processor not inited' })
           ctx.postMessage(data)
@@ -50,7 +50,7 @@ ctx.onmessage = async (event: MessageEvent<{
         let result = await processor.process(event.data.image)
         ctx.postMessage({ type: 'processed', result }, [result.data.buffer])
         break
-      case WorkerCMD.findContours:
+      case ProcessorCMD.findContours:
         if (!processor.isInited) {
           data = Object.assign(data, { error: 'processor not inited' })
           break

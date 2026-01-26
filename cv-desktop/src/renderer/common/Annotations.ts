@@ -37,7 +37,6 @@ export enum DrawType {
   MultiLine = 'Polyline',
 }
 
-
 export class AnnotationManager {
   private _canvas: fabric.Canvas
   private _lstPos: fabric.XY = { x: 0, y: 0 }
@@ -113,7 +112,6 @@ export class AnnotationManager {
   resize(width: number, height: number) {
     this._canvas.setDimensions({ width, height })
     this._canvas.clear()
-    // this.clear()
   }
 
   add(object: fabric.FabricObject) {

@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
+import { ModelInfo, ModelType } from '../../common'
 import { Model } from './Model'
-import { ModelInfo, ModelType } from './misc'
 
 const MAX_OBJECTS_NUM: number = 20
 const ModelClassSize = {

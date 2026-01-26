@@ -1,6 +1,5 @@
 import { BizConfig } from './base.models'
 
-
 export const MainAPICMD = {
   Relaunch: 'relaunch',
   OpenFile: 'openFile',
@@ -117,9 +116,27 @@ export type cvDetector = [
   number, // minSize
 ]
 
-export interface ICVAPI {
-  init(): Promise<void>
-  dispose(): void
+export enum ProcessorCMD {
+  // common cmd
+  init = 'init',
+  dispose = 'dispose',
+  process = 'process',
+
+  // just for cv 
+  updateOptions = 'updateOptions',
+  findContours = 'findContours',
+
+  // just for face detect
+  faceCapture = 'faceCapture'
+}
+
+export interface IProcessor {
+  init(data: any): Promise<any>
+  terminate(): void
+  process(data: any): Promise<any>
+}
+
+export interface ICVAPI extends IProcessor {
   imgProcess(frame: ImageData, params: Partial<{
     isGray: boolean,
     rotate: number,
@@ -138,8 +155,68 @@ export interface ICVAPI {
   // faceRecognize(frame: ImageData, width: number, height: number): { face: any, eyes: Array<any>, landmarks: Array<any> } | null
 }
 
-export interface ITensorflowApi {
-  init(backend: 'mediapipe-gpu' | 'tfjs-webgl'): Promise<void>
-  destroy(): void
+export interface ITensorflowApi extends IProcessor {
+  init(backend: 'mediapipe-gpu' | 'tfjs-webgl'): Promise<any>
   detect(video: ImageData): Promise<any[]>
+}
+
+export type FaceDetectResult = {
+  landmarks: Float16Array,
+  box: BoundingBox,
+  valid: boolean,
+  expire: number,
+  ratio: number,
+}
+
+export type BoundingBox = {
+  xMin: number,
+  yMin: number,
+  xMax: number,
+  yMax: number
+  width: number,
+  height: number
+}
+
+export type ObjectDetectResult = Partial<{
+  classes: Uint8Array,
+  scores: Float16Array,
+  boxes: Float16Array,
+  objNum: number,
+  scale: [number, number],
+  overlay: Uint8Array
+  masks: Array<Uint8Array>
+  segScale: [number, number]
+  segSize: [number, number],
+  expire: number,
+}>
+
+export enum IntergrateMode {
+  WebAssembly,
+  Backend,
+  Native
+}
+
+export enum ModelEngine {
+  tensorflow,
+  onnx
+}
+
+export enum ModelType {
+  Unknown = -1,
+  Classify = 0,
+  Detect = 1,
+  Segment = 2,
+  OBB = 3,
+  Pose = 4,
+  GenImage = 5,
+  Face = 6,
+  OCR = 7
+}
+
+export type ModelInfo = {
+  name: string,
+  type: ModelType
+  desc?: string
+  engine?: ModelEngine
+  files?: Array<string>
 }

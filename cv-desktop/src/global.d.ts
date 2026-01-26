@@ -1,4 +1,4 @@
-import { ICVAPI, IMainAPI, ITensorflowApi } from "./common"
+import { ICVAPI, IMainAPI, ITensorflowApi } from './common'
 
 declare global {
   let __DEV__: boolean

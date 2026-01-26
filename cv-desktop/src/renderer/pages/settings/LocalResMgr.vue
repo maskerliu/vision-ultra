@@ -2,7 +2,7 @@
   <van-cell-group inset :title="$t('settings.resources.title')">
     <van-cell :title="$t('settings.resources.manage')">
       <template #right-icon>
-        <van-uploader multiple accept="*">
+        <van-uploader multiple accept=".onnx,.json,.tflite,.bin,.task" :after-read="afterRead">
           <van-button plain size="small">{{ $t('common.upload') }}</van-button>
         </van-uploader>
       </template>
@@ -31,13 +31,29 @@
       </van-grid-item>
     </van-grid>
 
+    <van-popup :show="showModelInfo" style="padding: 10px 5px;">
+      <van-field label="name" :value="uploadModel.name"></van-field>
+      <van-cell :value="file" v-for="file in uploadModel.files"></van-cell>
+      <van-button block plain hairline type="primary" size="mini">{{ $t('common.done') }}</van-button>
+    </van-popup>
+
   </van-cell-group>
 </template>
 <script lang="ts" setup>
+import { UploaderFileListItem } from 'vant'
 import { onMounted, ref } from 'vue'
-import { ModelInfo, ModelType } from '../../common/misc'
+import { ModelInfo, ModelType } from '../../../common'
 
 const models = ref<Array<ModelInfo>>([])
+const showModelInfo = ref(false)
+const fileList = ref([])
+
+const uploadModel = ref<ModelInfo>({
+  name: null,
+  type: ModelType.Unknown,
+  desc: null,
+  files: []
+})
 
 onMounted(() => {
   models.value = [
@@ -62,6 +78,19 @@ onMounted(() => {
     { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.GenImage },
   ]
 })
+
+function afterRead(data: UploaderFileListItem | UploaderFileListItem[]) {
+  if (Array.isArray(data)) {
+    data.forEach(it => {
+      console.log(it.file)
+    })
+    uploadModel.value.files = data.map(it => it.file.name)
+  } else {
+    console.log(data.file)
+    uploadModel.value.files = [data.file.name]
+  }
+  showModelInfo.value = true
+}
 
 function onDelete(idx: number) {
   models.value.splice(idx, 1)

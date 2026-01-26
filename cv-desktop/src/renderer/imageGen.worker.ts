@@ -1,12 +1,12 @@
 
-import { ImageGenerator } from "./common/ImageGenerator"
-import { WorkerCMD } from "./common/misc"
+import { ProcessorCMD } from '../common/ipc.api'
+import { ImageGenerator } from './common/ImageGenerator'
 
 const ctx: Worker = self as any
 let imageGenerator: ImageGenerator = new ImageGenerator()
 
 ctx.addEventListener('message', async (event: MessageEvent<{
-  cmd: WorkerCMD,
+  cmd: ProcessorCMD,
   image?: ImageData,
   frame?: SharedArrayBuffer,
   model?: string,
@@ -20,13 +20,13 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   let data = { loading: false }
   try {
     switch (event.data.cmd) {
-      case WorkerCMD.init:
+      case ProcessorCMD.init:
         await imageGenerator.init(JSON.parse(event.data.model))
         break
-      case WorkerCMD.dispose:
+      case ProcessorCMD.dispose:
         await imageGenerator.dispose()
         break
-      case WorkerCMD.process:
+      case ProcessorCMD.process:
         const result = await imageGenerator.generate(event.data.image)
         if (result != null) {
           const [image, width, height] = result

@@ -1,8 +1,7 @@
 
 import * as tf from '@tensorflow/tfjs'
 import ort from 'onnxruntime-web'
-import { baseDomain } from '../../common'
-import { ModelEngine, ModelInfo, ModelType } from './misc'
+import { baseDomain, ModelEngine, ModelInfo, ModelType } from '../../common'
 
 export class Model {
   protected model: tf.GraphModel

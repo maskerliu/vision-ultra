@@ -1,12 +1,12 @@
 
-import { ObjectTracker } from "./common/ObjectTracker"
-import { ModelInfo, ModelType, WorkerCMD } from "./common/misc"
+import { ModelInfo, ModelType, ProcessorCMD } from '../common/ipc.api'
+import { ObjectTracker } from './common/ObjectTracker'
 
 const ctx: Worker = self as any
 let objTracker: ObjectTracker = new ObjectTracker()
 
 ctx.addEventListener('message', async (event: MessageEvent<{
-  cmd: WorkerCMD,
+  cmd: ProcessorCMD,
   modelTypes?: ModelType[],
   model?: string,
   image?: ImageData
@@ -18,13 +18,13 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   let data = { loading: false }
   try {
     switch (event.data.cmd) {
-      case WorkerCMD.init:
+      case ProcessorCMD.init:
         await objTracker.init(JSON.parse(event.data.model) as ModelInfo)
         break
-      case WorkerCMD.dispose:
+      case ProcessorCMD.dispose:
         await objTracker.dispose()
         break
-      case WorkerCMD.process:
+      case ProcessorCMD.process:
         let result = await objTracker.detect(event.data.image)
         data = Object.assign(data, {
           type: 'mask',
