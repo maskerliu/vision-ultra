@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
 import { inject, injectable } from 'inversify'
+import { API_URL } from '../../shared/api.const'
 import { IocTypes } from '../MainConst'
 import { BizNetwork } from '../misc/utils'
 import { CommonService } from '../service'
-import { BaseRouter, ParamType } from './base.router'
-import { API_URL } from '../../common/api.const'
+import { BaseRouter } from './base.router'
 
 interface ReqResp {
   req: Request

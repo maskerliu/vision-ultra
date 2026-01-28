@@ -1,11 +1,11 @@
+import { BrowserWindow } from 'electron'
 import { Request } from "express"
 import { File, Files } from "formidable"
 import fse from 'fs-extra'
 import { Address6 } from 'ip-address'
 import JSONBig from 'json-bigint'
 import { NetworkInterfaceInfo, networkInterfaces } from 'os'
-import { BizContext, LocalIP, UserDevice, UserNetwork } from '../../common/base.models'
-import { BrowserWindow } from 'electron'
+import { BizContext, LocalIP, UserDevice, UserNetwork } from '../../shared/base.models'
 import { AppName } from "../MainConst"
 
 const ipRegex = /(192|169)\.(172|168|254)\.(99|59|164)\.[1-9]\d{0,2}/

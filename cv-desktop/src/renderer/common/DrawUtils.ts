@@ -1,6 +1,6 @@
 
 import { NormalizedLandmark } from '@mediapipe/tasks-vision'
-import { BoundingBox, FaceDetectResult } from '../../common'
+import { BoundingBox, FaceDetectResult } from '../../shared'
 import { Def_Object_Labels } from './Annotations'
 import { MARK_COLORS, MarkColors } from './CVColors'
 import { FACEMESH_CONTOUR, TRIANGULATION } from './Triangulation'
