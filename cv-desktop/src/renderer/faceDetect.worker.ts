@@ -1,7 +1,6 @@
 
 import { FilesetResolver } from '@mediapipe/tasks-vision'
-import { baseDomain } from '../common'
-import { ProcessorCMD } from '../common/ipc.api'
+import { baseDomain, ProcessorCMD } from '../shared'
 import { FaceDetector } from './common/FaceDetector'
 
 const ctx: Worker = self as any

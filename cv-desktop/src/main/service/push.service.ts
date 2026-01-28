@@ -1,12 +1,12 @@
 import { Server } from 'http'
 import { injectable } from 'inversify'
 import { Connection, createServer, Server as SockServer } from 'sockjs'
-import { CommonApi, ProxyMock } from '../../common'
+import { CommonApi, ProxyMock } from '../../shared'
 
 type PushClient = { conn: Connection, uid: string, username: string, connId: string }
 
 @injectable()
-export class PushService  {
+export class PushService {
   pushClients: Map<String, PushClient>
   private sockjsServer: SockServer
 

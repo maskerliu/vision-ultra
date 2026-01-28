@@ -8,7 +8,7 @@ import path from 'path'
 import process from 'process'
 import { pipeline } from 'stream/promises'
 import { createGunzip } from 'zlib'
-import { MainAPICMD, Version } from '../common'
+import { MainAPICMD, Version } from '../shared'
 import { IS_DEV, USER_DATA_DIR } from './MainConst'
 import { getAppWindow } from './misc/utils'
 

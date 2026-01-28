@@ -1,7 +1,7 @@
 
 import * as tf from '@tensorflow/tfjs'
 import ort from 'onnxruntime-web'
-import { baseDomain, ModelEngine, ModelInfo, ModelType } from '../../common'
+import { baseDomain, ModelEngine, ModelInfo, ModelType } from '../../shared'
 
 export class Model {
   protected model: tf.GraphModel
@@ -11,8 +11,6 @@ export class Model {
   get name() { return this._info.name }
   get type() { return this._info.type }
 
-  // public modelWidth: number = 0
-  // public modelHeight: number = 0
   public scale: [number, number] = [1, 1]
 
   protected _isInited: boolean = false

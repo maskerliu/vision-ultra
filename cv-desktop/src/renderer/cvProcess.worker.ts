@@ -1,4 +1,4 @@
-import { IntergrateMode, ProcessorCMD } from '../common/ipc.api'
+import { ProcessorCMD } from '../shared'
 import { CVProcessor } from './common/CVProcessor'
 
 const ctx: Worker = self as any
@@ -12,7 +12,6 @@ ctx.onmessage = async (event: MessageEvent<{
   height?: number,
   masks?: Uint8Array[],
   rects?: Array<[number, number, number, number]>,
-  mode?: IntergrateMode,
   options?: any
 }>) => {
   if (event.data == null) {
@@ -24,7 +23,7 @@ ctx.onmessage = async (event: MessageEvent<{
     // console.log('[worker] cvPorcess', processor.isInited, event.data)
     switch (event.data.cmd) {
       case ProcessorCMD.init:
-        await processor?.init(event.data.mode, event.data.options ? JSON.parse(event.data.options) : null)
+        await processor?.init(event.data.options ? JSON.parse(event.data.options) : null)
         data = Object.assign(data, { message: 'image processor inited' })
         ctx.postMessage(data)
         break
