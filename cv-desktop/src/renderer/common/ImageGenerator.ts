@@ -1,6 +1,6 @@
 
 import * as tf from '@tensorflow/tfjs'
-import { ModelInfo } from '../../common'
+import { ModelInfo } from '../../shared'
 import { Model } from './Model'
 
 export class ImageGenerator {

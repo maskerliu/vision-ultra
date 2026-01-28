@@ -1,6 +1,6 @@
 import SockJS from 'sockjs-client'
 import { showNotify } from 'vant'
-import { CommonApi } from '../../common'
+import { CommonApi } from '../../shared'
 import { CommonStore } from '../store'
 
 export class PushClient {

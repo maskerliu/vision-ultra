@@ -31,7 +31,7 @@ import TCPlayer from 'tcplayer.js'
 import 'tcplayer.js/dist/tcplayer.min.css'
 import { ConfigProviderTheme } from 'vant'
 import { inject, nextTick, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { baseDomain } from '../../../common'
+import { baseDomain } from '../../../shared'
 
 const licenseUrl = 'https://license.vod2.myqcloud.com/license/v2/1340452115_1/v_cube.license'
 

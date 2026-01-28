@@ -368,7 +368,7 @@
 
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { cvBlurType, cvFilterType, ModelEngine, ModelInfo, ModelType } from '../../../common'
+import { cvBlurType, cvFilterType, ModelEngine, ModelInfo, ModelType } from '../../../shared'
 import { VisionStore } from '../../store'
 import SliderField from '../components/SliderField.vue'
 

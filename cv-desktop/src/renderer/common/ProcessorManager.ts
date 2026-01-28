@@ -1,7 +1,7 @@
 
 import { showNotify } from 'vant'
 import { CVLabel, MarkColors, } from '.'
-import { FaceDetectResult, FaceRec, IProcessor, ObjectDetectResult, ProcessorCMD } from '../../common'
+import { FaceDetectResult, FaceRec, IProcessor, ModelType, ObjectDetectResult, ProcessorCMD } from '../../shared'
 import { drawTFFaceResult, FACE_DIMS, getFaceContour } from './DrawUtils'
 
 
@@ -79,6 +79,41 @@ export abstract class ProcessorManager {
     this.maskCtx = maskCtx
   }
 
+  protected abstract register(target: ProcessorType, data?: any): void
+
+  abstract postMessage(
+    target: ProcessorType,
+    data: Partial<{
+      cmd: ProcessorCMD
+      modelTypes?: ModelType[] // for obj rec 
+      model?: string // for obj rec 
+      image?: ImageData
+      frame?: SharedArrayBuffer
+      width?: number
+      height?: number
+      options?: any // for cv process
+      masks?: Array<Uint8Array>
+      rects?: Array<[number, number, number, number]>
+    }>,
+    transfer?: Transferable[]): Promise<void>
+
+  abstract onDraw(data?: HTMLImageElement | HTMLVideoElement): Promise<void>
+
+  protected processor(target: ProcessorType) {
+    return this.processors.get(target)
+  }
+
+  protected terminate(target: ProcessorType) {
+    this.processor(target)?.terminate()
+    this.processors.delete(target)
+  }
+
+  terminateAll() {
+    for (let key of this.processors.keys()) {
+      this.terminate(key)
+    }
+  }
+
   setParam(param: string, val: boolean, metadata?: any, anyway: boolean = false) {
 
     if (this[`_${param}`] == val && !anyway) return
@@ -103,20 +138,7 @@ export abstract class ProcessorManager {
     }
   }
 
-  protected register(target: ProcessorType, data?: any) {
-    if (this.processors.has(target)) return
-  }
-
-  processor(target: ProcessorType) {
-    return this.processors.get(target)
-  }
-
-  protected terminate(target: ProcessorType) {
-    this.processor(target)?.terminate()
-    this.processors.delete(target)
-  }
-
-  public updateSize(width: number, height: number) {
+  updateSize(width: number, height: number) {
 
     if (this.previewCtx.canvas.width == width * dpr && this.previewCtx.canvas.height == height * dpr) return
 
@@ -129,16 +151,14 @@ export abstract class ProcessorManager {
     this._annotationPanel.resize(width, height)
   }
 
-  public flip(val: boolean) {
+  flip(val: boolean) {
     if (val) {
       this.offscreenCtx.scale(-1, 1)
       this.offscreenCtx.translate(-this.offscreenCtx.canvas.width, 0)
     }
   }
 
-  public abstract onDraw(data?: HTMLImageElement | HTMLVideoElement)
-
-  protected drawFace() {
+  drawFace() {
     if (this.face == null) return
 
     drawTFFaceResult(this.previewCtx, this.face, 'none', this._drawEigen, true)
@@ -155,7 +175,7 @@ export abstract class ProcessorManager {
     }
   }
 
-  protected drawObjects() {
+  drawObjects() {
 
     if (this.objects == null || this.objects.objNum == 0) return
 
@@ -188,7 +208,7 @@ export abstract class ProcessorManager {
     }
   }
 
-  protected drawMask(): Array<[number, number, number, number]> {
+  protected async drawMask(): Promise<Array<[number, number, number, number]>> {
     if (this.objects == null || this.objects.objNum == 0 || this.objects.segSize == null ||
       this.objects.segSize[0] <= 0 || this.objects.segSize[1] <= 0 ||
       this.objects.masks == null) return

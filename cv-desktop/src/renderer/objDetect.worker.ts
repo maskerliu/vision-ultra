@@ -1,5 +1,5 @@
 
-import { ModelInfo, ModelType, ProcessorCMD } from '../common/ipc.api'
+import { ModelInfo, ModelType, ProcessorCMD } from '../shared'
 import { ObjectTracker } from './common/ObjectTracker'
 
 const ctx: Worker = self as any

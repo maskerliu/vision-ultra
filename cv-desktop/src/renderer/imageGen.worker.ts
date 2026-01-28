@@ -1,5 +1,5 @@
 
-import { ProcessorCMD } from '../common/ipc.api'
+import { ProcessorCMD } from '../shared'
 import { ImageGenerator } from './common/ImageGenerator'
 
 const ctx: Worker = self as any

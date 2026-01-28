@@ -2,13 +2,13 @@ import { app, nativeTheme } from 'electron'
 import { accessSync, readFileSync, writeFileSync } from 'fs'
 import { inject, injectable } from "inversify"
 import path from 'path'
-import { BizConfig, CommonApi } from '../../common'
+import { BizConfig, CommonApi } from '../../shared'
 import { IocTypes, Lynx_Mqtt_Broker, USER_DATA_DIR } from '../MainConst'
 import { getLocalIPs } from '../misc/utils'
 import { PushService } from './push.service'
 
 @injectable()
-export class CommonService  {
+export class CommonService {
 
   private _mixConfig: BizConfig
 

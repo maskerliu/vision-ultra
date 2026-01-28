@@ -1,10 +1,10 @@
 
-import { ModelType, ProcessorCMD } from '../../common'
+import { ModelType, ProcessorCMD } from '../../shared'
 import CVProcessWorker from '../cvProcess.worker?worker'
 import FaceDetectWorker from '../faceDetect.worker?worker'
 import ImageGenWoker from '../imageGen.worker?worker'
 import ObjDetectWorker from '../objDetect.worker?worker'
-import { DrawMode, ProcessorManager, ProcessorType } from './BaseManager'
+import { DrawMode, ProcessorManager, ProcessorType } from './ProcessorManager'
 
 
 // use cv & tfjs in browser env
@@ -57,7 +57,7 @@ export class WorkerManager extends ProcessorManager {
       }
       case ProcessorType.imageGen: {
         processor = new ImageGenWoker()
-        processor.addEventListener('message', this.handleMessage.bind(this))
+        processor.addEventListener('message', this.handleAnimeMessage.bind(this))
         break
       }
     }
@@ -67,7 +67,7 @@ export class WorkerManager extends ProcessorManager {
     if (data != null) this.postMessage(target, data)
   }
 
-  public postMessage(
+  public async postMessage(
     target: ProcessorType,
     data: Partial<{
       cmd: ProcessorCMD
@@ -98,7 +98,7 @@ export class WorkerManager extends ProcessorManager {
     (this.processor(target) as Worker)?.postMessage(data, transfer)
   }
 
-  protected handleMessage(event: MessageEvent) {
+  protected handleAnimeMessage(event: MessageEvent) {
     this._processorStatus.showLoading = false
     this._processorStatus.showProcess = false
 
@@ -125,10 +125,14 @@ export class WorkerManager extends ProcessorManager {
         if (this._drawMode == DrawMode.image) this.onDraw()
         break
       case 'contours':
+        let scale = [
+          this.objects.scale[0] * this.objects.segScale[0],
+          this.objects.scale[1] * this.objects.segScale[1]
+        ]
         event.data.contours.forEach(points => {
           points.forEach((p: [number, number]) => {
-            p[0] *= this.objects.scale[0] * this.objects.segScale[0]
-            p[1] *= this.objects.scale[1] * this.objects.segScale[1]
+            p[0] *= scale[0]
+            p[1] *= scale[1]
           })
         })
 
@@ -177,7 +181,7 @@ export class WorkerManager extends ProcessorManager {
     }
   }
 
-  public onDraw(data?: HTMLImageElement | HTMLVideoElement) {
+  public async onDraw(data?: HTMLImageElement | HTMLVideoElement) {
     if (data != null) {
       this.offscreenCtx.drawImage(data, 0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
       this._origin = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
@@ -188,7 +192,7 @@ export class WorkerManager extends ProcessorManager {
         this.offscreenCtx.putImageData(this._processed, 0, 0)
         this._processed = null
       } else {
-        this.postMessage(ProcessorType.cvProcess, { cmd: ProcessorCMD.process, image: this._origin, })
+        await this.postMessage(ProcessorType.cvProcess, { cmd: ProcessorCMD.process, image: this._origin, })
         return
       }
     }
@@ -211,16 +215,16 @@ export class WorkerManager extends ProcessorManager {
     } else {
       switch (this._frames) {
         case 9:
-          this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image }, [image.data.buffer])
+          await this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image }, [image.data.buffer])
           this._frames = 1
           break
         case 3:
         case 6:
-          this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image }, [image.data.buffer])
+          await this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image }, [image.data.buffer])
           this._frames++
           break
         case 5:
-          this.postMessage(ProcessorType.objDetect, { cmd: ProcessorCMD.process, image }, [image.data.buffer])
+          await this.postMessage(ProcessorType.objDetect, { cmd: ProcessorCMD.process, image }, [image.data.buffer])
           this._frames++
           break
         default:
@@ -230,9 +234,9 @@ export class WorkerManager extends ProcessorManager {
     }
   }
 
-  protected drawMask(): Array<[number, number, number, number]> {
-    let rects = super.drawMask()
-    this.postMessage(ProcessorType.cvProcess, { cmd: ProcessorCMD.findContours, masks: this.objects.masks, rects })
+  protected async drawMask(): Promise<Array<[number, number, number, number]>> {
+    let rects = await super.drawMask()
+    await this.postMessage(ProcessorType.cvProcess, { cmd: ProcessorCMD.findContours, masks: this.objects.masks, rects })
     return null
   }
 

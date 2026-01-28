@@ -1,5 +1,5 @@
 import Hls from 'hls.js'
-import { WorkerManager } from './WorkerManager'
+import { ProcessorManager } from './ProcessorManager'
 
 export class VideoPlayer {
   private hls: Hls
@@ -9,8 +9,8 @@ export class VideoPlayer {
   private animationId: number
   private flip: boolean = true
 
-  private _workerMgr: WorkerManager = null
-  set workerMgr(value: WorkerManager) { this._workerMgr = value }
+  private _processorMgr: ProcessorManager = null
+  set processorMgr(value: ProcessorManager) { this._processorMgr = value }
 
   private mediaRecorder: MediaRecorder
   private _once = false
@@ -25,14 +25,14 @@ export class VideoPlayer {
     if (this.preVideo.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) return
 
     if (!this._once) {
-      this._workerMgr?.updateSize(640, 360)
-      this._workerMgr?.flip(this.flip)
+      this._processorMgr?.updateSize(640, 360)
+      this._processorMgr?.flip(this.flip)
       this._once = true
     }
 
-    this._workerMgr?.onDraw(this.preVideo)
-    this._workerMgr?.drawFace()
-    this._workerMgr?.drawObjects()
+    this._processorMgr?.onDraw(this.preVideo)
+    this._processorMgr?.drawFace()
+    this._processorMgr?.drawObjects()
   }
 
 

@@ -14,7 +14,7 @@
 <script lang="ts" setup>
 
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue'
-import { ProxyMock } from '../../../common'
+import { ProxyMock } from '../../../shared'
 import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()

@@ -41,7 +41,7 @@
 <script lang="ts" setup>
 
 import { ref } from 'vue'
-import { FaceRec, baseDomain } from '../../../common'
+import { FaceRec, baseDomain } from '../../../shared'
 
 const showDeleteEigenConfirm = ref(false)
 const showDeletePersonConfirm = ref(false)

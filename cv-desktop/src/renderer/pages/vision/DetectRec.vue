@@ -95,8 +95,9 @@
 import 'media-chrome'
 import { Col } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { ProcessorCMD } from '../../../common'
-import { DrawMode, ProcessorStatus, ProcessorType } from '../../common/BaseManager'
+import { IntergrateMode, ProcessorCMD } from '../../../shared'
+import { BackendManager } from '../../common/BackendManager'
+import { DrawMode, ProcessorManager, ProcessorStatus, ProcessorType } from '../../common/ProcessorManager'
 import { VideoPlayer } from '../../common/VideoPlayer'
 import { WorkerManager } from '../../common/WorkerManager'
 import { VisionStore } from '../../store'
@@ -136,7 +137,7 @@ let videoPlayer: VideoPlayer = null
 
 const dpr = window.devicePixelRatio || 1
 
-let workerMgr: WorkerManager = null
+let processorMgr: ProcessorManager = null
 const workerStatus = ref<ProcessorStatus>({
   showLoading: false,
   showProcess: false,
@@ -162,16 +163,10 @@ onMounted(async () => {
   eigenCtx = eigen.value.getContext('2d', { willReadFrequently: true })
 
 
-  workerMgr = new WorkerManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
-  workerMgr.workerStatus = workerStatus.value
-  workerMgr.drawEigen = visionStore.drawEigen
-  workerMgr.drawFaceMesh = visionStore.drawFaceMesh
-  workerMgr.annotationPanel = annotationPanel.value
-  workerMgr.live2dPanel = live2dPanel.value
-  workerMgr.updateSize(previewSize.value[0], previewSize.value[1])
+  initProcessorMgr()
 
   videoPlayer = new VideoPlayer(video.value)
-  videoPlayer.workerMgr = workerMgr
+  videoPlayer.processorMgr = processorMgr
 })
 
 async function onLiveStream() {
@@ -179,7 +174,7 @@ async function onLiveStream() {
   await videoPlayer.open(liveStreamUrl.value, false)
   showLiveStreamInput.value = false
   showControlBar.value = true
-  workerMgr.drawMode = videoPlayer.isOpen ? DrawMode.video : DrawMode.image
+  processorMgr.drawMode = videoPlayer.isOpen ? DrawMode.video : DrawMode.image
 }
 
 function onDeleteHistory(idx: number) {
@@ -190,7 +185,7 @@ async function onClickCamera() {
   previewSize.value = [640, 360]
   await videoPlayer.open()
   showControlBar.value = true
-  workerMgr.drawMode = videoPlayer.isOpen ? DrawMode.video : DrawMode.image
+  processorMgr.drawMode = videoPlayer.isOpen ? DrawMode.video : DrawMode.image
 }
 
 async function onConfirmName() {
@@ -200,7 +195,7 @@ async function onConfirmName() {
     return
   }
 
-  workerMgr.faceCapture(eigenName.value)
+  processorMgr.faceCapture(eigenName.value)
 
   // todo
   // workerMgr.postMessage(WorkerType.tracker, { cmd: [WorkerCMD.faceCapture], name: eigenName.value })
@@ -212,10 +207,11 @@ async function openFolder() {
 
   window.mainApi?.openFile((file: string) => {
     videoPlayer.close()
-    workerMgr.drawMode = DrawMode.image
+    processorMgr.drawMode = DrawMode.image
     showControlBar.value = false
     img = new Image()
     img.onload = function () {
+      if (img == null) return
       let w = img.width, h = img.height, ratio = 1
       if (w > previewParent.value.$el.clientWidth * dpr || h > (previewParent.value.$el.clientHeight - 35) * dpr) {
         ratio = Math.min(previewParent.value.$el.clientWidth * dpr / w, (previewParent.value.$el.clientHeight - 35) * dpr / h)
@@ -231,12 +227,33 @@ async function openFolder() {
 
 async function onScan() {
   workerStatus.value.showProcess = true
-  workerMgr?.onDraw()
+  processorMgr?.onDraw()
+}
+
+function initProcessorMgr() {
+
+  processorMgr?.terminateAll()
+
+  switch (visionStore.intergrateMode) {
+    case IntergrateMode.WebAssembly:
+      processorMgr = new WorkerManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
+      break
+    case IntergrateMode.Backend:
+      processorMgr = new BackendManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
+      break
+  }
+
+  processorMgr.workerStatus = workerStatus.value
+  processorMgr.drawEigen = visionStore.drawEigen
+  processorMgr.drawFaceMesh = visionStore.drawFaceMesh
+  processorMgr.annotationPanel = annotationPanel.value
+  processorMgr.live2dPanel = live2dPanel.value
+  processorMgr.updateSize(previewSize.value[0], previewSize.value[1])
 }
 
 watch(() => previewSize.value, () => {
-  workerMgr.updateSize(previewSize.value[0], previewSize.value[1])
-  workerMgr.onDraw(img)
+  processorMgr.updateSize(previewSize.value[0], previewSize.value[1])
+  processorMgr.onDraw(img)
   img = null
 })
 
@@ -249,25 +266,27 @@ watch(
 )
 
 watch(
+  () => visionStore.intergrateMode,
+  () => { initProcessorMgr() }
+)
+
+watch(
   [
-    () => visionStore.intergrateMode,
     () => visionStore.enableObjDetect,
     () => visionStore.enableFaceDetect,
     () => visionStore.enableImageGen,
     () => visionStore.enableCVProcess,
   ],
   async () => {
-
-    workerMgr.setParam('enableCVProcess', visionStore.enableCVProcess, {
-      mode: visionStore.intergrateMode,
+    processorMgr.setParam('enableCVProcess', visionStore.enableCVProcess, {
       options: JSON.stringify(visionStore.cvOptions.value)
     })
 
     let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
-    workerMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model })
-    workerMgr.setParam('enableFaceDetect', visionStore.enableFaceDetect)
+    processorMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model })
+    processorMgr.setParam('enableFaceDetect', visionStore.enableFaceDetect)
     model = JSON.stringify(visionStore.ganModel)
-    workerMgr.setParam('enableImageGen', visionStore.enableImageGen, { model })
+    processorMgr.setParam('enableImageGen', visionStore.enableImageGen, { model })
 
     if (!visionStore.enableFaceDetect) visionStore.live2d = false
   }
@@ -275,18 +294,18 @@ watch(
 
 watch(() => visionStore.modelEngine, async () => {
   let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
-  workerMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model }, true)
+  processorMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model }, true)
 })
 
 watch(() => visionStore.objDetectModel, async () => {
-  workerMgr.postMessage(ProcessorType.objDetect, {
+  processorMgr.postMessage(ProcessorType.objDetect, {
     cmd: ProcessorCMD.init,
     model: JSON.stringify(visionStore.objDetectModel)
   })
 })
 
 watch(() => visionStore.ganModel, async () => {
-  workerMgr.postMessage(ProcessorType.imageGen, {
+  processorMgr.postMessage(ProcessorType.imageGen, {
     cmd: ProcessorCMD.init,
     model: JSON.stringify(visionStore.ganModel)
   })
@@ -298,26 +317,26 @@ watch(
     () => visionStore.drawFaceMesh,
   ],
   () => {
-    workerMgr.drawEigen = visionStore.drawEigen
-    workerMgr.drawFaceMesh = visionStore.drawFaceMesh
+    processorMgr.drawEigen = visionStore.drawEigen
+    processorMgr.drawFaceMesh = visionStore.drawFaceMesh
   }
 )
 
 watch(() => visionStore.enableCVProcess, async () => {
-  workerMgr?.onDraw()
+  processorMgr?.onDraw()
 })
 
 watch(
   () => visionStore.cvOptions,
   () => {
-    workerMgr?.postMessage(ProcessorType.cvProcess, {
+    processorMgr?.postMessage(ProcessorType.cvProcess, {
       cmd: ProcessorCMD.updateOptions,
       options: JSON.stringify(visionStore.cvOptions.value)
     })
 
-    if (workerMgr?.origin) {
-      workerMgr?.postMessage(ProcessorType.cvProcess,
-        { cmd: ProcessorCMD.process, image: workerMgr.origin, }
+    if (processorMgr?.origin) {
+      processorMgr?.postMessage(ProcessorType.cvProcess,
+        { cmd: ProcessorCMD.process, image: processorMgr.origin, }
       )
     }
   },

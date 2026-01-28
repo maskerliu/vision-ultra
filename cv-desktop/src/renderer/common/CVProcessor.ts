@@ -1,12 +1,10 @@
 import { OpenCV } from '@opencvjs/web'
 import {
   cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
-  cvFilterType, cvMorph, cvSharpen,
-  IntergrateMode
-} from '../../common/ipc.api'
+  cvFilterType, cvMorph, cvSharpen
+} from '../../shared'
 
 export class CVProcessor {
-  public _mode: IntergrateMode = IntergrateMode.WebAssembly
   private _options: any = {}
   set options(options: any) { this._options = options }
 
@@ -30,12 +28,9 @@ export class CVProcessor {
   private gamma: number = 1.0
 
 
-  async init(mode: IntergrateMode, options?: any) {
-    if (this.isInited && this._mode == mode) return
-
-    this._mode = mode
+  async init(options?: any) {
+    if (this.isInited) return
     this._options = options
-
     this._isInited = false
 
     const { loadOpenCV } = await import('@opencvjs/web')

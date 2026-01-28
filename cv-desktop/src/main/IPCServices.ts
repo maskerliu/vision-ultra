@@ -4,7 +4,7 @@ import fse from 'fs-extra'
 import { Buffer } from 'node:buffer'
 import os from 'os'
 import path from "path"
-import { MainAPICMD, Version } from '../common'
+import { MainAPICMD, Version } from '../shared'
 import { fullUpdate, incrementUpdate } from './AppUpdater'
 import { USER_DATA_DIR } from './MainConst'
 import { getAppWindow } from './misc/utils'

@@ -181,6 +181,8 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
 
   if (objNum == 0 || labeTab.value == null) return
 
+  annoMgr.value.clear()
+
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
   const dpr = window.devicePixelRatio || 1
 

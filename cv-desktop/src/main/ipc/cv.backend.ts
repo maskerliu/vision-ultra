@@ -2,17 +2,19 @@ import { type OpenCV } from '@opencvjs/node'
 import {
   cvBlur, cvBlurType, cvDetector, cvEqualizeHist,
   cvFilter, cvFilterType, cvMorph, cvSharpen, ICVAPI
-} from '../../common'
+} from '../../shared'
 
-export class CVBackend implements ICVAPI {
+export class CVBackend {
   private sharedData: Uint8ClampedArray
   private _options: any = {}
+  set options(val: any) { this._options = val }
+  get options() { return this._options }
 
   public imgEnhance: boolean = false
   public imgProcessParams: any = {}
   public objectRects: Array<{ x: number, y: number, width: number, height: number }>
 
-  private cvNode: typeof OpenCV
+  private cv: typeof OpenCV
 
   private _isInited: boolean = false
   public get isInited() {
@@ -21,8 +23,8 @@ export class CVBackend implements ICVAPI {
 
   private gammaTable = new Uint8Array(256)
   private lut: OpenCV.Mat
-  private processedImg: OpenCV.Mat
-  private tmpImg: OpenCV.Mat
+  private processed: OpenCV.Mat
+  private tmp: OpenCV.Mat
 
   private bgSubtractor: OpenCV.BackgroundSubtractorMOG2
   private termCrit: OpenCV.TermCriteria
@@ -40,29 +42,30 @@ export class CVBackend implements ICVAPI {
     this._isInited = false
     this._options = options
     const { loadOpenCV } = await import('@opencvjs/node')
-    this.cvNode = await loadOpenCV()
 
-    this.bgSubtractor = new this.cvNode.BackgroundSubtractorMOG2(500, 16, true)
+    this.cv = await loadOpenCV()
+
+    this.bgSubtractor = new this.cv.BackgroundSubtractorMOG2(500, 16, true)
     this.gamma = 1.0
-    this.lut = this.cvNode.matFromArray(256, 1, this.cvNode.CV_8UC1, this.gammaTable)
-    this.processedImg = new this.cvNode.Mat()
-    this.tmpImg = new this.cvNode.Mat()
+    this.lut = this.cv.matFromArray(256, 1, this.cv.CV_8UC1, this.gammaTable)
+    this.processed = new this.cv.Mat()
+    this.tmp = new this.cv.Mat()
 
-    this.termCrit = new this.cvNode.TermCriteria(this.cvNode.TermCriteria_EPS | this.cvNode.TermCriteria_COUNT, 10, 1)
-    this.trackWindow = new this.cvNode.Rect(150, 60, 63, 125)
-    let roi = new this.cvNode.Mat(this.trackWindow.width, this.trackWindow.height, this.cvNode.CV_8UC3, new this.cvNode.Scalar(0, 0, 0))
-    this.upper = new this.cvNode.Mat(roi.rows, roi.cols, roi.type(), new this.cvNode.Scalar(30, 30, 0))
-    this.lower = new this.cvNode.Mat(roi.rows, roi.cols, roi.type(), new this.cvNode.Scalar(180, 180, 180))
-    let mask = new this.cvNode.Mat()
-    this.cvNode.inRange(roi, this.lower, this.upper, mask)
+    this.termCrit = new this.cv.TermCriteria(this.cv.TermCriteria_EPS | this.cv.TermCriteria_COUNT, 10, 1)
+    this.trackWindow = new this.cv.Rect(150, 60, 63, 125)
+    let roi = new this.cv.Mat(this.trackWindow.width, this.trackWindow.height, this.cv.CV_8UC3, new this.cv.Scalar(0, 0, 0))
+    this.upper = new this.cv.Mat(roi.rows, roi.cols, roi.type(), new this.cv.Scalar(30, 30, 0))
+    this.lower = new this.cv.Mat(roi.rows, roi.cols, roi.type(), new this.cv.Scalar(180, 180, 180))
+    let mask = new this.cv.Mat()
+    this.cv.inRange(roi, this.lower, this.upper, mask)
 
-    this.hsvVec = new this.cvNode.MatVector()
+    this.hsvVec = new this.cv.MatVector()
 
-    this.roiHist = new this.cvNode.Mat()
-    let roiVec = new this.cvNode.MatVector()
+    this.roiHist = new this.cv.Mat()
+    let roiVec = new this.cv.MatVector()
     roiVec.push_back(roi)
-    this.cvNode.calcHist(roiVec, [0], mask, this.roiHist, [180], [0, 180])
-    this.cvNode.normalize(this.roiHist, this.roiHist, 0, 255, this.cvNode.NORM_MINMAX)
+    this.cv.calcHist(roiVec, [0], mask, this.roiHist, [180], [0, 180])
+    this.cv.normalize(this.roiHist, this.roiHist, 0, 255, this.cv.NORM_MINMAX)
 
     roi.delete()
     mask.delete()
@@ -76,23 +79,15 @@ export class CVBackend implements ICVAPI {
   }
 
   terminate() {
-    if (this.processedImg) this.processedImg.delete()
-    if (this.tmpImg) this.tmpImg.delete()
+    if (this.processed) this.processed.delete()
+    if (this.tmp) this.tmp.delete()
     if (this.lut) this.lut.delete()
     if (this.hsvVec) this.hsvVec.delete()
     this._isInited = false
-    this.cvNode = null
+    this.cv = null
   }
 
-  async process(image: ImageData) {
-    try {
-      return await this.imgProcess(image, this._options)
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  async imgProcess(frame: ImageData,
+  async process(frame: ImageData, width: number, height: number,
     params: Partial<{
       isGray: boolean,
       rotate: number,
@@ -107,50 +102,52 @@ export class CVBackend implements ICVAPI {
       canny: [number, number],
     }>) {
 
-    if (this.processedImg == null) {
-      this.processedImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC4)
+    if (frame == null) return
+
+    if (this.processed == null) {
+      this.processed = new this.cv.Mat(height, width, this.cv.CV_8UC4)
     }
-    if (this.tmpImg == null) {
-      this.tmpImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC3)
+    if (this.tmp == null) {
+      this.tmp = new this.cv.Mat(height, width, this.cv.CV_8UC3)
     }
 
-    if (this.processedImg.cols !== frame.width || this.processedImg.rows !== frame.height) {
-      this.processedImg.delete()
-      this.processedImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC4)
+    if (this.processed.cols !== width || this.processed.rows !== height) {
+      this.processed.delete()
+      this.processed = new this.cv.Mat(height, width, this.cv.CV_8UC4)
     }
 
-    if (this.tmpImg.cols !== frame.width || this.tmpImg.rows !== frame.height) {
-      this.tmpImg.delete()
+    if (this.tmp.cols !== width || this.tmp.rows !== height) {
+      this.tmp.delete()
       this.hsvVec?.delete()
-      this.tmpImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC3)
-      this.hsvVec = new this.cvNode.MatVector()
-      this.hsvVec.push_back(this.tmpImg)
+      this.tmp = new this.cv.Mat(height, width, this.cv.CV_8UC3)
+      this.hsvVec = new this.cv.MatVector()
+      this.hsvVec.push_back(this.tmp)
     }
 
-    if (this.sharedData == null || this.sharedData.length !== frame.height * frame.width * 4) {
-      this.sharedData = new Uint8ClampedArray(frame.height * frame.width * 4)
+    if (this.sharedData == null || this.sharedData.length !== height * width * 4) {
+      this.sharedData = new Uint8ClampedArray(height * width * 4)
     }
 
-    this.processedImg.data.set(frame.data, 0)
-    this.cvNode.cvtColor(this.processedImg, this.processedImg, this.cvNode.COLOR_RGBA2BGR)
-    if (this.tmpImg.type() != this.processedImg.type()) {
-      this.tmpImg.delete()
-      this.tmpImg = new this.cvNode.Mat(frame.height, frame.width, this.cvNode.CV_8UC3)
+    this.processed.data.set(frame.data, 0)
+    this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_RGBA2BGR)
+    if (this.tmp.type() != this.processed.type()) {
+      this.tmp.delete()
+      this.tmp = new this.cv.Mat(height, width, this.cv.CV_8UC3)
     }
-    this.tmpImg.data.set(this.processedImg.data)
+    this.tmp.data.set(this.processed.data)
 
-    if (params.colorMap != 0) this.cvNode.applyColorMap(this.processedImg, this.processedImg, params.colorMap - 1)
+    if (params?.colorMap != 0) this.cv.applyColorMap(this.processed, this.processed, params.colorMap - 1)
 
     if (params.isGray) {
-      this.cvNode.cvtColor(this.processedImg, this.processedImg, this.cvNode.COLOR_BGR2GRAY)
-      this.processedImg.copyTo(this.tmpImg)
+      this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_BGR2GRAY)
+      this.processed.copyTo(this.tmp)
     }
 
     if (params.rotate != 0) {
-      let dsize = new this.cvNode.Size(frame.width, frame.height)
-      let center = new this.cvNode.Point(frame.width / 2, frame.height / 2)
-      let rotateMat = this.cvNode.getRotationMatrix2D(center, params.rotate, 1)
-      this.cvNode.warpAffine(this.processedImg, this.processedImg, rotateMat, dsize)
+      let dsize = new this.cv.Size(width, height)
+      let center = new this.cv.Point(width / 2, height / 2)
+      let rotateMat = this.cv.getRotationMatrix2D(center, params.rotate, 1)
+      this.cv.warpAffine(this.processed, this.processed, rotateMat, dsize)
       rotateMat.delete()
     }
 
@@ -172,23 +169,24 @@ export class CVBackend implements ICVAPI {
     if (params.isGray && params.filter) this.filtering(params.filter)
 
     if (params.isGray && params.canny) {
-      this.cvNode.Canny(this.processedImg, this.processedImg, params.canny[0], params.canny[1])
+      this.cv.Canny(this.processed, this.processed, params.canny[0], params.canny[1])
     }
 
     if (params.isGray) {
-      this.cvNode.cvtColor(this.processedImg, this.processedImg, this.cvNode.COLOR_GRAY2RGBA)
+      this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_GRAY2RGBA)
     } else {
-      this.cvNode.cvtColor(this.processedImg, this.processedImg, this.cvNode.COLOR_BGR2RGBA)
+      this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_BGR2RGBA)
     }
-    frame.data.set(this.processedImg.data)
+
+    frame.data.set(this.processed.data)
 
     // todo: return processed image
     if (params.isGray) {
-      this.cvNode.cvtColor(this.processedImg, this.processedImg, this.cvNode.COLOR_GRAY2RGBA)
+      this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_GRAY2RGBA)
     } else {
-      this.cvNode.cvtColor(this.processedImg, this.processedImg, this.cvNode.COLOR_BGR2RGBA)
+      this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_BGR2RGBA)
     }
-    this.sharedData.set(this.processedImg.data)
+    this.sharedData.set(this.processed.data)
     return this.sharedData
   }
 
@@ -196,11 +194,11 @@ export class CVBackend implements ICVAPI {
   private equalization(params: cvEqualizeHist) {
     switch (params[0]) {
       case 'equalizeHist':
-        this.cvNode.equalizeHist(this.processedImg, this.processedImg)
+        this.cv.equalizeHist(this.processed, this.processed)
         break
       case 'clahe':
-        let clahe = new this.cvNode.CLAHE(params[1], new this.cvNode.Size(params[2], params[3]))
-        clahe.apply(this.processedImg, this.processedImg)
+        let clahe = new this.cv.CLAHE(params[1], new this.cv.Size(params[2], params[3]))
+        clahe.apply(this.processed, this.processed)
         break
     }
   }
@@ -213,10 +211,10 @@ export class CVBackend implements ICVAPI {
       this.gammaTable[i] = Math.pow(i / 255.0, 1 / this.gamma) * 255.0
       this.lut.data[i] = this.gammaTable[i]
     }
-    this.lut = this.cvNode.matFromArray(256, 1, this.cvNode.CV_8UC1, this.gammaTable)
-    this.cvNode.LUT(this.processedImg, this.lut, this.processedImg)
-    this.cvNode.normalize(this.processedImg, this.processedImg, 0, 255, this.cvNode.NORM_MINMAX)
-    this.cvNode.convertScaleAbs(this.processedImg, this.processedImg, 1, 0)
+    this.lut = this.cv.matFromArray(256, 1, this.cv.CV_8UC1, this.gammaTable)
+    this.cv.LUT(this.processed, this.lut, this.processed)
+    this.cv.normalize(this.processed, this.processed, 0, 255, this.cv.NORM_MINMAX)
+    this.cv.convertScaleAbs(this.processed, this.processed, 1, 0)
   }
 
   private blur(params: cvBlur) {
@@ -224,18 +222,18 @@ export class CVBackend implements ICVAPI {
       switch (params[0]) {
         case cvBlurType.gaussian:
           if (params[1] % 2 !== 1 || params[2] % 2 !== 1) return
-          this.cvNode.GaussianBlur(this.processedImg, this.processedImg, new this.cvNode.Size(params[1], params[2]), 0)
+          this.cv.GaussianBlur(this.processed, this.processed, new this.cv.Size(params[1], params[2]), 0)
           break
         case cvBlurType.median:
-          this.cvNode.medianBlur(this.processedImg, this.processedImg, params[3])
+          this.cv.medianBlur(this.processed, this.processed, params[3])
           break
         case cvBlurType.avg:
-          this.cvNode.blur(this.processedImg, this.processedImg, new this.cvNode.Size(params[1], params[2]))
+          this.cv.blur(this.processed, this.processed, new this.cv.Size(params[1], params[2]))
           break
         case cvBlurType.bilateral:
           try {
-            this.cvNode.bilateralFilter(this.processedImg, this.processedImg,
-              params[4], params[5], params[6], this.cvNode.BORDER_DEFAULT)
+            this.cv.bilateralFilter(this.processed, this.processed,
+              params[4], params[5], params[6], this.cv.BORDER_DEFAULT)
           } catch (err) {
             console.error(err)
           }
@@ -251,12 +249,12 @@ export class CVBackend implements ICVAPI {
     try {
       switch (sharpen[0]) {
         case 'laplace':
-          this.cvNode.Laplacian(this.processedImg, this.tmpImg, -1)
-          this.cvNode.addWeighted(this.processedImg, sharpen[1], this.tmpImg, sharpen[2], 0, this.processedImg)
+          this.cv.Laplacian(this.processed, this.tmp, -1)
+          this.cv.addWeighted(this.processed, sharpen[1], this.tmp, sharpen[2], 0, this.processed)
           break
         case 'usm':
-          this.cvNode.GaussianBlur(this.processedImg, this.tmpImg, new this.cvNode.Size(sharpen[1], sharpen[1]), 25)
-          this.cvNode.addWeighted(this.processedImg, sharpen[1], this.tmpImg, sharpen[2], 0, this.processedImg)
+          this.cv.GaussianBlur(this.processed, this.tmp, new this.cv.Size(sharpen[1], sharpen[1]), 25)
+          this.cv.addWeighted(this.processed, sharpen[1], this.tmp, sharpen[2], 0, this.processed)
           break
       }
     } catch (err) {
@@ -270,16 +268,16 @@ export class CVBackend implements ICVAPI {
       switch (filter[0]) {
         case cvFilterType.sobel:
           if (filter[4] % 2 !== 1) return
-          this.cvNode.Sobel(this.processedImg, this.processedImg, this.cvNode.CV_8U, filter[1], filter[2], filter[4], filter[3])
+          this.cv.Sobel(this.processed, this.processed, this.cv.CV_8U, filter[1], filter[2], filter[4], filter[3])
           break
         case cvFilterType.scharr:
           // dx + dy == 1 
           if (filter[1] + filter[2] !== 1) return
-          this.cvNode.Scharr(this.processedImg, this.processedImg, this.cvNode.CV_8U, filter[1], filter[2], filter[3])
+          this.cv.Scharr(this.processed, this.processed, this.cv.CV_8U, filter[1], filter[2], filter[3])
           break
         case cvFilterType.laplace:
           if (filter[4] % 2 !== 1) return
-          this.cvNode.Laplacian(this.processedImg, this.processedImg, this.cvNode.CV_8U, filter[4], filter[3])
+          this.cv.Laplacian(this.processed, this.processed, this.cv.CV_8U, filter[4], filter[3])
           break
       }
 
@@ -293,9 +291,9 @@ export class CVBackend implements ICVAPI {
     try {
       let M: any
       if (params[1] == undefined || params[2] == undefined || params[3] == undefined || params[1] < 0 || params[2] < 0 || params[3] < 0) return
-      let ksize = new this.cvNode.Size(params[1], params[2])
-      M = this.cvNode.getStructuringElement(this.cvNode.MORPH_CROSS, ksize)
-      this.cvNode.morphologyEx(this.processedImg, this.processedImg, params[0], M, new this.cvNode.Point(-1, -1), params[3])
+      let ksize = new this.cv.Size(params[1], params[2])
+      M = this.cv.getStructuringElement(this.cv.MORPH_CROSS, ksize)
+      this.cv.morphologyEx(this.processed, this.processed, params[0], M, new this.cv.Point(-1, -1), params[3])
       M.delete()
     } catch (err) {
       console.warn(err)
@@ -307,58 +305,58 @@ export class CVBackend implements ICVAPI {
     let kernel: OpenCV.Mat
     switch (type) {
       case 'color':
-        this.cvNode.cvtColor(this.processedImg, this.tmpImg, this.cvNode.COLOR_BGR2HSV)
-        if (this.lower.rows !== this.tmpImg.rows || this.lower.cols !== this.tmpImg.cols) {
+        this.cv.cvtColor(this.processed, this.tmp, this.cv.COLOR_BGR2HSV)
+        if (this.lower.rows !== this.tmp.rows || this.lower.cols !== this.tmp.cols) {
           this.lower.delete()
-          this.lower = new this.cvNode.Mat(this.tmpImg.rows, this.tmpImg.cols, this.cvNode.CV_8UC3)
+          this.lower = new this.cv.Mat(this.tmp.rows, this.tmp.cols, this.cv.CV_8UC3)
         }
-        if (this.upper.rows !== this.tmpImg.rows || this.upper.cols !== this.tmpImg.cols) {
+        if (this.upper.rows !== this.tmp.rows || this.upper.cols !== this.tmp.cols) {
           this.upper.delete()
-          this.upper = new this.cvNode.Mat(this.tmpImg.rows, this.tmpImg.cols, this.cvNode.CV_8UC3)
+          this.upper = new this.cv.Mat(this.tmp.rows, this.tmp.cols, this.cv.CV_8UC3)
         }
         // 定义颜色范围
         this.lower.setTo([30, 30, 100 - threshold, 255])
         this.upper.setTo([180, 180, 100 + threshold, 255])
 
         // 创建颜色掩码
-        this.cvNode.inRange(this.tmpImg, this.lower, this.upper, this.tmpImg)
+        this.cv.inRange(this.tmp, this.lower, this.upper, this.tmp)
 
         // 形态学操作
-        kernel = this.cvNode.getStructuringElement(this.cvNode.MORPH_ELLIPSE, new this.cvNode.Size(5, 5))
-        this.cvNode.morphologyEx(this.tmpImg, this.tmpImg, this.cvNode.MORPH_OPEN, kernel)
-        this.cvNode.morphologyEx(this.tmpImg, this.tmpImg, this.cvNode.MORPH_CLOSE, kernel)
-        this.cvNode.GaussianBlur(this.tmpImg, this.tmpImg, new this.cvNode.Size(5, 5), 0)
+        kernel = this.cv.getStructuringElement(this.cv.MORPH_ELLIPSE, new this.cv.Size(5, 5))
+        this.cv.morphologyEx(this.tmp, this.tmp, this.cv.MORPH_OPEN, kernel)
+        this.cv.morphologyEx(this.tmp, this.tmp, this.cv.MORPH_CLOSE, kernel)
+        this.cv.GaussianBlur(this.tmp, this.tmp, new this.cv.Size(5, 5), 0)
         break
       case 'contour':
-        this.cvNode.cvtColor(this.processedImg, this.tmpImg, this.cvNode.COLOR_RGBA2GRAY)
-        this.cvNode.GaussianBlur(this.tmpImg, this.tmpImg, new this.cvNode.Size(5, 5), 0)
-        this.cvNode.Canny(this.tmpImg, this.tmpImg, threshold, threshold * 2)
+        this.cv.cvtColor(this.processed, this.tmp, this.cv.COLOR_RGBA2GRAY)
+        this.cv.GaussianBlur(this.tmp, this.tmp, new this.cv.Size(5, 5), 0)
+        this.cv.Canny(this.tmp, this.tmp, threshold, threshold * 2)
         break
       case 'bgSub':
-        this.cvNode.cvtColor(this.processedImg, this.tmpImg, this.cvNode.COLOR_RGBA2GRAY)
-        this.bgSubtractor.apply(this.tmpImg, this.tmpImg)
-        this.cvNode.threshold(this.tmpImg, this.tmpImg, threshold * 2.55, 255, this.cvNode.THRESH_BINARY)
+        this.cv.cvtColor(this.processed, this.tmp, this.cv.COLOR_RGBA2GRAY)
+        this.bgSubtractor.apply(this.tmp, this.tmp)
+        this.cv.threshold(this.tmp, this.tmp, threshold * 2.55, 255, this.cv.THRESH_BINARY)
         // 形态学操作（去除噪声）
-        kernel = this.cvNode.getStructuringElement(this.cvNode.MORPH_ELLIPSE, new this.cvNode.Size(3, 3))
-        this.cvNode.morphologyEx(this.tmpImg, this.tmpImg, this.cvNode.MORPH_OPEN, kernel)
+        kernel = this.cv.getStructuringElement(this.cv.MORPH_ELLIPSE, new this.cv.Size(3, 3))
+        this.cv.morphologyEx(this.tmp, this.tmp, this.cv.MORPH_OPEN, kernel)
         break
       case 'camShift':
-        this.cvNode.cvtColor(this.processedImg, this.tmpImg, this.cvNode.COLOR_BGR2HSV)
-        this.cvNode.calcBackProject(this.hsvVec, [0], this.roiHist, this.tmpImg, [0, 180], 1)
-        let result = this.cvNode.CamShift(this.tmpImg, this.trackWindow, this.termCrit)
-        let pts = this.cvNode.boxPoints(result).map((p) => ({ x: p.x, y: p.y }))
+        this.cv.cvtColor(this.processed, this.tmp, this.cv.COLOR_BGR2HSV)
+        this.cv.calcBackProject(this.hsvVec, [0], this.roiHist, this.tmp, [0, 180], 1)
+        let result = this.cv.CamShift(this.tmp, this.trackWindow, this.termCrit)
+        let pts = this.cv.boxPoints(result).map((p) => ({ x: p.x, y: p.y }))
         break
     }
 
-    let contours = new this.cvNode.MatVector()
-    let hierarchy = new this.cvNode.Mat()
-    this.cvNode.findContours(this.tmpImg, contours, hierarchy, this.cvNode.RETR_EXTERNAL, this.cvNode.CHAIN_APPROX_SIMPLE)
+    let contours = new this.cv.MatVector()
+    let hierarchy = new this.cv.Mat()
+    this.cv.findContours(this.tmp, contours, hierarchy, this.cv.RETR_EXTERNAL, this.cv.CHAIN_APPROX_SIMPLE)
 
     let rects = new Array()
     for (let i = 0; i < contours.size(); ++i) {
       let contour = contours.get(i)
-      if (this.cvNode.contourArea(contour) < minSize) continue
-      let rect = this.cvNode.boundingRect(contour)
+      if (this.cv.contourArea(contour) < minSize) continue
+      let rect = this.cv.boundingRect(contour)
       rects.push({ x: rect.x, y: rect.y, width: rect.width, height: rect.height })
     }
 
@@ -368,27 +366,26 @@ export class CVBackend implements ICVAPI {
     return rects
   }
 
-
   findContours(data: Uint8Array, width: number, height: number) {
     if (!this._isInited) return []
 
-    let src = new this.cvNode.Mat(height, width, this.cvNode.CV_8UC1)
+    let src = new this.cv.Mat(height, width, this.cv.CV_8UC1)
     src.data.set(data)
-    let contours = new this.cvNode.MatVector()
-    let hierarchy = new this.cvNode.Mat()
+    let contours = new this.cv.MatVector()
+    let hierarchy = new this.cv.Mat()
     let M: any
-    let ksize = new this.cvNode.Size(2, 2)
-    M = this.cvNode.getStructuringElement(this.cvNode.MORPH_CROSS, ksize)
-    this.cvNode.morphologyEx(src, src, this.cvNode.MORPH_DILATE, M, new this.cvNode.Point(-1, -1), 1)
+    let ksize = new this.cv.Size(2, 2)
+    M = this.cv.getStructuringElement(this.cv.MORPH_CROSS, ksize)
+    this.cv.morphologyEx(src, src, this.cv.MORPH_DILATE, M, new this.cv.Point(-1, -1), 1)
     // cv.morphologyEx(src, src, cv.MORPH_DILATE, M, new cv.Point(-1, -1), 1)
     M.delete()
-    this.cvNode.findContours(src, contours, hierarchy, this.cvNode.RETR_EXTERNAL, this.cvNode.CHAIN_APPROX_SIMPLE)
+    this.cv.findContours(src, contours, hierarchy, this.cv.RETR_EXTERNAL, this.cv.CHAIN_APPROX_SIMPLE)
 
     let maxArea = 0
     let maxCnt: any
     for (let i = 0; i < contours.size(); ++i) {
       let cnt = contours.get(i)
-      let area = this.cvNode.contourArea(cnt)
+      let area = this.cv.contourArea(cnt)
       if (area > maxArea) {
         if (maxCnt) maxCnt.delete()
         maxArea = area
@@ -402,11 +399,11 @@ export class CVBackend implements ICVAPI {
       let cnt = contours.get(maxCnt)
 
       // 计算轮廓周长，用于设定逼近精度
-      let epsilon = 0.008 * this.cvNode.arcLength(cnt, true)
-      let approx = new this.cvNode.Mat()
+      let epsilon = 0.008 * this.cv.arcLength(cnt, true)
+      let approx = new this.cv.Mat()
 
       // 关键函数：进行多边形逼近，得到平滑边框
-      this.cvNode.approxPolyDP(cnt, approx, epsilon, true)
+      this.cv.approxPolyDP(cnt, approx, epsilon, true)
 
       for (let i = 0; i < approx.rows; i++) {
         finalCoordinates.push([approx.data32S[i * 2], approx.data32S[i * 2 + 1]]) // 以 [x, y] 数组形式存储
@@ -422,6 +419,26 @@ export class CVBackend implements ICVAPI {
   }
 }
 
-const cvBackend = new CVBackend()
+const instance = new CVBackend()
+
+let cvBackend: ICVAPI = {
+  async init(data: any) {
+    await instance.init(data?.options)
+    return
+  },
+  terminate() {
+    instance.terminate()
+  },
+  options(data: any): void {
+    instance.options = data?.options
+  },
+  async process(data) {
+    return await instance.process(data?.image, data.width, data.height, instance.options)
+  },
+  findContours(data: Uint8Array, width: number, height: number): Array<[number, number]> {
+    return instance.findContours(data, width, height)
+  }
+
+}
 
 export default cvBackend

@@ -39,7 +39,7 @@
 
 import { showNotify } from 'vant'
 import { onMounted, ref } from 'vue'
-import { CommonApi } from '../../../common'
+import { CommonApi } from '../../../shared'
 import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()
