@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { showNotify } from 'vant'
-import { BizConfig, CommonApi, updateBaseDomain, updateClientUID } from '../../common'
+import { BizConfig, CommonApi, updateBaseDomain, updateClientUID } from '../../shared'
 import { generateUid, PushClient } from '../common'
 
 

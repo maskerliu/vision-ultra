@@ -42,7 +42,7 @@
 <script lang="ts" setup>
 import { UploaderFileListItem } from 'vant'
 import { onMounted, ref } from 'vue'
-import { ModelInfo, ModelType } from '../../../common'
+import { ModelInfo, ModelType } from '../../../shared'
 
 const models = ref<Array<ModelInfo>>([])
 const showModelInfo = ref(false)

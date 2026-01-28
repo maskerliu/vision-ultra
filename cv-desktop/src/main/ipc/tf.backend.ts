@@ -4,7 +4,7 @@
 // import { FaceLandmarksDetector, SupportedModels, createDetector, Face } from '@tensorflow-models/face-landmarks-detection'
 // import { FaceMesh, VERSION } from '@mediapipe/face_mesh'
 // import * as loader from '@mediapipe/face_mesh/face_mesh_solution_simd_wasm_bin'
-import { ITensorflowApi } from '../../common/ipc.api'
+import { ITensorflowApi } from '../../shared/ipc.api'
 // import path from 'path'
 // import { readFile } from 'node:fs/promises'
 // import { WASI } from 'node:wasi'
