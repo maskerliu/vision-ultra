@@ -1,4 +1,4 @@
-import { ModelType, ProcessorCMD } from '../../shared'
+import { ModelType, ProcessorCMD } from '../../../shared'
 import { DrawMode, ProcessorType } from './ProcessorManager'
 import { WorkerManager } from './WorkerManager'
 
@@ -29,10 +29,10 @@ export class BackendManager extends WorkerManager {
     masks?: Array<Uint8Array>
     rects?: Array<[number, number, number, number]>
   }>, transfer?: Transferable[]) {
-    if (!this._enableCVProcess && target == ProcessorType.cvProcess) return
+    if (!this._enableCV && target == ProcessorType.cvProcess) return
     if (!this._enableFaceDetect && target == ProcessorType.faceDetect) return
-    if (!this._enableObjDetect && target == ProcessorType.objDetect) return
-    if (!this._enableImageGen && target == ProcessorType.imageGen) return
+    if (!this._enableObjTrack && target == ProcessorType.objTrack) return
+    if (!this._enableImgGen && target == ProcessorType.imgGen) return
 
     if (data.cmd == ProcessorCMD.process &&
       (target == ProcessorType.faceDetect || target == ProcessorType.cvProcess))
@@ -96,7 +96,7 @@ export class BackendManager extends WorkerManager {
       this._origin = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
     }
 
-    if (this._enableCVProcess) {
+    if (this._enableCV) {
       if (this._processed) {
         this.offscreenCtx.putImageData(this._processed, 0, 0)
         this._processed = null
@@ -125,9 +125,9 @@ export class BackendManager extends WorkerManager {
           Object: ${this.objects ? this.objects.expire : '-'}ms`, 20, 30)
 
     if (this._drawMode == DrawMode.image) {
-      await this.postMessage(ProcessorType.objDetect, { cmd: ProcessorCMD.process, image })
+      await this.postMessage(ProcessorType.objTrack, { cmd: ProcessorCMD.process, image })
       await this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image })
-      await this.postMessage(ProcessorType.imageGen, { cmd: ProcessorCMD.process, image })
+      await this.postMessage(ProcessorType.imgGen, { cmd: ProcessorCMD.process, image })
     } else {
       switch (this._frames) {
         case 9:
@@ -140,7 +140,7 @@ export class BackendManager extends WorkerManager {
           this._frames++
           break
         case 5:
-          await this.postMessage(ProcessorType.objDetect, { cmd: ProcessorCMD.process, image }, [image.data.buffer])
+          await this.postMessage(ProcessorType.objTrack, { cmd: ProcessorCMD.process, image }, [image.data.buffer])
           this._frames++
           break
         default:
