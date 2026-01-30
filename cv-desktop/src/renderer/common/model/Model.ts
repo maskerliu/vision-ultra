@@ -142,7 +142,6 @@ export class Model {
     switch (this._info.engine) {
       case ModelEngine.onnx:
         let data = await this.session?.run(params)
-        console.log(data)
         result = tf.tidy(() => {
           let res = []
           for (let i = 0; i < this.session.outputNames.length; ++i) {

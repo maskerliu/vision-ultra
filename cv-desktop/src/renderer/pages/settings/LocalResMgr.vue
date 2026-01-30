@@ -17,7 +17,7 @@
         </div>
         <div style="color: var(--van-text-color-2); z-index: 1; height: 1rem;">{{ model.desc }}</div>
         <div class="van-hairline--top"></div>
-        <van-icon class-prefix="iconfont" :name="model.type == ModelType.segment ? 'Segment' : 'Detect'"
+        <van-icon class-prefix="iconfont" :name="`${model.type}`"
           style="position: absolute; font-size: 3rem; color: var(--van-text-color-3); z-index: 0;" />
         <van-row style="width: 100%; margin-top: 15px;" justify="center">
           <van-button type="primary" size="mini" plain hairline style="width: 40%;">
@@ -68,14 +68,14 @@ onMounted(() => {
     { name: 'yolo11n-seg', desc: 'class: 80', type: ModelType.segment },
     { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.segment },
     { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.segment },
-    { name: 'yolo26s-seg', desc: '10.4', type: ModelType.segment },
-    { name: 'unet', desc: '', type: ModelType.segment },
+    { name: 'yolo26s-seg', desc: '10.4', type: ModelType.transform },
+    { name: 'unet', desc: '', type: ModelType.pose },
     { name: 'sam', desc: '38.9M', type: ModelType.segment },
-    { name: 'animeGANv3', desc: '1.2M', type: ModelType.genImage },
+    { name: 'animeGANv3', desc: '1.2M', type: ModelType.obb },
     { name: 'anime_Kpop', desc: '1.2M', type: ModelType.genImage },
-    { name: 'anime_Disney', desc: '2.0M', type: ModelType.genImage },
-    { name: 'anime_OilPaint', desc: '4.6M', type: ModelType.genImage },
-    { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.genImage },
+    { name: 'anime_Disney', desc: '2.0M', type: ModelType.ocr },
+    { name: 'anime_OilPaint', desc: '4.6M', type: ModelType.classify },
+    { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.style },
   ]
 })
 
