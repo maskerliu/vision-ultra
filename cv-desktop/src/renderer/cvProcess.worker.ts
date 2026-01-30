@@ -1,19 +1,11 @@
-import { ProcessorCMD } from '../shared'
+import { CVMsg, ProcessorCMD } from '../shared'
 import { CVProcessor } from './common/CVProcessor'
 
 const ctx: Worker = self as any
 
 const processor = new CVProcessor()
 
-ctx.onmessage = async (event: MessageEvent<{
-  cmd: ProcessorCMD,
-  image?: ImageData,
-  width?: number,
-  height?: number,
-  masks?: Uint8Array[],
-  rects?: Array<[number, number, number, number]>,
-  options?: any
-}>) => {
+ctx.onmessage = async (event: MessageEvent<CVMsg>) => {
   if (event.data == null) {
     ctx.postMessage({ loading: false, error: 'data invalid' })
     return

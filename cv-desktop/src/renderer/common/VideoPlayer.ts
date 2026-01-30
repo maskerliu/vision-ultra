@@ -1,5 +1,5 @@
 import Hls from 'hls.js'
-import { ProcessorManager } from './ProcessorManager'
+import { ProcessorManager } from './ipc/ProcessorManager'
 
 export class VideoPlayer {
   private hls: Hls

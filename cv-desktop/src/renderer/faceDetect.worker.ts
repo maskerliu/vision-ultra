@@ -1,7 +1,7 @@
 
 import { FilesetResolver } from '@mediapipe/tasks-vision'
-import { baseDomain, ProcessorCMD } from '../shared'
-import { FaceDetector } from './common/FaceDetector'
+import { baseDomain, FaceDetectMsg, ProcessorCMD } from '../shared'
+import { FaceDetector } from './common/model/FaceDetector'
 
 const ctx: Worker = self as any
 let fileset: any = null
@@ -12,13 +12,7 @@ async function init() {
     __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
 }
 
-ctx.addEventListener('message', async (event: MessageEvent<{
-  cmd: ProcessorCMD,
-  image?: ImageData,
-  frame?: SharedArrayBuffer,
-  width?: number,
-  height?: number
-}>) => {
+ctx.addEventListener('message', async (event: MessageEvent<FaceDetectMsg>) => {
   if (event.data == null) {
     ctx.postMessage({ loading: false, error: 'data invalid' })
     return

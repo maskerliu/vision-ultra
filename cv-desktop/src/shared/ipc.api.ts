@@ -116,6 +116,7 @@ export type cvDetector = [
   number, // minSize
 ]
 
+
 export enum ProcessorCMD {
   // common cmd
   init = 'init',
@@ -129,6 +130,52 @@ export enum ProcessorCMD {
   // just for face detect
   faceCapture = 'faceCapture'
 }
+
+export type CVMsg = Partial<{
+  cmd: ProcessorCMD,
+  image?: ImageData,
+  width?: number,
+  height?: number,
+  masks?: Uint8Array[],
+  rects?: Array<[number, number, number, number]>,
+  options?: any
+}>
+
+export type ObjTrackMsg = Partial<{
+  cmd: ProcessorCMD,
+  model?: string,
+  image?: ImageData
+}>
+
+export type FaceDetectMsg = Partial<{
+  cmd: ProcessorCMD,
+  image?: ImageData,
+  width?: number,
+  height?: number
+}>
+
+export type ImgGenMsg = Partial<{
+  cmd: ProcessorCMD,
+  model?: string,
+  image?: ImageData,
+}>
+
+export type OCRMsg = Partial<{
+  cmd: ProcessorCMD,
+  model?: string,
+  image?: ImageData,
+}>
+
+export type StyleTransMsg = Partial<{
+  cmd: ProcessorCMD,
+  styleModel?: string,
+  transModel?: string,
+  image?: ImageData,
+  style?: ImageData,
+  params?: [number, number, number],
+  width?: number,
+  height?: number
+}>
 
 export interface IProcessor {
   init(data?: any): Promise<any>
@@ -200,7 +247,7 @@ export enum ModelType {
   face = 6,
   ocr = 7,
   style = 8,
-  transfer
+  transform
 }
 
 export type ModelInfo = {
