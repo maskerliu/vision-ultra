@@ -75,11 +75,11 @@ class CVOptions {
 export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
-      intergrateMode: IntergrateMode.WebAssembly,
-      modelEngine: ModelEngine.tensorflow,
+      intergrateMode: IntergrateMode.wasm,
+      modelEngine: ModelEngine.onnx,
 
       enableObjDetect: false,
-      objDetectModel: { name: 'yolo11n-seg', type: ModelType.Segment, engine: ModelEngine.tensorflow },
+      objDetectModel: { name: 'yolo11n-seg', type: ModelType.segment, engine: ModelEngine.tensorflow },
       genContour: false,
 
       enableFaceDetect: false,
@@ -89,10 +89,15 @@ export const VisionStore = defineStore('VisionStore', {
       live2d: false,
 
       enableImageGen: false,
-      ganModel: { name: 'animeGANv3', type: ModelType.GenImage },
+      ganModel: { name: 'animeGANv3', type: ModelType.genImage },
 
       enableOCR: false,
-      ocrModel: { name: 'ocr', type: ModelType.OCR },
+      ocrModel: { name: 'ocr', type: ModelType.ocr },
+
+      enableStyle: false,
+      styleModel: { name: 'mobileNet', type: ModelType.style },
+      transferModel: { name: 'separable', type: ModelType.transfer },
+      styleParams: [0, 0, 0],
 
       enableCVProcess: false,
       cvOptions: new CVOptions(),

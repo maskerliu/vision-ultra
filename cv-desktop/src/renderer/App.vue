@@ -8,7 +8,7 @@
 
     <van-floating-bubble v-if="enableDebug" :offset="offset" axis="xy" :gap="10" magnetic="x" @click="onOpenDebugPanel">
       <template #default>
-        <van-icon class-prefix="iconfont" name="debug" style="font-size: 1.6rem;" />
+        <van-icon class-prefix="iconfont" name="debug" style="font-size: 1.2rem;" />
       </template>
     </van-floating-bubble>
 
@@ -52,7 +52,7 @@ const showDebugPanel = ref<boolean>(false)
 const enableDebug = true
 const showLoading = ref<boolean>(false)
 const offset = ref({
-  x: window.innerWidth - 60,
+  x: window.innerWidth - 42,
   y: window.innerHeight - 100
 })
 
@@ -71,7 +71,7 @@ onMounted(async () => {
   })
 
   window.addEventListener('resize', () => {
-    offset.value.x = window.innerWidth - 60
+    offset.value.x = window.innerWidth - 42
     offset.value.y = window.innerHeight - 100
   })
 
@@ -119,6 +119,7 @@ function onOpenDebugPanel() {
 }
 
 :root {
+  --van-floating-bubble-size: 2.5rem;
   --van-grid-item-content-padding: 8px;
   --van-popover-radius: var(--van-radius-sm);
   --van-switch-size: 1.2rem;
