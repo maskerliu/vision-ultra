@@ -153,10 +153,10 @@ function onOpenDebugPanel() {
   font-size: small;
   background: var(--van-gray-1);
   letter-spacing: 1px;
-  /* -moz-user-select: none;
+  -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
-  user-select: none; */
+  user-select: none;
   width: 100vw;
   height: 100vh;
   overflow: hidden;

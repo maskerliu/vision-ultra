@@ -29,10 +29,7 @@ export class BackendManager extends WorkerManager {
     masks?: Array<Uint8Array>
     rects?: Array<[number, number, number, number]>
   }>, transfer?: Transferable[]) {
-    if (!this._enableCV && target == ProcessorType.cvProcess) return
-    if (!this._enableFaceDetect && target == ProcessorType.faceDetect) return
-    if (!this._enableObjTrack && target == ProcessorType.objTrack) return
-    if (!this._enableImgGen && target == ProcessorType.imgGen) return
+    if (!this[target]) return
 
     if (data.cmd == ProcessorCMD.process &&
       (target == ProcessorType.faceDetect || target == ProcessorType.cvProcess))
@@ -96,7 +93,7 @@ export class BackendManager extends WorkerManager {
       this._origin = this.offscreenCtx.getImageData(0, 0, this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
     }
 
-    if (this._enableCV) {
+    if (this[ProcessorType.cvProcess]) {
       if (this._processed) {
         this.offscreenCtx.putImageData(this._processed, 0, 0)
         this._processed = null

@@ -43,13 +43,13 @@ export abstract class ProcessorManager {
   }
   set workerStatus(val: ProcessorStatus) { this._processorStatus = val }
 
-  protected _enableCV = false
-  get enableCVProcess() { return this._enableCV }
-  protected _enableObjTrack = false
-  protected _enableFaceDetect = false
-  protected _enableImgGen = false
-  protected _enableOCR = false
-  protected _enableStyleTrans = false
+  // protected _enableCV = false
+  // get enableCV() { return this._enableCV }
+  // protected _enableObjTrack = false
+  // protected _enableFaceDetect = false
+  // protected _enableImgGen = false
+  // protected _enableOcr = false
+  // protected _enableStyleTrans = false
 
   protected _drawFaceMesh = false
   set drawFaceMesh(val: boolean) { this._drawFaceMesh = val }
@@ -58,10 +58,10 @@ export abstract class ProcessorManager {
   set drawEigen(val: boolean) { this._drawEigen = val }
 
   protected _objects: ObjectDetectResult
-  get objects(): ObjectDetectResult { return this._enableObjTrack ? this._objects : null }
+  get objects(): ObjectDetectResult { return this[ProcessorType.objTrack] ? this._objects : null }
 
   protected _face: FaceDetectResult
-  get face(): FaceDetectResult { return this._enableFaceDetect ? this._face : null }
+  get face(): FaceDetectResult { return this[ProcessorType.faceDetect] ? this._face : null }
   get faceMesh(): FaceDetectResult { return this._drawEigen ? this._face : null }
 
   protected _processed: ImageData
@@ -86,6 +86,13 @@ export abstract class ProcessorManager {
     let masklayer = new OffscreenCanvas(captureCtx.canvas.width, captureCtx.canvas.height)
     this.masklayerCtx = masklayer.getContext('2d')
     this.maskCtx = maskCtx
+
+    this[`${ProcessorType.cvProcess}`] = false
+    this[`${ProcessorType.objTrack}`] = false
+    this[`${ProcessorType.faceDetect}`] = false
+    this[`${ProcessorType.imgGen}`] = false
+    this[`${ProcessorType.ocr}`] = false
+    this[`${ProcessorType.styleTrans}`] = false
   }
 
   protected abstract register(target: ProcessorType, data?: any): void
@@ -114,9 +121,8 @@ export abstract class ProcessorManager {
 
   setParam(type: ProcessorType, val: boolean, metadata?: any, anyway: boolean = false) {
 
-    if (this[`_enable${type}`] == val && !anyway) return
-
-    this[`_enable${type}`] = val
+    if (this[`${type}`] == val && !anyway) return
+    this[`${type}`] = val
 
     if (val) {
       this._processorStatus.showLoading = true
