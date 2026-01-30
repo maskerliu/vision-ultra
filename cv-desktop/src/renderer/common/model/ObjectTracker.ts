@@ -50,8 +50,6 @@ export class ObjectTracker extends ModelRunner {
     let time = Date.now()
     let res = await this._model.run(image)
 
-    console.log(res)
-
     let result: any
     if (this._model.name.indexOf('deeplab') != -1) {
       let wrapper = res as tf.Tensor
@@ -152,10 +150,6 @@ export class ObjectTracker extends ModelRunner {
       }
 
       if (data.shape[2] >= 84) { // yolo common with segment
-
-        console.log(data)
-        data.print()
-
         const w = data.slice([0, 0, 2], [-1, -1, 1])
         const h = data.slice([0, 0, 3], [-1, -1, 1])
         const x1 = data.slice([0, 0, 0], [-1, -1, 1]).sub(w.div(2))

@@ -238,16 +238,16 @@ export enum ModelEngine {
 
 export enum ModelType {
   unknown = -1,
-  classify = 0,
-  detect = 1,
-  segment = 2,
-  obb = 3,
-  pose = 4,
-  genImage = 5,
+  classify = 'classify',
+  detect = 'detect',
+  segment = 'segment',
+  obb = 'obb',
+  pose = 'pose',
+  genImage = 'gen-image',
   face = 6,
-  ocr = 7,
-  style = 8,
-  transform
+  ocr = 'ocr',
+  style = 'style',
+  transform = 'transform'
 }
 
 export type ModelInfo = {
