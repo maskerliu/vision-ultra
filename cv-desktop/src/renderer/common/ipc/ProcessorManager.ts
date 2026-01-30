@@ -1,12 +1,20 @@
 
 import { showNotify } from 'vant'
-import { CVLabel, MarkColors, } from '.'
-import { FaceDetectResult, FaceRec, IProcessor, ModelType, ObjectDetectResult, ProcessorCMD } from '../../shared'
-import { drawTFFaceResult, FACE_DIMS, getFaceContour } from './DrawUtils'
+import { CVLabel, MarkColors, } from '..'
+import { CVMsg, FaceDetectMsg, FaceDetectResult, FaceRec, ImgGenMsg, IProcessor, ObjectDetectResult, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
+import { drawTFFaceResult, FACE_DIMS, getFaceContour } from '../DrawUtils'
 
 
 export enum DrawMode { video, image }
-export enum ProcessorType { unknown = -1, faceDetect, objDetect, cvProcess, imageGen }
+export enum ProcessorType {
+  unknown = -1,
+  cvProcess = 'CV',
+  objTrack = 'ObjTrack',
+  faceDetect = 'FaceDetect',
+  imgGen = 'ImgGen',
+  ocr = 'Ocr',
+  styleTrans = 'StyleTrans'
+}
 export type ProcessorStatus = {
   showLoading: boolean,
   showProcess: boolean,
@@ -35,12 +43,13 @@ export abstract class ProcessorManager {
   }
   set workerStatus(val: ProcessorStatus) { this._processorStatus = val }
 
-  protected _enableObjDetect = false
+  protected _enableCV = false
+  get enableCVProcess() { return this._enableCV }
+  protected _enableObjTrack = false
   protected _enableFaceDetect = false
-  protected _enableCVProcess = false
-  get enableCVProcess() { return this._enableCVProcess }
-
-  protected _enableImageGen = false
+  protected _enableImgGen = false
+  protected _enableOCR = false
+  protected _enableStyleTrans = false
 
   protected _drawFaceMesh = false
   set drawFaceMesh(val: boolean) { this._drawFaceMesh = val }
@@ -49,7 +58,7 @@ export abstract class ProcessorManager {
   set drawEigen(val: boolean) { this._drawEigen = val }
 
   protected _objects: ObjectDetectResult
-  get objects(): ObjectDetectResult { return this._enableObjDetect ? this._objects : null }
+  get objects(): ObjectDetectResult { return this._enableObjTrack ? this._objects : null }
 
   protected _face: FaceDetectResult
   get face(): FaceDetectResult { return this._enableFaceDetect ? this._face : null }
@@ -83,18 +92,7 @@ export abstract class ProcessorManager {
 
   abstract postMessage(
     target: ProcessorType,
-    data: Partial<{
-      cmd: ProcessorCMD
-      modelTypes?: ModelType[] // for obj rec 
-      model?: string // for obj rec 
-      image?: ImageData
-      frame?: SharedArrayBuffer
-      width?: number
-      height?: number
-      options?: any // for cv process
-      masks?: Array<Uint8Array>
-      rects?: Array<[number, number, number, number]>
-    }>,
+    data: CVMsg | ObjTrackMsg | FaceDetectMsg | ImgGenMsg | OCRMsg | StyleTransMsg,
     transfer?: Transferable[]): Promise<void>
 
   abstract onDraw(data?: HTMLImageElement | HTMLVideoElement): Promise<void>
@@ -114,20 +112,11 @@ export abstract class ProcessorManager {
     }
   }
 
-  setParam(param: string, val: boolean, metadata?: any, anyway: boolean = false) {
+  setParam(type: ProcessorType, val: boolean, metadata?: any, anyway: boolean = false) {
 
-    if (this[`_${param}`] == val && !anyway) return
+    if (this[`_enable${type}`] == val && !anyway) return
 
-    this[`_${param}`] = val
-
-    let type = ProcessorType.unknown
-    if (param == 'enableCVProcess') {
-      type = ProcessorType.cvProcess
-    } else if (param == 'enableObjDetect') {
-      type = ProcessorType.objDetect
-    } else if (param == 'enableFaceDetect') {
-      type = ProcessorType.faceDetect
-    }
+    this[`_enable${type}`] = val
 
     if (val) {
       this._processorStatus.showLoading = true
