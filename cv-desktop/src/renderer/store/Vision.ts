@@ -92,11 +92,11 @@ export const VisionStore = defineStore('VisionStore', {
       ganModel: { name: 'animeGANv3', type: ModelType.genImage },
 
       enableOCR: false,
-      ocrModel: { name: 'ocr', type: ModelType.ocr },
+      ocrModel: { name: 'easyOCR', type: ModelType.ocr },
 
-      enableStyle: false,
+      enableStyleTrans: false,
       styleModel: { name: 'mobileNet', type: ModelType.style },
-      transferModel: { name: 'separable', type: ModelType.transfer },
+      transModel: { name: 'separable', type: ModelType.transform },
       styleParams: [0, 0, 0],
 
       enableCVProcess: false,

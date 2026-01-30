@@ -1,7 +1,7 @@
 
 import * as tf from '@tensorflow/tfjs'
 import ort from 'onnxruntime-web'
-import { baseDomain, ModelEngine, ModelInfo, ModelType } from '../../shared'
+import { baseDomain, ModelEngine, ModelInfo, ModelType } from '../../../shared'
 
 export class Model {
   protected _model: tf.GraphModel
@@ -174,28 +174,14 @@ export class Model {
     return result
   }
 
-
-  async onnxRun(image: ImageData) {
-    let input = await this.preprocess(image)
-    let result: ort.InferenceSession.ReturnType = null
-    let argKey = this.session.inputMetadata[0].name
-    let params = {}
-    params[argKey] = input
-
-    let res = await this.session?.run(params)
-
-    input.dispose()
-    return result
-  }
-
   private needResize() {
     return (this.name == 'animeGANv3') || (this.name.indexOf('deeplab') != -1)
   }
 
   private needPaddingSize(input: tf.Tensor) {
 
-
   }
+
   protected async preprocess(image: ImageData) {
 
     let result = tf.tidy(() => {
@@ -229,11 +215,25 @@ export class Model {
 
     switch (this._info.engine) {
       case ModelEngine.onnx:
-        let data = await (result as tf.Tensor).data()
+        let tmp = tf.tidy(() => {
+          return (result as tf.Tensor).transpose([0, 3, 1, 2])
+        })
+        let data = await tmp.data()
+        tf.dispose(tmp)
         return new ort.Tensor(this._inType as any, data,
           (this.session.inputMetadata[0] as any).shape)
       case ModelEngine.tensorflow:
         return result
     }
   }
+}
+
+export abstract class ModelRunner {
+
+  protected _expire: number = 0
+  get expire(): number { return this._expire }
+
+  abstract get isInited(): boolean
+
+  abstract dispose(): Promise<void>
 }

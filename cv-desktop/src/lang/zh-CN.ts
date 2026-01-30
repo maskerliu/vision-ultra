@@ -97,7 +97,7 @@ export default {
 
     },
 
-    styleTransfor: 'Style Transfor',
+    styleTransfor: '风格迁移',
     styleModel: {
       'mobileNet': 'mobileNet',
       'inceptionv3': 'inceptionv3'

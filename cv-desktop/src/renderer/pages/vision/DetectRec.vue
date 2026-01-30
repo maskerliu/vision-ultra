@@ -96,10 +96,10 @@ import 'media-chrome'
 import { Col } from 'vant'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import { IntergrateMode, ProcessorCMD } from '../../../shared'
-import { BackendManager } from '../../common/BackendManager'
-import { DrawMode, ProcessorManager, ProcessorStatus, ProcessorType } from '../../common/ProcessorManager'
+import { BackendManager } from '../../common/ipc/BackendManager'
+import { DrawMode, ProcessorManager, ProcessorStatus, ProcessorType } from '../../common/ipc/ProcessorManager'
+import { WorkerManager } from '../../common/ipc/WorkerManager'
 import { VideoPlayer } from '../../common/VideoPlayer'
-import { WorkerManager } from '../../common/WorkerManager'
 import { VisionStore } from '../../store'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
 import Live2dPanel from './Live2dPanel.vue'
@@ -230,35 +230,49 @@ async function onScan() {
   processorMgr?.onDraw()
 }
 
-function initProcessorMgr() {
+function initProcessorMgr(force: boolean = true) {
 
-  processorMgr?.terminateAll()
+  if (force) {
+    processorMgr?.terminateAll()
 
-  switch (visionStore.intergrateMode) {
-    case IntergrateMode.wasm:
-      processorMgr = new WorkerManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
-      break
-    case IntergrateMode.backend:
-      processorMgr = new BackendManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
-      break
+    switch (visionStore.intergrateMode) {
+      case IntergrateMode.wasm:
+        processorMgr = new WorkerManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
+        break
+      case IntergrateMode.backend:
+        processorMgr = new BackendManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
+        break
+    }
+
+    processorMgr.workerStatus = workerStatus.value
+    processorMgr.drawEigen = visionStore.drawEigen
+    processorMgr.drawFaceMesh = visionStore.drawFaceMesh
+    processorMgr.annotationPanel = annotationPanel.value
+    processorMgr.live2dPanel = live2dPanel.value
+    processorMgr.updateSize(previewSize.value[0], previewSize.value[1])
   }
 
-  processorMgr.setParam('enableCVProcess', visionStore.enableCVProcess, {
+  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCVProcess, {
     options: JSON.stringify(visionStore.cvOptions.value)
   })
 
-  let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model })
-  processorMgr.setParam('enableFaceDetect', visionStore.enableFaceDetect)
-  model = JSON.stringify(visionStore.ganModel)
-  processorMgr.setParam('enableImageGen', visionStore.enableImageGen, { model })
+  let options = JSON.stringify(visionStore.cvOptions.value)
+  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCVProcess, { options })
 
-  processorMgr.workerStatus = workerStatus.value
-  processorMgr.drawEigen = visionStore.drawEigen
-  processorMgr.drawFaceMesh = visionStore.drawFaceMesh
-  processorMgr.annotationPanel = annotationPanel.value
-  processorMgr.live2dPanel = live2dPanel.value
-  processorMgr.updateSize(previewSize.value[0], previewSize.value[1])
+  let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
+  processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjDetect, { model })
+
+  processorMgr.setParam(ProcessorType.faceDetect, visionStore.enableFaceDetect)
+
+  model = JSON.stringify(visionStore.ganModel)
+  processorMgr.setParam(ProcessorType.imgGen, visionStore.enableImageGen, { model })
+
+  model = JSON.stringify(visionStore.ocrModel)
+  processorMgr.setParam(ProcessorType.ocr, visionStore.enableOCR, { model })
+
+  let styleModel = JSON.stringify(visionStore.styleModel)
+  let transModel = JSON.stringify(visionStore.transModel)
+  processorMgr.setParam(ProcessorType.styleTrans, visionStore.enableStyleTrans, { styleModel, transModel })
 }
 
 watch(() => previewSize.value, () => {
@@ -282,40 +296,33 @@ watch(
 
 watch(
   [
+    () => visionStore.enableCVProcess,
     () => visionStore.enableObjDetect,
     () => visionStore.enableFaceDetect,
     () => visionStore.enableImageGen,
-    () => visionStore.enableCVProcess,
+    () => visionStore.enableOCR,
+    () => visionStore.enableStyleTrans
   ],
   async () => {
-    processorMgr.setParam('enableCVProcess', visionStore.enableCVProcess, {
-      options: JSON.stringify(visionStore.cvOptions.value)
-    })
-
-    let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
-    processorMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model })
-    processorMgr.setParam('enableFaceDetect', visionStore.enableFaceDetect)
-    model = JSON.stringify(visionStore.ganModel)
-    processorMgr.setParam('enableImageGen', visionStore.enableImageGen, { model })
-
+    initProcessorMgr(false)
     if (!visionStore.enableFaceDetect) visionStore.live2d = false
   }
 )
 
 watch(() => visionStore.modelEngine, async () => {
   let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model }, true)
+  processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjDetect, { model }, true)
 })
 
 watch(() => visionStore.objDetectModel, async () => {
-  processorMgr.postMessage(ProcessorType.objDetect, {
+  processorMgr.postMessage(ProcessorType.objTrack, {
     cmd: ProcessorCMD.init,
     model: JSON.stringify(visionStore.objDetectModel)
   })
 })
 
 watch(() => visionStore.ganModel, async () => {
-  processorMgr.postMessage(ProcessorType.imageGen, {
+  processorMgr.postMessage(ProcessorType.imgGen, {
     cmd: ProcessorCMD.init,
     model: JSON.stringify(visionStore.ganModel)
   })
