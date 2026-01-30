@@ -9,9 +9,6 @@ const ModelClassSize = {
   'deeplab': 151
 }
 
-const YoloCommon = ['yolov8n', 'yolo11n', 'yolo11s', 'yolo11m']
-const YoloSeg = ['yolo26s-seg', 'yolo11m-seg', 'yolo11s-seg', 'yolo11n-seg']
-
 export class ObjectTracker {
   private _model: Model = new Model()
 
@@ -32,7 +29,7 @@ export class ObjectTracker {
   public classes: Uint8Array = new Uint8Array(MAX_OBJECTS_NUM)
   private _masks: Array<Uint8Array> = new Array<Uint8Array>(MAX_OBJECTS_NUM)
   get masks() {
-    return this._model.type == ModelType.Segment && this._model.name.indexOf('deeplab') == -1 ? this._masks : null
+    return this._model.type == ModelType.segment && this._model.name.indexOf('deeplab') == -1 ? this._masks : null
   }
 
   private _expire: number = 0
@@ -56,6 +53,8 @@ export class ObjectTracker {
     let time = Date.now()
     let res = await this._model.run(image)
 
+    console.log(res)
+
     let result: any
     if (this._model.name.indexOf('deeplab') != -1) {
       let wrapper = res as tf.Tensor
@@ -78,11 +77,12 @@ export class ObjectTracker {
       nms = tmp
     }
 
-    // console.log(result)
-    // result[0].print()
-    // result[1].print()
-    // result[2].print()
-    // console.log(nms)
+    console.log(result)
+    result[0].print()
+    result[1].print()
+    result[2].print()
+    console.log(nms)
+    nms.print()
 
     const overlay = tf.tidy(() => {
       const boxesTF = result[0].gather(nms, 0)
@@ -107,10 +107,27 @@ export class ObjectTracker {
       this._segSize[1] = height
       this._segScale[0] = this._model.inShape[1] / width
       this._segScale[1] = this._model.inShape[0] / height
-      await this.yolo11nSegment(overlay)
+      await this.yoloSegment(overlay)
     }
 
     tf.dispose([res, ...result, overlay])
+  }
+
+  private async mobilenetv2(res: tf.Tensor[], width: number, height: number) {
+    return tf.tidy(() => {
+      const scores = res[0].max(2).squeeze()
+      const classes = res[0].argMax(2).add(1).squeeze()
+      let y1 = res[1].slice([0, 0, 0, 0], [-1, -1, -1, 1]).mul(height)
+      let x1 = res[1].slice([0, 0, 0, 1], [-1, -1, -1, 1]).mul(width)
+      let y2 = res[1].slice([0, 0, 0, 2], [-1, -1, -1, 1]).mul(height)
+      let x2 = res[1].slice([0, 0, 0, 3], [-1, -1, -1, 1]).mul(width)
+      const boxes = tf.concat([y1, x1, y2, x2,], 2).squeeze()
+      let maskCoeffs: any
+      if (res[1].shape[1] == 116) {
+        maskCoeffs = res[1].slice([0, 0, 4 + 80], [-1, -1, 32])
+      }
+      return [boxes, scores, classes, maskCoeffs]
+    })
   }
 
   /**
@@ -131,86 +148,54 @@ export class ObjectTracker {
    */
   private async yoyoCommon(res: tf.Tensor | tf.Tensor[]) {
     return tf.tidy(() => {
-      let boxes: tf.Tensor, scores: tf.Tensor, classes: tf.Tensor, maskCoeffs: tf.Tensor, transRes: tf.Tensor
+      let boxes: tf.Tensor, scores: tf.Tensor, classes: tf.Tensor, maskCoeffs: tf.Tensor, data: tf.Tensor
 
-      if (this._model.name == 'yolov10n') {
-        transRes = res[1]
-      } else if (this._model.name == 'yolov10s') {
-        transRes = res[0]
+      if (!Array.isArray(res)) {
+        data = res as tf.Tensor
+      } else {
+        for (let i = 0; i < res.length; ++i) {
+          if (res[i].shape.length == 3) {
+            data = res[i]
+          }
+        }
       }
 
-      if (transRes != null) {
-        const x1 = transRes.slice([0, 0, 0], [-1, -1, 1])
-        const y1 = transRes.slice([0, 0, 1], [-1, -1, 1])
-        const x2 = transRes.slice([0, 0, 2], [-1, -1, 1])
-        const y2 = transRes.slice([0, 0, 3], [-1, -1, 1])
-        boxes = tf.concat([y1, x1, y2, x2,], 2).squeeze()
-        scores = transRes.slice([0, 0, 4], [-1, -1, 1]).squeeze()
-        classes = transRes.slice([0, 0, 5], [-1, -1, 1]).squeeze()
-        return [boxes, scores, classes, null]
+      if (data == null) return null
+
+      if (data.shape[1] < data.shape[2]) {
+        data = data.transpose([0, 2, 1])
       }
 
-      if (this._model.name == 'yolo26s-seg') {
-        transRes = res[0]
-      } else if (YoloCommon.indexOf(this._model.name) != -1) {
-        transRes = res as tf.Tensor
-      } else if (YoloSeg.indexOf(this._model.name) != -1) {
-        transRes = res[0]
-      }
+      if (data.shape[2] >= 84) { // yolo common with segment
 
-      if (transRes == null) return null
+        console.log(data)
+        data.print()
 
-      if (transRes.shape[1] < transRes.shape[2]) {
-        transRes = transRes.transpose([0, 2, 1])
-      }
-
-      if (transRes.shape[2] >= 84) { // yolo common with segment
-
-        // console.log(transRes)
-        // transRes.print()
-
-        const w = transRes.slice([0, 0, 2], [-1, -1, 1])
-        const h = transRes.slice([0, 0, 3], [-1, -1, 1])
-        const x1 = transRes.slice([0, 0, 0], [-1, -1, 1]).sub(w.div(2))
-        const y1 = transRes.slice([0, 0, 1], [-1, -1, 1]).sub(h.div(2))
+        const w = data.slice([0, 0, 2], [-1, -1, 1])
+        const h = data.slice([0, 0, 3], [-1, -1, 1])
+        const x1 = data.slice([0, 0, 0], [-1, -1, 1]).sub(w.div(2))
+        const y1 = data.slice([0, 0, 1], [-1, -1, 1]).sub(h.div(2))
         boxes = tf.concat([y1, x1, y1.add(h), x1.add(w)], 2).squeeze()
-        const classScores = transRes.slice([0, 0, 4], [-1, -1, 80]).squeeze()
+        const classScores = data.slice([0, 0, 4], [-1, -1, 80]).squeeze()
         scores = classScores.max(1)
         classes = classScores.argMax(1)
-        if (transRes.shape[2] == 116) maskCoeffs = transRes.slice([0, 0, 4 + 80], [-1, -1, 32]).squeeze()
-      } else if (transRes.shape[2] == 38) {
-        const y2 = transRes.slice([0, 0, 3], [-1, -1, 1])
-        const x2 = transRes.slice([0, 0, 2], [-1, -1, 1])
-        const x1 = transRes.slice([0, 0, 0], [-1, -1, 1])
-        const y1 = transRes.slice([0, 0, 1], [-1, -1, 1])
+        if (data.shape[2] == 116) maskCoeffs = data.slice([0, 0, 4 + 80], [-1, -1, 32]).squeeze()
+      } else if (data.shape[2] <= 38) {
+        const x1 = data.slice([0, 0, 0], [-1, -1, 1])
+        const y1 = data.slice([0, 0, 1], [-1, -1, 1])
+        const x2 = data.slice([0, 0, 2], [-1, -1, 1])
+        const y2 = data.slice([0, 0, 3], [-1, -1, 1])
         boxes = tf.concat([y1, x1, y2, x2], 2).squeeze()
-        scores = transRes.slice([0, 0, 4], [-1, -1, 1]).squeeze()
-        classes = transRes.slice([0, 0, 5], [-1, -1, 1]).squeeze()
-        maskCoeffs = transRes.slice([0, 0, 6], [-1, -1, 32]).squeeze()
+        scores = data.slice([0, 0, 4], [-1, -1, 1]).squeeze()
+        classes = data.slice([0, 0, 5], [-1, -1, 1]).squeeze()
+        if (data.shape[2] == 38) maskCoeffs = data.slice([0, 0, 6], [-1, -1, 32]).squeeze()
       }
 
       return [boxes, scores, classes, maskCoeffs]
     })
   }
 
-  private async mobilenetv2(res: tf.Tensor[], width: number, height: number) {
-    return tf.tidy(() => {
-      const scores = res[0].max(2).squeeze()
-      const classes = res[0].argMax(2).add(1).squeeze()
-      let y1 = res[1].slice([0, 0, 0, 0], [-1, -1, -1, 1]).mul(height)
-      let x1 = res[1].slice([0, 0, 0, 1], [-1, -1, -1, 1]).mul(width)
-      let y2 = res[1].slice([0, 0, 0, 2], [-1, -1, -1, 1]).mul(height)
-      let x2 = res[1].slice([0, 0, 0, 3], [-1, -1, -1, 1]).mul(width)
-      const boxes = tf.concat([y1, x1, y2, x2,], 2).squeeze()
-      let maskCoeffs: any
-      if (res[1].shape[1] == 116) {
-        maskCoeffs = res[1].slice([0, 0, 4 + 80], [-1, -1, 32])
-      }
-      return [boxes, scores, classes, maskCoeffs]
-    })
-  }
-
-  private async yolo11nSegment(overlay: tf.Tensor) {
+  private async yoloSegment(overlay: tf.Tensor) {
     if (overlay == null) return
     let offset = 0
     let i = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0

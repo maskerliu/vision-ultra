@@ -1,4 +1,4 @@
-import { ICVAPI, ModelType, ProcessorCMD } from '../../shared'
+import { ModelType, ProcessorCMD } from '../../shared'
 import { DrawMode, ProcessorType } from './ProcessorManager'
 import { WorkerManager } from './WorkerManager'
 
@@ -41,20 +41,17 @@ export class BackendManager extends WorkerManager {
       this._processorStatus.showLoading = true
 
     if (target == ProcessorType.cvProcess) {
-
-      console.log(data.cmd)
-      let processor = this.processor(target) as ICVAPI
+      let processor = this.processor(target)
       switch (data.cmd) {
-        case ProcessorCMD.updateOptions:
-          processor.options(data.options)
-          processor[data.cmd].call(processor, data)
-          console.log('options', data.options)
-          break
-        case ProcessorCMD.init:
-          processor[data.cmd].call(processor, data)
-          break
         case ProcessorCMD.process:
-          this._processed = await processor[data.cmd].call(processor, data)
+          data.width = data.image.width
+          data.height = data.image.height
+          let result = await processor[data.cmd].call(processor, data)
+          if (result) {
+            this._processed = new ImageData(data.image.width, data.image.height)
+            this._processed.data.set(result)
+            this.onDraw()
+          }
           break
         case ProcessorCMD.findContours:
           let scale = [
@@ -66,7 +63,7 @@ export class BackendManager extends WorkerManager {
           while (i < data.rects.length) {
             let mask = data.masks[i]
             let rect = data.rects[i]
-            let result = processor.findContours(mask, rect[2], rect[3])
+            let result = processor[data.cmd](processor, mask, rect[2], rect[3])
             result.forEach(p => {
               p[0] = (p[0] + rect[0]) * scale[0]
               p[1] = (p[1] + rect[1]) * scale[1]
@@ -79,7 +76,13 @@ export class BackendManager extends WorkerManager {
             this.objects.scores, this.objects.classes,
             this.objects.objNum, this.objects.scale, contours)
           break
+        default:
+          processor[data.cmd].call(processor, data)
+          break
       }
+
+      this._processorStatus.showLoading = false
+      this._processorStatus.showProcess = false
     } else {
       await super.postMessage(target, data, transfer)
     }
@@ -102,10 +105,11 @@ export class BackendManager extends WorkerManager {
         if (this._origin == null) return
         let data = await processor[ProcessorCMD.process].call(processor,
           { image: this._origin, width: this._origin.width, height: this._origin.height })
-        console.log(data)
-        this._processed = new ImageData(this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
-        this._processed.data.set(data)
-        this.offscreenCtx.putImageData(this._processed, 0, 0)
+        if (data) {
+          this._processed = new ImageData(this.offscreenCtx.canvas.width, this.offscreenCtx.canvas.height)
+          this._processed.data.set(data)
+          this.offscreenCtx.putImageData(this._processed, 0, 0)
+        }
       }
     }
 

@@ -179,9 +179,9 @@ export type ObjectDetectResult = Partial<{
 }>
 
 export enum IntergrateMode {
-  WebAssembly,
-  Backend,
-  Native
+  wasm,
+  backend,
+  native
 }
 
 export enum ModelEngine {
@@ -190,15 +190,17 @@ export enum ModelEngine {
 }
 
 export enum ModelType {
-  Unknown = -1,
-  Classify = 0,
-  Detect = 1,
-  Segment = 2,
-  OBB = 3,
-  Pose = 4,
-  GenImage = 5,
-  Face = 6,
-  OCR = 7
+  unknown = -1,
+  classify = 0,
+  detect = 1,
+  segment = 2,
+  obb = 3,
+  pose = 4,
+  genImage = 5,
+  face = 6,
+  ocr = 7,
+  style = 8,
+  transfer
 }
 
 export type ModelInfo = {

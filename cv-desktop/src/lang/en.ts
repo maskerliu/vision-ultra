@@ -57,14 +57,14 @@ export default {
     }
   },
   cvControl: {
-    IntergrateMode: 'Integrate Mode',
-    ModelEngine: 'Model Framework',
+    intergrateMode: 'Integrate Mode',
+    modelEngine: 'Model Framework',
     ModelImport: 'Import Model',
 
-    ObjRec: 'Object Detect',
-    ObjDetect: 'Detect',
-    ObjSegment: 'Segment',
-    ObjModel: {
+    objRec: 'Object Detect',
+    objDetect: 'Detect',
+    objSegment: 'Segment',
+    objModel: {
       yolov8n: 'YOLOv8 (Ultralytics)',
       yolov10n: 'YOLOv10n(Tsinghua university)',
       yolov10s: 'YOLOv10s(Tsinghua university)',
@@ -82,10 +82,10 @@ export default {
     },
 
 
-    FaceRec: 'Face Recognize',
+    faceRec: 'Face Recognize',
 
-    GenImage: 'Image2Image',
-    GanModel: {
+    genImage: 'Image2Image',
+    ganModel: {
       animeGANv3: 'AnimateGANv3',
       anime_Kpop: 'AnimateGANv3_Kpop',
       anime_Disney: 'AnimeGANv3_Disney',
@@ -93,70 +93,81 @@ export default {
       anime_Ghibli: 'AnimeGANv3_Ghibli-o1'
     },
 
-    OCR: 'OCR',
-    OcrModel: {
+    ocr: 'OCR',
+    ocrModel: {
 
     },
 
-    ImgEnhance: 'Image Enhance',
-    Gray: 'Gray',
-    Brightness: 'Brightness', // 亮度
-    BrightnessDesc: 'Gamma correction',
-    Rotate: 'Rotate',
-    ColorMap: 'Color Map',
-
-    Morph: 'Morphology', // 形态学
-    MorphOpt: {
-      Erode: 'Erosion', // 腐蚀
-      Dilate: 'Dilation', // 膨胀
-      Open: 'Open', // 开运算
-      Close: 'Close', // 闭运算
-      Gradient: 'Gradient', // 梯度
-      TopHat: 'TopHat', // 顶帽
-      BlackHat: 'BlackHat' // 黑帽
+    styleTransfor: 'Style Transfor',
+    styleModel: {
+      'mobileNet': 'mobileNet',
+      'inceptionv3': 'inceptionv3'
     },
-
-    Contrast: 'Contrast', // 对比度
-    EqualizeHist: 'EqualizeHist', // 直方图均衡
-    CLAHE: 'CLAHE', // CLAHE
-
-    Saturation: 'Saturation', // 饱和度
-    SaturationDesc: 'HSV', // 
-    Hue: 'Hue', // 色调
-
-    Sharpness: 'Sharpen',
-    Blur: 'Blur',
-    BlurType: {
-      Gaussian: 'Gaussian', // 高斯模糊
-      Avg: 'Average', // 均值滤波
-      Median: 'Median', // 中值滤波
-      Bilateral: 'Bilateral', // 双边滤波
+    transferModel: {
+      'separable': 'Separable Conv2d',
+      'origin': 'Original Transform',
     },
 
 
-    Filter: 'Filter',
-    FilterType: {
-      Laplace: 'Laplace',
-      LaplaceDesc: 'Laplace operator',
-      Sobel: 'Sobel',
-      SobelDesc: 'Discrete differential operator',
-      Scharr: 'Scharr',
-      ScharrDesc: 'Enhanced version of Sobel operator',
+    imgEnhance: 'Image Enhance',
+    gray: 'Gray',
+    brightness: 'Brightness', // 亮度
+    brightnessDesc: 'Gamma correction',
+    rotate: 'Rotate',
+    colorMap: 'Color Map',
+
+    morph: 'Morphology', // 形态学
+    morphOpt: {
+      erode: 'Erosion', // 腐蚀
+      dilate: 'Dilation', // 膨胀
+      open: 'Open', // 开运算
+      close: 'Close', // 闭运算
+      gradient: 'Gradient', // 梯度
+      topHat: 'TopHat', // 顶帽
+      blackHat: 'BlackHat' // 黑帽
     },
 
-    FeatExtract: 'Feature Extract', // 特征提取
-    Canny: 'Canny',
-    CannyDesc: 'Effective edge detection',
-    HoughTransform: 'Hough Transform',
-    Hough: 'Hogh Cvt',
-    HoughCircle: 'Hough Circle Cvt',
-    HoughLine: 'Hough Line Cvt',
+    contrast: 'Contrast', // 对比度
+    equalizeHist: 'EqualizeHist', // 直方图均衡
+    clahe: 'CLAHE', // CLAHE
 
-    ColorTrack: 'Color',
-    ContourTrack: 'Contour',
-    BackgroundSub: 'Bg Subtract',
-    MeanShit: 'MeanShift',
-    CamShift: 'CamShift',
+    saturation: 'Saturation', // 饱和度
+    saturationDesc: 'HSV', // 
+    hue: 'Hue', // 色调
+
+    sharpness: 'Sharpen',
+    blur: 'Blur',
+    blurType: {
+      gaussian: 'Gaussian', // 高斯模糊
+      avg: 'Average', // 均值滤波
+      median: 'Median', // 中值滤波
+      bilateral: 'Bilateral', // 双边滤波
+    },
+
+
+    filter: 'Filter',
+    filterType: {
+      laplace: 'Laplace',
+      laplaceDesc: 'Laplace operator',
+      sobel: 'Sobel',
+      sobelDesc: 'Discrete differential operator',
+      scharr: 'Scharr',
+      scharrDesc: 'Enhanced version of Sobel operator',
+    },
+
+    featExtract: 'Feature Extract', // 特征提取
+    canny: 'Canny',
+    cannyDesc: 'Effective edge detection',
+    houghTransform: 'Hough Transform',
+    hough: 'Hogh Cvt',
+    houghCircle: 'Hough Circle Cvt',
+    houghLine: 'Hough Line Cvt',
+
+    colorTrack: 'Color',
+    contourTrack: 'Contour',
+    backgroundSub: 'Bg Subtract',
+    meanShit: 'MeanShift',
+    camShift: 'CamShift',
 
 
   },

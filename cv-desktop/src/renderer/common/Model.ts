@@ -4,8 +4,17 @@ import ort from 'onnxruntime-web'
 import { baseDomain, ModelEngine, ModelInfo, ModelType } from '../../shared'
 
 export class Model {
-  protected model: tf.GraphModel
+  protected _model: tf.GraphModel
   protected session: ort.InferenceSession
+
+  get model() {
+    switch (this._info.engine) {
+      case ModelEngine.onnx:
+        return this.session
+      case ModelEngine.tensorflow:
+        return this._model
+    }
+  }
 
   private _info: ModelInfo
   get name() { return this._info.name }
@@ -21,11 +30,14 @@ export class Model {
   private _inType: string = null
   get inShape() { return this._inShape }
 
+  private _outputs: any
+  get outputs() { return this._outputs }
+
   async init(info: ModelInfo) {
     console.log(info)
     if (this._isInited && this.name == info.name && this._info.engine == info.engine) return
     if (info.name == null) return
-    if (info.type == ModelType.Unknown) throw new Error('model type is unknown')
+    if (info.type == ModelType.unknown) throw new Error('model type is unknown')
 
     this.dispose()
     this._isInited = false
@@ -57,28 +69,28 @@ export class Model {
   private async loadTfModel(name: string) {
     if (name == 'deeplab-cityspace1') {
       let modelUrl = 'https://tfhub.dev/tensorflow/tfjs-model/deeplab/cityscapes/1/default/1/model.json?tfjs-format=file'
-      this.model = await tf.loadGraphModel(modelUrl)
+      this._model = await tf.loadGraphModel(modelUrl)
     } else {
-      let modelPath = `static/${name}_web_model/model.json`
+      let modelPath = `static/${name}/model.json`
       try {
-        this.model = await tf.loadGraphModel(`indexeddb://${modelPath}`)
+        this._model = await tf.loadGraphModel(`indexeddb://${modelPath}`)
       } catch (e) {
-        this.model = await tf.loadGraphModel(`${__DEV__ ? '' : baseDomain()}/${modelPath}`, {
+        this._model = await tf.loadGraphModel(`${__DEV__ ? '' : baseDomain()}/${modelPath}`, {
           requestInit: {
             cache: 'force-cache'
           }
         })
 
-        await this.model.save(`indexeddb://${modelPath}`)
+        await this._model.save(`indexeddb://${modelPath}`)
       }
     }
 
-    let input = this.model.inputs[0]
+    let input = this._model.inputs[0]
 
     this._inName = input.name
     this._inType = input.dtype
     this._inShape = input.shape.slice(1, 3) as [number, number]
-    console.log(this.model)
+    console.log(this._model)
   }
 
   private async loadOrtModel(name: string) {
@@ -103,19 +115,22 @@ export class Model {
     this._inName = input.name
     this._inType = input.type
     this._inShape = input.shape.slice(2) as [number, number]
+
+    let outputs = this.session.outputMetadata[0] as ort.InferenceSession.TensorValueMetadata
+    // this._output = outputs 
     console.log(this.session)
   }
 
   async dispose() {
-    this.model?.dispose()
+    this._model?.dispose()
     await this.session?.release()
     this._isInited = false
-    this.model = null
+    this._model = null
     this.session = null
   }
 
   async run(image: ImageData) {
-    if (!this._isInited || (this.model == null && this.session == null)) {
+    if (!this._isInited || (this._model == null && this.session == null)) {
       return
     }
 
@@ -126,31 +141,29 @@ export class Model {
 
     switch (this._info.engine) {
       case ModelEngine.onnx:
-        let res = await this.session?.run(params)
+        let data = await this.session?.run(params)
+        console.log(data)
         result = tf.tidy(() => {
-          result = []
+          let res = []
           for (let i = 0; i < this.session.outputNames.length; ++i) {
             let key = this.session.outputNames[i]
-            let out = res[key] as any
+            let out = data[key] as any
             if (i == 0) {
-              result[0] = tf.tensor(out.cpuData, out.dims, out.dtype)
+              res[0] = tf.tensor(out.cpuData, out.dims, out.dtype)
             } else {
-              result[1] = tf.tensor(out.cpuData, out.dims, out.dtype).transpose([0, 2, 3, 1])
+              res[1] = tf.tensor(out.cpuData, out.dims, out.dtype).transpose([0, 2, 3, 1])
             }
           }
-          return result
+          return res
         })
         break
       case ModelEngine.tensorflow: {
         switch (this.name) {
           case 'mobilenet':
-            result = await this.model.executeAsync(params)
+            result = await this._model.executeAsync(params)
             break
-          case 'animeGANv3':
-          case 'deeplab-ade':
-          case 'deeplab-cityspace':
           default:
-            result = this.model.execute(params)
+            result = this._model.execute(params)
             break
         }
       }

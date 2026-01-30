@@ -2,7 +2,7 @@
   <van-col>
 
     <van-cell-group inset>
-      <van-cell center :title="$t('cvControl.IntergrateMode')">
+      <van-cell center :title="$t('cvControl.intergrateMode')">
         <template #right-icon>
           <van-radio-group v-model="visionStore.intergrateMode" direction="horizontal">
             <van-radio :name="idx" v-for="(mode, idx) in IntergrateModes">
@@ -11,7 +11,7 @@
           </van-radio-group>
         </template>
       </van-cell>
-      <van-cell center :title="$t('cvControl.ModelEngine')">
+      <van-cell center :title="$t('cvControl.modelEngine')">
         <template #right-icon>
           <van-radio-group v-model="visionStore.modelEngine" direction="horizontal">
             <van-radio :name="engine.value" v-for="engine in ModelEngines">
@@ -22,13 +22,13 @@
       </van-cell>
     </van-cell-group>
 
-    <!-- object detect & segment & face recognize-->
-    <van-cell-group inset title="detect & segment & rec">
+    <!-- object detect & segment, face recognize, style transfer, animeGAN-->
+    <van-cell-group inset title="Model Zoo">
       <van-cell center :disabled="!visionStore.enableObjDetect">
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableObjDetect">
             <van-icon class-prefix="iconfont" name="obj-rec" style="color: #2980b9;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.ObjRec') }}</span>
+            <span style="margin-left: 5px;">{{ $t('cvControl.objRec') }}</span>
           </van-checkbox>
         </template>
         <template #value>
@@ -39,10 +39,10 @@
             <van-col class="model-container">
               <van-cell-group inset v-for="key of ObjRecModelGrop.keys()">
                 <template #title>
-                  <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key" />
-                  {{ $t(`cvControl.Obj${key}`) }}
+                  <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key.toLowerCase()" />
+                  {{ $t(`cvControl.obj${key}`) }}
                 </template>
-                <van-cell center clickable :title="$t(`cvControl.ObjModel.${model.name}`)" title-class="van-ellipsis"
+                <van-cell center clickable :title="$t(`cvControl.objModel.${model.name}`)" title-class="van-ellipsis"
                   @click="onObjRecModelChanged(model)" v-for="model in ObjRecModelGrop.get(key)">
                   <template #right-icon>
                     <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
@@ -58,7 +58,7 @@
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableFaceDetect">
             <van-icon class-prefix="iconfont" name="face-rec" style="color: #e67e22;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.FaceRec') }}</span>
+            <span style="margin-left: 5px;">{{ $t('cvControl.faceRec') }}</span>
           </van-checkbox>
         </template>
         <template #label>
@@ -86,7 +86,7 @@
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableImageGen">
             <van-icon class-prefix="iconfont" name="gen-image" style="color: #16a085;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.GenImage') }}</span>
+            <span style="margin-left: 5px;">{{ $t('cvControl.genImage') }}</span>
           </van-checkbox>
         </template>
         <template #value>
@@ -95,7 +95,7 @@
               {{ visionStore.ganModel.name }}
             </template>
             <van-col class="model-container">
-              <van-cell center clickable :title="$t(`cvControl.GanModel.${model.name}`)" title-class="van-ellipsis"
+              <van-cell center clickable :title="$t(`cvControl.ganModel.${model.name}`)" title-class="van-ellipsis"
                 style="margin-left: 4px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
@@ -110,7 +110,7 @@
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableOCR">
             <van-icon class-prefix="iconfont" name="ocr" style="color: #1B9CFC;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.OCR') }}</span>
+            <span style="margin-left: 5px;">{{ $t('cvControl.ocr') }}</span>
           </van-checkbox>
         </template>
         <template #value>
@@ -119,7 +119,7 @@
               {{ visionStore.ocrModel.name }}
             </template>
             <van-col class="model-container">
-              <van-cell center clickable :title="$t(`cvControl.GanModel.${model.name}`)" title-class="van-ellipsis"
+              <van-cell center clickable :title="$t(`cvControl.ganModel.${model.name}`)" title-class="van-ellipsis"
                 style="margin-left: 4px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
@@ -130,19 +130,79 @@
         </template>
       </van-cell>
 
+      <van-cell center :disabled="!visionStore.enableStyle">
+        <template #title>
+          <van-checkbox shape="square" v-model="visionStore.enableStyle">
+            <van-icon class-prefix="iconfont" name="style-transfor" style="color: #6D214F;" />
+            <span style="margin-left: 5px;">{{ $t('cvControl.styleTransfor') }}</span>
+          </van-checkbox>
+        </template>
+
+        <template #label>
+          <van-row style="width: 100%;">
+            <van-cell title="style" style="width: 50%;">
+              <template #value>
+                <van-popover v-model:show="showStyleModels" :show-arrow="false" placement="bottom" overlay>
+                  <template #reference>
+                    {{ visionStore.styleModel.name }}
+                  </template>
+                  <van-col class="model-container" style="height: 100px;">
+                    <van-cell center clickable :title="$t(`cvControl.styleModel.${model.name}`)"
+                      title-class="van-ellipsis" style="margin-left: 4px;" @click="onGanModelChanged(model)"
+                      v-for="model in StyleModels">
+                      <template #right-icon>
+                        <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                      </template>
+                    </van-cell>
+                  </van-col>
+                </van-popover>
+              </template>
+            </van-cell>
+            <van-cell title="transfer" style="width: 50%;">
+              <template #value>
+                <van-popover v-model:show="showTransferModels" :show-arrow="false" placement="bottom-end" overlay>
+                  <template #reference>
+                    {{ visionStore.transferModel.name }}
+                  </template>
+                  <van-col class="model-container" style="height: 100px;">
+                    <van-cell center clickable :title="$t(`cvControl.transferModel.${model.name}`)"
+                      title-class="van-ellipsis" style="margin-left: 4px;" @click="onGanModelChanged(model)"
+                      v-for="model in TransferModels">
+                      <template #right-icon>
+                        <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                      </template>
+                    </van-cell>
+                  </van-col>
+                </van-popover>
+              </template>
+            </van-cell>
+          </van-row>
+
+          <van-cell title="style image">
+            <template #value>
+              <van-image src="" width="50" height="50" />
+            </template>
+          </van-cell>
+          <slider-field label="content size" v-model:sliderValue="visionStore.styleParams[0]" />
+          <slider-field label="style size" v-model:sliderValue="visionStore.styleParams[1]" />
+          <slider-field label="strength" v-model:sliderValue="visionStore.styleParams[2]" />
+
+        </template>
+      </van-cell>
+
       <van-checkbox shape="square" v-model="visionStore.cvOptions.enableDetect" style="margin: 15px;">
         Opencv
       </van-checkbox>
       <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableDetect"
         style="padding: 0 15px 15px 15px;" v-model="visionStore.cvOptions.detector[0]">
         <van-radio name="color">
-          {{ $t('cvControl.ColorTrack') }}
+          {{ $t('cvControl.colorTrack') }}
         </van-radio>
         <van-radio name="contour">
-          {{ $t('cvControl.ContourTrack') }}
+          {{ $t('cvControl.contourTrack') }}
         </van-radio>
         <van-radio name="bgSub">
-          {{ $t('cvControl.BackgroundSub') }}
+          {{ $t('cvControl.backgroundSub') }}
         </van-radio>
       </van-radio-group>
 
@@ -158,11 +218,11 @@
       <template #title>
         <van-checkbox shape="square" v-model="visionStore.enableCVProcess">
           <van-icon class-prefix="iconfont" name="opencv" style="color: #27ae60;" />
-          {{ $t('cvControl.ImgEnhance') }}
+          {{ $t('cvControl.imgEnhance') }}
         </van-checkbox>
       </template>
 
-      <van-field ref="colorMapAnchor" center clickable input-align="right" readonly :label="$t('cvControl.ColorMap')"
+      <van-field ref="colorMapAnchor" center clickable input-align="right" readonly :label="$t('cvControl.colorMap')"
         style="scroll-margin-top: 50px;">
         <template #input>
           <van-popover v-model:show="showColorMaps" placement="bottom-end" :overlay="true" @open="checkPosition"
@@ -184,15 +244,15 @@
           </van-popover>
         </template>
       </van-field>
-      <van-field :label="$t('cvControl.Gray')" type="number" input-align="right">
+      <van-field :label="$t('cvControl.gray')" type="number" input-align="right">
         <template #input>
           <van-switch v-model="visionStore.cvOptions.isGray"></van-switch>
         </template>
       </van-field>
-      <slider-field :label="$t('cvControl.Brightness')" :min="-1" :max="2" :step="0.1"
+      <slider-field :label="$t('cvControl.brightness')" :min="-1" :max="2" :step="0.1"
         v-model:sliderValue="visionStore.cvOptions.gamma" />
 
-      <slider-field :label="$t('cvControl.Rotate')" :min="-180" :max="180" :step="15"
+      <slider-field :label="$t('cvControl.rotate')" :min="-180" :max="180" :step="15"
         v-model:sliderValue="visionStore.cvOptions.rotate" />
     </van-cell-group>
 
@@ -200,7 +260,7 @@
     <van-cell-group inset>
       <template #title>
         <van-checkbox shape="square" v-model="visionStore.cvOptions.enableBlur">
-          {{ $t('cvControl.Blur') }}
+          {{ $t('cvControl.blur') }}
         </van-checkbox>
       </template>
 
@@ -232,7 +292,7 @@
     <van-cell-group inset>
       <template #title>
         <van-checkbox shape="square" v-model="visionStore.cvOptions.enableSharpen">
-          {{ $t('cvControl.Sharpness') }}
+          {{ $t('cvControl.sharpness') }}
         </van-checkbox>
       </template>
       <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableSharpen"
@@ -253,7 +313,7 @@
         <van-cell center input-align="right" style="scroll-margin-top: 50px;">
           <template #title>
             <van-checkbox shape="square" v-model="visionStore.cvOptions.enableMorph">
-              {{ $t(`cvControl.Morph`) }}
+              {{ $t(`cvControl.morph`) }}
             </van-checkbox>
           </template>
           <template #value>
@@ -261,7 +321,7 @@
               v-model:show="showMorphOpts" @open="checkPosition">
               <template #reference>
                 <span style="font-size: var(--van-font-size-md)">
-                  {{ $t(`cvControl.MorphOpt.${MorphOpts[visionStore.cvOptions.morph[0]]}`) }}
+                  {{ $t(`cvControl.morphOpt.${MorphOpts[visionStore.cvOptions.morph[0]]}`) }}
                 </span>
               </template>
               <van-radio-group direction="vertical"
@@ -270,7 +330,7 @@
                 <van-radio :name="idx" label-position="right" style="height: 1rem; margin-bottom: 15px;"
                   v-for="(morph, idx) in MorphOpts">
                   <span style="font-size: var(--van-font-size-md)">
-                    {{ $t(`cvControl.MorphOpt.${morph}`) }}
+                    {{ $t(`cvControl.morphOpt.${morph}`) }}
                   </span>
                 </van-radio>
               </van-radio-group>
@@ -288,16 +348,16 @@
       <van-cell-group inset>
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.cvOptions.enableContrast">
-            {{ $t('cvControl.Contrast') }}
+            {{ $t('cvControl.contrast') }}
           </van-checkbox>
         </template>
         <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableContrast"
           style="padding: 10px 15px;" v-model="visionStore.cvOptions.equalization[0]">
           <van-radio name="equalizeHist" style="font-size: 0.8rem;">
-            {{ $t('cvControl.EqualizeHist') }}
+            {{ $t('cvControl.equalizeHist') }}
           </van-radio>
           <van-radio name="clahe" style="font-size: 0.8rem;">
-            {{ $t('cvControl.CLAHE') }}
+            {{ $t('cvControl.clahe') }}
           </van-radio>
         </van-radio-group>
         <van-col v-if="visionStore.cvOptions.equalization[0] == 'clahe' && visionStore.cvOptions.enableContrast">
@@ -312,13 +372,13 @@
       <van-cell-group inset>
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.cvOptions.enableFilter">
-            {{ $t('cvControl.Filter') }}
+            {{ $t('cvControl.filter') }}
           </van-checkbox>
         </template>
         <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableFilter"
           style="padding: 10px 15px;" v-model="visionStore.cvOptions.filter[0]">
           <van-radio :name="idx" v-for="(item, idx) in FilterTypes">
-            {{ $t(`cvControl.FilterType.${item}`) }}
+            {{ $t(`cvControl.filterType.${item}`) }}
           </van-radio>
         </van-radio-group>
 
@@ -334,12 +394,12 @@
 
       </van-cell-group>
 
-      <van-cell-group inset :title="$t('cvControl.FeatExtract')">
-        <van-cell center :title="$t('cvControl.Canny')" :label="'[ ' + visionStore.cvOptions.canny.toString() + ' ]'">
+      <van-cell-group inset :title="$t('cvControl.featExtract')">
+        <van-cell center :title="$t('cvControl.canny')" :label="'[ ' + visionStore.cvOptions.canny.toString() + ' ]'">
           <template #title>
             <van-checkbox shape="square" v-model="visionStore.cvOptions.enableCanny">
               <span>canny</span>
-              <span class="param-desc">{{ $t('cvControl.CannyDesc') }}</span>
+              <span class="param-desc">{{ $t('cvControl.cannyDesc') }}</span>
             </van-checkbox>
           </template>
           <template #right-icon>
@@ -348,13 +408,13 @@
             </van-slider>
           </template>
         </van-cell>
-        <van-cell center :title="$t('cvControl.HoughLine')">
+        <van-cell center :title="$t('cvControl.houghLine')">
           <template #right-icon>
             <van-slider bar-height="4px" button-size="1.2rem" style="width: 60%;">
             </van-slider>
           </template>
         </van-cell>
-        <van-cell center :title="$t('cvControl.HoughCircle')">
+        <van-cell center :title="$t('cvControl.houghCircle')">
           <template #right-icon>
             <van-slider bar-height="4px" button-size="1.2rem" style="width: 60%;">
             </van-slider>
@@ -386,37 +446,49 @@ const ModelEngines = [
 const showObjRecModels = ref(false)
 const ObjRecModelGrop = new Map<string, Array<ModelInfo>>()
 const DetectModels = [
-  { name: 'yolov8n', desc: '3.2M', type: ModelType.Detect },
-  { name: 'yolov10n', desc: '2.3M', type: ModelType.Detect },
-  { name: 'yolov10s', desc: '7.2M', type: ModelType.Detect },
-  { name: 'yolo11n', desc: '2.6M', type: ModelType.Detect },
-  { name: 'yolo11s', desc: '9.4M', type: ModelType.Detect },
-  { name: 'mobilenet', desc: '', type: ModelType.Detect }
+  { name: 'yolov8n', desc: '3.2M', type: ModelType.detect },
+  { name: 'yolov10n', desc: '2.3M', type: ModelType.detect },
+  { name: 'yolov10s', desc: '7.2M', type: ModelType.detect },
+  { name: 'yolo11n', desc: '2.6M', type: ModelType.detect },
+  { name: 'yolo11s', desc: '9.4M', type: ModelType.detect },
+  { name: 'mobilenet', desc: '', type: ModelType.detect }
 ]
 const SegmentModels = [
-  { name: 'deeplab-ade', desc: 'class: 150', type: ModelType.Segment },
-  { name: 'deeplab-cityspace', desc: 'class: 20', type: ModelType.Segment },
-  { name: 'yolo11n-seg', desc: 'class: 80', type: ModelType.Segment },
-  { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.Segment },
-  { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.Segment },
-  { name: 'yolo26s-seg', desc: '10.4', type: ModelType.Segment },
-  { name: 'unet', desc: '', type: ModelType.Segment },
-  { name: 'sam', desc: '38.9M', type: ModelType.Segment }
+  { name: 'deeplab-ade', desc: 'class: 150', type: ModelType.segment },
+  { name: 'deeplab-cityspace', desc: 'class: 20', type: ModelType.segment },
+  { name: 'yolo11n-seg', desc: 'class: 80', type: ModelType.segment },
+  { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.segment },
+  { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.segment },
+  { name: 'yolo26s-seg', desc: '10.4', type: ModelType.segment },
+  { name: 'unet', desc: '', type: ModelType.segment },
+  { name: 'sam', desc: '38.9M', type: ModelType.segment }
 ]
 
 const showGanModels = ref(false)
 const GanModels = [
-  { name: 'animeGANv3', desc: '1.2M', type: ModelType.GenImage },
-  { name: 'anime_Kpop', desc: '1.2M', type: ModelType.GenImage },
-  { name: 'anime_Disney', desc: '2.0M', type: ModelType.GenImage },
-  { name: 'anime_OilPaint', desc: '4.6M', type: ModelType.GenImage },
-  { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.GenImage },
+  { name: 'animeGANv3', desc: '1.2M', type: ModelType.genImage },
+  { name: 'anime_Kpop', desc: '1.2M', type: ModelType.genImage },
+  { name: 'anime_Disney', desc: '2.0M', type: ModelType.genImage },
+  { name: 'anime_OilPaint', desc: '4.6M', type: ModelType.genImage },
+  { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.genImage },
 ]
 
 const showOCRModels = ref(false)
 
+const showStyleModels = ref(false)
+const StyleModels = [
+  { name: 'mobileNet', desc: '', type: ModelType.style },
+  { name: 'inceptionv3', desc: '', type: ModelType.style },
+]
+
+const showTransferModels = ref(false)
+const TransferModels = [
+  { name: 'separable', desc: '', type: ModelType.transfer },
+  { name: 'origin', desc: '', type: ModelType.transfer },
+]
+
 const showMorphOpts = ref(false)
-const MorphOpts = ['Erode', 'Dilate', 'Open', 'Close', 'Gradient', 'TopHat', 'BlackHat']
+const MorphOpts = ['erode', 'dilate', 'open', 'close', 'gradient', 'topHat', 'blackHat']
 
 const showColorMaps = ref(false)
 const ColorMaps = [
@@ -425,9 +497,9 @@ const ColorMaps = [
   'INFERNO', 'PLASMA', 'VIRIDIS', 'CIVIDIS', 'TWILIGHT', 'TWILIGHT_SHIFTED', 'TURBO', 'DEEPGREEN'
 ]
 
-const BlurTypes = ['Gaussian', 'Avg', 'Median', 'Bilateral']
+const BlurTypes = ['gaussian', 'avg', 'median', 'bilateral']
 
-const FilterTypes = ['Sobel', 'Laplace', 'Scharr']
+const FilterTypes = ['sobel', 'laplace', 'scharr']
 
 const visionStore = VisionStore()
 const isWeb = window.isWeb

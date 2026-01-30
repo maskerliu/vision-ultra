@@ -50,7 +50,7 @@ import { inject, onMounted, Ref, ref, useTemplateRef } from 'vue'
 import { AnnotationManager, CVLabel, DrawType } from '../../common'
 
 const annoMgr = inject<Ref<AnnotationManager>>('annoMgr')
-const activeMarkerGroup = ref(DrawType.Rect)
+const activeMarkerGroup = ref(DrawType.rect)
 const curMarker = ref<fabric.FabricObject>()
 const labelRefGroup = ref<Map<DrawType, Array<typeof Cell>>>(new Map())
 const MarkerOpts = ['pin', 'lock', 'visible']
@@ -78,11 +78,11 @@ const emits = defineEmits<{
 }>()
 
 onMounted(() => {
-  labelRefGroup.value.set(DrawType.Rect, [])
-  labelRefGroup.value.set(DrawType.Circle, [])
-  labelRefGroup.value.set(DrawType.Polygon, [])
-  labelRefGroup.value.set(DrawType.Line, [])
-  labelRefGroup.value.set(DrawType.MultiLine, [])
+  labelRefGroup.value.set(DrawType.rect, [])
+  labelRefGroup.value.set(DrawType.circle, [])
+  labelRefGroup.value.set(DrawType.polygon, [])
+  labelRefGroup.value.set(DrawType.line, [])
+  labelRefGroup.value.set(DrawType.multiLine, [])
 })
 
 function setMarkerRef(el: typeof Cell, group: DrawType, idx: number) {
