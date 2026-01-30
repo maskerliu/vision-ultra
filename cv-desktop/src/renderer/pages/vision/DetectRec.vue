@@ -235,13 +235,23 @@ function initProcessorMgr() {
   processorMgr?.terminateAll()
 
   switch (visionStore.intergrateMode) {
-    case IntergrateMode.WebAssembly:
+    case IntergrateMode.wasm:
       processorMgr = new WorkerManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
       break
-    case IntergrateMode.Backend:
+    case IntergrateMode.backend:
       processorMgr = new BackendManager(previewCtx, offscreenCtx, eigenCtx, maskCtx)
       break
   }
+
+  processorMgr.setParam('enableCVProcess', visionStore.enableCVProcess, {
+    options: JSON.stringify(visionStore.cvOptions.value)
+  })
+
+  let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
+  processorMgr.setParam('enableObjDetect', visionStore.enableObjDetect, { model })
+  processorMgr.setParam('enableFaceDetect', visionStore.enableFaceDetect)
+  model = JSON.stringify(visionStore.ganModel)
+  processorMgr.setParam('enableImageGen', visionStore.enableImageGen, { model })
 
   processorMgr.workerStatus = workerStatus.value
   processorMgr.drawEigen = visionStore.drawEigen

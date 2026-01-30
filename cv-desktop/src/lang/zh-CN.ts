@@ -57,14 +57,14 @@ export default {
     }
   },
   cvControl: {
-    IntergrateMode: '集成模式',
-    ModelEngine: '模型框架',
-    ModelImport: '模型导入',
+    intergrateMode: '集成模式',
+    modelEngine: '模型框架',
+    modelImport: '模型导入',
 
-    ObjRec: '目标识别',
-    ObjDetect: '检测',
-    ObjSegment: '分割',
-    ObjModel: {
+    objRec: '目标识别',
+    objDetect: '检测',
+    objSegment: '分割',
+    objModel: {
       yolov8n: 'YOLOv8 (Ultralytics)',
       yolov10n: 'YOLOv10n(清华大学)',
       yolov10s: 'YOLOv10s(清华大学)',
@@ -81,10 +81,10 @@ export default {
       unet: 'u-net++',
     },
 
-    FaceRec: '人脸识别',
+    faceRec: '人脸识别',
 
-    GenImage: '图生图',
-    GanModel: {
+    genImage: '图生图',
+    ganModel: {
       animeGANv3: 'AnimateGANv3',
       anime_Kpop: 'AnimateGANv3_韩风',
       anime_Disney: 'AnimeGANv3_迪士尼',
@@ -92,70 +92,80 @@ export default {
       anime_Ghibli: 'AnimeGANv3_吉卜力风'
     },
 
-    OCR: 'OCR',
-    OcrModel: {
+    ocr: 'OCR',
+    ocrModel: {
 
     },
 
-    ImgEnhance: '图像增强',
-    Gray: '灰度',
-    Brightness: '亮度', // 亮度
-    BrightnessDesc: 'Gamma增强',
-    Rotate: '旋转',
-    ColorMap: '色彩映射',
-
-    Morph: '形态学',
-    MorphOpt: {
-      Erode: '腐蚀',
-      Dilate: '膨胀',
-      Open: '开运算',
-      Close: '闭运算',
-      Gradient: '梯度',
-      TopHat: '顶帽',
-      BlackHat: '黑帽'
+    styleTransfor: 'Style Transfor',
+    styleModel: {
+      'mobileNet': 'mobileNet',
+      'inceptionv3': 'inceptionv3'
+    },
+    transferModel: {
+      'separable': 'Separable Conv2d',
+      'origin': 'Original Transform',
     },
 
-    Contrast: '对比度',
-    EqualizeHist: '直方图均衡',
-    CLAHE: 'CLAHE',
+    imgEnhance: '图像增强',
+    gray: '灰度',
+    brightness: '亮度', // 亮度
+    brightnessDesc: 'Gamma增强',
+    rotate: '旋转',
+    colorMap: '色彩映射',
 
-    Saturation: '饱和度',
-    SaturationDesc: 'HSV 色彩空间增强',
-    Hue: '色调',
-
-    Sharpness: '锐化',
-    Blur: '模糊',
-    BlurType: {
-      Gaussian: '高斯模糊',
-      Avg: '均值滤波',
-      Median: '中值滤波',
-      Bilateral: '双边滤波',
+    morph: '形态学',
+    morphOpt: {
+      erode: '腐蚀',
+      dilate: '膨胀',
+      open: '开运算',
+      close: '闭运算',
+      gradient: '梯度',
+      topHat: '顶帽',
+      blackHat: '黑帽'
     },
 
-    Filter: '滤波',
-    FilterType: {
-      Laplace: '拉普拉斯',
-      LaplaceDesc: '通常用于特征提取和特征检测',
-      Sobel: 'Sobel',
-      SobelDesc: '离散的微分算子',
-      Scharr: 'Scharr',
-      ScharrDesc: 'Sobel算子的增强版本',
+    contrast: '对比度',
+    equalizeHist: '直方图均衡',
+    clahe: 'CLAHE',
+
+    saturation: '饱和度',
+    saturationDesc: 'HSV 色彩空间增强',
+    hue: '色调',
+
+    sharpness: '锐化',
+    blur: '模糊',
+    blurType: {
+      gaussian: '高斯模糊',
+      avg: '均值滤波',
+      median: '中值滤波',
+      bilateral: '双边滤波',
+    },
+
+    filter: '滤波',
+    filterType: {
+      laplace: '拉普拉斯',
+      laplaceDesc: '通常用于特征提取和特征检测',
+      sobel: 'Sobel',
+      sobelDesc: '离散的微分算子',
+      scharr: 'Scharr',
+      scharrDesc: 'Sobel算子的增强版本',
     },
 
 
-    FeatExtract: '特征提取',
-    Canny: 'Canny',
-    CannyDesc: '边缘检测',
-    Hough: '霍夫变换',
-    HoughCircle: '霍夫圆变换',
-    HoughLine: '霍夫直线变换',
+    featExtract: '特征提取',
+    canny: 'Canny',
+    cannyDesc: '边缘检测',
+    hough: '霍夫变换',
+    houghCircle: '霍夫圆变换',
+    houghLine: '霍夫直线变换',
 
-    ObjectDetect: '目标检测',
-    ColorTrack: '颜色',
-    ContourTrack: '轮廓',
-    BackgroundSub: '背景减除',
-    MeanShit: 'MeanShift',
-    CamShift: 'CamShift',
+    objectDetect: '目标检测',
+    colorTrack: '颜色',
+    contourTrack: '轮廓',
+    backgroundSub: '背景减除',
+    meanShit: 'MeanShift',
+    camShift: 'CamShift',
   },
   anno: {
     object: '物体',
