@@ -104,6 +104,8 @@ export class CVBackend {
 
     if (frame == null) return
 
+    console.log(frame, width, height, params)
+
     if (this.processed == null) {
       this.processed = new this.cv.Mat(height, width, this.cv.CV_8UC4)
     }
@@ -136,7 +138,7 @@ export class CVBackend {
     }
     this.tmp.data.set(this.processed.data)
 
-    if (params?.colorMap != 0) this.cv.applyColorMap(this.processed, this.processed, params.colorMap - 1)
+    if (params.colorMap != 0) this.cv.applyColorMap(this.processed, this.processed, params.colorMap - 1)
 
     if (params.isGray) {
       this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_BGR2GRAY)
@@ -173,19 +175,15 @@ export class CVBackend {
     }
 
     if (params.isGray) {
-      this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_GRAY2RGBA)
+      try {
+        this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_GRAY2RGBA)
+      } catch (err) {
+        console.log(err)
+      }
     } else {
       this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_BGR2RGBA)
     }
 
-    frame.data.set(this.processed.data)
-
-    // todo: return processed image
-    if (params.isGray) {
-      this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_GRAY2RGBA)
-    } else {
-      this.cv.cvtColor(this.processed, this.processed, this.cv.COLOR_BGR2RGBA)
-    }
     this.sharedData.set(this.processed.data)
     return this.sharedData
   }
@@ -423,14 +421,15 @@ const instance = new CVBackend()
 
 let cvBackend: ICVAPI = {
   async init(data: any) {
-    await instance.init(data?.options)
+    let options = JSON.parse(data?.options)
+    await instance.init(options)
     return
   },
   terminate() {
     instance.terminate()
   },
   options(data: any): void {
-    instance.options = data?.options
+    instance.options = JSON.parse(data?.options)
   },
   async process(data) {
     return await instance.process(data?.image, data.width, data.height, instance.options)

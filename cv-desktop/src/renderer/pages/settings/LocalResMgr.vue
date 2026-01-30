@@ -17,7 +17,7 @@
         </div>
         <div style="color: var(--van-text-color-2); z-index: 1; height: 1rem;">{{ model.desc }}</div>
         <div class="van-hairline--top"></div>
-        <van-icon class-prefix="iconfont" :name="model.type == ModelType.Segment ? 'Segment' : 'Detect'"
+        <van-icon class-prefix="iconfont" :name="model.type == ModelType.segment ? 'Segment' : 'Detect'"
           style="position: absolute; font-size: 3rem; color: var(--van-text-color-3); z-index: 0;" />
         <van-row style="width: 100%; margin-top: 15px;" justify="center">
           <van-button type="primary" size="mini" plain hairline style="width: 40%;">
@@ -50,32 +50,32 @@ const fileList = ref([])
 
 const uploadModel = ref<ModelInfo>({
   name: null,
-  type: ModelType.Unknown,
+  type: ModelType.unknown,
   desc: null,
   files: []
 })
 
 onMounted(() => {
   models.value = [
-    { name: 'yolov8n', desc: '3.2M', type: ModelType.Detect },
-    { name: 'yolov10n', desc: '2.3M', type: ModelType.Detect },
-    { name: 'yolov10s', desc: '7.2M', type: ModelType.Detect },
-    { name: 'yolo11n', desc: '2.6M', type: ModelType.Detect },
-    { name: 'yolo11s', desc: '9.4M', type: ModelType.Detect },
-    { name: 'mobilenet', desc: '', type: ModelType.Detect },
-    { name: 'deeplab-ade', desc: 'class: 150', type: ModelType.Segment },
-    { name: 'deeplab-cityspace', desc: 'class: 20', type: ModelType.Segment },
-    { name: 'yolo11n-seg', desc: 'class: 80', type: ModelType.Segment },
-    { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.Segment },
-    { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.Segment },
-    { name: 'yolo26s-seg', desc: '10.4', type: ModelType.Segment },
-    { name: 'unet', desc: '', type: ModelType.Segment },
-    { name: 'sam', desc: '38.9M', type: ModelType.Segment },
-    { name: 'animeGANv3', desc: '1.2M', type: ModelType.GenImage },
-    { name: 'anime_Kpop', desc: '1.2M', type: ModelType.GenImage },
-    { name: 'anime_Disney', desc: '2.0M', type: ModelType.GenImage },
-    { name: 'anime_OilPaint', desc: '4.6M', type: ModelType.GenImage },
-    { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.GenImage },
+    { name: 'yolov8n', desc: '3.2M', type: ModelType.detect },
+    { name: 'yolov10n', desc: '2.3M', type: ModelType.detect },
+    { name: 'yolov10s', desc: '7.2M', type: ModelType.detect },
+    { name: 'yolo11n', desc: '2.6M', type: ModelType.detect },
+    { name: 'yolo11s', desc: '9.4M', type: ModelType.detect },
+    { name: 'mobilenet', desc: '', type: ModelType.detect },
+    { name: 'deeplab-ade', desc: 'class: 150', type: ModelType.segment },
+    { name: 'deeplab-cityspace', desc: 'class: 20', type: ModelType.segment },
+    { name: 'yolo11n-seg', desc: 'class: 80', type: ModelType.segment },
+    { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.segment },
+    { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.segment },
+    { name: 'yolo26s-seg', desc: '10.4', type: ModelType.segment },
+    { name: 'unet', desc: '', type: ModelType.segment },
+    { name: 'sam', desc: '38.9M', type: ModelType.segment },
+    { name: 'animeGANv3', desc: '1.2M', type: ModelType.genImage },
+    { name: 'anime_Kpop', desc: '1.2M', type: ModelType.genImage },
+    { name: 'anime_Disney', desc: '2.0M', type: ModelType.genImage },
+    { name: 'anime_OilPaint', desc: '4.6M', type: ModelType.genImage },
+    { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.genImage },
   ]
 })
 

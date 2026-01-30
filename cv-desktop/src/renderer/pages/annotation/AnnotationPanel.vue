@@ -95,7 +95,7 @@ const activeTab = ref(0)
 const labeTab = useTemplateRef<typeof LabelGroupTab>('labeTab')
 const annotationCanvas = useTemplateRef<HTMLCanvasElement>('annotationCanvas')
 const showMagic = ref(false)
-const curDrawType = ref(DrawType.Select)
+const curDrawType = ref(DrawType.select)
 const markerGroup = ref<Map<DrawType, Array<fabric.FabricObject>>>(new Map())
 let activeMarker = ref<fabric.FabricObject>(null)
 const activeLabel = ref<CVLabel>(null)
@@ -109,8 +109,8 @@ const annoMgr = ref<AnnotationManager>()
 const objNum = ref(0)
 
 const DrawTypes: Array<DrawType> = [
-  DrawType.Select,
-  DrawType.Rect, DrawType.Circle, DrawType.Polygon, DrawType.Line, DrawType.MultiLine
+  DrawType.select,
+  DrawType.rect, DrawType.circle, DrawType.polygon, DrawType.line, DrawType.multiLine
 ]
 
 const { canvasSize = [640, 360] } = defineProps<{
@@ -196,7 +196,7 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
 
     if (contours && contours[i] && contours[i].length > 8) {
       let points = contours[i].map(it => { return { x: it[0] / dpr, y: it[1] / dpr } })
-      let poly = annoMgr.value.genPoly(points, DrawType.Polygon)
+      let poly = annoMgr.value.genPoly(points, DrawType.polygon)
       poly.set(AnnotationManager.genLabelOption(label))
       poly.set({ score, uuid: uuidv4() })
       annoMgr.value.add(poly)
