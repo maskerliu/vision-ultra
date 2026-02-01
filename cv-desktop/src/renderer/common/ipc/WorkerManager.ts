@@ -147,8 +147,9 @@ export class WorkerManager extends ProcessorManager {
 
   }
 
-  protected onStyeTransMsg(event: MessageEvent) {
-
+  protected onStyleTransMsg(event: MessageEvent) {
+    this._processorStatus.showLoading = false
+    this._processorStatus.showProcess = false
   }
 
   public async onDraw(data?: HTMLImageElement | HTMLVideoElement) {

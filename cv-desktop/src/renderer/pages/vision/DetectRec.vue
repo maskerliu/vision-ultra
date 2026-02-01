@@ -232,6 +232,7 @@ async function onScan() {
 
 function initProcessorMgr(force: boolean = true) {
 
+  console.log('engine change')
   if (force) {
     processorMgr?.terminateAll()
 
@@ -270,8 +271,8 @@ function initProcessorMgr(force: boolean = true) {
   model = JSON.stringify(visionStore.ocrModel)
   processorMgr.setParam(ProcessorType.ocr, visionStore.enableOCR, { model })
 
-  let styleModel = JSON.stringify(visionStore.styleModel)
-  let transModel = JSON.stringify(visionStore.transModel)
+  let styleModel = JSON.stringify(Object.assign(visionStore.styleModel, { engine: visionStore.modelEngine }))
+  let transModel = JSON.stringify(Object.assign(visionStore.transModel, { engine: visionStore.modelEngine }))
   processorMgr.setParam(ProcessorType.styleTrans, visionStore.enableStyleTrans, { styleModel, transModel })
 }
 
@@ -283,9 +284,7 @@ watch(() => previewSize.value, () => {
 
 watch(
   () => workerStatus.value,
-  () => {
-    showLoading.value = workerStatus.value.showLoading
-  },
+  () => { showLoading.value = workerStatus.value.showLoading },
   { deep: true }
 )
 
@@ -295,24 +294,24 @@ watch(
 )
 
 watch(
+  () => visionStore.modelEngine,
+  () => { initProcessorMgr(false) }
+)
+
+watch(
   [
-    () => visionStore.enableCVProcess,
     () => visionStore.enableObjDetect,
     () => visionStore.enableFaceDetect,
     () => visionStore.enableImageGen,
     () => visionStore.enableOCR,
-    () => visionStore.enableStyleTrans
+    () => visionStore.enableStyleTrans,
+    () => visionStore.enableCVProcess,
   ],
   async () => {
     initProcessorMgr(false)
     if (!visionStore.enableFaceDetect) visionStore.live2d = false
   }
 )
-
-watch(() => visionStore.modelEngine, async () => {
-  let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjDetect, { model }, true)
-})
 
 watch(() => visionStore.objDetectModel, async () => {
   processorMgr.postMessage(ProcessorType.objTrack, {
@@ -327,6 +326,21 @@ watch(() => visionStore.ganModel, async () => {
     model: JSON.stringify(visionStore.ganModel)
   })
 })
+
+watch(
+  [
+    () => visionStore.styleModel,
+    () => visionStore.transModel
+  ],
+  () => {
+    console.log(visionStore.styleModel)
+    processorMgr.postMessage(ProcessorType.styleTrans, {
+      cmd: ProcessorCMD.init,
+      styleModel: JSON.stringify(visionStore.styleModel),
+      transModel: JSON.stringify(visionStore.transModel)
+    })
+  }
+)
 
 watch(
   [

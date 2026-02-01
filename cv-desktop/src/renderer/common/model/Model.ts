@@ -90,7 +90,7 @@ export class Model {
     this._inName = input.name
     this._inType = input.dtype
     this._inShape = input.shape.slice(1, 3) as [number, number]
-    console.log(this._model)
+    console.log('model', this._model)
   }
 
   private async loadOrtModel(name: string) {
