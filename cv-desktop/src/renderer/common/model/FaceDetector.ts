@@ -1,7 +1,7 @@
-import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
+import { FaceLandmarker, FilesetResolver, NormalizedLandmark } from '@mediapipe/tasks-vision'
 import { Face, TFace } from 'kalidokit'
 import { baseDomain, FaceDetectResult } from '../../../shared'
-import { FACE_DIMS, getFaceSlope, landmarksToFace, NUM_KEYPOINTS } from '../DrawUtils'
+import { FACE_DIMS, getFaceSlope, NUM_KEYPOINTS } from '../DrawUtils'
 
 
 export class FaceDetector {
@@ -89,7 +89,7 @@ export class FaceDetector {
             console.log(err, result.faceLandmarks[0])
           }
 
-          landmarksToFace(result.faceLandmarks[0], this._face, frame.width, frame.height)
+          this.landmarksToFace(result.faceLandmarks[0], this._face, frame.width, frame.height)
           this._face.expire = Date.now() - time
           this.calacleFaceAngle()
         }
@@ -119,4 +119,42 @@ export class FaceDetector {
     // }
   }
 
+  private landmarksToFace(landmarks: NormalizedLandmark[], face: FaceDetectResult, width: number, height: number) {
+    if (landmarks == null || landmarks.length == 0) {
+      face.valid = false
+      return
+    }
+
+    var xMin = Number.MAX_SAFE_INTEGER
+    var xMax = Number.MIN_SAFE_INTEGER
+    var yMin = Number.MAX_SAFE_INTEGER
+    var yMax = Number.MIN_SAFE_INTEGER
+
+    for (let i = 0; i < landmarks.length; i++) {
+      var landmark = landmarks[i]
+      xMin = Math.min(xMin, landmark.x * width)
+      xMax = Math.max(xMax, landmark.x * width)
+      yMin = Math.min(yMin, landmark.y * height)
+      yMax = Math.max(yMax, landmark.y * height)
+      face.landmarks[i * FACE_DIMS] = landmarks[i].x * width
+      face.landmarks[i * FACE_DIMS + 1] = landmarks[i].y * height
+      // face.landmarks[i * 3 + 2] = landmarks[i].z
+    }
+
+    face.box.xMax = xMax
+    face.box.xMin = xMin
+    face.box.yMax = yMax
+    face.box.yMin = yMin
+    face.box.width = xMax - xMin
+    face.box.height = yMax - yMin
+
+    face.ratio = width / height
+    let normilize = Math.max(face.box.width, face.box.height)
+    for (let i = 0; i < face.landmarks.length; i += FACE_DIMS) {
+      face.landmarks[i] = (face.landmarks[i] - face.box.xMin) / face.box.width
+      face.landmarks[i + 1] = (face.landmarks[i + 1] - face.box.yMin) / face.box.height
+    }
+
+    face.valid = true
+  }
 }

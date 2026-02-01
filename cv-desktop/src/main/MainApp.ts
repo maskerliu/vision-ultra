@@ -1,6 +1,7 @@
 import {
   app, BrowserWindow, BrowserWindowConstructorOptions, crashReporter,
-  globalShortcut, ipcMain, Menu, nativeImage, screen, session, Tray
+  globalShortcut, ipcMain, Menu,
+  session, Tray
 } from 'electron'
 import fse from 'fs-extra'
 import os from 'os'
@@ -77,13 +78,11 @@ export default class MainApp {
     })
 
     app.on('ready', () => {
-      console.log(`screen info: ${screen.getPrimaryDisplay().scaleFactor}`)
-      let display = screen.getPrimaryDisplay()
-      console.log(`screen width: ${display.workAreaSize.width} \t height: ${display.workAreaSize.height}`)
-
-
-      let icon = nativeImage.createFromPath(path.join(this.staticDir, 'icon.png'))
-      console.log(`\t\t ${icon.getScaleFactors().length}\t ${icon.getScaleFactors()}`)
+      // console.log(`screen info: ${screen.getPrimaryDisplay().scaleFactor}`)
+      // let display = screen.getPrimaryDisplay()
+      // console.log(`screen width: ${display.workAreaSize.width} \t height: ${display.workAreaSize.height}`)
+      // let icon = nativeImage.createFromPath(path.join(this.staticDir, 'icon.png'))
+      // console.log(`\t\t ${icon.getScaleFactors().length}\t ${icon.getScaleFactors()}`)
 
       globalShortcut.register('CommandOrControl+q', () => {
         app.quit()

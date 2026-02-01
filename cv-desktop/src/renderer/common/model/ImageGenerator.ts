@@ -1,27 +1,27 @@
 
 import * as tf from '@tensorflow/tfjs'
 import { ModelInfo } from '../../../shared'
-import { Model } from './Model'
+import { Model, ModelRunner } from './Model'
 
-export class ImageGenerator {
+export class ImageGenerator extends ModelRunner {
 
-  protected model: Model = new Model()
+  protected _model: Model = new Model()
 
-  get isInited() { return this.model.isInited }
+  get isInited() { return this._model.isInited }
 
   async init(info: ModelInfo) {
-    await this.model.init(info)
+    await this._model.init(info)
   }
 
   async dispose() {
-    await this.model?.dispose()
-    this.model = null
+    await this._model?.dispose()
+    this._model = null
   }
 
   async generate(image: ImageData) {
-    if (this.model == null || !this.isInited) return null
+    if (this._model == null || !this.isInited) return null
 
-    const result = await this.model.run(image) as tf.Tensor
+    const result = await this._model.run(image) as tf.Tensor
     const tmp = tf.tidy(() => result.squeeze().add(1).div(2))
 
     let generated = await result.data()
