@@ -61,7 +61,7 @@ export default {
     modelEngine: 'Model Framework',
     ModelImport: 'Import Model',
 
-    objRec: 'Object Detect',
+    objTrack: 'Object Detect',
     objDetect: 'Detect',
     objSegment: 'Segment',
     objModel: {
@@ -81,16 +81,14 @@ export default {
       unet: 'u-net++',
     },
 
-
-    faceRec: 'Face Recognize',
+    faceDetect: 'Face Recognize',
 
     genImage: 'Image2Image',
     ganModel: {
-      animeGANv3: 'AnimateGANv3',
-      anime_Kpop: 'AnimateGANv3_Kpop',
-      anime_Disney: 'AnimeGANv3_Disney',
-      anime_OilPaint: 'AnimeGANv3_Oil-painting',
-      anime_Ghibli: 'AnimeGANv3_Ghibli-o1'
+      'animeGANv3-Ghibli': 'AnimeGANv3_Ghibli-c1-e299',
+      'animeGANv3-Kpop': 'AnimateGANv3_Kpop',
+      'animeGANv3-Disney': 'AnimeGANv3_Disney',
+      'animeGANv3-OilPaint': 'AnimeGANv3_Oil-painting',
     },
 
     ocr: 'OCR',
@@ -98,16 +96,15 @@ export default {
 
     },
 
-    styleTransfor: 'Style Transfor',
+    styleTrans: 'Style Transform',
     styleModel: {
-      'mobileNet': 'mobileNet',
-      'inceptionv3': 'inceptionv3'
+      'style-mobileNet': 'mobileNet',
+      'style-inceptionv3': 'inceptionv3'
     },
-    transferModel: {
-      'separable': 'Separable Conv2d',
-      'origin': 'Original Transform',
+    transModel: {
+      'trans-separable-conv2d': 'Separable Conv2d',
+      'trans-origin': 'Original Transform',
     },
-
 
     imgEnhance: 'Image Enhance',
     gray: 'Gray',

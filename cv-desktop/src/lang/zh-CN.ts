@@ -61,7 +61,7 @@ export default {
     modelEngine: '模型框架',
     modelImport: '模型导入',
 
-    objRec: '目标识别',
+    objTrack: '目标识别',
     objDetect: '检测',
     objSegment: '分割',
     objModel: {
@@ -81,15 +81,14 @@ export default {
       unet: 'u-net++',
     },
 
-    faceRec: '人脸识别',
+    faceDetect: '人脸识别',
 
     genImage: '图生图',
     ganModel: {
-      animeGANv3: 'AnimateGANv3',
-      anime_Kpop: 'AnimateGANv3_韩风',
-      anime_Disney: 'AnimeGANv3_迪士尼',
-      anime_OilPaint: 'AnimeGANv3_油画风',
-      anime_Ghibli: 'AnimeGANv3_吉卜力风'
+      'animeGANv3-Ghibli': 'AnimeGANv3-吉卜力',
+      'animeGANv3-Kpop': 'AnimateGANv3-韩风',
+      'animeGANv3-Disney': 'AnimeGANv3-迪士尼',
+      'animeGANv3-OilPaint': 'AnimeGANv3-油画风',
     },
 
     ocr: 'OCR',
@@ -97,14 +96,14 @@ export default {
 
     },
 
-    styleTransfor: '风格迁移',
+    styleTrans: '风格迁移',
     styleModel: {
-      'mobileNet': 'mobileNet',
-      'inceptionv3': 'inceptionv3'
+      'style-mobilenet': 'mobileNet',
+      'style-inception': 'inceptionv3'
     },
-    transferModel: {
-      'separable': 'Separable Conv2d',
-      'origin': 'Original Transform',
+    transModel: {
+      'trans-separable-conv2d': 'Separable Conv2d',
+      'trans-origin': 'Original Transform',
     },
 
     imgEnhance: '图像增强',

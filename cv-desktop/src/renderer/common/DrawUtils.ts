@@ -111,7 +111,7 @@ function drawFaceCorner(ctx: CanvasRenderingContext2D, box: BoundingBox) {
   drawPath(ctx, SharedPaths.corner, 9 * FACE_DIMS, 12 * FACE_DIMS)
 }
 
-export function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceDetectResult, width: number, height: number) {
+function landmarksToFace(landmarks: NormalizedLandmark[], face: FaceDetectResult, width: number, height: number) {
   if (landmarks == null || landmarks.length == 0) {
     face.valid = false
     return
@@ -299,75 +299,4 @@ function landmarksToBox(landmarks: Array<KeyPoint>, imgWidth: number, imgHeight:
   let boundingBox: BoundingBox =
     { xMin: xMin, yMin: yMin, xMax: xMax, yMax: yMax, width: (xMax - xMin), height: (yMax - yMin) }
   return boundingBox
-}
-
-
-
-export function createShaderProgram(gl) {
-  const vs = `
-    attribute vec2 position;
-    varying vec2 texCoords;
-  
-    void main() {
-      texCoords = (position + 1.0) / 2.0;
-      texCoords.y = 1.0 - texCoords.y;
-      gl_Position = vec4(position, 0, 1.0);
-    }
-  `
-
-  const fs = `
-    precision highp float;
-    varying vec2 texCoords;
-    uniform sampler2D textureSampler;
-    void main() {
-      float a = texture2D(textureSampler, texCoords).r;
-      gl_FragColor = vec4(a,a,a,a);
-    }
-  `
-  const vertexShader = gl.createShader(gl.VERTEX_SHADER)
-  if (!vertexShader) {
-    throw Error('can not create vertex shader')
-  }
-  gl.shaderSource(vertexShader, vs)
-  gl.compileShader(vertexShader)
-
-  // Create our fragment shader
-  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
-  if (!fragmentShader) {
-    throw Error('can not create fragment shader')
-  }
-  gl.shaderSource(fragmentShader, fs)
-  gl.compileShader(fragmentShader)
-
-  // Create our program
-  const program = gl.createProgram()
-  if (!program) {
-    throw Error('can not create program')
-  }
-  gl.attachShader(program, vertexShader)
-  gl.attachShader(program, fragmentShader)
-  gl.linkProgram(program)
-
-  return {
-    vertexShader,
-    fragmentShader,
-    shaderProgram: program,
-    attribLocations: {
-      position: gl.getAttribLocation(program, 'position')
-    },
-    uniformLocations: {
-      textureSampler: gl.getUniformLocation(program, 'textureSampler')
-    }
-  }
-}
-const createVertexBuffer = (gl) => {
-  if (!gl) return null
-  const vertexBuffer = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  )
-  return vertexBuffer
 }
