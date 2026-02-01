@@ -27,8 +27,8 @@
       <van-cell center :disabled="!visionStore.enableObjDetect">
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableObjDetect">
-            <van-icon class-prefix="iconfont" name="obj-rec" style="color: #2980b9;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.objRec') }}</span>
+            <van-icon class-prefix="iconfont" name="obj-track" style="color: #2980b9;" />
+            <span style="margin-left: 5px;">{{ $t('cvControl.objTrack') }}</span>
           </van-checkbox>
         </template>
         <template #value>
@@ -57,8 +57,8 @@
       <van-cell :disabled="!visionStore.enableFaceDetect">
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableFaceDetect">
-            <van-icon class-prefix="iconfont" name="face-rec" style="color: #e67e22;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.faceRec') }}</span>
+            <van-icon class-prefix="iconfont" name="face-detect" style="color: #e67e22;" />
+            <span style="margin-left: 5px;">{{ $t('cvControl.faceDetect') }}</span>
           </van-checkbox>
         </template>
         <template #label>
@@ -114,13 +114,13 @@
           </van-checkbox>
         </template>
         <template #value>
-          <van-popover v-model:show="showOCRModels" :show-arrow="false" placement="bottom-end" overlay>
+          <van-popover v-model:show="showOcrModels" :show-arrow="false" placement="bottom-end" overlay>
             <template #reference>
               {{ visionStore.ocrModel.name }}
             </template>
             <van-col class="model-container">
-              <van-cell center clickable :title="$t(`cvControl.ganModel.${model.name}`)" title-class="van-ellipsis"
-                style="margin-left: 4px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
+              <van-cell center clickable :title="$t(`cvControl.ocrModel.${model.name}`)" title-class="van-ellipsis"
+                style="margin-left: 4px;" @click="onOcrModelChanged(model)" v-for="model in OcrModels">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                 </template>
@@ -133,51 +133,49 @@
       <van-cell center :disabled="!visionStore.enableStyleTrans">
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableStyleTrans">
-            <van-icon class-prefix="iconfont" name="style-transfor" style="color: #6D214F;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.styleTransfor') }}</span>
+            <van-icon class-prefix="iconfont" name="style-transform" style="color: #6D214F;" />
+            <span style="margin-left: 5px;">{{ $t('cvControl.styleTrans') }}</span>
           </van-checkbox>
         </template>
 
         <template #label>
           <van-col v-if="visionStore.enableStyleTrans">
-            <van-row>
-              <van-cell title="style" style="width: 50%;">
-                <template #value>
-                  <van-popover v-model:show="showStyleModels" :show-arrow="false" placement="bottom-end" overlay>
-                    <template #reference>
-                      {{ visionStore.styleModel.name }}
-                    </template>
-                    <van-col class="model-container" style="width: 10rem; height: 100px;">
-                      <van-cell center clickable :title="$t(`cvControl.styleModel.${model.name}`)"
-                        title-class="van-ellipsis" style="margin-left: 4px;" @click="onStyleModelChanged(model)"
-                        v-for="model in StyleModels">
-                        <template #right-icon>
-                          <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
-                        </template>
-                      </van-cell>
-                    </van-col>
-                  </van-popover>
-                </template>
-              </van-cell>
-              <van-cell title="transfer" style="width: 50%;">
-                <template #value>
-                  <van-popover v-model:show="showTransformModels" :show-arrow="false" placement="bottom-end" overlay>
-                    <template #reference>
-                      {{ visionStore.transModel.name }}
-                    </template>
-                    <van-col class="model-container" style="width: 10rem; height: 100px;">
-                      <van-cell center clickable :title="$t(`cvControl.transferModel.${model.name}`)"
-                        title-class="van-ellipsis" style="margin-left: 4px;" @click="onTransformModelChanged(model)"
-                        v-for="model in TransferModels">
-                        <template #right-icon>
-                          <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
-                        </template>
-                      </van-cell>
-                    </van-col>
-                  </van-popover>
-                </template>
-              </van-cell>
-            </van-row>
+            <van-cell title="style">
+              <template #value>
+                <van-popover v-model:show="showStyleModels" :show-arrow="false" placement="bottom-end" overlay>
+                  <template #reference>
+                    {{ visionStore.styleModel.name }}
+                  </template>
+                  <van-col class="model-container" style="width: 260px; height: 100px;">
+                    <van-cell center clickable :title="$t(`cvControl.styleModel.${model.name}`)"
+                      title-class="van-ellipsis" style="margin-left: 4px;" @click="onStyleModelChanged(model)"
+                      v-for="model in StyleModels">
+                      <template #right-icon>
+                        <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                      </template>
+                    </van-cell>
+                  </van-col>
+                </van-popover>
+              </template>
+            </van-cell>
+            <van-cell title="transfer">
+              <template #value>
+                <van-popover v-model:show="showTransformModels" :show-arrow="false" placement="bottom-end" overlay>
+                  <template #reference>
+                    {{ visionStore.transModel.name }}
+                  </template>
+                  <van-col class="model-container" style="width: 260px; height: 100px;">
+                    <van-cell center clickable :title="$t(`cvControl.transModel.${model.name}`)"
+                      title-class="van-ellipsis" style="margin-left: 4px;" @click="onTransModelChanged(model)"
+                      v-for="model in TransferModels">
+                      <template #right-icon>
+                        <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                      </template>
+                    </van-cell>
+                  </van-col>
+                </van-popover>
+              </template>
+            </van-cell>
 
             <van-cell title="style image">
               <template #value>
@@ -467,25 +465,28 @@ const SegmentModels = [
 
 const showGanModels = ref(false)
 const GanModels = [
-  { name: 'animeGANv3', desc: '1.2M', type: ModelType.genImage },
-  { name: 'anime_Kpop', desc: '1.2M', type: ModelType.genImage },
-  { name: 'anime_Disney', desc: '2.0M', type: ModelType.genImage },
-  { name: 'anime_OilPaint', desc: '4.6M', type: ModelType.genImage },
-  { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.genImage },
+  { name: 'animeGANv3-Ghibli', desc: '12.4M', type: ModelType.genImage },
+  { name: 'animeGANv3-Kpop', desc: '1.2M', type: ModelType.genImage },
+  { name: 'animeGANv3-Disney', desc: '2.0M', type: ModelType.genImage },
+  { name: 'animeGANv3-OilPaint', desc: '4.6M', type: ModelType.genImage },
 ]
 
-const showOCRModels = ref(false)
+const showOcrModels = ref(false)
+const OcrModels = [
+  { name: 'easyOcr', desc: '', type: ModelType.ocr },
+  { name: 'GOT-OCR', desc: '', type: ModelType.ocr },
+]
 
 const showStyleModels = ref(false)
 const StyleModels = [
-  { name: 'mobileNet', desc: '', type: ModelType.style },
-  { name: 'inceptionv3', desc: '', type: ModelType.style },
+  { name: 'style-mobilenet', desc: '', type: ModelType.style },
+  { name: 'style-inception', desc: '', type: ModelType.style },
 ]
 
 const showTransformModels = ref(false)
 const TransferModels = [
-  { name: 'separable', desc: '', type: ModelType.transform },
-  { name: 'origin', desc: '', type: ModelType.transform },
+  { name: 'trans-separable-conv2d', desc: '', type: ModelType.transform },
+  { name: 'trans-origin', desc: '', type: ModelType.transform },
 ]
 
 const showMorphOpts = ref(false)
@@ -530,12 +531,17 @@ function onGanModelChanged(model: ModelInfo) {
   showGanModels.value = false
 }
 
+function onOcrModelChanged(model: ModelInfo) {
+  visionStore.ocrModel = model
+  showOcrModels.value = false
+}
+
 function onStyleModelChanged(model: ModelInfo) {
   visionStore.styleModel = model
   showStyleModels.value = false
 }
 
-function onTransformModelChanged(model: ModelInfo) {
+function onTransModelChanged(model: ModelInfo) {
   visionStore.transModel = model
   showTransformModels.value = false
 }
