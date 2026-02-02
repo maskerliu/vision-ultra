@@ -127,7 +127,7 @@ export class WorkerManager extends ProcessorManager {
     }
   }
 
-  protected onAnimeMsg(event: MessageEvent) {
+  protected onImgGenMsg(event: MessageEvent) {
     this._processorStatus.showLoading = false
     this._processorStatus.showProcess = false
 

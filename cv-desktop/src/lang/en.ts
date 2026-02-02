@@ -65,8 +65,7 @@ export default {
     objDetect: 'Detect',
     objSegment: 'Segment',
     objModel: {
-      yolov8n: 'YOLOv8 (Ultralytics)',
-      yolov10n: 'YOLOv10n(Tsinghua university)',
+      yolov8n: 'YOLOv8n (Ultralytics)',
       yolov10s: 'YOLOv10s(Tsinghua university)',
       yolo11n: 'YOLO11n(lastest)',
       yolo11s: 'YOLO11s(lastest)',
@@ -93,7 +92,9 @@ export default {
 
     ocr: 'OCR',
     ocrModel: {
-
+      'easyOcr': 'easyOcr',
+      'paddleOcr': '飞桨OCR',
+      'GOT-OCR': 'GOT-OCR2.0',
     },
 
     styleTrans: 'Style Transform',

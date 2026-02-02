@@ -57,7 +57,7 @@ export class Model {
     if (info.name.indexOf('deeplab') != -1) {
       this._inShape[0] = this._inShape[1] = 513
     }
-    if (info.name == 'animeGANv3') {
+    if (info.name.indexOf('animeGANv3') != -1) {
       this._inShape[0] = this._inShape[1] = 255
     }
 
@@ -94,20 +94,13 @@ export class Model {
   }
 
   private async loadOrtModel(name: string) {
-    if (name == 'deeplab-cityspace1') {
-      let modelUrl = 'https://tfhub.dev/tensorflow/tfjs-model/deeplab/cityscapes/1/default/1/model.json?tfjs-format=file'
-      this.session = await ort.InferenceSession.create(modelUrl, { executionProviders: ['webgl'] })
-    } else {
-      let modelPath = `static/${name}.onnx`
-      try {
-        this.session = await ort.InferenceSession.create(`indexeddb://${modelPath}`)
-      } catch (e) {
-        this.session = await ort.InferenceSession.create(`${__DEV__ ? '' : baseDomain()}/${modelPath}`, {
-          executionProviders: ['wasm']
-        })
-
-        // await this.model.save(`indexeddb://${modelPath}`)
-      }
+    let modelPath = `static/${name}.onnx`
+    try {
+      this.session = await ort.InferenceSession.create(`${__DEV__ ? '' : baseDomain()}/${modelPath}`, {
+        executionProviders: ['wasm']
+      })
+    } catch (e) {
+      console.error(e)
     }
 
     let input = this.session.inputMetadata[0] as ort.InferenceSession.TensorValueMetadata
@@ -174,7 +167,7 @@ export class Model {
   }
 
   private needResize() {
-    return (this.name == 'animeGANv3') || (this.name.indexOf('deeplab') != -1)
+    return (this.name.indexOf('animeGANv3') != -1) || (this.name.indexOf('deeplab') != -1)
   }
 
   private needPaddingSize(input: tf.Tensor) {
@@ -196,7 +189,7 @@ export class Model {
           .expandDims().cast(this._inType as tf.DataType)
       }
 
-      // any size mobilenet
+      // dynamic input: mobilenet
       if (this.name == 'mobilenet') {
         this.scale[0] = this.scale[1] = 1
         return tf.expandDims(img).cast(this._inType as tf.DataType)

@@ -454,6 +454,8 @@ export class AnnotationManager {
     rect.on('mouseover', (e) => {
       this._canvas.setActiveObject(rect)
       this._canvas.requestRenderAll()
+
+      console.log(rect)
     })
 
     return rect
