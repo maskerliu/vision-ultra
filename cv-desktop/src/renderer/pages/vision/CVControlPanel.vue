@@ -94,7 +94,7 @@
             <template #reference>
               {{ visionStore.ganModel.name }}
             </template>
-            <van-col class="model-container">
+            <van-col class="model-container" style="height: 180px;">
               <van-cell center clickable :title="$t(`cvControl.ganModel.${model.name}`)" title-class="van-ellipsis"
                 style="margin-left: 4px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
                 <template #right-icon>
@@ -118,7 +118,7 @@
             <template #reference>
               {{ visionStore.ocrModel.name }}
             </template>
-            <van-col class="model-container">
+            <van-col class="model-container" style="height: 140px;">
               <van-cell center clickable :title="$t(`cvControl.ocrModel.${model.name}`)" title-class="van-ellipsis"
                 style="margin-left: 4px;" @click="onOcrModelChanged(model)" v-for="model in OcrModels">
                 <template #right-icon>
@@ -179,7 +179,7 @@
 
             <van-cell title="style image">
               <template #value>
-                <van-image src="" width="50" height="50" />
+                <van-uploader v-model="styleFile" preview-size="60" max-count="1" :after-read="onStyleFileUpload" />
               </template>
             </van-cell>
             <slider-field label="content size" v-model:sliderValue="visionStore.styleParams[0]" />
@@ -215,7 +215,7 @@
     <!-- opencv image process -->
     <van-cell-group inset>
       <template #title>
-        <van-checkbox shape="square" v-model="visionStore.enableCVProcess">
+        <van-checkbox shape="square" v-model="visionStore.enableCV">
           <van-icon class-prefix="iconfont" name="opencv" style="color: #27ae60;" />
           {{ $t('cvControl.imgEnhance') }}
         </van-checkbox>
@@ -425,6 +425,7 @@
 </template>
 <script lang="ts" setup>
 
+import { UploaderFileListItem } from 'vant'
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cvBlurType, cvFilterType, ModelEngine, ModelInfo, ModelType } from '../../../shared'
@@ -446,7 +447,6 @@ const showObjRecModels = ref(false)
 const ObjRecModelGrop = new Map<string, Array<ModelInfo>>()
 const DetectModels = [
   { name: 'yolov8n', desc: '3.2M', type: ModelType.detect },
-  { name: 'yolov10n', desc: '2.3M', type: ModelType.detect },
   { name: 'yolov10s', desc: '7.2M', type: ModelType.detect },
   { name: 'yolo11n', desc: '2.6M', type: ModelType.detect },
   { name: 'yolo11s', desc: '9.4M', type: ModelType.detect },
@@ -455,10 +455,11 @@ const DetectModels = [
 const SegmentModels = [
   { name: 'deeplab-ade', desc: 'class: 150', type: ModelType.segment },
   { name: 'deeplab-cityspace', desc: 'class: 20', type: ModelType.segment },
-  { name: 'yolo11n-seg', desc: 'class: 80', type: ModelType.segment },
   { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.segment },
   { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.segment },
   { name: 'yolo26s-seg', desc: '10.4', type: ModelType.segment },
+  { name: 'yoloe-26s-seg', desc: '20.1M', type: ModelType.segment },
+  { name: 'yoloe-11s-seg-pf', desc: '20.1M', type: ModelType.segment },
   { name: 'unet', desc: '', type: ModelType.segment },
   { name: 'sam', desc: '38.9M', type: ModelType.segment }
 ]
@@ -474,6 +475,7 @@ const GanModels = [
 const showOcrModels = ref(false)
 const OcrModels = [
   { name: 'easyOcr', desc: '', type: ModelType.ocr },
+  { name: 'paddleOcr', desc: '', type: ModelType.ocr },
   { name: 'GOT-OCR', desc: '', type: ModelType.ocr },
 ]
 
@@ -482,6 +484,8 @@ const StyleModels = [
   { name: 'style-mobilenet', desc: '', type: ModelType.style },
   { name: 'style-inception', desc: '', type: ModelType.style },
 ]
+
+const styleFile = ref()
 
 const showTransformModels = ref(false)
 const TransferModels = [
@@ -539,6 +543,10 @@ function onOcrModelChanged(model: ModelInfo) {
 function onStyleModelChanged(model: ModelInfo) {
   visionStore.styleModel = model
   showStyleModels.value = false
+}
+
+function onStyleFileUpload(file: UploaderFileListItem) {
+  console.log(file)
 }
 
 function onTransModelChanged(model: ModelInfo) {
