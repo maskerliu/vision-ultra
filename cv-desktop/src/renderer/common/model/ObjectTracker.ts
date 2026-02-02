@@ -77,6 +77,8 @@ export class ObjectTracker extends ModelRunner {
       this.classes.set(classesTF?.dataSync().slice(0, this.objNum))
 
       if (result[3]) {
+        console.log(res[1])
+
         const maskCoeffsTF = result[3].gather(nms, 0)
         return this.generateMasks(maskCoeffsTF, res[1])
       }
@@ -149,6 +151,9 @@ export class ObjectTracker extends ModelRunner {
         data = data.transpose([0, 2, 1])
       }
 
+      console.log(data)
+      data.print()
+
       if (data.shape[2] >= 84) { // yolo common with segment
         const w = data.slice([0, 0, 2], [-1, -1, 1])
         const h = data.slice([0, 0, 3], [-1, -1, 1])
@@ -205,6 +210,7 @@ export class ObjectTracker extends ModelRunner {
   }
 
   private generateMasks(maskCoeffs: tf.Tensor, proto: tf.Tensor) {
+    if (proto.shape.length != 4) return null
     return tf.tidy(() => {
       const transSegMask = proto.transpose([0, 3, 1, 2]).squeeze()
       const [_, height, width, channel] = proto.shape

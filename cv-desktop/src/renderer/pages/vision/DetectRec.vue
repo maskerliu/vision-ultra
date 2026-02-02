@@ -253,22 +253,22 @@ function initProcessorMgr(force: boolean = true) {
     processorMgr.updateSize(previewSize.value[0], previewSize.value[1])
   }
 
-  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCVProcess, {
+  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, {
     options: JSON.stringify(visionStore.cvOptions.value)
   })
 
   let options = JSON.stringify(visionStore.cvOptions.value)
-  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCVProcess, { options })
+  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, { options })
 
   let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
   processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjDetect, { model })
 
   processorMgr.setParam(ProcessorType.faceDetect, visionStore.enableFaceDetect)
 
-  model = JSON.stringify(visionStore.ganModel)
+  model = JSON.stringify(Object.assign(visionStore.ganModel, { engine: visionStore.modelEngine }))
   processorMgr.setParam(ProcessorType.imgGen, visionStore.enableImageGen, { model })
 
-  model = JSON.stringify(visionStore.ocrModel)
+  model = JSON.stringify(Object.assign(visionStore.ocrModel, { engine: visionStore.modelEngine }))
   processorMgr.setParam(ProcessorType.ocr, visionStore.enableOCR, { model })
 
   let styleModel = JSON.stringify(Object.assign(visionStore.styleModel, { engine: visionStore.modelEngine }))
@@ -295,7 +295,7 @@ watch(
 
 watch(
   () => visionStore.modelEngine,
-  () => { initProcessorMgr(false) }
+  () => { initProcessorMgr() }
 )
 
 watch(
@@ -305,7 +305,7 @@ watch(
     () => visionStore.enableImageGen,
     () => visionStore.enableOCR,
     () => visionStore.enableStyleTrans,
-    () => visionStore.enableCVProcess,
+    () => visionStore.enableCV,
   ],
   async () => {
     initProcessorMgr(false)
@@ -353,7 +353,7 @@ watch(
   }
 )
 
-watch(() => visionStore.enableCVProcess, async () => {
+watch(() => visionStore.enableCV, async () => {
   processorMgr?.onDraw()
 })
 

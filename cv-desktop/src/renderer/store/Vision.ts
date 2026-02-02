@@ -76,7 +76,7 @@ export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
       intergrateMode: IntergrateMode.wasm,
-      modelEngine: ModelEngine.onnx,
+      modelEngine: ModelEngine.tensorflow,
 
       enableObjDetect: false,
       objDetectModel: { name: 'yolo11n-seg', type: ModelType.segment, engine: ModelEngine.tensorflow },
@@ -96,10 +96,12 @@ export const VisionStore = defineStore('VisionStore', {
 
       enableStyleTrans: false,
       styleModel: { name: 'style-mobilenet', type: ModelType.style },
+      styleFile: null,
       transModel: { name: 'trans-separable-conv2d', type: ModelType.transform },
       styleParams: [0, 0, 0],
 
-      enableCVProcess: false,
+
+      enableCV: false,
       cvOptions: new CVOptions(),
 
       streamHistories: [] as string[],

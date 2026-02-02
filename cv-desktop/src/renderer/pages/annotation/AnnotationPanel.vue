@@ -234,7 +234,7 @@ watch(() => activeMarker?.value, () => {
 })
 
 watch(() => visionStore.genContour, (val, _) => {
-  if (val) visionStore.enableCVProcess = true
+  if (val) visionStore.enableCV = true
 })
 
 </script>
