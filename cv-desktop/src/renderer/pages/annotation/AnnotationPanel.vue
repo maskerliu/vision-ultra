@@ -58,7 +58,6 @@
     </van-popup>
 
     <van-field label="points" label-align="right" type="number" label-width="4rem"
-      v-if="activeMarker?.type == fabric.Polygon.type"
       style="position: absolute; top: 8px; left:auto; right: auto; width: 15rem; z-index: 2003;">
       <template #input>
         <van-slider bar-height="4px" button-size="1.2rem" min="0" max="3" step="0.1" v-model="polyTolerance">
@@ -72,8 +71,8 @@
 
     <van-popup :show="showRightBar" position="right" :overlay="false" class="right-bar">
       <van-tabs v-model:active="activeTab" sticky>
-        <marker-group-tab v-model:marker-group="markerGroup" v-model:active-marker="activeMarker"
-          :search-labels="markerSearchLabels" @searchLabels="onMarkerLabelSearch" />
+        <marker-group-tab v-model:marker-group="markerGroup" :search-labels="markerSearchLabels"
+          @searchLabels="onMarkerLabelSearch" />
         <label-group-tab ref="labeTab" v-model:active-label="activeLabel" />
       </van-tabs>
     </van-popup>
@@ -97,7 +96,6 @@ const annotationCanvas = useTemplateRef<HTMLCanvasElement>('annotationCanvas')
 const showMagic = ref(false)
 const curDrawType = ref(DrawType.select)
 const markerGroup = ref<Map<DrawType, Array<fabric.FabricObject>>>(new Map())
-let activeMarker = ref<fabric.FabricObject>(null)
 const activeLabel = ref<CVLabel>(null)
 const showLabelSearch = ref(false)
 const searchKeyword = ref('')
@@ -105,8 +103,7 @@ const searchLabels = ref([])
 const markerSearchLabels = ref([])
 const showPolyTolerance = ref(false)
 const polyTolerance = ref(1)
-const annoMgr = ref<AnnotationManager>()
-const objNum = ref(0)
+const annoMgr = new AnnotationManager()
 
 const DrawTypes: Array<DrawType> = [
   DrawType.select,
@@ -124,13 +121,13 @@ defineExpose({ resize, drawImage, drawAnnotations, getLabel })
 
 onMounted(() => {
 
-  annoMgr.value = new AnnotationManager(annotationCanvas.value!, canvasSize[0], canvasSize[1])
-  annoMgr.value.activeObject = activeMarker
-  annoMgr.value.objNum = objNum
-  annoMgr.value.label = activeLabel
+  annoMgr.init(annotationCanvas.value!, canvasSize[0], canvasSize[1])
+  annoMgr.label = activeLabel
   searchKeyword.value = activeLabel.value?.name
-  annoMgr.value.mock()
-  annoMgr.value.showGrid(true)
+  annoMgr.mock()
+  annoMgr.showGrid(true)
+
+  provide('annoMgr', annoMgr)
 
   updateMarkerGroup()
 })
@@ -139,8 +136,8 @@ function resize(width: number, height: number) {
   if (canvasSize[0] == width && canvasSize[1] == height) return
   annotationCanvas.value.style.width = canvasSize[0] + 'px'
   annotationCanvas.value.style.height = canvasSize[1] + 'px'
-  annoMgr.value.resize(width, height)
-  annoMgr.value.showGrid(true)
+  annoMgr.resize(width, height)
+  annoMgr.showGrid(true)
 }
 
 function changeLabel(label: CVLabel) {
@@ -159,7 +156,7 @@ function onMagic() {
 
 function onDrawSelect(type: DrawType) {
   curDrawType.value = type
-  annoMgr.value.changeDrawType(type)
+  annoMgr.changeDrawType(type)
 }
 
 function getLabel(id: number) {
@@ -167,12 +164,12 @@ function getLabel(id: number) {
 }
 
 function drawImage(offscreen: HTMLCanvasElement) {
-  annoMgr.value.genImage(offscreen)
+  annoMgr.genImage(offscreen)
 }
 
 function updateMarkerGroup() {
   for (let i = 1; i < DrawTypes.length; ++i) {
-    markerGroup.value.set(DrawTypes[i], annoMgr.value.getObjects(DrawTypes[i]))
+    markerGroup.value.set(DrawTypes[i], annoMgr.getObjects(DrawTypes[i]))
   }
 }
 
@@ -181,13 +178,10 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
 
   if (objNum == 0 || labeTab.value == null) return
 
-  annoMgr.value.clear()
+  annoMgr.clear()
 
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
   const dpr = window.devicePixelRatio || 1
-
-  // annoMgr.value.drawAnnotations(boxes, scores, classes, objNum, scale, contours, window.devicePixelRatio || 1)
-
   for (let i = 0; i < objNum; ++i) {
     score = (scores[i] * 100).toFixed(1)
     // if (scores[i] * 100 < 30) continue
@@ -196,10 +190,10 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
 
     if (contours && contours[i] && contours[i].length > 8) {
       let points = contours[i].map(it => { return { x: it[0] / dpr, y: it[1] / dpr } })
-      let poly = annoMgr.value.genPoly(points, DrawType.polygon)
+      let poly = annoMgr.genPoly(points, DrawType.polygon)
       poly.set(AnnotationManager.genLabelOption(label))
       poly.set({ score, uuid: uuidv4() })
-      annoMgr.value.add(poly)
+      annoMgr.add(poly)
       continue
     }
 
@@ -207,12 +201,12 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
     x1 = boxes[i * 4 + 1] * scale[0] / dpr
     y2 = boxes[i * 4 + 2] * scale[1] / dpr
     x2 = boxes[i * 4 + 3] * scale[0] / dpr
-    let rect = annoMgr.value.genRect(x1, y1, x2, y2)
+    let rect = annoMgr.genRect(x1, y1, x2 - x1, y2 - y1)
     rect.set(AnnotationManager.genLabelOption(label))
     rect.set({ score, uuid: uuidv4() })
-    annoMgr.value.add(rect)
+    annoMgr.add(rect)
   }
-  annoMgr.value.requestRenderAll()
+  annoMgr.requestRenderAll()
 
   updateMarkerGroup()
 }
@@ -225,12 +219,9 @@ watch(() => activeLabel.value, () => {
   searchKeyword.value = activeLabel.value?.name
 })
 
-watch(() => objNum.value, () => {
+watch(() => annoMgr.objNum.value, () => {
+  console.log('num change', annoMgr.objNum.value)
   updateMarkerGroup()
-})
-
-watch(() => activeMarker?.value, () => {
-  showPolyTolerance.value = activeMarker?.value?.type == fabric.Polygon.type
 })
 
 watch(() => visionStore.genContour, (val, _) => {
