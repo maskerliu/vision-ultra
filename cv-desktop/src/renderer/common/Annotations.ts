@@ -1,7 +1,7 @@
 import * as fabric from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
 import { showNotify, showToast } from 'vant'
-import { Ref } from 'vue'
+import { ref, Ref } from 'vue'
 import { MarkColors } from './CVColors'
 
 export const Def_Object_Labels = [
@@ -46,11 +46,10 @@ export class AnnotationManager {
   private _label: Ref<CVLabel>
   set label(label: Ref<CVLabel>) { this._label = label }
 
-  private _activeObject: Ref<fabric.FabricObject>
-  set activeObject(val: Ref) { this._activeObject = val }
-  get activeObject() { return this._activeObject }
+  private _activeObj: Ref<string> = ref(null)
+  get activeObject() { return this._activeObj }
 
-  private _objNum: Ref<number>
+  private _objNum: Ref<number> = ref(0)
   get objNum() { return this._objNum }
   set objNum(val: Ref) { this._objNum = val }
 
@@ -61,10 +60,10 @@ export class AnnotationManager {
   private mouseFrom: { x: number, y: number } = { x: 0, y: 0 }
   private onDrawing = false
 
-  private drawingObject: fabric.Object | null = null
+  private drawingObj: fabric.Object | null = null
   private onPolyDrawing = false
-  private polyTmpPoints: Array<fabric.XY> = []
-  private polyTmpObjects: Array<fabric.FabricObject> = []
+  private polyTmpPts: Array<fabric.XY> = []
+  private polyTmpObjs: Array<fabric.FabricObject> = []
 
   private static CommonObjectOptions = {
     strokeWidth: 1,
@@ -75,7 +74,7 @@ export class AnnotationManager {
     borderScaleFactor: 1.5
   } as fabric.FabricObjectProps
 
-  constructor(canvas: HTMLCanvasElement, width: number, height: number) {
+  init(canvas: HTMLCanvasElement, width: number, height: number) {
     this._canvas = new fabric.Canvas(canvas, {
       width, height,
       backgroundColor: '#55555520',
@@ -117,6 +116,43 @@ export class AnnotationManager {
 
   add(object: fabric.FabricObject) {
     this._canvas.add(object)
+    this._canvas.setActiveObject(object)
+    this._canvas.discardActiveObject()
+  }
+
+  updateObjectStatus(object: fabric.FabricObject, status: string, type?: string) {
+    let val = object.get(status) == null ? false : object.get(status)
+    let params = {}
+    params[status] = !val
+    object.set(params)
+    val = object.get(status)
+    switch (status) {
+      case 'selected':
+        this._canvas.setActiveObject(object)
+        break
+      case 'pin':
+        object.set({
+          evented: true,
+          lockMovementX: val,
+          lockMovementY: val,
+          lockRotation: val,
+          hasRotatingPoint: !val,
+        })
+        break
+      case 'lock':
+        object.set({ evented: val })
+        break
+      case 'visible':
+        object.set({ visible: val })
+        break
+      case 'delete':
+        let objs = this._canvas.getObjects()
+        let idx = objs.findIndex(it => it.get('uuid') == object.get('uuid'))
+        this._canvas.remove(objs[idx])
+        this._objNum.value++
+        break
+    }
+    this._canvas.requestRenderAll()
   }
 
   showGrid(visible: boolean) {
@@ -127,10 +163,12 @@ export class AnnotationManager {
   getObjects(type: DrawType) { return this._canvas.getObjects(type as string) }
 
   clear() {
-    [DrawType.circle, DrawType.rect, DrawType.polygon, DrawType.multiLine, DrawType.line].forEach(it => {
-      let objects = this._canvas.getObjects(it)
-      this._canvas.remove(...objects)
-    })
+    // [DrawType.circle, DrawType.rect, DrawType.polygon, DrawType.multiLine, DrawType.line].forEach(it => {
+    //   let objects = this._canvas.getObjects(it)
+    //   this._canvas.remove(...objects)
+    // })
+    let objects = this._canvas.getObjects()
+    this._canvas.remove(...objects)
     this._canvas.remove(this.labelText)
 
     this.addGrid()
@@ -138,39 +176,34 @@ export class AnnotationManager {
     this._canvas.requestRenderAll()
   }
 
-  remove(type: DrawType, object: fabric.FabricObject) {
-    this._canvas.remove(object)
-    // let objects = this._canvas.getObjects(type).filter(it => it.get('uuid') == object.get('uuid'))
-    // let group = this._markerGroup.get(type)
-    // let idx = group.findIndex((it) => it.get('uuid') == object.get('uuid'))
-    // group.splice(idx, 1)
-  }
+
   requestRenderAll() {
     this._canvas.requestRenderAll()
   }
 
   changeDrawType(type: DrawType) {
-    this._drawType = type
-    this._canvas.defaultCursor = type == DrawType.select ? 'default' : 'crosshair'
-    if (type == DrawType.select) {
-      this.drawingObject = null
+    // this._canvas.requestRenderAll()
+    let objects = this._canvas.getObjects()
+    objects.forEach(obj => {
+      obj.set({ evented: type == DrawType.select, selectable: type == DrawType.select, })
+    })
+
+    if (type == DrawType.select || this._drawType != type) {
+      this.drawingObj = null
       this.onDrawing = false
-      this._canvas.remove(...this.polyTmpObjects)
-      this._canvas.remove(this.drawingObject)
-      this.polyTmpObjects = []
-      this.polyTmpPoints = []
-      this.drawingObject = null
-      this._canvas.getObjects().forEach((obj) => {
-        obj.set({ evented: true, selectable: true, })
-      })
-    } else {
-      this._canvas.getObjects().forEach((obj) => {
-        obj.set({ evented: false, selectable: false, })
-      })
+      this._canvas.remove(...this.polyTmpObjs)
+      this._canvas.remove(this.drawingObj)
+      this.polyTmpObjs = []
+      this.polyTmpPts = []
+      this.drawingObj = null
     }
 
+    this._drawType = type
+    this._canvas.defaultCursor = type == DrawType.select ? 'default' : 'crosshair'
+
+    this.labelText.set({ evented: false, selectable: false, })
     this.gridGroup.set({ evented: false, selectable: false, })
-    this._canvas.discardActiveObject()
+    // this._canvas.discardActiveObject()
     this._canvas.requestRenderAll()
   }
 
@@ -184,8 +217,6 @@ export class AnnotationManager {
     this._canvas.on('mouse:wheel', opt => {
       let delta = opt.e.deltaY
       let zoom = this._canvas.getZoom()
-
-      // 控制缩放范围在 0.01~20 的区间内
       zoom *= 0.999 ** delta
       if (zoom > 20) zoom = 20
       if (zoom < 0.01) zoom = 0.01
@@ -210,27 +241,27 @@ export class AnnotationManager {
     })
 
     this._canvas.on('selection:created', e => {
-      this._activeObject.value = e.selected?.[0] || null
+      this._activeObj.value = e.selected?.[0].get('uuid') || null
 
       this.updateLabelText()
     })
 
     this._canvas.on('selection:updated', e => {
-      this._activeObject.value = e.selected?.[0] || null
+      this._activeObj.value = e.selected?.[0].get('uuid') || null
 
-      this._canvas.bringObjectToFront(this._activeObject.value)
+      this._canvas.bringObjectToFront(e.selected?.[0])
       this.updateLabelText()
     })
 
     this._canvas.on('selection:cleared', e => {
       this._canvas.discardActiveObject()
       this.labelText.visible = false
-      this._activeObject.value = null
+      this._activeObj.value = null
     })
   }
 
   private updateLabelText() {
-    let obj = this._activeObject.value
+    let obj = this._canvas.getObjects().filter(it => it.get('uuid') == this._activeObj.value)[0]
     this.labelText.set('text', `${obj?.get('label')} ${obj?.get('score')}% \n${obj?.get('uuid')?.substr(0, 8)}`)
     this.labelText.left = Math.round(obj?.left + obj?.width * obj?.scaleX + 10)
 
@@ -247,24 +278,24 @@ export class AnnotationManager {
   private onMouseDblClick(options: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
 
     if (this._drawType == DrawType.multiLine || this._drawType == DrawType.polygon) {
-      if (this.polyTmpPoints.length < 3) {
+      if (this.polyTmpPts.length < 3) {
         showNotify({ type: 'danger', message: '至少绘制3个点', duration: 1000 })
         return
       }
 
-      this.drawingObject = this.genPoly(this.polyTmpPoints, this._drawType)
-      this.drawingObject.set(AnnotationManager.genLabelOption(this._label.value))
-      this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
-      this.drawingObject.set({ evented: false, selectable: false })
-      if (this._drawType == DrawType.multiLine) this.drawingObject.set({ fill: 'transparent' })
-      this._canvas.add(this.drawingObject)
-      this._canvas.remove(...this.polyTmpObjects)
+      this.drawingObj = this.genPoly(this.polyTmpPts, this._drawType)
+      this.drawingObj.set(AnnotationManager.genLabelOption(this._label.value))
+      this.drawingObj.set({ score: '100.0', uuid: uuidv4() })
+      this.drawingObj.set({ evented: false, selectable: false })
+      if (this._drawType == DrawType.multiLine) this.drawingObj.set({ fill: 'transparent' })
+      this._canvas.add(this.drawingObj)
+      this._canvas.remove(...this.polyTmpObjs)
       this._objNum.value++
       // this._markerGroup.get(this._drawType).push(this.drawingObject)
-      this.polyTmpPoints = []
-      this.polyTmpObjects = []
+      this.polyTmpPts = []
+      this.polyTmpObjs = []
       this.onPolyDrawing = false
-      this.drawingObject = null
+      this.drawingObj = null
       this.mouseFrom = null
       this.onDrawing = false
     }
@@ -275,7 +306,7 @@ export class AnnotationManager {
     const vp = this._canvas.getViewportPoint(options.e)
     this._lstPos.x = vp.x
     this._lstPos.y = vp.y
-    this._isDragging = this._activeObject.value == null && this._drawType == DrawType.select
+    this._isDragging = this._activeObj.value == null && this._drawType == DrawType.select
 
     if (this._drawType == DrawType.select || this._isDragging) return
 
@@ -285,42 +316,45 @@ export class AnnotationManager {
     if (this._drawType == DrawType.multiLine || this._drawType == DrawType.polygon) {
       this.onPolyDrawing = true
 
-      let circle = this.genCircle(pointer.x - 6, pointer.y - 6, pointer.x + 6, pointer.y + 6)
+      let circle = this.genCircle(pointer.x - 6, pointer.y - 6, 12)
       circle.set(AnnotationManager.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
       circle.set({ strokeWidth: 1, selectable: false, evented: false })
-      if (this.polyTmpPoints.length == 0) circle.set({ fill: '#f39c12', strokeWidth: 2 })
+      if (this.polyTmpPts.length == 0) circle.set({ fill: '#f39c12', strokeWidth: 2 })
       this._canvas.add(circle)
-      this.polyTmpObjects.push(circle)
+      this.polyTmpObjs.push(circle)
 
-      this.drawingObject = this.genLine(pointer.x, pointer.y, pointer.x, pointer.y)
-      this.drawingObject.set(AnnotationManager.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
-      this.drawingObject.set({ strokeWidth: 2, selectable: false, evented: false })
-      this._canvas.add(this.drawingObject)
-      this.polyTmpObjects.push(this.drawingObject)
-      this.polyTmpPoints.push({ x: pointer.x, y: pointer.y })
+      this.drawingObj = this.genLine(pointer.x, pointer.y, pointer.x, pointer.y)
+      this.drawingObj.set(AnnotationManager.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
+      this.drawingObj.set({ strokeWidth: 2, selectable: false, evented: false })
+      this._canvas.add(this.drawingObj)
+      this.polyTmpObjs.push(this.drawingObj)
+      this.polyTmpPts.push({ x: pointer.x, y: pointer.y })
 
       return
     }
 
+    this._canvas.discardActiveObject()
+    this._canvas.requestRenderAll()
+
     switch (this._drawType) {
       case DrawType.rect:
-        this.drawingObject = this.genRect(pointer.x, pointer.y, pointer.x, pointer.y)
+        this.drawingObj = this.genRect(pointer.x, pointer.y, 0, 0)
         break
       case DrawType.circle:
         this.onDrawing = true
-        this.drawingObject = this.genCircle(pointer.x, pointer.y, pointer.x, pointer.y)
+        this.drawingObj = this.genCircle(pointer.x, pointer.y, 0)
         break
       case DrawType.line:
         this.onDrawing = true
-        this.drawingObject = this.genLine(pointer.x, pointer.y, pointer.x, pointer.y)
+        this.drawingObj = this.genLine(pointer.x, pointer.y, pointer.x, pointer.y)
         break
     }
 
-    this.drawingObject.set(AnnotationManager.genLabelOption(this._label.value))
-    this.drawingObject.set({ score: '100.0', uuid: uuidv4() })
-    this.drawingObject.set({ evented: false, selectable: false })
-    this._canvas.add(this.drawingObject)
-    this._canvas.bringObjectToFront(this.drawingObject)
+    this.drawingObj.set(AnnotationManager.genLabelOption(this._label.value))
+    this.drawingObj.set({ score: '100.0', uuid: uuidv4() })
+    this.drawingObj.set({ evented: false, selectable: false })
+    this._canvas.add(this.drawingObj)
+    this._canvas.bringObjectToFront(this.drawingObj)
     this._canvas.requestRenderAll()
   }
 
@@ -341,7 +375,7 @@ export class AnnotationManager {
       case DrawType.rect:
         const width = pointer.x - this.mouseFrom.x
         const height = pointer.y - this.mouseFrom.y
-        this.drawingObject.set({
+        this.drawingObj.set({
           left: width > 0 ? this.mouseFrom.x : pointer.x,
           top: height > 0 ? this.mouseFrom.y : pointer.y,
           width: Math.abs(width),
@@ -350,13 +384,13 @@ export class AnnotationManager {
         this._canvas.requestRenderAll()
         break
       case DrawType.circle:
-        this.drawingObject.set({
+        this.drawingObj.set({
           radius: Math.abs(Math.min(pointer.x - this.mouseFrom.x, pointer.y - this.mouseFrom.y)) / 2,
         })
         this._canvas.requestRenderAll()
         break
       case DrawType.line:
-        this.drawingObject.set({
+        this.drawingObj.set({
           x2: pointer.x,
           y2: pointer.y,
         })
@@ -365,7 +399,7 @@ export class AnnotationManager {
       case DrawType.polygon:
       case DrawType.multiLine:
         if (this.onPolyDrawing) {
-          this.drawingObject.set({ x2: pointer.x, y2: pointer.y })
+          this.drawingObj.set({ x2: pointer.x, y2: pointer.y })
           this._canvas.requestRenderAll()
         }
         break
@@ -386,15 +420,13 @@ export class AnnotationManager {
       case DrawType.rect:
       case DrawType.circle:
       case DrawType.line:
-        if (this.drawingObject.width < 20 || this.drawingObject.height < 20) {
-          this._canvas.remove(this.drawingObject)
+        if (this.drawingObj.width < 20 || this.drawingObj.height < 20) {
+          this._canvas.remove(this.drawingObj)
           showToast({ message: 'The object is too small', duration: 500 })
         } else {
-          // this._markerGroup.get(this._drawType).push(this.drawingObject)
-          // this._canvas.add(this.drawingObject)
-          this._canvas.setActiveObject(this.drawingObject)
-
-          this.drawingObject = null
+          this._canvas.setActiveObject(this.drawingObj)
+          this._canvas.discardActiveObject()
+          this.drawingObj = null
           this.mouseFrom = null
           this.onDrawing = false
           this._canvas.requestRenderAll()
@@ -414,17 +446,13 @@ export class AnnotationManager {
     this._canvas.requestRenderAll()
   }
 
-  genRect(x1: number, y1: number, x2: number, y2: number) {
+  genRect(left: number, top: number, width: number, height: number) {
 
     const rect = new fabric.Rect(AnnotationManager.CommonObjectOptions)
-    rect.set({
-      left: x1,
-      top: y1,
-      width: x2 - x1,
-      height: y2 - y1,
-    })
+    rect.set({ left, top, width, height, })
 
     rect.on('mouseover', (e) => {
+      if (this._drawType != DrawType.select) return
       this._canvas.setActiveObject(rect)
       this._canvas.requestRenderAll()
     })
@@ -432,16 +460,14 @@ export class AnnotationManager {
     return rect
   }
 
-  genCircle(x1: number, y1: number, x2: number, y2: number) {
+  genCircle(left: number, top: number, radius: number) {
 
     const circle = new fabric.Circle(AnnotationManager.CommonObjectOptions)
-    circle.set({
-      left: x1,
-      top: y1,
-      radius: Math.min(x2 - x1, y2 - y1) / 2,
-    })
+    circle.set({ left, top, radius })
+    //: Math.min(x2 - x1, y2 - y1) / 2,
 
     circle.on('mouseover', () => {
+      if (this._drawType != DrawType.select) return
       this._canvas.setActiveObject(circle)
       this._canvas.requestRenderAll()
     })
@@ -480,6 +506,7 @@ export class AnnotationManager {
 
 
     poly.on('mouseover', () => {
+      if (this._drawType != DrawType.select) return
       this._canvas.setActiveObject(poly)
       this._canvas.renderAll()
     })
@@ -490,26 +517,24 @@ export class AnnotationManager {
   addGrid() {
     if (!this._canvas) return
 
-    const gridSize = 40
-    const gridColor = 'rgba(200, 200, 200, 0.9)'
+    const gridSize = 20
+    const gridColor = 'rgba(200, 200, 200, 0.7)'
 
     this.gridGroup = new fabric.Group([], { visible: false, selectable: false, evented: false, })
-    // 垂直网格线
-    for (let x = 0; x <= this._canvas.width; x += gridSize) {
+    for (let x = 0.5; x <= this._canvas.width; x += gridSize) {
       const line = new fabric.Line([x, 0, x, this._canvas.height], {
         stroke: gridColor,
-        strokeWidth: 1,
+        strokeWidth: 0.5,
         selectable: false,
         evented: false,
       })
       this.gridGroup.add(line)
     }
 
-    // 水平网格线
-    for (let y = 0; y <= this._canvas.height; y += gridSize) {
+    for (let y = 0.5; y <= this._canvas.height; y += gridSize) {
       const line = new fabric.Line([0, y, this._canvas.width, y], {
         stroke: gridColor,
-        strokeWidth: 1,
+        strokeWidth: 0.5,
         selectable: false,
         evented: false,
       })
@@ -534,24 +559,25 @@ export class AnnotationManager {
       { x: -4, y: 40, },
       { x: 0, y: 20, },
     ]
-
-    let rect = this.genRect(120, 200, 220, 280)
-    rect.set(AnnotationManager.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
-    rect.set('score', '90.4')
-    rect.set('uuid', uuidv4())
-    this._canvas.add(rect)
-
-    rect = this.genRect(240, 250, 320, 360)
-    rect.set(AnnotationManager.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
-    rect.set('score', '90.4')
-    rect.set('uuid', uuidv4())
-    this._canvas.add(rect)
-
     let poly = this.genPoly(points, DrawType.polygon)
     poly.set(AnnotationManager.genLabelOption({ id: 0, name: 'person', color: '#e74c3c' }))
     poly.set('score', '90.4')
     poly.set('uuid', uuidv4())
-    this._canvas.add(poly)
+    this.add(poly)
+
+    let rect = this.genRect(120, 200, 100, 80)
+    rect.set(AnnotationManager.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
+    rect.set('score', '90.4')
+    rect.set('uuid', uuidv4())
+    this.add(rect)
+
+    rect = this.genRect(240, 250, 80, 90)
+    rect.set(AnnotationManager.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
+    rect.set('score', '90.4')
+    rect.set('uuid', uuidv4())
+    this.add(rect)
+
+    this._canvas.requestRenderAll()
   }
 
   static genLabelOption(label: CVLabel) {
