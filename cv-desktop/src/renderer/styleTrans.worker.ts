@@ -11,7 +11,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   transModel?: string,
   image?: ImageData,
   style?: ImageData,
-  params?: [number, number, number],
+  params?: string,
   width?: number,
   height?: number
 }>) => {
@@ -22,14 +22,31 @@ ctx.addEventListener('message', async (event: MessageEvent<{
   let data = { loading: false }
   try {
     switch (event.data.cmd) {
-      case ProcessorCMD.init:
-        await styleTransfer.init(JSON.parse(event.data.styleModel), JSON.parse(event.data.transModel))
+      case ProcessorCMD.init: {
+        let params = event.data.params ? JSON.parse(event.data.params) : null
+        await styleTransfer.init(JSON.parse(event.data.styleModel),
+          JSON.parse(event.data.transModel),
+          event.data.style, params)
         break
+      }
       case ProcessorCMD.dispose:
         await styleTransfer.dispose()
         break
+      case ProcessorCMD.updateOptions: {
+        if (!styleTransfer.isInited) {
+          data = Object.assign(data, { error: 'processor not inited' })
+          ctx.postMessage(data)
+          break
+        }
+
+        let params = JSON.parse(event.data.params)
+        styleTransfer.updateParams(event.data.style, params)
+        data = Object.assign(data, { message: 'image processor options updated' })
+        ctx.postMessage(data)
+        break
+      }
       case ProcessorCMD.process:
-        const result = await styleTransfer.transfer(event.data.image, event.data.style, event.data.params)
+        const result = await styleTransfer.transfer(event.data.image)
         if (result != null) {
           const [image, width, height] = result
           data = Object.assign(
