@@ -112,6 +112,7 @@ export class AnnotationManager {
   resize(width: number, height: number) {
     this._canvas.setDimensions({ width, height })
     this._canvas.clear()
+    this.clear()
   }
 
   add(object: fabric.FabricObject) {
@@ -146,36 +147,6 @@ export class AnnotationManager {
   }
   requestRenderAll() {
     this._canvas.requestRenderAll()
-  }
-
-  drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uint8Array,
-    objNum: number, scale: [number, number], contours?: Array<[number, number]>, dpr: number = 1) {
-
-    this.clear()
-    if (objNum == 0) return
-    let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
-    for (let i = 0; i < objNum; ++i) {
-      score = (scores[i] * 100).toFixed(1)
-      // if (scores[i] * 100 < 30) continue
-
-      if (contours && contours[i] && contours[i].length > 8) {
-        let points = contours[i].map(it => { return { x: it[0] / dpr, y: it[1] / dpr } })
-        let poly = this.genPoly(points, DrawType.polygon)
-        poly.set(AnnotationManager.genLabelOption(this._label.value))
-        poly.set({ score, uuid: uuidv4() })
-        this.add(poly)
-      } else {
-        y1 = boxes[i * 4] * scale[1] / dpr
-        x1 = boxes[i * 4 + 1] * scale[0] / dpr
-        y2 = boxes[i * 4 + 2] * scale[1] / dpr
-        x2 = boxes[i * 4 + 3] * scale[0] / dpr
-        let rect = this.genRect(x1, y1, x2, y2)
-        rect.set(AnnotationManager.genLabelOption(this._label.value))
-        rect.set({ score, uuid: uuidv4() })
-        this.add(rect)
-      }
-    }
-    this.requestRenderAll()
   }
 
   changeDrawType(type: DrawType) {
@@ -273,7 +244,7 @@ export class AnnotationManager {
     this._canvas.bringObjectToFront(this.labelText)
   }
 
-  private onMouseDblClick(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
+  private onMouseDblClick(options: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
 
     if (this._drawType == DrawType.multiLine || this._drawType == DrawType.polygon) {
       if (this.polyTmpPoints.length < 3) {
@@ -299,10 +270,11 @@ export class AnnotationManager {
     }
   }
 
-  private onMouseDown(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
-    const pointer = this._canvas.getViewportPoint(e.e)
-    this._lstPos.x = pointer.x
-    this._lstPos.y = pointer.y
+  private onMouseDown(options: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
+    const pointer = this._canvas.getScenePoint(options.e)
+    const vp = this._canvas.getViewportPoint(options.e)
+    this._lstPos.x = vp.x
+    this._lstPos.y = vp.y
     this._isDragging = this._activeObject.value == null && this._drawType == DrawType.select
 
     if (this._drawType == DrawType.select || this._isDragging) return
@@ -352,15 +324,16 @@ export class AnnotationManager {
     this._canvas.requestRenderAll()
   }
 
-  private onMouseMove(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
-    const pointer = this._canvas.getViewportPoint(e.e)
+  private onMouseMove(options: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
+    const pointer = this._canvas.getScenePoint(options.e)
+    const vp = this._canvas.getViewportPoint(options.e)
     if (this._isDragging && this._drawType == DrawType.select) {
       let vpt = this._canvas.viewportTransform
-      vpt[4] += pointer.x - this._lstPos.x
-      vpt[5] += pointer.y - this._lstPos.y
+      vpt[4] += vp.x - this._lstPos.x
+      vpt[5] += vp.y - this._lstPos.y
       this._canvas.requestRenderAll()
-      this._lstPos.x = pointer.x
-      this._lstPos.y = pointer.y
+      this._lstPos.x = vp.x
+      this._lstPos.y = vp.y
     }
 
     if (!this.onDrawing || this._drawType == DrawType.select || this._isDragging) return
@@ -400,7 +373,7 @@ export class AnnotationManager {
 
   }
 
-  private onMouseUp(e: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
+  private onMouseUp(options: fabric.TPointerEventInfo<fabric.TPointerEvent>) {
     if (this._isDragging) {
       this._canvas.setViewportTransform(this._canvas.viewportTransform)
       this._isDragging = false
@@ -454,8 +427,6 @@ export class AnnotationManager {
     rect.on('mouseover', (e) => {
       this._canvas.setActiveObject(rect)
       this._canvas.requestRenderAll()
-
-      console.log(rect)
     })
 
     return rect

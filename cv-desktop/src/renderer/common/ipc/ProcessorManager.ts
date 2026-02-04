@@ -68,6 +68,9 @@ export abstract class ProcessorManager {
   protected _origin: ImageData
   get origin() { return this._origin }
 
+  protected _style: ImageData
+  set style(val: ImageData) { this._style = val }
+
   protected _annotationPanel: any
   set annotationPanel(val: any) { this._annotationPanel = val }
 

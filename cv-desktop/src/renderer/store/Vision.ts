@@ -79,7 +79,7 @@ export const VisionStore = defineStore('VisionStore', {
       modelEngine: ModelEngine.tensorflow,
 
       enableObjDetect: false,
-      objDetectModel: { name: 'yolo11n-seg', type: ModelType.segment, engine: ModelEngine.tensorflow },
+      objDetectModel: { name: 'yoloe-26s-seg', type: ModelType.segment, engine: ModelEngine.tensorflow },
       genContour: false,
 
       enableFaceDetect: false,
@@ -96,10 +96,9 @@ export const VisionStore = defineStore('VisionStore', {
 
       enableStyleTrans: false,
       styleModel: { name: 'style-mobilenet', type: ModelType.style },
-      styleFile: null,
+      styleFile: null as ImageData,
       transModel: { name: 'trans-separable-conv2d', type: ModelType.transform },
-      styleParams: [0, 0, 0],
-
+      styleTransParams: [0, 0, 0] as [number, number, number],
 
       enableCV: false,
       cvOptions: new CVOptions(),

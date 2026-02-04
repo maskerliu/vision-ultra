@@ -48,12 +48,12 @@ from pathlib import Path
 # modelv6.export(format="tfjs", half=True)
 
 
-model = YOLO("./yoloe-26s-seg.pt")
+model = YOLO("./yoloe-26n-seg.pt")
 # names = ["person", "bus"]
 # model.set_classes(names, model.get_text_pe(names))
-results = model("bus.jpg")
-for result in results:
-    print(result.masks)
+# results = model("bus.jpg")
+# for result in results:
+#     print(result.masks)
 model.export(format="tfjs", int8=True)
 
 

@@ -144,7 +144,7 @@
               <template #value>
                 <van-popover v-model:show="showStyleModels" :show-arrow="false" placement="bottom-end" overlay>
                   <template #reference>
-                    {{ visionStore.styleModel.name }}
+                    {{ $t(`cvControl.styleModel.${visionStore.styleModel.name}`) }}
                   </template>
                   <van-col class="model-container" style="width: 260px; height: 100px;">
                     <van-cell center clickable :title="$t(`cvControl.styleModel.${model.name}`)"
@@ -162,7 +162,7 @@
               <template #value>
                 <van-popover v-model:show="showTransformModels" :show-arrow="false" placement="bottom-end" overlay>
                   <template #reference>
-                    {{ visionStore.transModel.name }}
+                    {{ $t(`cvControl.transModel.${visionStore.transModel.name}`) }}
                   </template>
                   <van-col class="model-container" style="width: 260px; height: 100px;">
                     <van-cell center clickable :title="$t(`cvControl.transModel.${model.name}`)"
@@ -182,9 +182,9 @@
                 <van-uploader v-model="styleFile" preview-size="60" max-count="1" :after-read="onStyleFileUpload" />
               </template>
             </van-cell>
-            <slider-field label="content size" v-model:sliderValue="visionStore.styleParams[0]" />
-            <slider-field label="style size" v-model:sliderValue="visionStore.styleParams[1]" />
-            <slider-field label="strength" v-model:sliderValue="visionStore.styleParams[2]" />
+            <slider-field label="content size" v-model:sliderValue="visionStore.styleTransParams[0]" />
+            <slider-field label="style size" v-model:sliderValue="visionStore.styleTransParams[1]" />
+            <slider-field label="strength" v-model:sliderValue="visionStore.styleTransParams[2]" />
           </van-col>
         </template>
       </van-cell>
@@ -458,14 +458,16 @@ const SegmentModels = [
   { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.segment },
   { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.segment },
   { name: 'yolo26s-seg', desc: '10.4', type: ModelType.segment },
+  { name: 'yoloe-26n-seg', desc: '20.1M', type: ModelType.segment },
   { name: 'yoloe-26s-seg', desc: '20.1M', type: ModelType.segment },
-  { name: 'yoloe-11s-seg-pf', desc: '20.1M', type: ModelType.segment },
+  { name: 'yoloe-26s-seg-pf', desc: '20.1M', type: ModelType.segment },
   { name: 'unet', desc: '', type: ModelType.segment },
   { name: 'sam', desc: '38.9M', type: ModelType.segment }
 ]
 
 const showGanModels = ref(false)
 const GanModels = [
+  { name: 'animeGANv2', desc: '12.4M', type: ModelType.genImage },
   { name: 'animeGANv3-Ghibli', desc: '12.4M', type: ModelType.genImage },
   { name: 'animeGANv3-Kpop', desc: '1.2M', type: ModelType.genImage },
   { name: 'animeGANv3-Disney', desc: '2.0M', type: ModelType.genImage },
@@ -545,8 +547,20 @@ function onStyleModelChanged(model: ModelInfo) {
   showStyleModels.value = false
 }
 
-function onStyleFileUpload(file: UploaderFileListItem) {
-  console.log(file)
+function onStyleFileUpload(item: UploaderFileListItem) {
+  console.log(item)
+
+  let img = new Image()
+  img.onload = (e) => {
+    if (img == null) return
+    let w = img.width, h = img.height
+    console.log(e)
+    let data = new ImageData(w, h)
+    visionStore.styleFile = data
+  }
+
+  img.src = item.objectUrl
+
 }
 
 function onTransModelChanged(model: ModelInfo) {

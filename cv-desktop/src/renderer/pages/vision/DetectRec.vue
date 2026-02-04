@@ -210,7 +210,7 @@ async function openFolder() {
     processorMgr.drawMode = DrawMode.image
     showControlBar.value = false
     img = new Image()
-    img.onload = function () {
+    img.onload = () => {
       if (img == null) return
       let w = img.width, h = img.height, ratio = 1
       if (w > previewParent.value.$el.clientWidth * dpr || h > (previewParent.value.$el.clientHeight - 35) * dpr) {
@@ -230,9 +230,7 @@ async function onScan() {
   processorMgr?.onDraw()
 }
 
-function initProcessorMgr(force: boolean = true) {
-
-  console.log('engine change')
+function initProcessorMgr(force: boolean = true, anyway = true) {
   if (force) {
     processorMgr?.terminateAll()
 
@@ -258,22 +256,22 @@ function initProcessorMgr(force: boolean = true) {
   })
 
   let options = JSON.stringify(visionStore.cvOptions.value)
-  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, { options })
+  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, { options }, anyway)
 
   let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjDetect, { model })
+  processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjDetect, { model }, anyway)
 
   processorMgr.setParam(ProcessorType.faceDetect, visionStore.enableFaceDetect)
 
   model = JSON.stringify(Object.assign(visionStore.ganModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.imgGen, visionStore.enableImageGen, { model })
+  processorMgr.setParam(ProcessorType.imgGen, visionStore.enableImageGen, { model }, anyway)
 
   model = JSON.stringify(Object.assign(visionStore.ocrModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.ocr, visionStore.enableOCR, { model })
+  processorMgr.setParam(ProcessorType.ocr, visionStore.enableOCR, { model }, anyway)
 
   let styleModel = JSON.stringify(Object.assign(visionStore.styleModel, { engine: visionStore.modelEngine }))
   let transModel = JSON.stringify(Object.assign(visionStore.transModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.styleTrans, visionStore.enableStyleTrans, { styleModel, transModel })
+  processorMgr.setParam(ProcessorType.styleTrans, visionStore.enableStyleTrans, { styleModel, transModel }, anyway)
 }
 
 watch(() => previewSize.value, () => {
@@ -295,7 +293,7 @@ watch(
 
 watch(
   () => visionStore.modelEngine,
-  () => { initProcessorMgr() }
+  () => { initProcessorMgr(false, true) }
 )
 
 watch(
@@ -308,7 +306,7 @@ watch(
     () => visionStore.enableCV,
   ],
   async () => {
-    initProcessorMgr(false)
+    initProcessorMgr(false, false)
     if (!visionStore.enableFaceDetect) visionStore.live2d = false
   }
 )
@@ -337,9 +335,26 @@ watch(
     processorMgr.postMessage(ProcessorType.styleTrans, {
       cmd: ProcessorCMD.init,
       styleModel: JSON.stringify(visionStore.styleModel),
-      transModel: JSON.stringify(visionStore.transModel)
+      transModel: JSON.stringify(visionStore.transModel),
+      style: visionStore.styleFile,
+      params: JSON.stringify(visionStore.styleTransParams)
     })
   }
+)
+
+watch(
+  [
+    () => visionStore.styleFile,
+    () => visionStore.styleTransParams
+  ],
+  () => {
+    processorMgr.postMessage(ProcessorType.styleTrans, {
+      cmd: ProcessorCMD.updateOptions,
+      style: visionStore.styleFile,
+      params: JSON.stringify(visionStore.styleTransParams)
+    })
+  },
+  { deep: 2 }
 )
 
 watch(

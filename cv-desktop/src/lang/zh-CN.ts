@@ -76,6 +76,8 @@ export default {
       'yolo11s-seg': 'Yolo11s ',
       'yolo11m-seg': 'Yolo11m',
       'yolo26s-seg': 'Yolo26s',
+      'yoloe-26s-seg': '实时感知一切',
+      'yoloe-26s-seg-pf': '实时感知一切(无提示词)',
       sam: 'Segment Anything',
       unet: 'u-net++',
     },
@@ -84,6 +86,7 @@ export default {
 
     genImage: '图生图',
     ganModel: {
+      'animeGANv2': 'AnimeGANv2',
       'animeGANv3-Ghibli': 'AnimeGANv3-吉卜力',
       'animeGANv3-Kpop': 'AnimateGANv3-韩风',
       'animeGANv3-Disney': 'AnimeGANv3-迪士尼',
@@ -103,8 +106,8 @@ export default {
       'style-inception': 'inceptionv3'
     },
     transModel: {
-      'trans-separable-conv2d': 'Separable Conv2d',
-      'trans-origin': 'Original Transform',
+      'trans-separable-conv2d': '二维可分离卷积',
+      'trans-origin': '原始变换',
     },
 
     imgEnhance: '图像增强',
