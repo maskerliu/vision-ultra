@@ -23,8 +23,7 @@ export class ImageGenerator extends ModelRunner {
 
     const result = await this._model.run(image) as tf.Tensor
     const tmp = tf.tidy(() => result.squeeze().add(1).div(2))
-
-    let generated = await result.data()
+    let generated = await tf.browser.toPixels(tmp as any)
     const [height, width] = tmp.shape.slice(0, 2)
     tf.dispose([result, tmp])
     return [generated, width, height]

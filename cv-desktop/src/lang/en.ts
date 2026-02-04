@@ -76,6 +76,8 @@ export default {
       'yolo11s-seg': 'Yolo11s',
       'yolo11m-seg': 'Yolo11m',
       'yolo26s-seg': 'Yolo26s',
+      'yoloe-26s-seg': 'Real-Time Seeing Anything',
+      'yoloe-26s-seg-pf': 'Real-Time Seeing Anything(Prompt Free)',
       sam: 'Segment Anything',
       unet: 'u-net++',
     },
@@ -84,6 +86,7 @@ export default {
 
     genImage: 'Image2Image',
     ganModel: {
+      'animeGANv2': 'AnimeGANv2',
       'animeGANv3-Ghibli': 'AnimeGANv3_Ghibli-c1-e299',
       'animeGANv3-Kpop': 'AnimateGANv3_Kpop',
       'animeGANv3-Disney': 'AnimeGANv3_Disney',

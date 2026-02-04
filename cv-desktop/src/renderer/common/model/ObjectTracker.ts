@@ -77,12 +77,12 @@ export class ObjectTracker extends ModelRunner {
       this.classes.set(classesTF?.dataSync().slice(0, this.objNum))
 
       if (result[3]) {
-        console.log(res[1])
-
         const maskCoeffsTF = result[3].gather(nms, 0)
         return this.generateMasks(maskCoeffsTF, res[1])
       }
     })
+    // console.log(overlay)
+    // overlay?.print()
 
     this._expire = Date.now() - time
 
