@@ -172,7 +172,7 @@ export type StyleTransMsg = Partial<{
   transModel?: string,
   image?: ImageData,
   style?: ImageData,
-  params?: [number, number, number],
+  params?: string,
   width?: number,
   height?: number
 }>

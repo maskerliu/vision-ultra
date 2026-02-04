@@ -2,7 +2,7 @@
 import { CVMsg, FaceDetectMsg, ImgGenMsg, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
 import CVProcessWorker from '../../cvProcess.worker?worker'
 import FaceDetectWorker from '../../faceDetect.worker?worker'
-import ImageGenWoker from '../../imageGen.worker?worker'
+import ImgGenWoker from '../../imgGen.worker?worker'
 import ObjDetectWorker from '../../objTrack.worker?worker'
 import OcrWorker from '../../ocr.worker?worker'
 import StyleTransWorker from '../../styleTrans.worker?worker'
@@ -26,7 +26,7 @@ export class WorkerManager extends ProcessorManager {
         processor = new FaceDetectWorker()
         break
       case ProcessorType.imgGen:
-        processor = new ImageGenWoker()
+        processor = new ImgGenWoker()
         break
       case ProcessorType.ocr:
         processor = new OcrWorker()
@@ -48,15 +48,18 @@ export class WorkerManager extends ProcessorManager {
     data: CVMsg | ObjTrackMsg | FaceDetectMsg | ImgGenMsg | OCRMsg | StyleTransMsg,
     transfer?: Transferable[]) {
 
-    // console.log(`[main] ${target} post`, data)
+    // console.log(`[main] ${target}`, data)
     if (!this[target]) return
 
     if (data.cmd == ProcessorCMD.process &&
       (target == ProcessorType.faceDetect || target == ProcessorType.cvProcess))
       this._processorStatus.showLoading = false
-    else
-      this._processorStatus.showLoading = true;
+    else if (data.cmd == ProcessorCMD.updateOptions) {
+      this._processorStatus.showLoading = false
+    } else
+      this._processorStatus.showLoading = true
 
+    console.log(data);
     (this.processor(target) as Worker)?.postMessage(data, transfer)
   }
 
@@ -183,6 +186,7 @@ export class WorkerManager extends ProcessorManager {
       this.postMessage(ProcessorType.objTrack, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.imgGen, { cmd: ProcessorCMD.process, image })
+      this.postMessage(ProcessorType.styleTrans, { cmd: ProcessorCMD.process, image })
     } else {
       switch (this._frames) {
         case 9:

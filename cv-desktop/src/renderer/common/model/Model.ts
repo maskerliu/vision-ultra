@@ -20,7 +20,7 @@ export class Model {
   get name() { return this._info.name }
   get type() { return this._info.type }
 
-  public scale: [number, number] = [1, 1]
+  public scale: [number, number] = [1, 1] // height, width
 
   protected _isInited: boolean = false
   get isInited() { return this._isInited }
@@ -34,7 +34,6 @@ export class Model {
   get outputs() { return this._outputs }
 
   async init(info: ModelInfo) {
-    console.log(info)
     if (this._isInited && this.name == info.name && this._info.engine == info.engine) return
     if (info.name == null) return
     if (info.type == ModelType.unknown) throw new Error('model type is unknown')
@@ -57,7 +56,7 @@ export class Model {
     if (info.name.indexOf('deeplab') != -1) {
       this._inShape[0] = this._inShape[1] = 513
     }
-    if (info.name.indexOf('animeGANv3') != -1) {
+    if (info.name.indexOf('animeGAN') != -1) {
       this._inShape[0] = this._inShape[1] = 255
     }
 
@@ -90,7 +89,7 @@ export class Model {
     this._inName = input.name
     this._inType = input.dtype
     this._inShape = input.shape.slice(1, 3) as [number, number]
-    console.log('model', this._model)
+    console.log(this._model)
   }
 
   private async loadOrtModel(name: string) {
@@ -137,14 +136,16 @@ export class Model {
         let data = await this.session?.run(params)
         result = tf.tidy(() => {
           let res = []
+
           for (let i = 0; i < this.session.outputNames.length; ++i) {
             let key = this.session.outputNames[i]
             let out = data[key] as any
-            if (i == 0) {
-              res[0] = tf.tensor(out.cpuData, out.dims, out.dtype)
+            if (out.dims.length == 4) { // yolo segment proto 
+              res[i] = tf.tensor(out.cpuData, out.dims, out.dtype).transpose([0, 2, 3, 1])
             } else {
-              res[1] = tf.tensor(out.cpuData, out.dims, out.dtype).transpose([0, 2, 3, 1])
+              res[i] = tf.tensor(out.cpuData, out.dims, out.dtype)
             }
+            out.dispose()
           }
           return res
         })
@@ -167,7 +168,7 @@ export class Model {
   }
 
   private needResize() {
-    return (this.name.indexOf('animeGANv3') != -1) || (this.name.indexOf('deeplab') != -1)
+    return (this.name.indexOf('animeGAN') != -1) || (this.name.indexOf('deeplab') != -1)
   }
 
   private needPaddingSize(input: tf.Tensor) {
@@ -183,8 +184,9 @@ export class Model {
       this.scale[1] = maxSize / this._inShape[1]
 
       if (this.needResize()) {
-        const width = Math.round(image.width / this.scale[0])
-        const height = Math.round(image.height / this.scale[1])
+        console.log(this._inType)
+        const width = Math.round(image.width / this.scale[1])
+        const height = Math.round(image.height / this.scale[0])
         return tf.image.resizeBilinear(img, [height, width])
           .expandDims().cast(this._inType as tf.DataType)
       }
@@ -202,12 +204,12 @@ export class Model {
         [0, 0],
       ])
       return tf.image.resizeBilinear(padded as any, this._inShape)
-        .div(255.0).expandDims(0).cast(this._inType as tf.DataType)
+        .div(255).expandDims(0).cast(this._inType as tf.DataType)
     })
 
     switch (this._info.engine) {
       case ModelEngine.onnx:
-        let tmp = tf.tidy(() => {
+        let tmp = tf.tidy(() => { // NHWC to  NCHW 
           return (result as tf.Tensor).transpose([0, 3, 1, 2])
         })
         let data = await tmp.data()
