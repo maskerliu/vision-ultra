@@ -19,7 +19,7 @@
         <van-list v-else style="max-height: calc(100vh - 300px); overflow: hidden scroll;">
           <van-cell center :border="true" clickable class="marker" v-for="(marker, idx) in markerGroup.get(key)"
             :ref="(el: any) => setMarkerRef(el, key, idx as number)"
-            :style="{ borderColor: marker.get('stroke'), backgroundColor: activeMarker?.get('uuid') == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
+            :style="{ borderColor: marker.get('stroke'), backgroundColor: activeMarker == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
             @click="onMarkerStatusChanged(marker as any, 'selected')">
             <template #title>
               <van-row>
@@ -46,16 +46,17 @@
 
 import * as fabric from 'fabric'
 import { Cell, Popup } from 'vant'
-import { inject, onMounted, Ref, ref, useTemplateRef } from 'vue'
+import { inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { AnnotationManager, CVLabel, DrawType } from '../../common'
 
-const annoMgr = inject<Ref<AnnotationManager>>('annoMgr')
+const annoMgr = inject<AnnotationManager>('annoMgr')
 const activeMarkerGroup = ref(DrawType.rect)
 const curMarker = ref<fabric.FabricObject>()
 const labelRefGroup = ref<Map<DrawType, Array<typeof Cell>>>(new Map())
 const MarkerOpts = ['pin', 'lock', 'visible']
 const labelSearchRef = useTemplateRef<typeof Popup>('labelSearchRef')
 const showLabelSearch = ref(false)
+const activeMarker = ref<string>(null)
 
 const markerGroup = defineModel('markerGroup', {
   required: true,
@@ -63,11 +64,6 @@ const markerGroup = defineModel('markerGroup', {
   type: Map<DrawType, fabric.FabricObject[]>
 })
 
-const activeMarker = defineModel('activeMarker', {
-  required: false,
-  default: null,
-  type: fabric.FabricObject
-})
 
 defineProps<{
   searchLabels: Array<CVLabel>
@@ -98,36 +94,7 @@ function getMarkerStatus(marker: fabric.FabricObject, status: string) {
 
 function onMarkerStatusChanged(object: fabric.FabricObject, status: string, type?: string) {
   curMarker.value = object
-  let val = object.get(status) == null ? false : object.get(status)
-  let params = {}
-  params[status] = !val
-  object.set(params)
-  val = object.get(status)
-  switch (status) {
-    case 'selected':
-      object.canvas.setActiveObject(object)
-      break
-    case 'pin':
-      object.set({
-        evented: true,
-        lockMovementX: val,
-        lockMovementY: val,
-        lockRotation: val,
-        hasRotatingPoint: !val,
-      })
-      break
-    case 'lock':
-      object.set({ evented: val })
-      break
-    case 'visible':
-      object.set({ visible: val })
-      break
-    case 'delete':
-      annoMgr.value.remove(type as DrawType, object)
-      markerGroup.value.set(type, annoMgr.value.getObjects(type as DrawType))
-      break
-  }
-  annoMgr.value.requestRenderAll()
+  annoMgr.updateObjectStatus(object, status, type)
 }
 
 function handleSearch(e: any) {
@@ -143,9 +110,14 @@ function showLabelSearchResult(type: DrawType, idx: number) {
 
 function updateMarkerLabel(label: CVLabel) {
   curMarker.value.set(AnnotationManager.genLabelOption(label))
-  annoMgr.value.requestRenderAll()
+  annoMgr.requestRenderAll()
   showLabelSearch.value = false
 }
+
+
+watch(() => annoMgr.activeObject.value, () => {
+  activeMarker.value = annoMgr.activeObject.value
+})
 
 </script>
 <style lang="css" scoped>
