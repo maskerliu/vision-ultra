@@ -1,6 +1,6 @@
 
-import { ProcessorCMD } from '../shared'
-import { StyleTransfer } from './common/model/StyleTransfer'
+import { ProcessorCMD } from '../../../shared'
+import { StyleTransfer } from '../model/StyleTransfer'
 
 const ctx: Worker = self as any
 let styleTransfer: StyleTransfer = new StyleTransfer()

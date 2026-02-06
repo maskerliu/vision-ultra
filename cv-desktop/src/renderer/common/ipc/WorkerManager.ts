@@ -1,12 +1,12 @@
 
 import { CVMsg, FaceDetectMsg, ImgGenMsg, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
-import CVProcessWorker from '../../cvProcess.worker?worker'
-import FaceDetectWorker from '../../faceDetect.worker?worker'
-import ImgGenWoker from '../../imgGen.worker?worker'
-import ObjDetectWorker from '../../objTrack.worker?worker'
-import OcrWorker from '../../ocr.worker?worker'
-import StyleTransWorker from '../../styleTrans.worker?worker'
+import CVProcessWorker from './cvProcess.worker?worker'
+import FaceDetectWorker from './faceDetect.worker?worker'
+import ImgGenWoker from './imgGen.worker?worker'
+import ObjDetectWorker from './objTrack.worker?worker'
+import OcrWorker from './ocr.worker?worker'
 import { DrawMode, ProcessorManager, ProcessorType } from './ProcessorManager'
+import StyleTransWorker from './styleTrans.worker?worker'
 
 // use cv & tfjs in browser env
 export class WorkerManager extends ProcessorManager {
@@ -130,6 +130,10 @@ export class WorkerManager extends ProcessorManager {
     }
   }
 
+  protected onOcrMsg(event: MessageEvent) {
+
+  }
+
   protected onImgGenMsg(event: MessageEvent) {
     this._processorStatus.showLoading = false
     this._processorStatus.showProcess = false
@@ -147,10 +151,6 @@ export class WorkerManager extends ProcessorManager {
         this.previewCtx.restore()
         break
     }
-  }
-
-  protected onOcrMsg(event: MessageEvent) {
-
   }
 
   protected onStyleTransMsg(event: MessageEvent) {
