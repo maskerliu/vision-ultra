@@ -459,8 +459,7 @@ const SegmentModels = [
   { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.segment },
   { name: 'yolo26s-seg', desc: '10.4', type: ModelType.segment },
   { name: 'yoloe-26n-seg', desc: '20.1M', type: ModelType.segment },
-  { name: 'yoloe-26s-seg', desc: '20.1M', type: ModelType.segment },
-  { name: 'yoloe-26s-seg-pf', desc: '20.1M', type: ModelType.segment },
+  { name: 'yoloe-26n-seg-pf', desc: '20.1M', type: ModelType.segment },
   { name: 'unet', desc: '', type: ModelType.segment },
   { name: 'sam', desc: '38.9M', type: ModelType.segment }
 ]
@@ -476,6 +475,7 @@ const GanModels = [
 
 const showOcrModels = ref(false)
 const OcrModels = [
+  { name: 'kerasOcr', desc: '', type: ModelType.ocr },
   { name: 'easyOcr', desc: '', type: ModelType.ocr },
   { name: 'paddleOcr', desc: '', type: ModelType.ocr },
   { name: 'GOT-OCR', desc: '', type: ModelType.ocr },

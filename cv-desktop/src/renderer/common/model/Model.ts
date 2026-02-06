@@ -25,7 +25,8 @@ export class Model {
   protected _isInited: boolean = false
   get isInited() { return this._isInited }
 
-  private _inShape: [number, number] = [-1, -1] // height, width
+  // default input shape NHWC
+  private _inShape: [number, number, number, number] = [1, 0, 0, 0] // height, width
   private _inName: string = null
   private _inType: string = null
   get inShape() { return this._inShape }
@@ -54,14 +55,14 @@ export class Model {
     }
 
     if (info.name.indexOf('deeplab') != -1) {
-      this._inShape[0] = this._inShape[1] = 513
+      this._inShape = [1, 513, 513, 3]
     }
-    if (info.name.indexOf('animeGAN') != -1) {
-      this._inShape[0] = this._inShape[1] = 255
+    if (info.name.indexOf('animeGANv2') != -1) {
+      this._inShape = [1, 512, 512, 3]
     }
-
-    // console.log(this.model.inputs[0].shape, this.modelWidth, this.modelHeight)
-
+    if (info.name.indexOf('animeGANv3') != -1) {
+      this._inShape = [1, 256, 256, 3]
+    }
     this._isInited = true
   }
 
@@ -88,7 +89,7 @@ export class Model {
 
     this._inName = input.name
     this._inType = input.dtype
-    this._inShape = input.shape.slice(1, 3) as [number, number]
+    this._inShape = input.shape as [number, number, number, number]
     console.log(this._model)
   }
 
@@ -106,7 +107,7 @@ export class Model {
 
     this._inName = input.name
     this._inType = input.type
-    this._inShape = input.shape.slice(2) as [number, number]
+    this._inShape = input.shape as [number, number, number, number]
 
     let outputs = this.session.outputMetadata[0] as ort.InferenceSession.TensorValueMetadata
     // this._output = outputs 
@@ -134,9 +135,9 @@ export class Model {
     switch (this._info.engine) {
       case ModelEngine.onnx:
         let data = await this.session?.run(params)
+        console.log(data)
         result = tf.tidy(() => {
           let res = []
-
           for (let i = 0; i < this.session.outputNames.length; ++i) {
             let key = this.session.outputNames[i]
             let out = data[key] as any
@@ -153,7 +154,9 @@ export class Model {
       case ModelEngine.tensorflow: {
         switch (this.name) {
           case 'mobilenet':
+          case 'animeGANv2':
             result = await this._model.executeAsync(params)
+            console.log(result)
             break
           default:
             result = this._model.execute(params)
@@ -162,13 +165,29 @@ export class Model {
       }
     }
 
+    if (this._info.name.indexOf('animeGANv2') != -1) {
+      const res = result[0] as tf.Tensor
+      let w = Math.ceil(image.width / this.scale[1])
+      let h = Math.ceil(image.height / this.scale[0])
+      result = res.slice([0, 0, 0, 0], [-1, h, w, -1])
+      tf.dispose(res)
+    }
+
+    if (this._info.name.indexOf('animeGANv3') != -1 && this._info.engine == ModelEngine.onnx) {
+      const res = result[0] as tf.Tensor
+      result = res.transpose([0, 3, 1, 2])
+      tf.dispose(res)
+    }
+
     // console.log(result)
     input.dispose()
     return result
   }
 
   private needResize() {
-    return (this.name.indexOf('animeGAN') != -1) || (this.name.indexOf('deeplab') != -1)
+    return (this.name.indexOf('deeplab') != -1) ||
+      (this.name.indexOf('animeGANv3') != -1 && this._info.engine == ModelEngine.tensorflow)
+
   }
 
   private needPaddingSize(input: tf.Tensor) {
@@ -180,11 +199,12 @@ export class Model {
     let result = tf.tidy(() => {
       const img = tf.browser.fromPixels(image)
       const maxSize = Math.max(image.width, image.height)
-      this.scale[0] = maxSize / this._inShape[0]
-      this.scale[1] = maxSize / this._inShape[1]
+      let idx = this._inShape.findIndex(it => it == 3)
+      let size = idx == 1 ? this._inShape.slice(2, 4) : this._inShape.slice(1, 3)
+      this.scale[0] = maxSize / size[0]
+      this.scale[1] = maxSize / size[1]
 
       if (this.needResize()) {
-        console.log(this._inType)
         const width = Math.round(image.width / this.scale[1])
         const height = Math.round(image.height / this.scale[0])
         return tf.image.resizeBilinear(img, [height, width])
@@ -203,21 +223,29 @@ export class Model {
         [0, maxSize - image.width],
         [0, 0],
       ])
-      return tf.image.resizeBilinear(padded as any, this._inShape)
+
+      return tf.image.resizeBilinear(padded as any, size as [number, number])
         .div(255).expandDims(0).cast(this._inType as tf.DataType)
     })
+
 
     switch (this._info.engine) {
       case ModelEngine.onnx:
         let tmp = tf.tidy(() => { // NHWC to  NCHW 
-          return (result as tf.Tensor).transpose([0, 3, 1, 2])
+          let trans = this.name.indexOf('animeGANv3') != -1 ? [0, 3, 1, 2] : [0, 3, 1, 2]
+          return (result as tf.Tensor).transpose(trans)
         })
         let data = await tmp.data()
         tf.dispose(tmp)
-        return new ort.Tensor(this._inType as any, data,
-          (this.session.inputMetadata[0] as any).shape)
+        let dims = this.name.indexOf('animeGANv2') != -1 ? [1, 3, this._inShape[1], this._inShape[2]] : this._inShape
+        return new ort.Tensor(this._inType as any, data, dims)
       case ModelEngine.tensorflow:
-        return result
+        return tf.tidy(() => {
+          if (this._info.name.indexOf('animeGANv2') != -1) {
+            return result.transpose([0, 3, 1, 2])
+          }
+          return result
+        })
     }
   }
 }

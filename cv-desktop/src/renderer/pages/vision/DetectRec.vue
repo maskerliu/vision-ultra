@@ -314,14 +314,14 @@ watch(
 watch(() => visionStore.objDetectModel, async () => {
   processorMgr.postMessage(ProcessorType.objTrack, {
     cmd: ProcessorCMD.init,
-    model: JSON.stringify(visionStore.objDetectModel)
+    model: JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
   })
 })
 
 watch(() => visionStore.ganModel, async () => {
   processorMgr.postMessage(ProcessorType.imgGen, {
     cmd: ProcessorCMD.init,
-    model: JSON.stringify(visionStore.ganModel)
+    model: JSON.stringify(Object.assign(visionStore.ganModel, { engine: visionStore.modelEngine }))
   })
 })
 
@@ -334,8 +334,8 @@ watch(
     console.log(visionStore.styleModel)
     processorMgr.postMessage(ProcessorType.styleTrans, {
       cmd: ProcessorCMD.init,
-      styleModel: JSON.stringify(visionStore.styleModel),
-      transModel: JSON.stringify(visionStore.transModel),
+      styleModel: JSON.stringify(Object.assign(visionStore.styleModel, { engine: visionStore.modelEngine })),
+      transModel: JSON.stringify(Object.assign(visionStore.transModel, { engine: visionStore.modelEngine })),
       style: visionStore.styleFile,
       params: JSON.stringify(visionStore.styleTransParams)
     })
