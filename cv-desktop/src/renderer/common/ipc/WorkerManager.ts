@@ -36,7 +36,6 @@ export class WorkerManager extends ProcessorManager {
         break
     }
 
-    console.log(`on${target}Msg`)
     processor.addEventListener('message', this[`on${target}Msg`].bind(this))
     this.processors.set(target, processor)
 
@@ -52,14 +51,14 @@ export class WorkerManager extends ProcessorManager {
     if (!this[target]) return
 
     if (data.cmd == ProcessorCMD.process &&
-      (target == ProcessorType.faceDetect || target == ProcessorType.cvProcess))
+      (target == ProcessorType.faceDetect || target == ProcessorType.cvProcess)) {
       this._processorStatus.showLoading = false
-    else if (data.cmd == ProcessorCMD.updateOptions) {
+    } else if (data.cmd == ProcessorCMD.updateOptions) {
       this._processorStatus.showLoading = false
-    } else
+    } else {
       this._processorStatus.showLoading = true
+    }
 
-    console.log(data);
     (this.processor(target) as Worker)?.postMessage(data, transfer)
   }
 
@@ -107,6 +106,7 @@ export class WorkerManager extends ProcessorManager {
           this.objects.scores, this.objects.classes,
           this.objects.objNum, this.objects.scale)
 
+        console.log(event.data)
         this.drawOverlay()
         this.drawMask()
         break
@@ -138,9 +138,12 @@ export class WorkerManager extends ProcessorManager {
       case 'generated':
         let imageData = new ImageData(event.data.width, event.data.height)
         imageData.data.set(event.data.image)
+        let offscreen = new OffscreenCanvas(imageData.width, imageData.height)
+        let offscreenCtx = offscreen.getContext('2d')
+        offscreenCtx.putImageData(imageData, 0, 0)
         this.previewCtx.save()
-        this.previewCtx.scale(4, 4)
-        this.previewCtx.putImageData(imageData, 0, 0)
+        this.previewCtx.scale(2.5, 2.5)
+        this.previewCtx.drawImage(offscreen, 0, 0)
         this.previewCtx.restore()
         break
     }
