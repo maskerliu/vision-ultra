@@ -1,6 +1,6 @@
 
-import { ModelInfo, ObjTrackMsg, ProcessorCMD } from '../shared'
-import { ObjectTracker } from './common/model/ObjectTracker'
+import { ModelInfo, ObjTrackMsg, ProcessorCMD } from '../../../shared'
+import { ObjectTracker } from '../model/ObjectTracker'
 
 const ctx: Worker = self as any
 let objTracker: ObjectTracker = new ObjectTracker()
