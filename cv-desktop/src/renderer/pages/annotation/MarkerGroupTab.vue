@@ -19,7 +19,7 @@
         <van-list v-else style="max-height: calc(100vh - 300px); overflow: hidden scroll;">
           <van-cell center :border="true" clickable class="marker" v-for="(marker, idx) in markerGroup.get(key)"
             :ref="(el: any) => setMarkerRef(el, key, idx as number)"
-            :style="{ borderColor: marker.get('stroke'), backgroundColor: activeMarker == marker.get('uuid') ? 'var(--van-cell-active-color)' : 'transparent' }"
+            :style="{ borderColor: marker.get('stroke'), backgroundColor: activeMarker == marker.get('uuid') ? 'var(--van-active-color)' : 'transparent' }"
             @click="onMarkerStatusChanged(marker as any, 'selected')">
             <template #title>
               <van-row>

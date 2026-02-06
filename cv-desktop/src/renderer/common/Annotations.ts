@@ -43,15 +43,14 @@ export class AnnotationManager {
   private _cursorPoint: fabric.Point = new fabric.Point(0, 0)
   private _isDragging = false
   private _drawType: DrawType = DrawType.select
-  private _label: Ref<CVLabel>
-  set label(label: Ref<CVLabel>) { this._label = label }
+  private _label: Ref<CVLabel> = ref()
+  get label() { return this._label }
 
   private _activeObj: Ref<string> = ref(null)
   get activeObject() { return this._activeObj }
 
   private _objNum: Ref<number> = ref(0)
   get objNum() { return this._objNum }
-  set objNum(val: Ref) { this._objNum = val }
 
   private defCtrl = fabric.controlsUtils.createObjectDefaultControls()
   private labelText: fabric.FabricText
@@ -283,6 +282,11 @@ export class AnnotationManager {
         return
       }
 
+      if (this._label.value == null) {
+        showToast({ message: '请先选择类别', duration: 500 })
+        return
+      }
+
       this.drawingObj = this.genPoly(this.polyTmpPts, this._drawType)
       this.drawingObj.set(AnnotationManager.genLabelOption(this._label.value))
       this.drawingObj.set({ score: '100.0', uuid: uuidv4() })
@@ -296,7 +300,8 @@ export class AnnotationManager {
       this.polyTmpObjs = []
       this.onPolyDrawing = false
       this.drawingObj = null
-      this.mouseFrom = null
+      this.mouseFrom.x = 0
+      this.mouseFrom.y = 0
       this.onDrawing = false
     }
   }
@@ -310,8 +315,14 @@ export class AnnotationManager {
 
     if (this._drawType == DrawType.select || this._isDragging) return
 
-    this.mouseFrom = pointer
+    this.mouseFrom.x = pointer.x
+    this.mouseFrom.y = pointer.y
     this.onDrawing = true
+
+    if (this._label.value == null) {
+      showToast({ message: '请先选择类别', duration: 500 })
+      return
+    }
 
     if (this._drawType == DrawType.multiLine || this._drawType == DrawType.polygon) {
       this.onPolyDrawing = true
@@ -427,7 +438,8 @@ export class AnnotationManager {
           this._canvas.setActiveObject(this.drawingObj)
           this._canvas.discardActiveObject()
           this.drawingObj = null
-          this.mouseFrom = null
+          this.mouseFrom.x = 0
+          this.mouseFrom.y = 0
           this.onDrawing = false
           this._canvas.requestRenderAll()
           this._objNum.value++
@@ -582,12 +594,12 @@ export class AnnotationManager {
 
   static genLabelOption(label: CVLabel) {
     return {
-      label: label.name,
-      stroke: label.color,
-      fill: MarkColors.hexToRgba(label.color, 0.2),
-      cornerColor: MarkColors.reverseColor(label.color, 1),
+      label: label?.name,
+      stroke: label?.color,
+      fill: MarkColors.hexToRgba(label?.color, 0.2),
+      cornerColor: MarkColors.reverseColor(label?.color, 1),
       // cornerStrokeColor: MarkColors.reverseColor(label.color, 0.8),
-      borderColor: MarkColors.reverseColor(label.color),
+      borderColor: MarkColors.reverseColor(label?.color),
     }
   }
 

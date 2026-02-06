@@ -57,23 +57,15 @@
       </van-list>
     </van-popup>
 
-    <van-field label="points" label-align="right" type="number" label-width="4rem"
-      style="position: absolute; top: 8px; left:auto; right: auto; width: 15rem; z-index: 2003;">
-      <template #input>
-        <van-slider bar-height="4px" button-size="1.2rem" min="0" max="3" step="0.1" v-model="polyTolerance">
-          <template #button>
-            <van-button plain size="small"> {{ polyTolerance }}</van-button>
-          </template>
-        </van-slider>
-      </template>
-    </van-field>
+    <slider-field label="points" label-width="60px" :max="10" :slider-value="polyTolerance"
+      style="position: absolute; top: 2px; left:auto; right: auto; width: 15rem; z-index: 2003;" />
     <canvas ref="annotationCanvas" style="display: block"></canvas>
 
     <van-popup :show="showRightBar" position="right" :overlay="false" class="right-bar">
       <van-tabs v-model:active="activeTab" sticky>
         <marker-group-tab v-model:marker-group="markerGroup" :search-labels="markerSearchLabels"
           @searchLabels="onMarkerLabelSearch" />
-        <label-group-tab ref="labeTab" v-model:active-label="activeLabel" />
+        <label-group-tab ref="labeTab" />
       </van-tabs>
     </van-popup>
   </van-row>
@@ -85,11 +77,12 @@ import { v4 as uuidv4 } from 'uuid'
 import { onMounted, provide, ref, useTemplateRef, watch } from 'vue'
 import { AnnotationManager, CVLabel, DrawType } from '../../common'
 import { VisionStore } from '../../store'
+import SliderField from '../components/SliderField.vue'
 import LabelGroupTab from './LabelGroupTab.vue'
 import MarkerGroupTab from './MarkerGroupTab.vue'
 
 const visionStore = VisionStore()
-const showRightBar = ref(false)
+const showRightBar = ref(true)
 const activeTab = ref(0)
 const labeTab = useTemplateRef<typeof LabelGroupTab>('labeTab')
 const annotationCanvas = useTemplateRef<HTMLCanvasElement>('annotationCanvas')
@@ -104,6 +97,7 @@ const markerSearchLabels = ref([])
 const showPolyTolerance = ref(false)
 const polyTolerance = ref(1)
 const annoMgr = new AnnotationManager()
+const dpr = window.devicePixelRatio || 1
 
 const DrawTypes: Array<DrawType> = [
   DrawType.select,
@@ -114,22 +108,22 @@ const { canvasSize = [640, 360] } = defineProps<{
   canvasSize: [number, number]
 }>()
 
+defineExpose({ resize, drawImage, drawAnnotations, getLabel })
 
 provide('annoMgr', annoMgr)
-
-defineExpose({ resize, drawImage, drawAnnotations, getLabel })
 
 onMounted(() => {
 
   annoMgr.init(annotationCanvas.value!, canvasSize[0], canvasSize[1])
-  annoMgr.label = activeLabel
   searchKeyword.value = activeLabel.value?.name
   annoMgr.mock()
   annoMgr.showGrid(true)
 
-  provide('annoMgr', annoMgr)
-
   updateMarkerGroup()
+
+  setTimeout(() => {
+    showRightBar.value = false
+  }, 500)
 })
 
 function resize(width: number, height: number) {
@@ -181,7 +175,6 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
   annoMgr.clear()
 
   let score = "0.0", x1 = 0, y1 = 0, x2 = 0, y2 = 0
-  const dpr = window.devicePixelRatio || 1
   for (let i = 0; i < objNum; ++i) {
     score = (scores[i] * 100).toFixed(1)
     // if (scores[i] * 100 < 30) continue
@@ -215,12 +208,12 @@ watch(() => searchKeyword.value, () => {
   searchLabels.value = labeTab.value?.searchLabel(searchKeyword.value)
 })
 
-watch(() => activeLabel.value, () => {
+watch(() => annoMgr.label.value, () => {
+  activeLabel.value = annoMgr.label.value
   searchKeyword.value = activeLabel.value?.name
 })
 
 watch(() => annoMgr.objNum.value, () => {
-  console.log('num change', annoMgr.objNum.value)
   updateMarkerGroup()
 })
 

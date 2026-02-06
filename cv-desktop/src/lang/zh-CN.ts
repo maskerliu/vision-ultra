@@ -76,9 +76,9 @@ export default {
       'yolo11s-seg': 'Yolo11s ',
       'yolo11m-seg': 'Yolo11m',
       'yolo26s-seg': 'Yolo26s',
-      'yoloe-26s-seg': '实时感知一切',
-      'yoloe-26s-seg-pf': '实时感知一切(无提示词)',
-      sam: 'Segment Anything',
+      'yoloe-26n-seg': 'YoloE26n',
+      'yoloe-26n-seg-pf': 'YoloE26n(无提示词)',
+      sam: 'Segment Anything(Meta)',
       unet: 'u-net++',
     },
 
@@ -95,6 +95,7 @@ export default {
 
     ocr: 'OCR',
     ocrModel: {
+      'kerasOcr': 'kerasOcr',
       'easyOcr': 'easyOcr',
       'paddleOcr': '飞桨OCR',
       'GOT-OCR': 'GOT-OCR2.0',
@@ -177,7 +178,7 @@ export default {
     labelPlaceholder: '请输入标签',
     labelDefault: '默认标签',
     labelImport: '导入标签',
-    cvtMaskContour: '掩膜转化为轮廓'
+    cvtMaskContour: '掩膜转轮廓'
   },
   faceRec: {
     nameInput: '请输入姓名',
