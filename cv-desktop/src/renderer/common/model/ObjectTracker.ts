@@ -81,17 +81,20 @@ export class ObjectTracker extends ModelRunner {
         return this.generateMasks(maskCoeffsTF, res[1])
       }
     })
+
     // console.log(overlay)
     // overlay?.print()
 
     this._expire = Date.now() - time
 
     if (overlay != null) {
-      let [height, width] = res[1].shape.slice(1)
+      let [height, width] = res[1].shape.slice(1, 3)
       this._segSize[0] = width
       this._segSize[1] = height
-      this._segScale[0] = this._model.inShape[1] / width
-      this._segScale[1] = this._model.inShape[0] / height
+      let idx = this._model.inShape.findIndex(it => it == 3)
+      let size = idx == 1 ? this._model.inShape.slice(2, 4) : this._model.inShape.slice(1, 3)
+      this._segScale[0] = size[1] / width
+      this._segScale[1] = size[0] / height
       await this.yoloSegment(overlay)
     }
 
@@ -151,8 +154,8 @@ export class ObjectTracker extends ModelRunner {
         data = data.transpose([0, 2, 1])
       }
 
-      console.log(data)
-      data.print()
+      // console.log(data)
+      // data.print()
 
       if (data.shape[2] >= 84) { // yolo common with segment
         const w = data.slice([0, 0, 2], [-1, -1, 1])
@@ -202,7 +205,7 @@ export class ObjectTracker extends ModelRunner {
         offset += (y2 - y1) * (x2 - x1)
         tf.dispose([iou, binary])
       } catch (err) {
-        console.error(i, y1, x1, y2, x2, err)
+        console.error(i, y1, x1, y2, x2)
       }
       i++
     }

@@ -37,7 +37,7 @@
         <van-list v-else style="width: calc(15rem - 4px); height: calc(100vh - 280px); overflow-y: scroll;">
           <van-cell :placeholder="$t('anno.labelPlaceholder')" center clickable
             v-for="labelKey of labelGroup.get(key).labels.keys()"
-            @click="activeLabel = labelGroup.get(key).labels.get(labelKey)">
+            @click="annoMgr.label.value = labelGroup.get(key).labels.get(labelKey)">
             <template #title>
               <div class="color-block" :style="{ borderColor: labelGroup.get(key).labels.get(labelKey).color }">
                 {{ labelGroup.get(key).labels.get(labelKey).name }}
@@ -56,25 +56,19 @@
 <script setup lang="ts">
 
 import { UploaderFileListItem } from 'vant'
-import { inject, onMounted, Ref, ref } from 'vue'
+import { inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AnnotationManager, CVLabel, Def_Object_Labels } from '../../common/Annotations'
 import { MARK_COLORS } from '../../common/CVColors'
 
 
 const { t } = useI18n()
-const annoMgr = inject<Ref<AnnotationManager>>('annoMgr')
+const annoMgr = inject<AnnotationManager>('annoMgr')
 const labelGroup = ref<Map<string, { labels: Map<string, CVLabel>, active: boolean }>>(new Map())
 const collapsedLabelGroup = ref()
-let activeLabelGroup: string = null
-const labelName = ref('')
 const colorSpace = ref('defo')
-
-const activeLabel = defineModel('activeLabel', {
-  required: false,
-  default: null,
-  type: Object as () => CVLabel
-})
+const activeLabel = ref<CVLabel>(null)
+let activeLabelGroup: string = null
 
 defineExpose({ getLabel, searchLabel })
 
@@ -86,10 +80,9 @@ onMounted(() => {
   })
 
   let defaultKey = t('anno.labelDefault')
-
   labelGroup.value.set(defaultKey, { labels: defLabels, active: true })
   updateLabelGroup(defaultKey)
-  activeLabel.value = getLabel(1)
+  annoMgr.label.value = getLabel(0)
 })
 
 function onColorSpaceChanged(key: string) {
@@ -154,6 +147,10 @@ function deleteLabelGroup(key: string) {
     labelGroup.value.get(t('anno.labelDefault')).active = true
   }
 }
+
+watch(() => annoMgr.label.value, () => {
+  activeLabel.value = annoMgr.label.value
+})
 
 </script>
 

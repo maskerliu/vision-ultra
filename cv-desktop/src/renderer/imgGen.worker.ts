@@ -23,7 +23,6 @@ ctx.addEventListener('message', async (event: MessageEvent<ImgGenMsg>) => {
         const result = await imageGenerator.generate(event.data.image)
         if (result != null) {
           const [image, width, height] = result
-          console.log(result)
           data = Object.assign(
             data,
             { type: 'generated', image, width, height },

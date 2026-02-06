@@ -1,5 +1,5 @@
 <template>
-  <van-field :label="label" :input-align="inputAlign">
+  <van-field :label="label" :label-width="labelWidth" :input-align="inputAlign">
     <template #input>
       <van-slider :bar-height="barHeight" :min="min" :max="max" :step="step" v-model="value" @change="onValueChanged">
         <template #button>
@@ -14,8 +14,9 @@
 import { FieldTextAlign } from 'vant'
 import { onMounted, ref } from 'vue'
 
-const { label = '', inputAlign = 'center', barHeight = '4px', min = 1, max = 100, step = 1 } = defineProps<{
+const { label = '', labelWidth = '80px', inputAlign = 'center', barHeight = '4px', min = 1, max = 100, step = 1 } = defineProps<{
   label?: string | number,
+  labelWidth?: string,
   inputAlign?: FieldTextAlign,
   barHeight?: string,
   min?: number,

@@ -76,9 +76,9 @@ export default {
       'yolo11s-seg': 'Yolo11s',
       'yolo11m-seg': 'Yolo11m',
       'yolo26s-seg': 'Yolo26s',
-      'yoloe-26s-seg': 'Real-Time Seeing Anything',
-      'yoloe-26s-seg-pf': 'Real-Time Seeing Anything(Prompt Free)',
-      sam: 'Segment Anything',
+      'yoloe-26n-seg': 'YoloE26n',
+      'yoloe-26n-seg-pf': 'YoloE26n(Prompt Free)',
+      sam: 'Segment Anything(Meta)',
       unet: 'u-net++',
     },
 
@@ -95,6 +95,7 @@ export default {
 
     ocr: 'OCR',
     ocrModel: {
+      'kerasOcr': 'kerasOcr',
       'easyOcr': 'easyOcr',
       'paddleOcr': '飞桨OCR',
       'GOT-OCR': 'GOT-OCR2.0',
