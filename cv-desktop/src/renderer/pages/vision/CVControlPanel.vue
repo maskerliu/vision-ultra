@@ -82,30 +82,6 @@
 
       </van-cell>
 
-      <van-cell center :disabled="!visionStore.enableImageGen">
-        <template #title>
-          <van-checkbox shape="square" v-model="visionStore.enableImageGen">
-            <van-icon class-prefix="iconfont" name="gen-image" style="color: #16a085;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.genImage') }}</span>
-          </van-checkbox>
-        </template>
-        <template #value>
-          <van-popover v-model:show="showGanModels" :show-arrow="false" placement="bottom-end" overlay>
-            <template #reference>
-              {{ visionStore.ganModel.name }}
-            </template>
-            <van-col class="model-container" style="height: 180px;">
-              <van-cell center clickable :title="$t(`cvControl.ganModel.${model.name}`)" title-class="van-ellipsis"
-                style="margin-left: 4px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
-                <template #right-icon>
-                  <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
-                </template>
-              </van-cell>
-            </van-col>
-          </van-popover>
-        </template>
-      </van-cell>
-
       <van-cell center :disabled="!visionStore.enableOCR">
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableOCR">
@@ -121,6 +97,30 @@
             <van-col class="model-container" style="height: 140px;">
               <van-cell center clickable :title="$t(`cvControl.ocrModel.${model.name}`)" title-class="van-ellipsis"
                 style="margin-left: 4px;" @click="onOcrModelChanged(model)" v-for="model in OcrModels">
+                <template #right-icon>
+                  <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                </template>
+              </van-cell>
+            </van-col>
+          </van-popover>
+        </template>
+      </van-cell>
+
+      <van-cell center :disabled="!visionStore.enableImageGen">
+        <template #title>
+          <van-checkbox shape="square" v-model="visionStore.enableImageGen">
+            <van-icon class-prefix="iconfont" name="gen-image" style="color: #16a085;" />
+            <span style="margin-left: 5px;">{{ $t('cvControl.genImage') }}</span>
+          </van-checkbox>
+        </template>
+        <template #value>
+          <van-popover v-model:show="showGanModels" :show-arrow="false" placement="bottom-end" overlay>
+            <template #reference>
+              {{ visionStore.ganModel.name }}
+            </template>
+            <van-col class="model-container" style="height: 180px;">
+              <van-cell center clickable :title="$t(`cvControl.ganModel.${model.name}`)" title-class="van-ellipsis"
+                style="margin-left: 4px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                 </template>

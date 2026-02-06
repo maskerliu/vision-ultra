@@ -1,11 +1,11 @@
 
-import { ImgGenMsg, ProcessorCMD } from '../shared'
-import { ImageGenerator } from './common/model/ImageGenerator'
+import { OCRMsg, ProcessorCMD } from '../../../shared'
+import { ImageGenerator } from '../model/ImageGenerator'
 
 const ctx: Worker = self as any
 let imageGenerator: ImageGenerator = new ImageGenerator()
 
-ctx.addEventListener('message', async (event: MessageEvent<ImgGenMsg>) => {
+ctx.addEventListener('message', async (event: MessageEvent<OCRMsg>) => {
   if (event.data == null) {
     ctx.postMessage({ loading: false, error: 'data invalid' })
     return
