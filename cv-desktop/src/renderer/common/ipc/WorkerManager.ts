@@ -146,7 +146,7 @@ export class WorkerManager extends ProcessorManager {
         let offscreenCtx = offscreen.getContext('2d')
         offscreenCtx.putImageData(imageData, 0, 0)
         this.previewCtx.save()
-        this.previewCtx.scale(2.5, 2.5)
+        this.previewCtx.scale(1, 1)
         this.previewCtx.drawImage(offscreen, 0, 0)
         this.previewCtx.restore()
         break
