@@ -325,6 +325,13 @@ watch(() => visionStore.ganModel, async () => {
   })
 })
 
+watch(() => visionStore.ocrModel, async () => {
+  processorMgr.postMessage(ProcessorType.ocr, {
+    cmd: ProcessorCMD.init,
+    model: JSON.stringify(Object.assign(visionStore.ocrModel, { engine: visionStore.modelEngine }))
+  })
+})
+
 watch(
   [
     () => visionStore.styleModel,

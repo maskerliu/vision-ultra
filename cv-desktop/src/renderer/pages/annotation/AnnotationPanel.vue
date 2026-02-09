@@ -181,6 +181,8 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
 
     let label = getLabel(classes[i])
 
+    if (label == null) continue
+
     if (contours && contours[i] && contours[i].length > 8) {
       let points = contours[i].map(it => { return { x: it[0] / dpr, y: it[1] / dpr } })
       let poly = annoMgr.genPoly(points, DrawType.polygon)
