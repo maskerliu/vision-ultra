@@ -92,7 +92,7 @@ export const VisionStore = defineStore('VisionStore', {
       ganModel: { name: 'animeGANv3-Ghibli', type: ModelType.genImage },
 
       enableOCR: false,
-      ocrModel: { name: 'easyOCR', type: ModelType.ocr },
+      ocrModel: { name: 'easyOcr', type: ModelType.ocr },
 
       enableStyleTrans: false,
       styleModel: { name: 'style-mobilenet', type: ModelType.style },

@@ -327,10 +327,10 @@ export class AnnotationManager {
     if (this._drawType == DrawType.multiLine || this._drawType == DrawType.polygon) {
       this.onPolyDrawing = true
 
-      let circle = this.genCircle(pointer.x - 6, pointer.y - 6, 12)
+      let circle = this.genCircle(pointer.x - 3.5, pointer.y - 3.5, 3)
       circle.set(AnnotationManager.genLabelOption({ id: -1, name: 'tmp', color: '#bdc3c7' }))
       circle.set({ strokeWidth: 1, selectable: false, evented: false })
-      if (this.polyTmpPts.length == 0) circle.set({ fill: '#f39c12', strokeWidth: 2 })
+      if (this.polyTmpPts.length == 0) circle.set({ fill: '#f39c12', strokeWidth: 1 })
       this._canvas.add(circle)
       this.polyTmpObjs.push(circle)
 

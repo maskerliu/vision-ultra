@@ -5,12 +5,12 @@ import { baseDomain, ModelEngine, ModelInfo, ModelType } from '../../../shared'
 
 export class Model {
   protected _model: tf.GraphModel
-  protected session: ort.InferenceSession
+  protected _session: ort.InferenceSession
 
   get model() {
     switch (this._info.engine) {
       case ModelEngine.onnx:
-        return this.session
+        return this._session
       case ModelEngine.tensorflow:
         return this._model
     }
@@ -54,15 +54,19 @@ export class Model {
         break
     }
 
+    if (this._model == null && this._session == null) return
+
     if (info.name.indexOf('deeplab') != -1) {
       this._inShape = [1, 513, 513, 3]
-    }
-    if (info.name.indexOf('animeGANv2') != -1) {
-      this._inShape = [1, 512, 512, 3]
     }
     if (info.name.indexOf('animeGANv3') != -1) {
       this._inShape = [1, 256, 256, 3]
     }
+
+    if (info.name == 'easyOcr') {
+      this._inShape = [1, 3, -1, -1]
+    }
+
     this._isInited = true
   }
 
@@ -70,19 +74,20 @@ export class Model {
     if (name == 'deeplab-cityspace1') {
       let modelUrl = 'https://tfhub.dev/tensorflow/tfjs-model/deeplab/cityscapes/1/default/1/model.json?tfjs-format=file'
       this._model = await tf.loadGraphModel(modelUrl)
-    } else {
-      let modelPath = `static/${name}/model.json`
-      try {
-        this._model = await tf.loadGraphModel(`indexeddb://${modelPath}`)
-      } catch (e) {
-        this._model = await tf.loadGraphModel(`${__DEV__ ? '' : baseDomain()}/${modelPath}`, {
-          requestInit: {
-            cache: 'force-cache'
-          }
-        })
+    }
 
-        await this._model.save(`indexeddb://${modelPath}`)
-      }
+    let modelPath = `static/${name}/model.json`
+    try {
+      this._model = await tf.loadGraphModel(`indexeddb://${modelPath}`)
+    } catch (e) {
+      this._model = await tf.loadGraphModel(
+        `${__DEV__ ? '' : baseDomain()}/${modelPath}`,
+        {
+          requestInit: { cache: 'force-cache' }
+        }
+      )
+
+      await this._model.save(`indexeddb://${modelPath}`)
     }
 
     let input = this._model.inputs[0]
@@ -96,34 +101,46 @@ export class Model {
   private async loadOrtModel(name: string) {
     let modelPath = `static/${name}.onnx`
     try {
-      this.session = await ort.InferenceSession.create(`${__DEV__ ? '' : baseDomain()}/${modelPath}`, {
-        executionProviders: ['wasm']
-      })
+      let opts = {
+        executionProviders: ['wasm'],
+      }
+
+      if (name == 'easyOcr') {
+        opts['externalData'] = [
+          {
+            path: 'easyOCR.onnx.data',
+            data: `${__DEV__ ? '' : baseDomain()}/static/${name}.onnx.data`
+          }
+        ]
+      }
+      this._session = await ort.InferenceSession.create(
+        `${__DEV__ ? '' : baseDomain()}/${modelPath}`, opts,
+      )
     } catch (e) {
       console.error(e)
     }
 
-    let input = this.session.inputMetadata[0] as ort.InferenceSession.TensorValueMetadata
+    let input = this._session.inputMetadata[0] as ort.InferenceSession.TensorValueMetadata
 
     this._inName = input.name
     this._inType = input.type
     this._inShape = input.shape as [number, number, number, number]
 
-    let outputs = this.session.outputMetadata[0] as ort.InferenceSession.TensorValueMetadata
+    let outputs = this._session.outputMetadata[0] as ort.InferenceSession.TensorValueMetadata
     // this._output = outputs 
-    console.log(this.session)
+    console.log(this._session)
   }
 
   async dispose() {
     this._model?.dispose()
-    await this.session?.release()
+    await this._session?.release()
     this._isInited = false
     this._model = null
-    this.session = null
+    this._session = null
   }
 
   async run(image: ImageData) {
-    if (!this._isInited || (this._model == null && this.session == null)) {
+    if (!this._isInited || (this._model == null && this._session == null)) {
       return
     }
 
@@ -134,12 +151,12 @@ export class Model {
 
     switch (this._info.engine) {
       case ModelEngine.onnx:
-        let data = await this.session?.run(params)
+        let data = await this._session?.run(params)
         console.log(data)
         result = tf.tidy(() => {
           let res = []
-          for (let i = 0; i < this.session.outputNames.length; ++i) {
-            let key = this.session.outputNames[i]
+          for (let i = 0; i < this._session.outputNames.length; ++i) {
+            let key = this._session.outputNames[i]
             let out = data[key] as any
             if (out.dims.length == 4) { // yolo segment proto 
               res[i] = tf.tensor(out.cpuData, out.dims, out.dtype).transpose([0, 2, 3, 1])
@@ -165,18 +182,22 @@ export class Model {
       }
     }
 
+    console.log(result)
     if (this._info.name.indexOf('animeGANv2') != -1) {
-      const res = result[0] as tf.Tensor
+      const res = (result[0] as tf.Tensor).transpose([0, 2, 1, 3])
       let w = Math.ceil(image.width / this.scale[1])
       let h = Math.ceil(image.height / this.scale[0])
       result = res.slice([0, 0, 0, 0], [-1, h, w, -1])
-      tf.dispose(res)
+      tf.dispose([res])
+      // result = res
     }
 
     if (this._info.name.indexOf('animeGANv3') != -1 && this._info.engine == ModelEngine.onnx) {
-      const res = result[0] as tf.Tensor
-      result = res.transpose([0, 3, 1, 2])
-      tf.dispose(res)
+      const res = (result[0] as tf.Tensor).transpose([0, 3, 1, 2])
+      let w = Math.ceil(image.width / this.scale[1])
+      let h = Math.ceil(image.height / this.scale[0])
+      result = res.slice([0, 0, 0, 0], [-1, h, w, -1])
+      tf.dispose([res])
     }
 
     // console.log(result)
@@ -212,7 +233,7 @@ export class Model {
       }
 
       // dynamic input: mobilenet
-      if (this.name == 'mobilenet') {
+      if (this.name == 'mobilenet' || this.name == 'easyOcr') {
         this.scale[0] = this.scale[1] = 1
         return tf.expandDims(img).cast(this._inType as tf.DataType)
       }
@@ -228,16 +249,18 @@ export class Model {
         .div(255).expandDims(0).cast(this._inType as tf.DataType)
     })
 
-
+    console.log(this._info.name, this._inShape)
     switch (this._info.engine) {
       case ModelEngine.onnx:
-        let tmp = tf.tidy(() => { // NHWC to  NCHW 
-          let trans = this.name.indexOf('animeGANv3') != -1 ? [0, 3, 1, 2] : [0, 3, 1, 2]
-          return (result as tf.Tensor).transpose(trans)
-        })
-        let data = await tmp.data()
-        tf.dispose(tmp)
-        let dims = this.name.indexOf('animeGANv2') != -1 ? [1, 3, this._inShape[1], this._inShape[2]] : this._inShape
+        let data = await (result as tf.Tensor).data()
+        let dims = this._inShape
+        if (this._info.name.indexOf('animeGANv2') != -1) {
+          data = result.transpose([0, 3, 2, 1]).dataSync()
+        }
+        if (this._info.name == 'easyOcr') {
+          dims = [1, 3, result.shape[1], result.shape[2]]
+        }
+        tf.dispose(result)
         return new ort.Tensor(this._inType as any, data, dims)
       case ModelEngine.tensorflow:
         return tf.tidy(() => {

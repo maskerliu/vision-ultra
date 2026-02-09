@@ -87,10 +87,16 @@ export default {
     genImage: 'Image2Image',
     ganModel: {
       'animeGANv2': 'AnimeGANv2',
-      'animeGANv3-Ghibli': 'AnimeGANv3_Ghibli-c1-e299',
+      'animeGANv3-Ghibli-o1': 'AnimeGANv3-Ghibli-o1-e299',
+      'animeGANv3-Ghibli-c1': 'AnimeGANv3-Ghibli-c1-e299',
+      'animeGANv3-Hayao': 'AnimeGANv3-Hayao-36',
+      'animeGANv3-JPface': 'AnimeGANv3-JPface-v1.0',
+      'animeGANv3-PortraitSketch': 'AnimeGANv3-PortraitSketch-25',
+      'animeGANv3-Shinkai': 'AnimeGANv3-Shinkai-37',
+      'animeGANv3-tinyCute': 'AnimeGANv3-tinyCute',
       'animeGANv3-Kpop': 'AnimateGANv3_Kpop',
       'animeGANv3-Disney': 'AnimeGANv3_Disney',
-      'animeGANv3-OilPaint': 'AnimeGANv3_Oil-painting',
+      'animeGANv3-OilPaint': 'AnimeGANv3_OilPainting',
     },
 
     ocr: 'OCR',

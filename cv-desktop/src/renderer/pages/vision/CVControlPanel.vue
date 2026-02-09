@@ -467,7 +467,13 @@ const SegmentModels = [
 const showGanModels = ref(false)
 const GanModels = [
   { name: 'animeGANv2', desc: '12.4M', type: ModelType.genImage },
-  { name: 'animeGANv3-Ghibli', desc: '12.4M', type: ModelType.genImage },
+  { name: 'animeGANv3-Ghibli-o1', desc: '12.4M', type: ModelType.genImage },
+  { name: 'animeGANv3-Ghibli-c1', desc: '12.4M', type: ModelType.genImage },
+  { name: 'animeGANv3-Hayao', desc: '12.4M', type: ModelType.genImage },
+  { name: 'animeGANv3-JPface', desc: '12.4M', type: ModelType.genImage },
+  { name: 'animeGANv3-PortraitSketch', desc: '12.4M', type: ModelType.genImage },
+  { name: 'animeGANv3-Shinkai', desc: '12.4M', type: ModelType.genImage },
+  { name: 'animeGANv3-tinyCute', desc: '1.2M', type: ModelType.genImage },
   { name: 'animeGANv3-Kpop', desc: '1.2M', type: ModelType.genImage },
   { name: 'animeGANv3-Disney', desc: '2.0M', type: ModelType.genImage },
   { name: 'animeGANv3-OilPaint', desc: '4.6M', type: ModelType.genImage },
