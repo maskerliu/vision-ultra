@@ -24,22 +24,8 @@
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": [
-      "node",
-      "reflect-metadata",
-      "@u4/opencv4nodejs"
-    ],
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
+    "types": ["node", "reflect-metadata"],
+    "lib": ["ESNext", "DOM"]
   },
-  "include": [
-    "src/**/*",
-    "cv-desktop/src/**/*.vue",
-    "cv-desktop/.build-scripts/**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
+  "exclude": ["node_modules"]
 }
