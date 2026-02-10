@@ -1,11 +1,11 @@
 
 import * as tf from '@tensorflow/tfjs'
 import { ModelInfo } from '../../../shared'
-import { Model, ModelRunner } from './Model'
+import { AnimeGanv3Model, Model, ModelRunner } from './Model'
 
 export class ImageGenerator extends ModelRunner {
 
-  protected _model: Model = new Model()
+  protected _model: Model = new AnimeGanv3Model()
 
   get isInited() { return this._model.isInited }
 
@@ -24,6 +24,7 @@ export class ImageGenerator extends ModelRunner {
     const result = await this._model.run(image) as tf.Tensor
     if (result == null) return null
     const tmp = tf.tidy(() => (Array.isArray(result) ? result[0] : result).squeeze().add(1).div(2))
+    console.log(tmp.shape)
     let generated = await tf.browser.toPixels(tmp as any)
     const [height, width] = tmp.shape.slice(0, 2)
     tf.dispose([result, tmp])

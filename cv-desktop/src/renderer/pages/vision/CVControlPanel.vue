@@ -116,7 +116,7 @@
         <template #value>
           <van-popover v-model:show="showGanModels" :show-arrow="false" placement="bottom-end" overlay>
             <template #reference>
-              {{ visionStore.ganModel.name }}
+              <span class="van-ellipsis" style="max-width: 100%;">{{ visionStore.ganModel.name }}</span>
             </template>
             <van-col class="model-container" style="height: 180px;">
               <van-cell center clickable :title="$t(`cvControl.ganModel.${model.name}`)" title-class="van-ellipsis"

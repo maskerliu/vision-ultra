@@ -76,7 +76,7 @@ export const VisionStore = defineStore('VisionStore', {
   state: () => {
     return {
       intergrateMode: IntergrateMode.wasm,
-      modelEngine: ModelEngine.tensorflow,
+      modelEngine: ModelEngine.onnx,
 
       enableObjDetect: false,
       objDetectModel: { name: 'yolo26s-seg', type: ModelType.segment, engine: ModelEngine.tensorflow },
@@ -89,7 +89,7 @@ export const VisionStore = defineStore('VisionStore', {
       live2d: false,
 
       enableImageGen: false,
-      ganModel: { name: 'animeGANv3-Ghibli', type: ModelType.genImage },
+      ganModel: { name: 'animeGANv3-Ghibli-c1', type: ModelType.genImage },
 
       enableOCR: false,
       ocrModel: { name: 'easyOcr', type: ModelType.ocr },
