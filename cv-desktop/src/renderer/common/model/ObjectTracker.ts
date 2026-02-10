@@ -64,7 +64,7 @@ export class ObjectTracker extends ModelRunner {
       result = await this.mobilenetv2(res as tf.Tensor[], image.width, image.height)
     }
 
-    let nms = await tf.image.nonMaxSuppressionAsync(result[0] as any, result[1] as any, MAX_OBJECTS_NUM, 0.45, 0.1)
+    let nms = await tf.image.nonMaxSuppressionAsync(result[0] as any, result[1] as any, MAX_OBJECTS_NUM, 0.45, 0)
     this.objNum = Math.min(nms?.size, MAX_OBJECTS_NUM)
 
     const overlay = tf.tidy(() => {

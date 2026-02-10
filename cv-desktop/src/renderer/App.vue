@@ -20,7 +20,7 @@
       style="width:100vw; height: 100vh; align-items: center; flex-direction: column; z-index: 2000;">
       <van-row justify="center" class="loading">
         <van-loading />
-        <div style="margin: 5px 15px;">{{ $t('common.componetLoading') }}</div>
+        <div style="margin: 5px 15px;">{{ $t('common.loading') }}</div>
       </van-row>
     </van-overlay>
 

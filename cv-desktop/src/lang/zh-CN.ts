@@ -7,7 +7,7 @@ export default {
     save: '保存',
     upload: '上传',
     search: '搜索',
-    componetLoading: '组件加载中...'
+    loading: '加载中...'
   },
   settings: {
     sys: {
@@ -59,7 +59,6 @@ export default {
   cvControl: {
     intergrateMode: '集成模式',
     modelEngine: '模型框架',
-    modelImport: '模型导入',
 
     objTrack: '目标识别',
     objDetect: '检测',
