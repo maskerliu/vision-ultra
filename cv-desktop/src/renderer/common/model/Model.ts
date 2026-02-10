@@ -16,7 +16,7 @@ export class Model {
     }
   }
 
-  private _info: ModelInfo
+  protected _info: ModelInfo
   get name() { return this._info.name }
   get type() { return this._info.type }
 
@@ -26,12 +26,12 @@ export class Model {
   get isInited() { return this._isInited }
 
   // default input shape NHWC
-  private _inShape: [number, number, number, number] = [1, 0, 0, 0] // height, width
-  private _inName: string = null
-  private _inType: string = null
+  protected _inShape: [number, number, number, number] = [1, -1, -1, 3] // height, width
+  protected _inName: string = null
+  protected _inType: string = null
   get inShape() { return this._inShape }
 
-  private _outputs: any
+  protected _outputs: any
   get outputs() { return this._outputs }
 
   async init(info: ModelInfo) {
@@ -151,6 +151,7 @@ export class Model {
 
     switch (this._info.engine) {
       case ModelEngine.onnx:
+        console.log(params)
         let data = await this._session?.run(params)
         console.log(data)
         result = tf.tidy(() => {
@@ -158,7 +159,7 @@ export class Model {
           for (let i = 0; i < this._session.outputNames.length; ++i) {
             let key = this._session.outputNames[i]
             let out = data[key] as any
-            if (out.dims.length == 4) { // yolo segment proto 
+            if (out.dims.length == 4 && this.name.indexOf('yolo') != -1) { // yolo segment proto 
               res[i] = tf.tensor(out.cpuData, out.dims, out.dtype).transpose([0, 2, 3, 1])
             } else {
               res[i] = tf.tensor(out.cpuData, out.dims, out.dtype)
@@ -167,6 +168,30 @@ export class Model {
           }
           return res
         })
+
+        // slice image to origin image size ratio
+        if (this.name.indexOf('animeGAN') != -1) {
+          const wrapper = result[0] as tf.Tensor
+          let idx = wrapper.shape.indexOf(3)
+          let tmp: tf.Tensor
+          if (idx == 1) {
+            tmp = wrapper.transpose([0, 2, 3, 1])
+          } else if (idx == 2) {
+            tmp = wrapper.transpose([0, 1, 3, 2])
+          }
+
+          if (tmp != null) {
+            tf.dispose([wrapper, result])
+            result = tmp
+          } else {
+            result = wrapper
+          }
+
+          // let w = Math.ceil(image.width / this.scale[1])
+          // let h = Math.ceil(image.height / this.scale[0])
+          // result = result.slice([0, 0, 0, 0], [-1, h, w, -1])
+        }
+
         break
       case ModelEngine.tensorflow: {
         switch (this.name) {
@@ -182,37 +207,17 @@ export class Model {
       }
     }
 
-    console.log(result)
-    if (this._info.name.indexOf('animeGANv2') != -1) {
-      const res = (result[0] as tf.Tensor).transpose([0, 2, 1, 3])
-      let w = Math.ceil(image.width / this.scale[1])
-      let h = Math.ceil(image.height / this.scale[0])
-      result = res.slice([0, 0, 0, 0], [-1, h, w, -1])
-      tf.dispose([res])
-      // result = res
-    }
-
-    if (this._info.name.indexOf('animeGANv3') != -1 && this._info.engine == ModelEngine.onnx) {
-      const res = (result[0] as tf.Tensor).transpose([0, 3, 1, 2])
-      let w = Math.ceil(image.width / this.scale[1])
-      let h = Math.ceil(image.height / this.scale[0])
-      result = res.slice([0, 0, 0, 0], [-1, h, w, -1])
-      tf.dispose([res])
-    }
-
-    // console.log(result)
     input.dispose()
     return result
   }
 
-  private needResize() {
+  protected needResize() {
     return (this.name.indexOf('deeplab') != -1) ||
       (this.name.indexOf('animeGANv3') != -1 && this._info.engine == ModelEngine.tensorflow)
-
   }
 
-  private needPaddingSize(input: tf.Tensor) {
-
+  protected dynamicInput() {
+    return this.name == 'mobilenet' || this.name == 'easyOcr'
   }
 
   protected async preprocess(image: ImageData) {
@@ -233,12 +238,12 @@ export class Model {
       }
 
       // dynamic input: mobilenet
-      if (this.name == 'mobilenet' || this.name == 'easyOcr') {
+      if (this.dynamicInput()) {
         this.scale[0] = this.scale[1] = 1
         return tf.expandDims(img).cast(this._inType as tf.DataType)
       }
 
-      // pad image to model size 
+      // pad image to model size as default preprocess
       const padded = img.pad([
         [0, maxSize - image.height],
         [0, maxSize - image.width],
@@ -249,27 +254,65 @@ export class Model {
         .div(255).expandDims(0).cast(this._inType as tf.DataType)
     })
 
-    console.log(this._info.name, this._inShape)
     switch (this._info.engine) {
       case ModelEngine.onnx:
-        let data = await (result as tf.Tensor).data()
+
+        let wrapper = result.transpose([0, 3, 1, 2])
+        let data = await wrapper.data()
+        wrapper.dispose()
+
         let dims = this._inShape
-        if (this._info.name.indexOf('animeGANv2') != -1) {
-          data = result.transpose([0, 3, 2, 1]).dataSync()
-        }
-        if (this._info.name == 'easyOcr') {
+
+        if (this.dynamicInput()) {
           dims = [1, 3, result.shape[1], result.shape[2]]
         }
         tf.dispose(result)
         return new ort.Tensor(this._inType as any, data, dims)
       case ModelEngine.tensorflow:
         return tf.tidy(() => {
-          if (this._info.name.indexOf('animeGANv2') != -1) {
-            return result.transpose([0, 3, 1, 2])
+          let trans = null
+          let idx = this._inShape.indexOf(3)
+          if (idx == 3) {
+            trans = [0, 3, 1, 2]
+          } else if (idx == 2) {
+            trans = [0, 2, 1, 3]
           }
-          return result
+          return trans ? result.transpose(trans) : result
         })
     }
+  }
+}
+
+export class DeeplabModel extends Model {
+  async init(info: ModelInfo) {
+    super.init(info)
+    this._inShape = [1, 513, 513, 3]
+  }
+
+  protected needResize(): boolean { return true }
+}
+
+export class AnimeGanv3Model extends Model {
+
+  async init(info: ModelInfo): Promise<void> {
+    super.init(info)
+
+    this._inShape = [1, 256, 256, 3]
+  }
+
+  protected needResize(): boolean {
+    return this._info.engine == ModelEngine.tensorflow
+  }
+}
+
+export class EasyOcrModel extends Model {
+  async init(info: ModelInfo): Promise<void> {
+    super.init(info)
+    this._inShape = [1, 3, -1, -1]
+  }
+
+  protected dynamicInput() {
+    return true
   }
 }
 

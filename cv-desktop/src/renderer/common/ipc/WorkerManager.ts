@@ -131,6 +131,9 @@ export class WorkerManager extends ProcessorManager {
   }
 
   protected onOcrMsg(event: MessageEvent) {
+    this._processorStatus.showLoading = false
+    this._processorStatus.showProcess = false
+
 
   }
 
@@ -146,7 +149,7 @@ export class WorkerManager extends ProcessorManager {
         let offscreenCtx = offscreen.getContext('2d')
         offscreenCtx.putImageData(imageData, 0, 0)
         this.previewCtx.save()
-        this.previewCtx.scale(1, 1)
+        this.previewCtx.scale(2.5, 2.5)
         this.previewCtx.drawImage(offscreen, 0, 0)
         this.previewCtx.restore()
         break
@@ -188,6 +191,7 @@ export class WorkerManager extends ProcessorManager {
     if (this._drawMode == DrawMode.image) {
       this.postMessage(ProcessorType.objTrack, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image })
+      this.postMessage(ProcessorType.ocr, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.imgGen, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.styleTrans, { cmd: ProcessorCMD.process, image })
     } else {

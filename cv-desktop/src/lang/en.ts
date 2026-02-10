@@ -7,7 +7,7 @@ export default {
     save: 'Save',
     upload: 'Upload',
     search: 'Search',
-    componetLoading: 'Component Loading...'
+    loading: 'Loading...'
   },
   settings: {
     sys: {
@@ -59,7 +59,6 @@ export default {
   cvControl: {
     intergrateMode: 'Integrate Mode',
     modelEngine: 'Model Framework',
-    ModelImport: 'Import Model',
 
     objTrack: 'Object Detect',
     objDetect: 'Detect',

@@ -1,3 +1,4 @@
+import * as tf from '@tensorflow/tfjs'
 import { ModelInfo } from "../../../shared"
 import { Model, ModelRunner } from "./Model"
 
@@ -17,6 +18,9 @@ export class OcrScanner extends ModelRunner {
   }
 
   async scan(image: ImageData, params: [number, number, number]) {
+    const result = await this._model.run(image) as tf.Tensor
+    console.log(result)
 
+    return result
   }
 }
