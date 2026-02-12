@@ -22,17 +22,17 @@ ctx.addEventListener('message', async (event: MessageEvent<ObjTrackMsg>) => {
       case ProcessorCMD.process:
         let result = await objTracker.detect(event.data.image)
         data = Object.assign(data, {
-          type: 'mask',
-          boxes: objTracker.boxes,
-          scores: objTracker.scores,
-          classes: objTracker.classes,
+          type: 'segment',
+          boxes: objTracker.objNum == 0 ? null : objTracker.boxes,
+          scores: objTracker.objNum == 0 ? null : objTracker.scores,
+          classes: objTracker.objNum == 0 ? null : objTracker.classes,
           objNum: objTracker.objNum,
           expire: objTracker.expire,
           overlay: result?.overlay,
           scale: objTracker.scale,
-          masks: objTracker.masks,
-          segSize: objTracker.segSize,
-          segScale: objTracker.segScale
+          masks: objTracker.objNum == 0 ? null : objTracker.masks,
+          segSize: objTracker.objNum == 0 ? null : objTracker.segSize,
+          segScale: objTracker.objNum == 0 ? null : objTracker.segScale
         })
         // console.log('[worker]', data)
         break

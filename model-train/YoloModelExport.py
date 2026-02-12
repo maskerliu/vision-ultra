@@ -1,13 +1,11 @@
 from ultralytics import YOLO
 from pathlib import Path
 
-# print("yolo11")
-# model11 = YOLO(Path("./yolo11n.pt"))
-# results = model11("./bus.jpg")
-# model11.export(
-#     format="tfjs",
-#     half=True,
-# )
+model11 = YOLO("./pt/yolov8s.pt")
+model11.export(
+    format="tfjs",
+    int8=True,
+)
 
 # model11.export(format="tfjs")
 # print("yolov10n")
@@ -57,7 +55,7 @@ from pathlib import Path
 # model.export(format="tfjs", int8=True)
 
 
-import easyocr
-reader = easyocr.Reader(['ch_sim','en']) # this needs to run only once to load the model into memory
-result = reader.readtext('ocr.webp')
-print(result)
+# import easyocr
+# reader = easyocr.Reader(['ch_sim','en']) # this needs to run only once to load the model into memory
+# result = reader.readtext('ocr.webp')
+# print(result)

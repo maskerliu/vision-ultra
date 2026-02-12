@@ -106,21 +106,21 @@
         </template>
       </van-cell>
 
-      <van-cell center :disabled="!visionStore.enableImageGen">
+      <van-cell center :disabled="!visionStore.enableAnime">
         <template #title>
-          <van-checkbox shape="square" v-model="visionStore.enableImageGen">
+          <van-checkbox shape="square" v-model="visionStore.enableAnime">
             <van-icon class-prefix="iconfont" name="gen-image" style="color: #16a085;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.genImage') }}</span>
+            <span style="margin-left: 5px;">{{ $t('cvControl.animeGAN') }}</span>
           </van-checkbox>
         </template>
         <template #value>
-          <van-popover v-model:show="showGanModels" :show-arrow="false" placement="bottom-end" overlay>
+          <van-popover v-model:show="showAnimeModels" :show-arrow="false" placement="bottom-end" overlay>
             <template #reference>
-              <span class="van-ellipsis" style="max-width: 100%;">{{ visionStore.ganModel.name }}</span>
+              {{ $t(`cvControl.animeModel.${visionStore.animeModel.name}`) }}
             </template>
             <van-col class="model-container" style="height: 180px;">
-              <van-cell center clickable :title="$t(`cvControl.ganModel.${model.name}`)" title-class="van-ellipsis"
-                style="margin-left: 4px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
+              <van-cell center clickable :title="$t(`cvControl.animeModel.${model.name}`)" title-class="van-ellipsis"
+                style="margin-left: 0px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                 </template>
@@ -446,25 +446,26 @@ const ModelEngines = [
 const showObjRecModels = ref(false)
 const ObjRecModelGrop = new Map<string, Array<ModelInfo>>()
 const DetectModels = [
-  { name: 'yolov8n', desc: '3.2M', type: ModelType.detect },
+  { name: 'yolov8s', desc: '3.2M', type: ModelType.detect },
   { name: 'yolov10s', desc: '7.2M', type: ModelType.detect },
-  { name: 'yolo11n', desc: '2.6M', type: ModelType.detect },
   { name: 'yolo11s', desc: '9.4M', type: ModelType.detect },
   { name: 'mobilenet', desc: '', type: ModelType.detect }
 ]
 const SegmentModels = [
   { name: 'deeplab-ade', desc: 'class: 150', type: ModelType.segment },
   { name: 'deeplab-cityspace', desc: 'class: 20', type: ModelType.segment },
+  { name: 'deeplabv3p-mobilenet', external: 'model.data', desc: 'class: 21', type: ModelType.segment },
+  { name: 'bisenet', external: 'model.data', desc: '3.2M', type: ModelType.segment },
   { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.segment },
-  { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.segment },
   { name: 'yolo26s-seg', desc: '10.4', type: ModelType.segment },
   { name: 'yoloe-26n-seg', desc: '20.1M', type: ModelType.segment },
   { name: 'yoloe-26n-seg-pf', desc: '20.1M', type: ModelType.segment },
   { name: 'unet', desc: '', type: ModelType.segment },
-  { name: 'sam', desc: '38.9M', type: ModelType.segment }
+  { name: 'sam', desc: '38.9M', type: ModelType.segment },
+  { name: 'fastSAMs', external: 'model.data', desc: '', type: ModelType.segment },
 ]
 
-const showGanModels = ref(false)
+const showAnimeModels = ref(false)
 const GanModels = [
   { name: 'animeGANv2', desc: '12.4M', type: ModelType.genImage },
   { name: 'animeGANv3-Ghibli-o1', desc: '12.4M', type: ModelType.genImage },
@@ -473,16 +474,14 @@ const GanModels = [
   { name: 'animeGANv3-JPface', desc: '12.4M', type: ModelType.genImage },
   { name: 'animeGANv3-PortraitSketch', desc: '12.4M', type: ModelType.genImage },
   { name: 'animeGANv3-Shinkai', desc: '12.4M', type: ModelType.genImage },
-  { name: 'animeGANv3-tinyCute', desc: '1.2M', type: ModelType.genImage },
-  { name: 'animeGANv3-Kpop', desc: '1.2M', type: ModelType.genImage },
-  { name: 'animeGANv3-Disney', desc: '2.0M', type: ModelType.genImage },
-  { name: 'animeGANv3-OilPaint', desc: '4.6M', type: ModelType.genImage },
+  { name: 'animeGANv3-TinyCute', desc: '1.2M', type: ModelType.genImage },
+  { name: 'animeGANv3-FacePaint', desc: '1.2M', type: ModelType.genImage },
 ]
 
 const showOcrModels = ref(false)
 const OcrModels = [
   { name: 'kerasOcr', desc: '', type: ModelType.ocr },
-  { name: 'easyOcr', desc: '', type: ModelType.ocr },
+  { name: 'easyOcr', external: 'easyOCR.onnx.data', desc: '', type: ModelType.ocr },
   { name: 'paddleOcr', desc: '', type: ModelType.ocr },
   { name: 'GOT-OCR', desc: '', type: ModelType.ocr },
 ]
@@ -539,8 +538,8 @@ function onObjRecModelChanged(model: ModelInfo) {
 }
 
 function onGanModelChanged(model: ModelInfo) {
-  visionStore.ganModel = model
-  showGanModels.value = false
+  visionStore.animeModel = model
+  showAnimeModels.value = false
 }
 
 function onOcrModelChanged(model: ModelInfo) {
@@ -602,8 +601,7 @@ async function onModelUpload(data: any) {
   width: 288px;
   height: 260px;
   overflow: hidden scroll;
-  padding-top: 10px;
-  padding-left: 4px;
+  padding: 10px 0 10px 4px;
   background-color: var(--van-gray-1);
 }
 </style>
