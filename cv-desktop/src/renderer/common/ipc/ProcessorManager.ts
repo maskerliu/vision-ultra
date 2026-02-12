@@ -98,7 +98,7 @@ export abstract class ProcessorManager {
     this[`${ProcessorType.styleTrans}`] = false
   }
 
-  protected abstract register(target: ProcessorType, data?: any): void
+  protected abstract register(target: ProcessorType, data?: any): Promise<void>
 
   abstract postMessage(
     target: ProcessorType,
@@ -122,7 +122,7 @@ export abstract class ProcessorManager {
     }
   }
 
-  setParam(type: ProcessorType, val: boolean, metadata?: any, anyway: boolean = false) {
+  async setParam(type: ProcessorType, val: boolean, metadata?: any, anyway: boolean = false) {
 
     if (this[`${type}`] == val && !anyway) return
     this[`${type}`] = val
@@ -130,7 +130,7 @@ export abstract class ProcessorManager {
     if (val) {
       this._processorStatus.showLoading = true
       if (anyway) { this.terminate(type) }
-      this.register(type, Object.assign({ cmd: ProcessorCMD.init }, metadata))
+      await this.register(type, Object.assign({ cmd: ProcessorCMD.init }, metadata))
     } else {
       this.terminate(type)
     }

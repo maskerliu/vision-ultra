@@ -98,6 +98,7 @@ export default {
 
     ocr: 'OCR',
     ocrModel: {
+      'tesseract': 'tesseract.js',
       'kerasOcr': 'kerasOcr',
       'easyOcr': 'easyOcr',
       'paddleOcr': '飞桨OCR',
