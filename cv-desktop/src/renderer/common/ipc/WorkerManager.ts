@@ -1,8 +1,8 @@
 
 import { CVMsg, FaceDetectMsg, ImgGenMsg, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
+import AnimeGenWoker from './animeGen.worker?worker'
 import CVProcessWorker from './cvProcess.worker?worker'
 import FaceDetectWorker from './faceDetect.worker?worker'
-import ImgGenWoker from './imgGen.worker?worker'
 import ObjDetectWorker from './objTrack.worker?worker'
 import OcrWorker from './ocr.worker?worker'
 import { DrawMode, ProcessorManager, ProcessorType } from './ProcessorManager'
@@ -25,8 +25,8 @@ export class WorkerManager extends ProcessorManager {
       case ProcessorType.faceDetect:
         processor = new FaceDetectWorker()
         break
-      case ProcessorType.imgGen:
-        processor = new ImgGenWoker()
+      case ProcessorType.animeGen:
+        processor = new AnimeGenWoker()
         break
       case ProcessorType.ocr:
         processor = new OcrWorker()
@@ -100,7 +100,7 @@ export class WorkerManager extends ProcessorManager {
     this._processorStatus.error = event.data.error ? event.data.error : null
 
     switch (event.data.type) {
-      case 'mask':
+      case 'segment':
         this._objects = event.data
         this._annotationPanel?.drawAnnotations(this.objects.boxes,
           this.objects.scores, this.objects.classes,
@@ -137,7 +137,7 @@ export class WorkerManager extends ProcessorManager {
 
   }
 
-  protected onImgGenMsg(event: MessageEvent) {
+  protected onAnimeGenMsg(event: MessageEvent) {
     this._processorStatus.showLoading = false
     this._processorStatus.showProcess = false
 
@@ -149,7 +149,7 @@ export class WorkerManager extends ProcessorManager {
         let offscreenCtx = offscreen.getContext('2d')
         offscreenCtx.putImageData(imageData, 0, 0)
         this.previewCtx.save()
-        this.previewCtx.scale(2.5, 2.5)
+        this.previewCtx.scale(1.5, 1.5)
         this.previewCtx.drawImage(offscreen, 0, 0)
         this.previewCtx.restore()
         break
@@ -192,7 +192,7 @@ export class WorkerManager extends ProcessorManager {
       this.postMessage(ProcessorType.objTrack, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.ocr, { cmd: ProcessorCMD.process, image })
-      this.postMessage(ProcessorType.imgGen, { cmd: ProcessorCMD.process, image })
+      this.postMessage(ProcessorType.animeGen, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.styleTrans, { cmd: ProcessorCMD.process, image })
     } else {
       switch (this._frames) {

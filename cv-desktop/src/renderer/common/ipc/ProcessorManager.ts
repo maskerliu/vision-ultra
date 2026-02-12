@@ -11,7 +11,7 @@ export enum ProcessorType {
   cvProcess = 'CV',
   objTrack = 'ObjTrack',
   faceDetect = 'FaceDetect',
-  imgGen = 'ImgGen',
+  animeGen = 'AnimeGen',
   ocr = 'Ocr',
   styleTrans = 'StyleTrans'
 }
@@ -93,7 +93,7 @@ export abstract class ProcessorManager {
     this[`${ProcessorType.cvProcess}`] = false
     this[`${ProcessorType.objTrack}`] = false
     this[`${ProcessorType.faceDetect}`] = false
-    this[`${ProcessorType.imgGen}`] = false
+    this[`${ProcessorType.animeGen}`] = false
     this[`${ProcessorType.ocr}`] = false
     this[`${ProcessorType.styleTrans}`] = false
   }

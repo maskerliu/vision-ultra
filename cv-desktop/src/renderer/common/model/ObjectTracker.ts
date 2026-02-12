@@ -51,12 +51,16 @@ export class ObjectTracker extends ModelRunner {
     let res = await this._model.run(image)
 
     let result: any
-    if (this._model.name.indexOf('deeplab') != -1) {
-      let wrapper = res as tf.Tensor
-      let data = await wrapper.data()
-      wrapper.dispose()
+    if (this._model.name.indexOf('deeplab') != -1 || this._model.name == 'bisenet') {
+
+      let w = Math.ceil(image.width / this.scale[1])
+      let h = Math.ceil(image.height / this.scale[0])
+      console.log(w, h)
+      // const sliced = (res[0] as tf.Tensor).slice([0, 0, 0, 0], [-1, h, w, -1])
+      console.log(res)
+      let data = await (res[0] as tf.Tensor).data()
       this.objNum = 0
-      tf.dispose([result])
+      tf.dispose([res])
       return { overlay: data }
     } else if (this._model.name.indexOf('yolo') != -1) {
       result = await this.yoyoCommon(res)

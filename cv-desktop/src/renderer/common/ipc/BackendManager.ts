@@ -124,7 +124,7 @@ export class BackendManager extends WorkerManager {
     if (this._drawMode == DrawMode.image) {
       await this.postMessage(ProcessorType.objTrack, { cmd: ProcessorCMD.process, image })
       await this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image })
-      await this.postMessage(ProcessorType.imgGen, { cmd: ProcessorCMD.process, image })
+      await this.postMessage(ProcessorType.animeGen, { cmd: ProcessorCMD.process, image })
     } else {
       switch (this._frames) {
         case 9:

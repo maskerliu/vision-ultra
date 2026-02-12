@@ -263,8 +263,8 @@ function initProcessorMgr(force: boolean = true, anyway = true) {
 
   processorMgr.setParam(ProcessorType.faceDetect, visionStore.enableFaceDetect)
 
-  model = JSON.stringify(Object.assign(visionStore.ganModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.imgGen, visionStore.enableImageGen, { model }, anyway)
+  model = JSON.stringify(Object.assign(visionStore.animeModel, { engine: visionStore.modelEngine }))
+  processorMgr.setParam(ProcessorType.animeGen, visionStore.enableAnime, { model }, anyway)
 
   model = JSON.stringify(Object.assign(visionStore.ocrModel, { engine: visionStore.modelEngine }))
   processorMgr.setParam(ProcessorType.ocr, visionStore.enableOCR, { model }, anyway)
@@ -300,7 +300,7 @@ watch(
   [
     () => visionStore.enableObjDetect,
     () => visionStore.enableFaceDetect,
-    () => visionStore.enableImageGen,
+    () => visionStore.enableAnime,
     () => visionStore.enableOCR,
     () => visionStore.enableStyleTrans,
     () => visionStore.enableCV,
@@ -318,10 +318,10 @@ watch(() => visionStore.objDetectModel, async () => {
   })
 })
 
-watch(() => visionStore.ganModel, async () => {
-  processorMgr.postMessage(ProcessorType.imgGen, {
+watch(() => visionStore.animeModel, async () => {
+  processorMgr.postMessage(ProcessorType.animeGen, {
     cmd: ProcessorCMD.init,
-    model: JSON.stringify(Object.assign(visionStore.ganModel, { engine: visionStore.modelEngine }))
+    model: JSON.stringify(Object.assign(visionStore.animeModel, { engine: visionStore.modelEngine }))
   })
 })
 

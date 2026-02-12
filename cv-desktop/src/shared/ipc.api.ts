@@ -253,6 +253,7 @@ export enum ModelType {
 export type ModelInfo = {
   name: string,
   type: ModelType
+  external?: string // for onnx model with external data
   desc?: string
   engine?: ModelEngine
   files?: Array<string>

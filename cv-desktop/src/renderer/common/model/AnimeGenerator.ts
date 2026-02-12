@@ -3,7 +3,7 @@ import * as tf from '@tensorflow/tfjs'
 import { ModelInfo } from '../../../shared'
 import { AnimeGanv3Model, Model, ModelRunner } from './Model'
 
-export class ImageGenerator extends ModelRunner {
+export class AnimeGenerator extends ModelRunner {
 
   protected _model: Model = new AnimeGanv3Model()
 
