@@ -230,7 +230,7 @@ async function onScan() {
   processorMgr?.onDraw()
 }
 
-function initProcessorMgr(force: boolean = true, anyway = true) {
+async function initProcessorMgr(force: boolean = true, anyway = true) {
   if (force) {
     processorMgr?.terminateAll()
 
@@ -251,27 +251,27 @@ function initProcessorMgr(force: boolean = true, anyway = true) {
     processorMgr.updateSize(previewSize.value[0], previewSize.value[1])
   }
 
-  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, {
+  await processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, {
     options: JSON.stringify(visionStore.cvOptions.value)
   })
 
   let options = JSON.stringify(visionStore.cvOptions.value)
-  processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, { options }, anyway)
+  await processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, { options }, anyway)
 
   let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjDetect, { model }, anyway)
+  await processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjDetect, { model }, anyway)
 
-  processorMgr.setParam(ProcessorType.faceDetect, visionStore.enableFaceDetect)
+  await processorMgr.setParam(ProcessorType.faceDetect, visionStore.enableFaceDetect)
 
   model = JSON.stringify(Object.assign(visionStore.animeModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.animeGen, visionStore.enableAnime, { model }, anyway)
+  await processorMgr.setParam(ProcessorType.animeGen, visionStore.enableAnime, { model }, anyway)
 
   model = JSON.stringify(Object.assign(visionStore.ocrModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.ocr, visionStore.enableOCR, { model }, anyway)
+  await processorMgr.setParam(ProcessorType.ocr, visionStore.enableOCR, { model }, anyway)
 
   let styleModel = JSON.stringify(Object.assign(visionStore.styleModel, { engine: visionStore.modelEngine }))
   let transModel = JSON.stringify(Object.assign(visionStore.transModel, { engine: visionStore.modelEngine }))
-  processorMgr.setParam(ProcessorType.styleTrans, visionStore.enableStyleTrans, { styleModel, transModel }, anyway)
+  await processorMgr.setParam(ProcessorType.styleTrans, visionStore.enableStyleTrans, { styleModel, transModel }, anyway)
 }
 
 watch(() => previewSize.value, () => {

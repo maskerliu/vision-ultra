@@ -53,12 +53,16 @@ export class ObjectTracker extends ModelRunner {
     let result: any
     if (this._model.name.indexOf('deeplab') != -1 || this._model.name == 'bisenet') {
 
-      let w = Math.ceil(image.width / this.scale[1])
-      let h = Math.ceil(image.height / this.scale[0])
-      console.log(w, h)
+      let idx = this._model.inShape.findIndex((it) => it == 3)
+      let size = idx == 1 ? this._model.inShape.slice(2, 4) : this._model.inShape.slice(1, 3)
+      let maxSize = Math.max(image.width, image.height)
+      let w = Math.ceil(size[1] - (maxSize - image.width) / this._model.scale[1])
+      let h = Math.ceil(size[0] - (maxSize - image.height) / this._model.scale[0])
+      console.log(w, h, res[0])
+      result = (res[0] as tf.Tensor).slice([0, 0, 0], [-1, h, w])
       // const sliced = (res[0] as tf.Tensor).slice([0, 0, 0, 0], [-1, h, w, -1])
-      console.log(res)
-      let data = await (res[0] as tf.Tensor).data()
+      console.log(result)
+      let data = await result.data()
       this.objNum = 0
       tf.dispose([res])
       return { overlay: data }

@@ -1,4 +1,5 @@
 
+import Tesseract, { OEM } from 'tesseract.js'
 import { CVMsg, FaceDetectMsg, ImgGenMsg, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
 import AnimeGenWoker from './animeGen.worker?worker'
 import CVProcessWorker from './cvProcess.worker?worker'
@@ -11,7 +12,9 @@ import StyleTransWorker from './styleTrans.worker?worker'
 // use cv & tfjs in browser env
 export class WorkerManager extends ProcessorManager {
 
-  protected register(target: ProcessorType, data?: any) {
+  private tessWorker: Tesseract.Worker | null = null
+
+  protected async register(target: ProcessorType, data?: any) {
     if (this.processors.has(target)) return
 
     let processor: Worker
@@ -29,14 +32,28 @@ export class WorkerManager extends ProcessorManager {
         processor = new AnimeGenWoker()
         break
       case ProcessorType.ocr:
-        processor = new OcrWorker()
+        console.log(data)
+        let info = JSON.parse(data.model)
+        if (info.name == 'tesseract') {
+          this.tessWorker = await Tesseract.createWorker("eng", OEM.LSTM_ONLY, {
+            corePath: '../../../../node_modules/tesseract.js-core',
+            workerPath: "../../node_modules/tesseract.js/dist/worker.min.js",
+          })
+
+          let result = await this.tessWorker.recognize('https://tesseract.projectnaptha.com/img/eng_bw.png', {
+
+          })
+          console.log(result)
+        } else {
+          processor = new OcrWorker()
+        }
         break
       case ProcessorType.styleTrans:
         processor = new StyleTransWorker()
         break
     }
 
-    processor.addEventListener('message', this[`on${target}Msg`].bind(this))
+    processor?.addEventListener('message', this[`on${target}Msg`].bind(this))
     this.processors.set(target, processor)
 
     if (data != null) this.postMessage(target, data)
