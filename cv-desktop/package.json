@@ -120,7 +120,6 @@
     "copy-webpack-plugin": "^13.0.1",
     "cross-env": "^7.0.3",
     "css-loader": "^7.1.2",
-    "cv-canvas": "link:./../cv-canvas",
     "del": "^8.0.1",
     "echarts": "^6.0.0",
     "electron": "40.0.0",

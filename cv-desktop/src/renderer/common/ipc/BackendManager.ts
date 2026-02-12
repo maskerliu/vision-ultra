@@ -5,7 +5,7 @@ import { WorkerManager } from './WorkerManager'
 // TODO: use cv & tfjs-node in nodejs env
 export class BackendManager extends WorkerManager {
 
-  protected register(target: ProcessorType, data?: any): void {
+  protected async register(target: ProcessorType, data?: any) {
     if (target == ProcessorType.cvProcess) {
       window.cvBackend.init(data)
       this.processors.set(target, window.cvBackend)

@@ -17,7 +17,7 @@ export class OcrScanner extends ModelRunner {
     this._model = null
   }
 
-  async scan(image: ImageData, params: [number, number, number]) {
+  async scan(image: ImageData, params?: [number, number, number]) {
     const result = await this._model.run(image) as tf.Tensor
     console.log(result)
 

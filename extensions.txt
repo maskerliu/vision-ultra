@@ -1,0 +1,7 @@
+markdown preview
+python
+trae
+rest client
+vue
+wsl
+prettier
