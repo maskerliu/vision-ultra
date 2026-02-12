@@ -16,4 +16,5 @@ SharePerferences/*
 UserData/**/*
 log.txt
 datasets
+data/**/*
 
