@@ -47,20 +47,20 @@ export class Model {
 
     switch (this._info.engine) {
       case ModelEngine.tensorflow:
-        await this.loadTfModel(info.name)
+        await this.loadTfModel()
         break
       case ModelEngine.onnx:
-        await this.loadOrtModel(info.name)
+        await this.loadOrtModel()
         break
     }
 
     if (this._model == null && this._session == null) return
 
-    if (info.name.indexOf('deeplab') != -1) {
-      this._inShape = [1, 513, 513, 3]
-    }
+    // if (info.name.indexOf('deeplab') != -1) {
+    //   this._inShape = [1, 513, 513, 3]
+    // }
     if (info.name.indexOf('animeGANv3') != -1) {
-      this._inShape = [1, 256, 256, 3]
+      this._inShape = [1, 384, 384, 3]
     }
 
     if (info.name == 'easyOcr') {
@@ -70,13 +70,13 @@ export class Model {
     this._isInited = true
   }
 
-  private async loadTfModel(name: string) {
-    if (name == 'deeplab-cityspace1') {
+  private async loadTfModel() {
+    if (this.name == 'deeplab-cityspace1') {
       let modelUrl = 'https://tfhub.dev/tensorflow/tfjs-model/deeplab/cityscapes/1/default/1/model.json?tfjs-format=file'
       this._model = await tf.loadGraphModel(modelUrl)
     }
 
-    let modelPath = `static/${name}/model.json`
+    let modelPath = `static/${this.name}/model.json`
     try {
       this._model = await tf.loadGraphModel(`indexeddb://${modelPath}`)
     } catch (e) {
@@ -98,21 +98,23 @@ export class Model {
     console.log(this._model)
   }
 
-  private async loadOrtModel(name: string) {
-    let modelPath = `static/${name}.onnx`
+  private async loadOrtModel() {
+    let modelPath = `static/${this.name}.onnx`
     try {
       let opts = {
         executionProviders: ['wasm'],
       }
 
-      if (name == 'easyOcr') {
+      console.log(this._info)
+      if (this._info.external) {
         opts['externalData'] = [
           {
-            path: 'easyOCR.onnx.data',
-            data: `${__DEV__ ? '' : baseDomain()}/static/${name}.onnx.data`
+            path: this._info.external,
+            data: `${__DEV__ ? '' : baseDomain()}/static/${this.name}.data`
           }
         ]
       }
+
       this._session = await ort.InferenceSession.create(
         `${__DEV__ ? '' : baseDomain()}/${modelPath}`, opts,
       )
@@ -151,7 +153,6 @@ export class Model {
 
     switch (this._info.engine) {
       case ModelEngine.onnx:
-        console.log(params)
         let data = await this._session?.run(params)
         console.log(data)
         result = tf.tidy(() => {
@@ -170,7 +171,7 @@ export class Model {
         })
 
         // slice image to origin image size ratio
-        if (this.name.indexOf('animeGAN') != -1) {
+        if (this.name.indexOf('animeGAN') != -1 || this.name.indexOf('deeplab') != -1) {
           const wrapper = result[0] as tf.Tensor
           let idx = wrapper.shape.indexOf(3)
           let tmp: tf.Tensor
@@ -187,9 +188,12 @@ export class Model {
             result = wrapper
           }
 
-          // let w = Math.ceil(image.width / this.scale[1])
-          // let h = Math.ceil(image.height / this.scale[0])
-          // result = result.slice([0, 0, 0, 0], [-1, h, w, -1])
+          idx = this._inShape.findIndex(it => it == 3)
+          let size = idx == 1 ? this._inShape.slice(2, 4) : this._inShape.slice(1, 3)
+          let maxSize = Math.max(image.width, image.height)
+          let w = Math.ceil(size[1] - (maxSize - image.width) / this.scale[1])
+          let h = Math.ceil(size[0] - (maxSize - image.height) / this.scale[0])
+          result = result.slice([0, 0, 0, 0], [-1, h, w, -1])
         }
 
         break
@@ -212,8 +216,7 @@ export class Model {
   }
 
   protected needResize() {
-    return (this.name.indexOf('deeplab') != -1) ||
-      (this.name.indexOf('animeGANv3') != -1 && this._info.engine == ModelEngine.tensorflow)
+    return (this.name.indexOf('animeGANv3') != -1 && this._info.engine == ModelEngine.tensorflow)
   }
 
   protected dynamicInput() {
@@ -273,7 +276,7 @@ export class Model {
           let trans = null
           let idx = this._inShape.indexOf(3)
           if (idx == 3) {
-            trans = [0, 3, 1, 2]
+            trans = [0, 1, 2, 3]
           } else if (idx == 2) {
             trans = [0, 2, 1, 3]
           }

@@ -1,9 +1,9 @@
 
 import { ImgGenMsg, ProcessorCMD } from '../../../shared'
-import { ImageGenerator } from '../model/ImageGenerator'
+import { AnimeGenerator } from '../model/AnimeGenerator'
 
 const ctx: Worker = self as any
-let imageGenerator: ImageGenerator = new ImageGenerator()
+let imageGenerator: AnimeGenerator = new AnimeGenerator()
 
 ctx.addEventListener('message', async (event: MessageEvent<ImgGenMsg>) => {
   if (event.data == null) {

@@ -4,8 +4,9 @@
 *.pb
 *.onnx
 *_saved_model
+*_web_model
 *.ts
 
-runs/**/*
-
 models/**/*
+pt/**/*
+runs/**/*

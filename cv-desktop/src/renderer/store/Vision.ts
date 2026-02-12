@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import {
   cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
-  cvFilterType, cvMorph, cvSharpen, IntergrateMode, ModelEngine, ModelType,
+  cvFilterType, cvMorph, cvSharpen, IntergrateMode, ModelEngine, ModelInfo, ModelType,
 } from '../../shared'
 
 
@@ -88,16 +88,16 @@ export const VisionStore = defineStore('VisionStore', {
       landmark: false,
       live2d: false,
 
-      enableImageGen: false,
-      ganModel: { name: 'animeGANv3-Ghibli-c1', type: ModelType.genImage },
-
       enableOCR: false,
-      ocrModel: { name: 'easyOcr', type: ModelType.ocr },
+      ocrModel: { name: 'easyOcr', external: 'easyOCR.onnx.data', type: ModelType.ocr } as ModelInfo,
+
+      enableAnime: false,
+      animeModel: { name: 'animeGANv3-Ghibli-c1', type: ModelType.genImage } as ModelInfo,
 
       enableStyleTrans: false,
       styleModel: { name: 'style-mobilenet', type: ModelType.style },
       styleFile: null as ImageData,
-      transModel: { name: 'trans-separable-conv2d', type: ModelType.transform },
+      transModel: { name: 'trans-separable-conv2d', type: ModelType.transform } as ModelInfo,
       styleTransParams: [0, 0, 0] as [number, number, number],
 
       enableCV: false,
