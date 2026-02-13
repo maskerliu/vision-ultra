@@ -90,12 +90,12 @@ export abstract class ProcessorManager {
     this.masklayerCtx = masklayer.getContext('2d')
     this.maskCtx = maskCtx
 
-    this[`${ProcessorType.cvProcess}`] = false
-    this[`${ProcessorType.objTrack}`] = false
-    this[`${ProcessorType.faceDetect}`] = false
-    this[`${ProcessorType.animeGen}`] = false
-    this[`${ProcessorType.ocr}`] = false
-    this[`${ProcessorType.styleTrans}`] = false
+    this[ProcessorType.cvProcess] = false
+    this[ProcessorType.objTrack] = false
+    this[ProcessorType.faceDetect] = false
+    this[ProcessorType.animeGen] = false
+    this[ProcessorType.ocr] = false
+    this[ProcessorType.styleTrans] = false
   }
 
   protected abstract register(target: ProcessorType, data?: any): Promise<void>
@@ -122,14 +122,14 @@ export abstract class ProcessorManager {
     }
   }
 
-  async setParam(type: ProcessorType, val: boolean, metadata?: any, anyway: boolean = false) {
+  async setParam(type: ProcessorType, val: boolean, metadata?: any, force: boolean = false) {
 
-    if (this[`${type}`] == val && !anyway) return
-    this[`${type}`] = val
+    if (this[type] == val && !force) return
+    this[type] = val
 
     if (val) {
       this._processorStatus.showLoading = true
-      if (anyway) { this.terminate(type) }
+      if (force) { this.terminate(type) }
       await this.register(type, Object.assign({ cmd: ProcessorCMD.init }, metadata))
     } else {
       this.terminate(type)

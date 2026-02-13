@@ -170,7 +170,7 @@ export type StyleTransMsg = Partial<{
   cmd: ProcessorCMD,
   styleModel?: string,
   transModel?: string,
-  image?: ImageData,
+  image?: ImageData | Uint8Array,
   style?: ImageData,
   params?: string,
   width?: number,
@@ -254,6 +254,7 @@ export type ModelInfo = {
   name: string,
   type: ModelType
   external?: string // for onnx model with external data
+  lang?: string
   desc?: string
   engine?: ModelEngine
   files?: Array<string>
