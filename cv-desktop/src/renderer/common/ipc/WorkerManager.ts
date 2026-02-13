@@ -1,5 +1,4 @@
 
-import Tesseract, { OEM } from 'tesseract.js'
 import { CVMsg, FaceDetectMsg, ImgGenMsg, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
 import AnimeGenWoker from './animeGen.worker?worker'
 import CVProcessWorker from './cvProcess.worker?worker'
@@ -11,8 +10,6 @@ import StyleTransWorker from './styleTrans.worker?worker'
 
 // use cv & tfjs in browser env
 export class WorkerManager extends ProcessorManager {
-
-  private tessWorker: Tesseract.Worker | null = null
 
   protected async register(target: ProcessorType, data?: any) {
     if (this.processors.has(target)) return
@@ -32,21 +29,7 @@ export class WorkerManager extends ProcessorManager {
         processor = new AnimeGenWoker()
         break
       case ProcessorType.ocr:
-        console.log(data)
-        let info = JSON.parse(data.model)
-        if (info.name == 'tesseract') {
-          this.tessWorker = await Tesseract.createWorker("eng", OEM.LSTM_ONLY, {
-            corePath: '../../../../node_modules/tesseract.js-core',
-            workerPath: "../../node_modules/tesseract.js/dist/worker.min.js",
-          })
-
-          let result = await this.tessWorker.recognize('https://tesseract.projectnaptha.com/img/eng_bw.png', {
-
-          })
-          console.log(result)
-        } else {
-          processor = new OcrWorker()
-        }
+        processor = new OcrWorker()
         break
       case ProcessorType.styleTrans:
         processor = new StyleTransWorker()
@@ -151,7 +134,7 @@ export class WorkerManager extends ProcessorManager {
     this._processorStatus.showLoading = false
     this._processorStatus.showProcess = false
 
-
+    console.log(event.data)
   }
 
   protected onAnimeGenMsg(event: MessageEvent) {
@@ -208,7 +191,12 @@ export class WorkerManager extends ProcessorManager {
     if (this._drawMode == DrawMode.image) {
       this.postMessage(ProcessorType.objTrack, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.faceDetect, { cmd: ProcessorCMD.process, image })
-      this.postMessage(ProcessorType.ocr, { cmd: ProcessorCMD.process, image })
+
+      if (this[ProcessorType.ocr]) {
+        let blob = await this.offscreenCtx.canvas.convertToBlob()
+        let tmp = await readFromBlobOrFile(blob)
+        this.postMessage(ProcessorType.ocr, { cmd: ProcessorCMD.process, image: new Uint8Array(tmp as ArrayBuffer) })
+      }
       this.postMessage(ProcessorType.animeGen, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.styleTrans, { cmd: ProcessorCMD.process, image })
     } else {
@@ -240,3 +228,16 @@ export class WorkerManager extends ProcessorManager {
   }
 
 }
+
+const readFromBlobOrFile = (blob: Blob) => (
+  new Promise((resolve, reject) => {
+    const fileReader = new FileReader()
+    fileReader.onload = () => {
+      resolve(fileReader.result)
+    }
+    fileReader.onerror = ({ target: { error: { code } } }) => {
+      reject(Error(`File could not be read! Code=${code}`))
+    }
+    fileReader.readAsArrayBuffer(blob)
+  })
+)

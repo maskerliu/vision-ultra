@@ -147,7 +147,7 @@
     "spinnies": "^0.5.1",
     "style-loader": "^4.0.0",
     "tcplayer.js": "^4.9.1",
-    "tesseract.js": "^7.0.0",
+    "tesseract.js-core": "^7.0.0",
     "tone": "^15.1.22",
     "ts-loader": "^9.5.4",
     "tsx": "^4.20.6",
