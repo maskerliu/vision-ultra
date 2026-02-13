@@ -89,7 +89,7 @@ export const VisionStore = defineStore('VisionStore', {
       live2d: false,
 
       enableOCR: false,
-      ocrModel: { name: 'easyOcr', external: 'easyOCR.onnx.data', type: ModelType.ocr } as ModelInfo,
+      ocrModel: { name: 'tesseract', external: 'easyOCR.onnx.data', lang: 'eng', type: ModelType.ocr } as ModelInfo,
 
       enableAnime: false,
       animeModel: { name: 'animeGANv3-Ghibli-c1', type: ModelType.genImage } as ModelInfo,
