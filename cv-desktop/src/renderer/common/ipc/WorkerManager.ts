@@ -1,5 +1,6 @@
 
 import { CVMsg, FaceDetectMsg, ImgGenMsg, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
+import { Tesseract } from '../tesseract'
 import AnimeGenWoker from './animeGen.worker?worker'
 import CVProcessWorker from './cvProcess.worker?worker'
 import FaceDetectWorker from './faceDetect.worker?worker'
@@ -134,7 +135,10 @@ export class WorkerManager extends ProcessorManager {
     this._processorStatus.showLoading = false
     this._processorStatus.showProcess = false
 
-    console.log(event.data)
+    if (event.data.blocks == null) return
+    let page = JSON.parse(event.data.blocks)
+    this.drawOcrMark(page)
+    console.log(page)
   }
 
   protected onAnimeGenMsg(event: MessageEvent) {
@@ -227,6 +231,30 @@ export class WorkerManager extends ProcessorManager {
     return null
   }
 
+
+  protected drawOcrMark(page: Tesseract.Page) {
+    if (page.blocks == null) return
+    for (let block of page.blocks) {
+      for (let paragraph of block.paragraphs) {
+        for (let line of paragraph.lines) {
+          // this.previewCtx.strokeStyle = '#16a085'
+          // this.previewCtx.lineWidth = 2
+          // this.previewCtx.strokeRect(line.bbox.x0, line.bbox.y0, line.bbox.x1 - line.bbox.x0, line.bbox.y1 - line.bbox.y0)
+          for (let word of line.words) {
+            if (word.confidence < 30) continue
+            this.previewCtx.strokeStyle = '#e74c3c'
+            this.previewCtx.lineWidth = 2
+            this.previewCtx.textAlign = 'center'
+            this.previewCtx.textBaseline = 'top'
+            this.previewCtx.fillStyle = '#e74c3c'
+            this.previewCtx.font = '24px Arial'
+            this.previewCtx.fillText(word.text, word.bbox.x0 + (word.bbox.x1 - word.bbox.x0) / 2, word.bbox.y0)
+            this.previewCtx.strokeRect(word.bbox.x0, word.bbox.y0, word.bbox.x1 - word.bbox.x0, word.bbox.y1 - word.bbox.y0)
+          }
+        }
+      }
+    }
+  }
 }
 
 const readFromBlobOrFile = (blob: Blob) => (

@@ -480,7 +480,7 @@ const GanModels = [
 
 const showOcrModels = ref(false)
 const OcrModels = [
-  { name: 'tesseract', desc: '', type: ModelType.ocr },
+  { name: 'tesseract', desc: '', lang: ['chi_sim'], type: ModelType.ocr },
   { name: 'kerasOcr', desc: '', type: ModelType.ocr },
   { name: 'easyOcr', external: 'easyOCR.onnx.data', desc: '', type: ModelType.ocr },
   { name: 'paddleOcr', desc: '', type: ModelType.ocr },
