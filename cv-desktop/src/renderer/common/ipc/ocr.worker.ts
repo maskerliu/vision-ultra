@@ -21,14 +21,12 @@ ctx.addEventListener('message', async (event: MessageEvent<OCRMsg>) => {
         break
       case ProcessorCMD.process:
         const result = await orcScanner.scan(event.data.image)
-        // if (result != null) {
-        //   const [image, width, height] = result
-        //   data = Object.assign(
-        //     data,
-        //     { type: 'generated', image, width, height },
-        //     [(image as any).buffer]
-        //   )
-        // }
+        if (result != null) {
+          data = Object.assign(
+            data, result,
+            { type: 'generated' }
+          )
+        }
         break
     }
   } catch (error) {
