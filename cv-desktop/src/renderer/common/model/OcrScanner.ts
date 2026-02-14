@@ -16,11 +16,17 @@ export class OcrScanner extends ModelRunner {
       const TesseractCore = await import('tesseract.js-core/tesseract-core.wasm.js')
       this.TessModule = await TesseractCore.default()
       this.tesseract = new this.TessModule.TessBaseAPI()
-      let langResp = await fetch(`${__DEV__ ? '' : baseDomain()}/static/${info.lang}.traineddata`)
-      let langData = await langResp.arrayBuffer()
-      this.TessModule.FS.writeFile(`${info.lang}.traineddata`, new Uint8Array(langData))
-      this.tesseract.Init(null, 'eng')
-      console.log(this.TessModule, this.tesseract)
+      let langs = Array.isArray(info.lang) ? info.lang : [info.lang]
+      console.log(langs)
+      let i = 0
+      while (i < langs.length) {
+        let langResp = await fetch(`${__DEV__ ? '' : baseDomain()}/static/${langs[i]}.traineddata`)
+        let langData = await langResp.arrayBuffer()
+        this.TessModule.FS.writeFile(`${langs[i]}.traineddata`, new Uint8Array(langData))
+        i++
+      }
+
+      this.tesseract.Init(null, 'chi_sim')
     } else {
       this.tesseract = null
       await this._model.init(info)
@@ -41,12 +47,8 @@ export class OcrScanner extends ModelRunner {
     if (this.tesseract) {
       this.TessModule.FS.writeFile("/input", image)
       this.tesseract.SetImageFile()
-      let result = this.tesseract.GetUTF8Text()
-      let box = this.tesseract.GetBoxText(0)
-      let line = this.tesseract.GetLineText(0)
-      let rect = this.tesseract.GetUNLVText()
-      let words = this.tesseract.GetWords(0)
-      console.log(result, rect, line)
+      let blocks = this.tesseract.GetJSONText()
+      return { blocks }
     } else {
       const result = await this._model.run(image as ImageData) as tf.Tensor
       console.log(result)

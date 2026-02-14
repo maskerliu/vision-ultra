@@ -254,7 +254,7 @@ export type ModelInfo = {
   name: string,
   type: ModelType
   external?: string // for onnx model with external data
-  lang?: string
+  lang?: string | string[]
   desc?: string
   engine?: ModelEngine
   files?: Array<string>
