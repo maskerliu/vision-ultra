@@ -4,8 +4,8 @@ directories:
   output: build/${version}
 
 asarUnpack:
-  - "node_modules/@u4/opencv4nodejs/**/*"
-  - "node_modules/@u4/opencv-build/**/*"
+  # - "node_modules/@u4/opencv4nodejs/**/*"
+  # - "node_modules/@u4/opencv-build/**/*"
   - "node_modules/@tensorflow/**"
   - "node_modules/@lancedb/**"
 
@@ -17,7 +17,8 @@ files:
   - "dist/**/*"
   - "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
   - "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}"
-  - "!**/node_modules/*/{LICENSE,README,readme,.eslintignore,.nycrc,COPYING,UNLICENSE,LICENSE-MIT}"
+  - "!**/node_modules/**/{LICENCE,LICENSE,license,License,README,readme,.eslintignore,.nycrc,COPYING,UNLICENSE,LICENSE-MIT}"
+  - "!**/node_modules/**/*LICENSE*"
   - "!node_modules/@tensorflow/tfjs-node/**"
   - "!node_modules/@tensorflow/**/*.html"
   - "node_modules/@tensorflow/tfjs-node/dist/**"
@@ -25,7 +26,6 @@ files:
   - "node_modules/@tensorflow/tfjs-node/node_modules/**"
   - "node_modules/@tensorflow/tfjs-node/package.json"
   - "!node_modules/seedrandom/coverage/**"
-  - "!**/node_modules/**/*LICENSE*"
   - "!**/node_modules/**/*.md"
   - "!**/node_modules/**/*.py"
   - "!**/node_modules/**/*.markdown"
@@ -76,8 +76,8 @@ electronLanguages:
 extraFiles:
   - from: "../data/lbfmodel.yaml"
     to: "./resources/data/lbfmodel.yaml"
-  - from: "../node_modules/@u4/opencv4nodejs/src/lib"
-    to: "./resources/data/"
+  # - from: "../node_modules/@u4/opencv4nodejs/src/lib"
+  #   to: "./resources/data/"
   
 win:
   icon: icons/icon.ico
