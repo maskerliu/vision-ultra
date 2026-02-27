@@ -85,10 +85,6 @@ class MainConfig extends BaseConfig {
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: path.join(dirname, '../cert'),
-            to: path.join(dirname, '../dist/electron/cert/'),
-          },
-          {
             from: path.join(dirname, `../icons/common/`),
             to: path.join(dirname, '../dist/electron/static/'),
           },
@@ -101,37 +97,17 @@ class MainConfig extends BaseConfig {
             to: path.join(dirname, '../dist/electron/static/'),
           },
           {
-            from: path.posix.join(dirname, '../node_modules/@mediapipe/face_mesh/*.{js,wasm,binarypb,data}'),
+            from: path.join(dirname, '../../cert'),
+            to: path.join(dirname, '../dist/electron/cert/'),
+          },
+          {
+            from: path.posix.join(dirname, '../../node_modules/@mediapipe/face_mesh/*.{js,wasm,binarypb,data}'),
             to: path.join(dirname, '../dist/electron/static/face_mesh/[name][ext]'),
           },
           {
-            from: path.posix.join(dirname, '../node_modules/@mediapipe/tasks-vision/wasm/'),
+            from: path.posix.join(dirname, '../../node_modules/@mediapipe/tasks-vision/wasm/'),
             to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
           },
-          {
-            from: path.posix.join(dirname, '../node_modules/onnxruntime-web/tasks-vision/dist/*.{js,wasm,'),
-            to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
-          },
-          {
-            from: path.join(dirname, `../data/face_landmarker.task`),
-            to: path.join(dirname, '../dist/electron/static/face_landmarker.task'),
-          },
-          {
-            from: path.posix.join(dirname, `../model-train/models/yolo11n_web_model`),
-            to: path.join(dirname, '../dist/electron/static/yolo11n_web_model/'),
-          },
-          {
-            from: path.posix.join(dirname, `../model-train/models/yolov10n_web_model`),
-            to: path.join(dirname, '../dist/electron/static/yolov10n_web_model/'),
-          },
-          {
-            from: path.posix.join(dirname, `../model-train/models/yolov8n_web_model`),
-            to: path.join(dirname, '../dist/electron/static/yolov8n_web_model/'),
-          },
-          {
-            from: path.posix.join(dirname, `../model-train/models/yolov6n_web_model`),
-            to: path.join(dirname, '../dist/electron/static/yolov6n_web_model/'),
-          }
         ]
       }),
     )

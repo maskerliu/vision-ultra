@@ -53,7 +53,7 @@ class WebConfig extends BaseConfig {
       },
       {
         test: /\.css$/,
-        use: ['vue-style-loader', 'css-loader']
+        use: ['css-loader']
       },
       {
         test: /\.js/,
@@ -208,12 +208,12 @@ class WebConfig extends BaseConfig {
     )
 
     if (process.env.NODE_ENV !== 'production') {
-      this.plugins.push(new DefinePlugin({
+      this.plugins?.push(new DefinePlugin({
         __DEV__: true,
         SERVER_BASE_URL: `'${pkg.config.protocol}://${localServer}:${pkg.config.port}'`,
       }))
 
-      this.plugins.push(
+      this.plugins?.push(
         new BundleAnalyzerPlugin({
           analyzerMode: 'server',
           analyzerHost: '127.0.0.1',

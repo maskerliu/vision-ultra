@@ -24,8 +24,22 @@
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node", "reflect-metadata"],
-    "lib": ["ESNext", "DOM"]
+    "types": [
+      "node",
+      "reflect-metadata"
+    ],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ]
   },
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "**/build/**/*",
+    "model-train",
+    "data/**/*",
+    "cv-desktop/build/**/*",
+    "cv-desktop/dist/**/*",
+    "app-asar/**/*"
+  ]
 }
