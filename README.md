@@ -127,3 +127,11 @@ yarn dev
 ```
 
 项目中使用到如`lancedb`、`tfjs-node`、`opencv4nodejs`等库，请确保已正确安装并配置好这些依赖。初次构建涉及到相关模块的 node native 构建，可能需要一些时间，请耐心等待。
+
+
+#### 延展
+- [视觉艺术在线平台](https://www.wikiart.org/)
+- [COCO 数据集](https://cocodataset.org/)
+- [ADE20K 数据集](https://ade20k.csail.mit.edu/)
+- [EasyOCR](https://easyocr.org/)
+

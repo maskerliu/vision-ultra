@@ -49,11 +49,7 @@ class RendererConfig extends BaseConfig {
       },
       {
         test: /\.css$/,
-        use: ['vue-style-loader', 'css-loader']
-      },
-      {
-        test: /\.worker\.ts$/,
-        loader: "worker-loader",
+        use: ['style-loader', 'css-loader']
       },
       {
         test: /\.tsx?$/,
@@ -82,13 +78,6 @@ class RendererConfig extends BaseConfig {
           name: 'fonts/[name].[ext]'
         }
       },
-      // {
-      //   test: /\.wasm$/,
-      //   type: 'webassembly/async', // 或 'webassembly/sync'
-      //   use: [
-      //     { loader: 'wasm-loader', }
-      //   ]
-      // },
       {
         test: /\.(tflite|data|binarypb)$/,
         type: 'asset/resource',

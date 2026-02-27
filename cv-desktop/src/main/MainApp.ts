@@ -161,8 +161,6 @@ export default class MainApp {
       },
     }
 
-    console.log(path.join(__dirname, 'preload.cjs'))
-
     this.mainWindow = new BrowserWindow(winOpt)
     this.mainWindow.loadURL(this.winURL)
     this.mainWindow.setVibrancy('window')
