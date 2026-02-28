@@ -1,8 +1,7 @@
-import Hls from 'hls.js'
 import { ProcessorManager } from './ipc/ProcessorManager'
 
 export class VideoPlayer {
-  private hls: Hls
+  private hls: any
 
   private preVideo: HTMLVideoElement
 
@@ -16,7 +15,6 @@ export class VideoPlayer {
   private _once = false
 
   constructor(video: HTMLVideoElement, flip: boolean = true) {
-    this.hls = new Hls()
     this.preVideo = video
     this.flip = flip
   }
@@ -63,10 +61,13 @@ export class VideoPlayer {
         this.preVideo.srcObject = null
         this.close()
 
-        if (url.endsWith('.m3u8') && Hls.isSupported()) {
+        if (url.endsWith('.m3u8')) {
+          let HLSModule = await import('hls.js') as any
+          if (!HLSModule.Hls.isSupported()) return
+          if (this.hls == null) this.hls = new HLSModule.Hls()
           this.hls.loadSource(url)
           this.hls.attachMedia(this.preVideo)
-          this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          this.hls.on(HLSModule.Hls.Events.MANIFEST_PARSED, () => {
             var variants = this.hls.levels // 获取所有变体（质量等级）信息
             variants.forEach(function (variant) {
               console.log('Variant:', variant)
@@ -74,7 +75,7 @@ export class VideoPlayer {
             })
           })
           this.flip = false
-          this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          this.hls.on(HLSModule.Hls.Events.MANIFEST_PARSED, () => {
             this.preVideo.play()
           })
         }

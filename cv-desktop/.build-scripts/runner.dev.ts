@@ -27,7 +27,7 @@ let rendererDevServer: WebpackDevServer | null = null
 function startDevServer(config: BaseConfig, host: string, port: number): Promise<void> {
   return new Promise<void>(async (resolve, reject) => {
     config.mode = Run_Mode_DEV
-    const compiler = webpack(config)
+    const compiler = webpack(config) as webpack.Compiler
     compiler.watch({}, (err, stats) => {
       if (err) {
         console.log(config.name, err, 'red')
@@ -146,7 +146,7 @@ async function startMain1() {
 function startMain(): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     mainConfig.mode = Run_Mode_DEV
-    const compiler = webpack(mainConfig)
+    const compiler = webpack(mainConfig) as webpack.Compiler
     hotMiddleware = WebpackHotMiddleware(compiler, { log: false, heartbeat: 2500 })
     compiler.hooks.watchRun.tapAsync("watch-run", (_, done) => {
       hotMiddleware.publish({ action: "compiling" })

@@ -1,13 +1,7 @@
 
 import { CVMsg, FaceDetectMsg, ImgGenMsg, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
 import { Tesseract } from '../tesseract'
-import AnimeGenWoker from './animeGen.worker?worker'
-import CVProcessWorker from './cvProcess.worker?worker'
-import FaceDetectWorker from './faceDetect.worker?worker'
-import ObjDetectWorker from './objTrack.worker?worker'
-import OcrWorker from './ocr.worker?worker'
 import { DrawMode, ProcessorManager, ProcessorType } from './ProcessorManager'
-import StyleTransWorker from './styleTrans.worker?worker'
 
 // use cv & tfjs in browser env
 export class WorkerManager extends ProcessorManager {
@@ -18,22 +12,22 @@ export class WorkerManager extends ProcessorManager {
     let processor: Worker
     switch (target) {
       case ProcessorType.cvProcess:
-        processor = new CVProcessWorker()
+        processor = new Worker(new URL('./cvProcess.worker', import.meta.url))
         break
       case ProcessorType.objTrack:
-        processor = new ObjDetectWorker()
+        processor = new Worker(new URL('./objTrack.worker', import.meta.url))
         break
       case ProcessorType.faceDetect:
-        processor = new FaceDetectWorker()
+        processor = new Worker(new URL('./faceDetect.worker', import.meta.url))
         break
       case ProcessorType.animeGen:
-        processor = new AnimeGenWoker()
+        processor = new Worker(new URL('./animeGen.worker', import.meta.url))
         break
       case ProcessorType.ocr:
-        processor = new OcrWorker()
+        processor = new Worker(new URL('./ocr.worker', import.meta.url))
         break
       case ProcessorType.styleTrans:
-        processor = new StyleTransWorker()
+        processor = new Worker(new URL('./styleTrans.worker', import.meta.url))
         break
     }
 
