@@ -49,7 +49,7 @@ class RendererConfig extends BaseConfig {
       },
       {
         test: /\.css$/i,
-        use: ['vue-style-loader', 'css-loader']
+        use: ['style-loader', 'css-loader']
       },
       {
         test: /\.tsx?$/,
@@ -105,6 +105,7 @@ class RendererConfig extends BaseConfig {
   output: Configuration['output'] = {
     filename: '[name].js',
     path: path.join(dirname, '../dist/electron'),
+    publicPath: '/',
   }
 
   resolve: Configuration['resolve'] = {
@@ -159,6 +160,8 @@ class RendererConfig extends BaseConfig {
     } else {
       this.optimization = {
         minimize: true,
+        // usedExports: true,
+        // sideEffects: false,
         minimizer: [
           new TerserPlugin({
             terserOptions: {
@@ -167,8 +170,12 @@ class RendererConfig extends BaseConfig {
               ecma: 2020,
               compress: {
                 comparisons: false,
-                drop_console: true
+                drop_console: true,
+                drop_debugger: true,
+                unused: true,
+                dead_code: true,
               },
+              toplevel: true,
               mangle: false, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
             },
             exclude: /[\\/]node_modules[\\/]/
@@ -198,6 +205,11 @@ class RendererConfig extends BaseConfig {
           tensoflow: {
             name: 'tensoflow',
             test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
+            priority: 20,
+          },
+          hls: {
+            name: 'hls',
+            test: /[\\/]node_modules[\\/]hls.js[\\/]/,
             priority: 20,
           },
           echarts: {

@@ -3,3 +3,6 @@
 node_modules/
 dist/**/*
 build/**/*
+!build/installer.nsh
+!build/windows_installer.ico
+!build/version.json

@@ -432,9 +432,8 @@ export class AnnotationManager {
       case DrawType.circle:
       case DrawType.line:
         if (this.drawingObj.width < 20 || this.drawingObj.height < 20) {
-          console.log('remove small obj')
           this._canvas.remove(this.drawingObj)
-          // showToast({ message: 'The object is too small', duration: 500 })
+          showToast({ message: 'The object is too small', duration: 500 })
         } else {
           this._canvas.setActiveObject(this.drawingObj)
           this._canvas.discardActiveObject()
