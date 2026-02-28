@@ -48,8 +48,8 @@ class RendererConfig extends BaseConfig {
         }
       },
       {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader']
+        test: /\.css$/i,
+        use: ['vue-style-loader', 'css-loader']
       },
       {
         test: /\.tsx?$/,
