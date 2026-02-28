@@ -2,7 +2,7 @@
 
 ![数据预览](./assets/preview.png)
 
-#### 1. 简介
+### 1. 简介
 
 这是一个基于 Electron 的跨平台视觉处理应用程序，主要功能包括实时视频分析、人脸识别、目标检测和音频流处理。
 
@@ -61,9 +61,9 @@ flowchart TD
     IPC通信流程 --> 音频处理管道
 ```
 
-#### 2. 功能
+### 2. 功能
 
-- 基础功能：
+####  基础功能：
 
   - 多格式图片、视频、实时音视频流、摄像头等多源输入支持。
   - 基础图形标注支持
@@ -129,7 +129,7 @@ yarn dev
 项目中使用到如`lancedb`、`tfjs-node`、`opencv4nodejs`等库，请确保已正确安装并配置好这些依赖。初次构建涉及到相关模块的 node native 构建，可能需要一些时间，请耐心等待。
 
 
-#### 延展
+### 延展
 - [视觉艺术在线平台](https://www.wikiart.org/)
 - [COCO 数据集](https://cocodataset.org/)
 - [ADE20K 数据集](https://ade20k.csail.mit.edu/)
