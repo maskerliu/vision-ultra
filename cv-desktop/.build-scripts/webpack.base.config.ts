@@ -14,7 +14,7 @@ export abstract class BaseConfig implements Configuration {
   stats: Configuration['stats'] = 'none'
 
   init(localServer?: string) {
-    this.plugins.push(new DefinePlugin({ __DEV__: process.env.NODE_ENV !== 'production' }))
+    this.plugins?.push(new DefinePlugin({ __DEV__: process.env.NODE_ENV !== 'production' }))
     if (process.env.NODE_ENV === 'production') {
       this.devtool = false
     }

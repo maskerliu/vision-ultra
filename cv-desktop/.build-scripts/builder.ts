@@ -47,7 +47,7 @@ async function build() {
 }
 
 async function addSpinnerTask(config: BaseConfig) {
-  spinnies.add(config.name, { text: `  build ${config.name}...` })
+  spinnies.add(config.name as string, { text: `  build ${config.name}...` })
   pack(config)
 }
 
@@ -57,16 +57,16 @@ function pack(config: BaseConfig) {
   let compiler = webpack(config)
   compiler.run((err, stats) => {
     if (err) {
-      spinnies.fail(config.name, { text: `  ${err}` })
-    } else if (stats.hasErrors()) {
+      spinnies.fail(config.name as string, { text: `  ${err}` })
+    } else if (stats?.hasErrors()) {
       let err = ''
       stats.toString({ chunks: true, colors: true })
         .split(/\r?\n/)
         .forEach(line => { err += `    ${line}\n` })
-      spinnies.fail(config.name, { text: `  ${config.name} build fail, cost ${Date.now() - startTime}ms\n` })
+      spinnies.fail(config.name as string, { text: `  ${config.name} build fail, cost ${Date.now() - startTime}ms\n` })
       console.error(err)
     } else {
-      spinnies.succeed(config.name, { text: `  ${config.name} build success, cost ${Date.now() - startTime}ms` })
+      spinnies.succeed(config.name as string, { text: `  ${config.name} build success, cost ${Date.now() - startTime}ms` })
     }
   })
 }

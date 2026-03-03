@@ -100,14 +100,6 @@ class MainConfig extends BaseConfig {
             from: path.join(dirname, '../../cert'),
             to: path.join(dirname, '../dist/electron/cert/'),
           },
-          {
-            from: path.posix.join(dirname, '../../node_modules/@mediapipe/face_mesh/*.{js,wasm,binarypb,data}'),
-            to: path.join(dirname, '../dist/electron/static/face_mesh/[name][ext]'),
-          },
-          {
-            from: path.posix.join(dirname, '../../node_modules/@mediapipe/tasks-vision/wasm/'),
-            to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
-          },
         ]
       }),
     )

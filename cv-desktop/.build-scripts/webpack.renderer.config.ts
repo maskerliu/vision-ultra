@@ -1,21 +1,20 @@
 'use strict'
 
+import CopyWebpackPlugin from 'copy-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
 import path from 'path'
 import TerserPlugin from 'terser-webpack-plugin'
 import { fileURLToPath } from 'url'
 import { VueLoaderPlugin } from 'vue-loader'
 // import   from 'babel-loader'
 import webpack, { Configuration } from 'webpack'
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 import pkg from '../package.json' assert { type: "json" }
 import { BaseConfig } from './webpack.base.config'
 
 const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
-
-console.log('dirname', dirname)
 
 let whiteListedModules = ['axios',
   '@mediapipe/face_mesh',
@@ -84,6 +83,13 @@ class RendererConfig extends BaseConfig {
         generator: {
           filename: 'assets/[name][hash][ext]'
         }
+      },
+      {
+        test: /\.wasm$/,
+        type: 'asset/resource',
+        generator: {
+          filename: '[name][ext]'
+        }
       }
     ]
   }
@@ -94,7 +100,7 @@ class RendererConfig extends BaseConfig {
     }),
     new VueLoaderPlugin(),
     new NoEmitOnErrorsPlugin(),
-    new NodePolyfillPlugin(),
+    // new NodePolyfillPlugin(),
     new DefinePlugin({
       __VUE_OPTIONS_API__: false,
       __VUE_PROD_DEVTOOLS__: false,
@@ -112,7 +118,14 @@ class RendererConfig extends BaseConfig {
     alias: {
       '@': path.join(dirname, '../src/renderer'),
     },
-    extensions: ['.ts', '.js', '.vue', '.json', '.css', '.wasm']
+    extensions: ['.ts', '.js', '.vue', '.json', '.css', '.wasm'],
+    fallback: {
+      'crypto': path.resolve(dirname, '../../node_modules/crypto-browserify'),
+      'path': path.resolve(dirname, '../../node_modules/path-browserify'),
+      'stream': path.resolve(dirname, '../../node_modules/stream-browserify'),
+      'vm': path.resolve(dirname, '../../node_modules/vm-browserify'),
+      'fs': false
+    }
   }
 
   optimization: Configuration['optimization'] = {
@@ -123,6 +136,22 @@ class RendererConfig extends BaseConfig {
     super.init()
 
     this.plugins?.push(
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: path.posix.join(dirname, '../../node_modules/@mediapipe/face_mesh/*.{js,wasm,binarypb,data}'),
+            to: path.join(dirname, '../dist/electron/static/face_mesh/'),
+          },
+          {
+            from: path.posix.join(dirname, '../../node_modules/@mediapipe/tasks-vision/wasm/'),
+            to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
+          },
+          {
+            from: path.posix.join(dirname, '../../node_modules/tesseract.js-core/'),
+            to: path.join(dirname, '../dist/electron/static/tesseract.js-core/'),
+          },
+        ]
+      }),
       new HtmlWebpackPlugin({
         filename: 'index.html',
         template: path.resolve(dirname, '../src/index.ejs'),
@@ -144,18 +173,18 @@ class RendererConfig extends BaseConfig {
       )
 
       this.plugins?.push(
-        // new BundleAnalyzerPlugin({
-        //   analyzerMode: 'server',
-        //   analyzerHost: '127.0.0.1',
-        //   analyzerPort: 9088,
-        //   reportFilename: 'report.html',
-        //   defaultSizes: 'parsed',
-        //   openAnalyzer: true,
-        //   generateStatsFile: false,
-        //   statsFilename: 'stats.json',
-        //   statsOptions: null,
-        //   logLevel: 'info'
-        // }),
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'server',
+          analyzerHost: '127.0.0.1',
+          analyzerPort: 9088,
+          reportFilename: 'report.html',
+          defaultSizes: 'parsed',
+          openAnalyzer: true,
+          generateStatsFile: false,
+          statsFilename: 'stats.json',
+          statsOptions: null,
+          logLevel: 'info'
+        }),
       )
     } else {
       this.optimization = {
@@ -178,13 +207,15 @@ class RendererConfig extends BaseConfig {
               toplevel: true,
               mangle: false, // 注意：mangle可能导致问题，如果使用了ES6+的import/export结构，最好设置为false或在Babel中处理mangle
             },
-            exclude: /[\\/]node_modules[\\/]/
+            exclude: /[\\/]node_modules[\\/]/,
+            extractComments: false,
           }),
         ]
       }
 
       this.optimization.splitChunks = {
         chunks: 'all',
+        minSize: 30000,
         cacheGroups: {
           vender: {
             name: 'vender',
@@ -192,10 +223,25 @@ class RendererConfig extends BaseConfig {
             priority: 10,
             chunks: 'initial'
           },
+          vue: {
+            name: 'vue',
+            priority: 20,
+            test: /[\\/]node_modules[\\/]vue|vue-router|pinia|@vue[\\/]/
+          },
+          buffer: {
+            name: 'buffer',
+            priority: 20,
+            test: /[\\/]node_modules[\\/]buffer|safe-buffer|ieee754|base64-js[\\/]/
+          },
           vant: {
             name: "vant",
             priority: 20,
             test: /[\\/]node_modules[\\/]vant[\\/]/
+          },
+          kalidokit: {
+            name: 'kalidokit',
+            priority: 20,
+            test: /[\\/]node_modules[\\/]kalidokit[\\/]/
           },
           opencvjs: {
             name: 'opencv',
@@ -207,6 +253,18 @@ class RendererConfig extends BaseConfig {
             test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
             priority: 20,
           },
+          onnxruntime: {
+            name: 'onnxruntime',
+            test: /[\\/]node_modules[\\/]onnxruntime-web/,
+            priority: 30,
+            chunks: 'all',
+            enforce: true,
+          },
+          tess: {
+            name: 'tess',
+            test: /[\\/]node_modules[\\/]tesseract.js[\\/]/,
+            priority: 20,
+          },
           hls: {
             name: 'hls',
             test: /[\\/]node_modules[\\/]hls.js[\\/]/,
@@ -216,7 +274,8 @@ class RendererConfig extends BaseConfig {
             name: 'echarts',
             test: /[\\/]node_modules[\\/]echarts[\\/]/,
             priority: 20,
-          }
+          },
+
         }
       }
       this.plugins?.push(new LoaderOptionsPlugin({ minimize: true }))
