@@ -1168,20 +1168,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mediapipe/face_detection@npm:~0.4.0":
-  version: 0.4.1646425229
-  resolution: "@mediapipe/face_detection@npm:0.4.1646425229"
-  checksum: 10c0/f9e1f41119caea76e1fbca005f68936574f6f5b1d427ac53fb8fd5e0615598d981bc182b16f9f0a0c85eb317a9e7893dec05ad2b01adfec32a0548e048c2976d
-  languageName: node
-  linkType: hard
-
-"@mediapipe/face_mesh@npm:~0.4.0":
-  version: 0.4.1633559619
-  resolution: "@mediapipe/face_mesh@npm:0.4.1633559619"
-  checksum: 10c0/10e3bed4c14478cabbffcc97716545119668755207e5177e7613e04a07582441734cbf369b4b1541cab4ba8281a32bde7019cf8b0df2db41654c861148632a8f
-  languageName: node
-  linkType: hard
-
 "@mediapipe/tasks-vision@npm:~0.10.21":
   version: 0.10.32
   resolution: "@mediapipe/tasks-vision@npm:0.10.32"
@@ -4669,8 +4655,6 @@ __metadata:
   dependencies:
     "@huggingface/transformers": "npm:^3.8.1"
     "@lancedb/lancedb": "npm:^0.26.2"
-    "@mediapipe/face_detection": "npm:~0.4.0"
-    "@mediapipe/face_mesh": "npm:~0.4.0"
     "@mediapipe/tasks-vision": "npm:~0.10.21"
     "@microsoft/fetch-event-source": "npm:^2.0.1"
     "@opencvjs/node": "npm:4.13.0-release.1"

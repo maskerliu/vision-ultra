@@ -42,7 +42,7 @@
                   <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key.toLowerCase()" />
                   {{ $t(`cvControl.obj${key}`) }}
                 </template>
-                <van-cell center clickable :title="$t(`cvControl.objModel.${model.name}`)" title-class="van-ellipsis"
+                <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
                   @click="onObjRecModelChanged(model)" v-for="model in ObjRecModelGrop.get(key)">
                   <template #right-icon>
                     <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
@@ -95,7 +95,7 @@
               {{ visionStore.ocrModel.name }}
             </template>
             <van-col class="model-container" style="height: 140px;">
-              <van-cell center clickable :title="$t(`cvControl.ocrModel.${model.name}`)" title-class="van-ellipsis"
+              <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
                 style="margin-left: 4px;" @click="onOcrModelChanged(model)" v-for="model in OcrModels">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
@@ -116,10 +116,10 @@
         <template #value>
           <van-popover v-model:show="showAnimeModels" :show-arrow="false" placement="bottom-end" overlay>
             <template #reference>
-              {{ $t(`cvControl.animeModel.${visionStore.animeModel.name}`) }}
+              {{ $t(`cvControl.model.${visionStore.animeModel.name}`) }}
             </template>
             <van-col class="model-container" style="height: 180px;">
-              <van-cell center clickable :title="$t(`cvControl.animeModel.${model.name}`)" title-class="van-ellipsis"
+              <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
                 style="margin-left: 0px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
@@ -144,12 +144,11 @@
               <template #value>
                 <van-popover v-model:show="showStyleModels" :show-arrow="false" placement="bottom-end" overlay>
                   <template #reference>
-                    {{ $t(`cvControl.styleModel.${visionStore.styleModel.name}`) }}
+                    {{ $t(`cvControl.model.${visionStore.styleModel.name}`) }}
                   </template>
                   <van-col class="model-container" style="width: 260px; height: 100px;">
-                    <van-cell center clickable :title="$t(`cvControl.styleModel.${model.name}`)"
-                      title-class="van-ellipsis" style="margin-left: 4px;" @click="onStyleModelChanged(model)"
-                      v-for="model in StyleModels">
+                    <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
+                      style="margin-left: 4px;" @click="onStyleModelChanged(model)" v-for="model in StyleModels">
                       <template #right-icon>
                         <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                       </template>
@@ -162,12 +161,11 @@
               <template #value>
                 <van-popover v-model:show="showTransformModels" :show-arrow="false" placement="bottom-end" overlay>
                   <template #reference>
-                    {{ $t(`cvControl.transModel.${visionStore.transModel.name}`) }}
+                    {{ $t(`cvControl.model.${visionStore.transModel.name}`) }}
                   </template>
                   <van-col class="model-container" style="width: 260px; height: 100px;">
-                    <van-cell center clickable :title="$t(`cvControl.transModel.${model.name}`)"
-                      title-class="van-ellipsis" style="margin-left: 4px;" @click="onTransModelChanged(model)"
-                      v-for="model in TransferModels">
+                    <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
+                      style="margin-left: 4px;" @click="onTransModelChanged(model)" v-for="model in TransferModels">
                       <template #right-icon>
                         <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                       </template>

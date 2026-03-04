@@ -1,16 +1,9 @@
 
-import { FilesetResolver } from '@mediapipe/tasks-vision'
-import { baseDomain, FaceDetectMsg, ProcessorCMD } from '../../../shared'
+import { FaceDetectMsg, ProcessorCMD } from '../../../shared'
 import { FaceDetector } from '../model/FaceDetector'
 
 const ctx: Worker = self as any
-let fileset: any = null
 let faceDetector: FaceDetector = new FaceDetector()
-
-async function init() {
-  fileset = await FilesetResolver.forVisionTasks(
-    __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
-}
 
 ctx.addEventListener('message', async (event: MessageEvent<FaceDetectMsg>) => {
   if (event.data == null) {
@@ -44,5 +37,3 @@ ctx.addEventListener('message', async (event: MessageEvent<FaceDetectMsg>) => {
     ctx.postMessage(data)
   }
 })
-
-init()

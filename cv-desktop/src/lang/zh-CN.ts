@@ -16,7 +16,7 @@ export default {
       server: '服务IP地址',
       port: '代理Http服务端口',
       porterror: "端口已被占用，请更换",
-      serverDomain: '服务域名',
+      domain: '服务域名',
       updateServer: '应用更新服务地址',
       mqttBroker: 'MQTT服务地址',
       theme: '主题',
@@ -25,6 +25,7 @@ export default {
       version: '版本',
       restart: '重启',
       noNewVersion: '当前已是最新版本',
+      modelPath: '模型路径',
     },
     boardcast: {
       onlineClient: '在线Client',
@@ -63,11 +64,16 @@ export default {
     objTrack: '目标识别',
     objDetect: '检测',
     objSegment: '分割',
-    objModel: {
-      yolov8s: 'YOLOv8n (Ultralytics)',
-      yolov10s: 'YOLOv10s(清华大学)',
-      yolo11s: 'YOLO11s(lastest)',
-      mobilenet: 'MobileNetv2',
+    faceDetect: '人脸识别',
+    animeGAN: '图生图',
+    ocr: 'OCR',
+    styleTrans: '风格迁移',
+
+    model: {
+      'yolov8s': 'YOLOv8n (Ultralytics)',
+      'yolov10s': 'YOLOv10s(清华大学)',
+      'yolo11s': 'YOLO11s(lastest)',
+      'mobilenet': 'MobileNetv2',
       'deeplab-ade': 'Deeplab-ADE20K',
       'deeplab-cityspace': 'Deeplab-Cityspace',
       'deeplabv3p-mobilenet': 'Deeplabv3+(MobileNet)',
@@ -76,15 +82,10 @@ export default {
       'yolo26s-seg': 'Yolo26s',
       'yoloe-26n-seg': 'Yoloe26n',
       'yoloe-26n-seg-pf': 'Yoloe26n(无提示词)',
-      sam: 'Segment Anything(Meta)',
-      fastSAMs: 'FastSAM-s',
-      unet: 'u-net++',
-    },
+      'sam': 'Segment Anything(Meta)',
+      'fastSAMs': 'FastSAM-s',
+      'unet': 'u-net++',
 
-    faceDetect: '人脸识别',
-
-    animeGAN: '图生图',
-    animeModel: {
       'animeGANv2': 'v2',
       'animeGANv3-Ghibli-o1': 'v3-Ghibli-o1-e299',
       'animeGANv3-Ghibli-c1': 'v3-Ghibli-c1-e299',
@@ -94,23 +95,16 @@ export default {
       'animeGANv3-Shinkai': 'v3-Shinkai-37',
       'animeGANv3-TinyCute': 'v3-TinyCute',
       'animeGANv3-FacePaint': 'v3-FacePaint',
-    },
 
-    ocr: 'OCR',
-    ocrModel: {
       'tesseract': 'tesseract.js',
       'kerasOcr': 'kerasOcr',
       'easyOcr': 'easyOcr',
       'paddleOcr': '飞桨OCR',
       'GOT-OCR': 'GOT-OCR2.0',
-    },
 
-    styleTrans: '风格迁移',
-    styleModel: {
       'style-mobilenet': 'mobileNet',
-      'style-inception': 'inceptionv3'
-    },
-    transModel: {
+      'style-inception': 'inceptionv3',
+
       'trans-separable-conv2d': '二维可分离卷积',
       'trans-origin': '原始变换',
     },

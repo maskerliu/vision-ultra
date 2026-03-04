@@ -1,14 +1,15 @@
 import { BizConfig } from './base.models'
 
-export const MainAPICMD = {
+export const MainApiCmd = {
   Relaunch: 'relaunch',
   OpenFile: 'openFile',
+  OpenFolder: 'openFolder',
   SaveFileAs: 'saveFile',
   OpenDevTools: 'openDevTools',
   OpenMockRuleMgr: 'openMockRuleMgr',
   OpenSettings: 'openSettings',
-  GetSysSettings: 'getSysSettings',
-  SaveSysSettings: 'saveSysSettings',
+  GetBizConfig: 'getBizConfig',
+  UpdateBizConfig: 'updateBizConfig',
   SetAppTheme: 'setAppTheme',
   GetSysTheme: 'getSysTheme',
   SysThemeChanged: 'sysThemeChanged',
@@ -22,21 +23,21 @@ export interface IMainAPI {
 
   openFile(callback: Function): void
 
+  openFolder(callback: Function): void
+
   saveFile(title: string, fileName: string, file: string | ArrayBuffer, slient: boolean): void
 
   openDevTools(...args: any): void
-
-  saveSysSettings(...args: any): void
 
   sendServerEvent(): void
 
   downloadUpdate(...args: any): void
 
-  onOpenMockRuleMgr(callback: any): void
-
   onOpenSettings(callback: any): void
 
-  getSysSettings(callback: (result: BizConfig) => void): void
+  getBizConfig(callback: (result: BizConfig) => void): void
+
+  updateBizConfig(...args: any): void
 
   setAppTheme(theme: ('system' | 'light' | 'dark')): void
 

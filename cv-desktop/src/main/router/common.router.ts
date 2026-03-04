@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { inject, injectable } from 'inversify'
-import { API_URL } from '../../shared/api.const'
+import { ApiPath } from '../../shared/api.const'
 import { IocTypes } from '../MainConst'
 import { BizNetwork } from '../misc/utils'
 import { CommonService } from '../service'
@@ -67,12 +67,12 @@ export class CommonRouter extends BaseRouter {
   override initApiInfos(): void {
     this.addApiInfo({
       method: BizNetwork.Method_Get,
-      path: `${API_URL.GetAllPushClients}`,
+      path: `${ApiPath.PushClient}${ApiPath.Client_List}`,
       func: 'getAllPushClients', target: 'pushService'
     })
     this.addApiInfo({
       method: BizNetwork.Method_Get,
-      path: `${API_URL.GetBizConfig}`,
+      path: `${ApiPath.BizConfig}${ApiPath.Config_Get}`,
       func: 'getAllConfig', target: 'commonService'
     })
   }

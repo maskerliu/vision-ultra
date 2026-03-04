@@ -8,7 +8,7 @@ import path from 'path'
 import process from 'process'
 import { pipeline } from 'stream/promises'
 import { createGunzip } from 'zlib'
-import { MainAPICMD, Version } from '../shared'
+import { MainApiCmd, Version } from '../shared'
 import { IS_DEV, USER_DATA_DIR } from './MainConst'
 import { getAppWindow } from './misc/utils'
 
@@ -26,7 +26,7 @@ export async function incrementUpdate(version: Version) {
   const resp = await axios({
     url: version.updateUrl, method: 'GET', responseType: 'stream',
     onDownloadProgress: (event) => {
-      getAppWindow()?.webContents.send(MainAPICMD.DownloadUpdate,
+      getAppWindow()?.webContents.send(MainApiCmd.DownloadUpdate,
         { progress: Math.round((event.loaded / event.total) * 100) }
       )
     }
@@ -70,7 +70,7 @@ export async function fullUpdate(version: Version) {
   const resp = await axios({
     url: version.updateUrl, method: 'GET', responseType: 'stream',
     onDownloadProgress: (event) => {
-      getAppWindow()?.webContents.send(MainAPICMD.DownloadUpdate,
+      getAppWindow()?.webContents.send(MainApiCmd.DownloadUpdate,
         { progress: Math.round((event.loaded / event.total) * 100) })
 
     }

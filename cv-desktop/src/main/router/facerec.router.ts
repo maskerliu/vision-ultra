@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify'
-import { API_URL } from '../../shared/api.const'
+import { ApiPath } from '../../shared/api.const'
 import { IocTypes } from '../MainConst'
 import { BizNetwork } from '../misc/utils'
 import { FaceRecService } from '../service'
@@ -19,12 +19,12 @@ export class FaceRecRouter extends BaseRouter {
   override initApiInfos(): void {
     this.addApiInfo({
       method: BizNetwork.Method_Get,
-      path: `${API_URL.F_List}/:keyword`,
+      path: `${ApiPath.F_List}/:keyword`,
       func: 'list', target: 'faceRecService',
       params: [{ key: 'keyword', type: ParamType.Path }]
     })
     this.addApiInfo({
-      method: BizNetwork.Method_Post, path: `${API_URL.F_Registe}`,
+      method: BizNetwork.Method_Post, path: `${ApiPath.F_Registe}`,
       func: 'registe', target: 'faceRecService',
       params: [
         { key: 'name', type: ParamType.FormBody },
@@ -33,7 +33,7 @@ export class FaceRecRouter extends BaseRouter {
       ]
     })
     this.addApiInfo({
-      method: BizNetwork.Method_Post, path: `${API_URL.F_Delete}`,
+      method: BizNetwork.Method_Post, path: `${ApiPath.F_Delete}`,
       func: 'delete', target: 'faceRecService',
       params: [
         { key: 'eigenIds', type: ParamType.FormBody }
@@ -41,7 +41,7 @@ export class FaceRecRouter extends BaseRouter {
     })
 
     this.addApiInfo({
-      method: BizNetwork.Method_Post, path: `${API_URL.F_Recognize}`,
+      method: BizNetwork.Method_Post, path: `${ApiPath.F_Recognize}`,
       func: 'recognize', target: 'faceRecService',
       params: [{ key: 'eigen', type: ParamType.FormBody }]
     })

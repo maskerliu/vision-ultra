@@ -1,59 +1,61 @@
 import { ipcRenderer } from 'electron'
-import { IMainAPI, MainAPICMD } from '../../shared'
+import { IMainAPI, MainApiCmd } from '../../shared'
 import { BizConfig } from '../../shared/base.models'
 
 const mainApi: IMainAPI = {
   relaunch() {
-    ipcRenderer.invoke(MainAPICMD.Relaunch)
+    ipcRenderer.invoke(MainApiCmd.Relaunch)
   },
   openFile(callback: Function): void {
-    ipcRenderer.invoke(MainAPICMD.OpenFile)
-    ipcRenderer.once(MainAPICMD.OpenFile, (event, result) => callback(result))
+    ipcRenderer.invoke(MainApiCmd.OpenFile)
+    ipcRenderer.once(MainApiCmd.OpenFile, (event, result) => callback(result))
+  },
+  openFolder(callback: Function) {
+    ipcRenderer.invoke(MainApiCmd.OpenFolder)
+    ipcRenderer.once(MainApiCmd.OpenFolder, (event, result) => callback(result))
   },
   saveFile(title: string, fileName: string, file: string | ArrayBuffer, slient: boolean = false): void {
-    ipcRenderer.invoke(MainAPICMD.SaveFileAs, title, fileName, file, slient)
+    ipcRenderer.invoke(MainApiCmd.SaveFileAs, title, fileName, file, slient)
     // ipcRenderer.once(MainAPICMD.SaveFileAs, (event, result) => callback(result))
   },
   openDevTools(...args: any) {
-    ipcRenderer.invoke(MainAPICMD.OpenDevTools, args)
+    ipcRenderer.invoke(MainApiCmd.OpenDevTools, args)
   },
-  saveSysSettings(...args: any) {
-    ipcRenderer.invoke(MainAPICMD.SaveSysSettings, args)
-  },
+
   downloadUpdate(newVersion: any) {
-    ipcRenderer.invoke(MainAPICMD.DownloadUpdate, newVersion)
+    ipcRenderer.invoke(MainApiCmd.DownloadUpdate, newVersion)
   },
 
   sendServerEvent(): void {
-    ipcRenderer.invoke(MainAPICMD.SendServerEvent)
+    ipcRenderer.invoke(MainApiCmd.SendServerEvent)
   },
 
-  getSysSettings(callback: (result: BizConfig) => void) {
-    ipcRenderer.once(MainAPICMD.GetSysSettings, (_event, result: BizConfig) => callback(result))
+  getBizConfig(callback: (result: BizConfig) => void) {
+    ipcRenderer.once(MainApiCmd.GetBizConfig, (_event, result: BizConfig) => callback(result))
+  },
+
+  updateBizConfig(...args: any) {
+    ipcRenderer.invoke(MainApiCmd.UpdateBizConfig, args)
   },
 
   setAppTheme(theme: ('system' | 'light' | 'dark')) {
-    ipcRenderer.invoke(MainAPICMD.SetAppTheme, theme)
+    ipcRenderer.invoke(MainApiCmd.SetAppTheme, theme)
   },
 
   getSysTheme(callback: any) {
-    ipcRenderer.once(MainAPICMD.GetSysTheme, (theme) => callback(theme))
-  },
-
-  onOpenMockRuleMgr(callback: any) {
-    ipcRenderer.once(MainAPICMD.OpenMockRuleMgr, (_event) => callback())
+    ipcRenderer.once(MainApiCmd.GetSysTheme, (theme) => callback(theme))
   },
 
   onOpenSettings(callback: any) {
-    ipcRenderer.once(MainAPICMD.OpenSettings, (_event) => callback())
+    ipcRenderer.once(MainApiCmd.OpenSettings, (_event) => callback())
   },
 
   onSysThemeChanged(callback: (theme: string) => void) {
-    ipcRenderer.once(MainAPICMD.SysThemeChanged, (_, theme: string) => callback(theme))
+    ipcRenderer.once(MainApiCmd.SysThemeChanged, (_, theme: string) => callback(theme))
   },
 
   onDownloadUpdate(callback: (...args: any) => void) {
-    ipcRenderer.once(MainAPICMD.DownloadUpdate, (_, ...args: any) => callback(...args))
+    ipcRenderer.once(MainApiCmd.DownloadUpdate, (_, ...args: any) => callback(...args))
   },
 }
 

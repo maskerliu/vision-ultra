@@ -8,7 +8,7 @@ import { Server } from 'http'
 import http2express from 'http2-express'
 import path from 'path'
 import tcpPortUsed from 'tcp-port-used'
-import { API_URL } from '../shared/api.const'
+import { ApiPath } from '../shared/api.const'
 import { BizConfig } from '../shared/base.models'
 import { bizContainer } from './IocContainer'
 import { IocTypes, IS_DEV, USER_DATA_DIR } from './MainConst'
@@ -57,11 +57,11 @@ export class MainServer {
     this.startHttpServer()
   }
 
-  public getSysSettings() {
+  public getBizConfig() {
     return this.commonService.allConfig
   }
 
-  public updateSysSettings(config: BizConfig) {
+  public updateBizConfig(config: BizConfig) {
     this.commonService.saveAllConfig(config)
   }
 
@@ -89,6 +89,8 @@ export class MainServer {
       next()
     })
 
+    if (this.getBizConfig().modelPath) this.httpApp.use('/static', express.static(this.getBizConfig().modelPath))
+
     if (IS_DEV) this.httpApp.use('/static', express.static(path.join(__dirname, '../../data')))
     this.httpApp.use('/static', express.static(path.resolve(__dirname, `${IS_DEV ? '../../static' : './static'}`)))
     this.httpApp.use('/_res', express.static(path.join(USER_DATA_DIR, './static')))
@@ -98,10 +100,10 @@ export class MainServer {
     this.httpApp.use(express.text({ type: 'application/json', limit: '50mb' }))
     this.httpApp.use(express.json())
 
-    this.httpApp.use(API_URL.Common, this.commonRouter.router)
-    this.httpApp.use(API_URL.MApi, this.mapiRouter.router)
-    this.httpApp.use(API_URL.FaceRec, this.faceRecRouter.router)
-    this.httpApp.use(API_URL.CorsMediaProxy, this.proxyCorsMedia)
+    this.httpApp.use(ApiPath.Common, this.commonRouter.router)
+    this.httpApp.use(ApiPath.MApi, this.mapiRouter.router)
+    this.httpApp.use(ApiPath.FaceRec, this.faceRecRouter.router)
+    this.httpApp.use(ApiPath.CorsMediaProxy, this.proxyCorsMedia)
   }
 
   private async startHttpServer() {

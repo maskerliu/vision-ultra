@@ -87,7 +87,7 @@ onMounted(async () => {
 
   window.mainApi?.setAppTheme(theme.value)
   if (window.mainApi) {
-    window.mainApi?.getSysSettings(async (result) => {
+    window.mainApi?.getBizConfig(async (result) => {
       await CommonStore().init(result)
     })
   } else {

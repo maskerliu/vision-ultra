@@ -1,8 +1,11 @@
-export const API_URL = {
+export const ApiPath = {
 
   Common: '/common',
-  GetBizConfig: '/getBizConfig',
-  GetAllPushClients: '/getAllPushClients',
+  BizConfig: '/bizConfig',
+  Config_Get: '/get',
+  Config_Update: '/update',
+  PushClient: '/pushClient',
+  Client_List: '/list',
 
   FaceRec: '/facerec',
   F_List: '/list',
