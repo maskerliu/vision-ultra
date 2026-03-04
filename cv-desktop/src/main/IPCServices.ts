@@ -4,12 +4,12 @@ import fse from 'fs-extra'
 import { Buffer } from 'node:buffer'
 import os from 'os'
 import path from "path"
-import { MainAPICMD, Version } from '../shared'
+import { MainApiCmd, Version } from '../shared'
 import { fullUpdate, incrementUpdate } from './AppUpdater'
 import { USER_DATA_DIR } from './MainConst'
 import { getAppWindow } from './misc/utils'
 
-ipcMain.handle(MainAPICMD.Relaunch, (_) => {
+ipcMain.handle(MainApiCmd.Relaunch, (_) => {
   if (fse.pathExistsSync(path.join(process.resourcesPath, 'update.asar'))) {
     const logPath = app.getPath('logs')
     const out = fse.openSync(path.join(logPath, 'out.log'), 'a')
@@ -36,7 +36,7 @@ ipcMain.handle(MainAPICMD.Relaunch, (_) => {
   app.quit()
 })
 
-ipcMain.handle(MainAPICMD.OpenFile, async (_, target: string) => {
+ipcMain.handle(MainApiCmd.OpenFile, async (_, target: string) => {
   let result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
     properties: ['openFile',],
     filters: [
@@ -48,10 +48,19 @@ ipcMain.handle(MainAPICMD.OpenFile, async (_, target: string) => {
   })
 
   if (result.canceled) return
-  getAppWindow()?.webContents.send(MainAPICMD.OpenFile, os.platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0])
+  getAppWindow()?.webContents.send(MainApiCmd.OpenFile, os.platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0])
 })
 
-ipcMain.handle(MainAPICMD.SaveFileAs, async (_, title: string, fileName: string, data: string | ArrayBuffer, slient = false) => {
+ipcMain.handle(MainApiCmd.OpenFolder, async (_, target: string) => {
+  let result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+    properties: ['openDirectory',],
+  })
+
+  if (result.canceled) return
+  getAppWindow()?.webContents.send(MainApiCmd.OpenFolder, os.platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0])
+})
+
+ipcMain.handle(MainApiCmd.SaveFileAs, async (_, title: string, fileName: string, data: string | ArrayBuffer, slient = false) => {
 
   let filePath = path.join(USER_DATA_DIR, fileName)
   await fse.ensureDir(path.dirname(filePath))
@@ -82,12 +91,12 @@ ipcMain.handle(MainAPICMD.SaveFileAs, async (_, title: string, fileName: string,
 })
 
 
-ipcMain.handle(MainAPICMD.OpenDevTools, (_, args?: any) => {
+ipcMain.handle(MainApiCmd.OpenDevTools, (_, args?: any) => {
   BrowserWindow.getFocusedWindow()?.webContents.openDevTools({ mode: 'detach', activate: false })
 })
 
 
-ipcMain.handle(MainAPICMD.SetAppTheme, (_, theme: ('system' | 'light' | 'dark')) => {
+ipcMain.handle(MainApiCmd.SetAppTheme, (_, theme: ('system' | 'light' | 'dark')) => {
   nativeTheme.themeSource = theme
   if (os.platform() == 'darwin') {
     // console.log(this.mainWindow.setTitleBarOverlay)
@@ -99,7 +108,7 @@ ipcMain.handle(MainAPICMD.SetAppTheme, (_, theme: ('system' | 'light' | 'dark'))
   }
 })
 
-ipcMain.handle(MainAPICMD.DownloadUpdate, async (_, newVersion: Version) => {
+ipcMain.handle(MainApiCmd.DownloadUpdate, async (_, newVersion: Version) => {
   if (newVersion.fullUpdate) await fullUpdate(newVersion)
   else await incrementUpdate(newVersion)
 })

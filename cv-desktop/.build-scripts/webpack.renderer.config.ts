@@ -138,18 +138,18 @@ class RendererConfig extends BaseConfig {
     this.plugins?.push(
       new CopyWebpackPlugin({
         patterns: [
-          {
-            from: path.posix.join(dirname, '../../node_modules/@mediapipe/face_mesh/*.{js,wasm,binarypb,data}'),
-            to: path.join(dirname, '../dist/electron/static/face_mesh/'),
-          },
+          // {
+          //   from: path.posix.join(dirname, '../../node_modules/@mediapipe/face_mesh/*.{js,wasm,binarypb,data}'),
+          //   to: path.join(dirname, '../dist/electron/static/face_mesh/'),
+          // },
           {
             from: path.posix.join(dirname, '../../node_modules/@mediapipe/tasks-vision/wasm/'),
             to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
           },
-          {
-            from: path.posix.join(dirname, '../../node_modules/tesseract.js-core/'),
-            to: path.join(dirname, '../dist/electron/static/tesseract.js-core/'),
-          },
+          // {
+          //   from: path.posix.join(dirname, '../../node_modules/tesseract.js-core/'),
+          //   to: path.join(dirname, '../dist/electron/static/tesseract.js-core/'),
+          // },
         ]
       }),
       new HtmlWebpackPlugin({
@@ -173,18 +173,19 @@ class RendererConfig extends BaseConfig {
       )
 
       this.plugins?.push(
-        new BundleAnalyzerPlugin({
-          analyzerMode: 'server',
-          analyzerHost: '127.0.0.1',
-          analyzerPort: 9088,
-          reportFilename: 'report.html',
-          defaultSizes: 'parsed',
-          openAnalyzer: true,
-          generateStatsFile: false,
-          statsFilename: 'stats.json',
-          statsOptions: null,
-          logLevel: 'info'
-        }),
+        // new BundleAnalyzerPlugin({
+        //   analyzerMode: 'server',
+        //   analyzerHost: '127.0.0.1',
+        //   analyzerPort: 9088,
+        //   reportFilename: 'report.html',
+        //   defaultSizes: 'parsed',
+        //   openAnalyzer: true,
+        //   generateStatsFile: false,
+        //   statsFilename: 'stats.json',
+        //   statsOptions: null,
+        //   logLevel: 'info',
+        //   excludeAssets: [/\.hot-update.js$/]
+        // }),
       )
     } else {
       this.optimization = {
@@ -226,7 +227,7 @@ class RendererConfig extends BaseConfig {
           vue: {
             name: 'vue',
             priority: 20,
-            test: /[\\/]node_modules[\\/]vue|vue-router|pinia|@vue[\\/]/
+            test: /[\\/]node_modules[\\/]vue|vue-router|vue-i18n|pinia|@vue[\\/]/
           },
           buffer: {
             name: 'buffer',
@@ -236,12 +237,17 @@ class RendererConfig extends BaseConfig {
           vant: {
             name: "vant",
             priority: 20,
-            test: /[\\/]node_modules[\\/]vant[\\/]/
+            test: /[\\/]node_modules[\\/]vant|@vant[\\/]/
           },
-          kalidokit: {
-            name: 'kalidokit',
+          live2d: {
+            name: 'live2d',
             priority: 20,
-            test: /[\\/]node_modules[\\/]kalidokit[\\/]/
+            test: /[\\/]node_modules[\\/]live2d-renderer|kalidokit|magic-bytes[\\/]/
+          },
+          mediapipe: {
+            name: 'mediapipe',
+            priority: 20,
+            test: /[\\/]node_modules[\\/]@mediapipe[\\/]/,
           },
           opencvjs: {
             name: 'opencv',
@@ -255,8 +261,15 @@ class RendererConfig extends BaseConfig {
           },
           onnxruntime: {
             name: 'onnxruntime',
-            test: /[\\/]node_modules[\\/]onnxruntime-web/,
+            test: /[\\/]node_modules[\\/]onnxruntime-web[\\/]/,
             priority: 30,
+            chunks: 'all',
+            enforce: true,
+          },
+          worker: {
+            name: 'worker',
+            test: /\.worker\.ts$/,
+            priority: 40,
             chunks: 'all',
             enforce: true,
           },
@@ -272,7 +285,7 @@ class RendererConfig extends BaseConfig {
           },
           echarts: {
             name: 'echarts',
-            test: /[\\/]node_modules[\\/]echarts[\\/]/,
+            test: /[\\/]node_modules[\\/]echarts|zrender[\\/]/,
             priority: 20,
           },
 

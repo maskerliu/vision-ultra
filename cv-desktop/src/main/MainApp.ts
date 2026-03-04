@@ -6,7 +6,7 @@ import {
 import fse from 'fs-extra'
 import os from 'os'
 import path from 'path'
-import { MainAPICMD } from '../shared'
+import { MainApiCmd } from '../shared'
 import './IPCServices'
 import { IS_DEV, USER_DATA_DIR } from './MainConst'
 import { MainServer } from './MainServer'
@@ -184,7 +184,7 @@ export default class MainApp {
     this.mainWindow.on('ready-to-show', () => {
       this.mainWindow.show()
       this.mainWindow.focus()
-      this.mainWindow.webContents.send(MainAPICMD.GetSysSettings, this.mainServer.getSysSettings())
+      this.mainWindow.webContents.send(MainApiCmd.GetBizConfig, this.mainServer.getBizConfig())
     })
   }
 
@@ -198,7 +198,7 @@ export default class MainApp {
         label: '用例管理',
         click: () => {
           this.mainWindow?.show()
-          this.mainWindow?.webContents.send(MainAPICMD.OpenMockRuleMgr)
+          this.mainWindow?.webContents.send(MainApiCmd.OpenMockRuleMgr)
         }
       },
       {
@@ -206,7 +206,7 @@ export default class MainApp {
         label: '设置',
         click: () => {
           this.mainWindow?.show()
-          this.mainWindow?.webContents.send(MainAPICMD.OpenSettings)
+          this.mainWindow?.webContents.send(MainApiCmd.OpenSettings)
         }
       },
       {
@@ -214,7 +214,7 @@ export default class MainApp {
         label: '开发者面板',
         click: () => {
           this.mainWindow?.show()
-          this.mainWindow?.webContents.send(MainAPICMD.OpenDevTools)
+          this.mainWindow?.webContents.send(MainApiCmd.OpenDevTools)
         }
       },
       {
@@ -288,21 +288,21 @@ export default class MainApp {
   }
 
   private initIPCService() {
-    ipcMain.handle(MainAPICMD.SaveSysSettings, (_, ...args: any) => {
-      let curSettings = this.mainServer.getSysSettings()
+    ipcMain.handle(MainApiCmd.UpdateBizConfig, (_, ...args: any) => {
+      let curSettings = this.mainServer.getBizConfig()
       let newSettings = JSON.parse(args)
 
-      this.mainServer.updateSysSettings(JSON.parse(args))
+      this.mainServer.updateBizConfig(JSON.parse(args))
 
       if (newSettings.port !== curSettings.port || newSettings.protocol !== curSettings.protocol) {
         this.mainServer.stop()
         this.mainServer.start()
       }
 
-      this.mainWindow.webContents.send(MainAPICMD.GetSysSettings, this.mainServer.getSysSettings())
+      this.mainWindow.webContents.send(MainApiCmd.GetBizConfig, this.mainServer.getBizConfig())
     })
 
-    ipcMain.handle(MainAPICMD.SendServerEvent, () => {
+    ipcMain.handle(MainApiCmd.SendServerEvent, () => {
       // console.log('send sse')
     })
   }

@@ -102,6 +102,7 @@ export interface AppConfig {
   appVersion: string
   theme: string
   locales: string
+  modelPath: string
 }
 
 export interface MockConfig {

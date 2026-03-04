@@ -13,7 +13,7 @@
 
       <van-grid-item v-for="(model, idx) in models" :key="idx">
         <div class="van-ellipsis" style="color: var(--van-text-color); max-width: 10rem; z-index: 1;">
-          {{ $t(`cvControl.ObjModel.${model.name}`) }}
+          {{ $t(`cvControl.model.${model.name}`) }}
         </div>
         <div style="color: var(--van-text-color-2); z-index: 1; height: 1rem;">{{ model.desc }}</div>
         <div class="van-hairline--top"></div>
@@ -57,25 +57,21 @@ const uploadModel = ref<ModelInfo>({
 
 onMounted(() => {
   models.value = [
-    { name: 'yolov8n', desc: '3.2M', type: ModelType.detect },
-    { name: 'yolov10n', desc: '2.3M', type: ModelType.detect },
+    { name: 'yolov8s', desc: '3.2M', type: ModelType.detect },
     { name: 'yolov10s', desc: '7.2M', type: ModelType.detect },
-    { name: 'yolo11n', desc: '2.6M', type: ModelType.detect },
     { name: 'yolo11s', desc: '9.4M', type: ModelType.detect },
     { name: 'mobilenet', desc: '', type: ModelType.detect },
     { name: 'deeplab-ade', desc: 'class: 150', type: ModelType.segment },
     { name: 'deeplab-cityspace', desc: 'class: 20', type: ModelType.segment },
-    { name: 'yolo11n-seg', desc: 'class: 80', type: ModelType.segment },
     { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.segment },
-    { name: 'yolo11m-seg', desc: '20.1M', type: ModelType.segment },
     { name: 'yolo26s-seg', desc: '10.4', type: ModelType.transform },
     { name: 'unet', desc: '', type: ModelType.pose },
     { name: 'sam', desc: '38.9M', type: ModelType.segment },
-    { name: 'animeGANv3', desc: '1.2M', type: ModelType.obb },
-    { name: 'anime_Kpop', desc: '1.2M', type: ModelType.genImage },
-    { name: 'anime_Disney', desc: '2.0M', type: ModelType.ocr },
-    { name: 'anime_OilPaint', desc: '4.6M', type: ModelType.classify },
-    { name: 'anime_Ghibli', desc: '12.4M', type: ModelType.style },
+    { name: 'animeGANv2', desc: '1.2M', type: ModelType.obb },
+    { name: 'animeGANv3-TinyCute', desc: '1.2M', type: ModelType.genImage },
+    { name: 'animeGANv3-FacePaint', desc: '2.0M', type: ModelType.ocr },
+    { name: 'animeGANv3-Shinkai', desc: '4.6M', type: ModelType.classify },
+    { name: 'animeGANv3-JPface', desc: '12.4M', type: ModelType.style },
   ]
 })
 

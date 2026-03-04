@@ -16,7 +16,7 @@ export default {
       server: 'Server',
       port: 'Server Port',
       porterror: "Port has been used",
-      serverDomain: 'Server Domain',
+      domain: 'Server Domain',
       updateServer: 'App Update Server',
       mqttBroker: 'MQTT Broker',
       theme: 'Theme',
@@ -24,7 +24,8 @@ export default {
       lang: 'Locales',
       version: 'Version',
       restart: 'restart',
-      noNewVersion: 'No New Version'
+      noNewVersion: 'No New Version',
+      modelPath: 'Model Path',
     },
     boardcast: {
       onlineClient: 'Online Client',
@@ -63,11 +64,17 @@ export default {
     objTrack: 'Object Detect',
     objDetect: 'Detect',
     objSegment: 'Segment',
-    objModel: {
-      yolov8s: 'YOLOv8s (Ultralytics)',
-      yolov10s: 'YOLOv10s(Tsinghua university)',
-      yolo11s: 'YOLO11s(lastest)',
-      mobilenet: 'MobileNetv2',
+    faceDetect: 'Face Recognize',
+    animeGAN: 'AnimeGAN',
+    ocr: 'OCR',
+    styleTrans: 'Style Transform',
+
+    model: {
+      'yolov8s': 'YOLOv8s (Ultralytics)',
+      'yolov10s': 'YOLOv10s(Tsinghua university)',
+      'yolo11s': 'YOLO11s(lastest)',
+      'mobilenet': 'MobileNetv2',
+
       'deeplab-ade': 'Deeplab-ADE20K',
       'deeplab-cityspace': 'Deeplab-Cityspace',
       'deeplabv3p-mobilenet': 'Deeplabv3+(MobileNet)',
@@ -76,15 +83,10 @@ export default {
       'yolo26s-seg': 'Yolo26s',
       'yoloe-26n-seg': 'Yoloe26n',
       'yoloe-26n-seg-pf': 'Yoloe26n(Prompt Free)',
-      sam: 'Segment Anything(Meta)',
-      fastSAMs: 'FastSAM-s',
-      unet: 'u-net++',
-    },
+      'sam': 'Segment Anything(Meta)',
+      'fastSAMs': 'FastSAM-s',
+      'unet': 'u-net++',
 
-    faceDetect: 'Face Recognize',
-
-    animeGAN: 'AnimeGAN',
-    animeModel: {
       'animeGANv2': 'v2',
       'animeGANv3-Ghibli-o1': 'v3-Ghibli-o1-e299',
       'animeGANv3-Ghibli-c1': 'v3-Ghibli-c1-e299',
@@ -94,26 +96,20 @@ export default {
       'animeGANv3-Shinkai': 'v3-Shinkai-37',
       'animeGANv3-TinyCute': 'v3-TinyCute',
       'animeGANv3-FacePaint': 'v3-FacePaint',
-    },
 
-    ocr: 'OCR',
-    ocrModel: {
       'tesseract': 'tesseract.js',
       'kerasOcr': 'kerasOcr',
       'easyOcr': 'easyOcr',
       'paddleOcr': '飞桨OCR',
       'GOT-OCR': 'GOT-OCR2.0',
-    },
 
-    styleTrans: 'Style Transform',
-    styleModel: {
       'style-mobileNet': 'mobileNet',
-      'style-inceptionv3': 'inceptionv3'
-    },
-    transModel: {
+      'style-inceptionv3': 'inceptionv3',
+
       'trans-separable-conv2d': 'Separable Conv2d',
       'trans-origin': 'Original Transform',
     },
+
 
     imgEnhance: 'Image Enhance',
     gray: 'Gray',

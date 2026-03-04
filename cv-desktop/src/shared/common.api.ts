@@ -1,5 +1,5 @@
 import { Connection } from 'sockjs'
-import { API_URL } from "./api.const"
+import { ApiPath } from "./api.const"
 import { get } from './base.api'
 import { BizConfig } from './base.models'
 
@@ -48,11 +48,10 @@ export namespace CommonApi {
   }
 
   export function getBizConfig() {
-    return get<BizConfig>(`${API_URL.Common}${API_URL.GetBizConfig}`)
+    return get<BizConfig>(`${ApiPath.Common}${ApiPath.BizConfig}${ApiPath.Config_Get}`)
   }
 
-
   export function getAllPushClients() {
-    return get<Array<MsgPushClient>>(`${API_URL.Common}${API_URL.GetAllPushClients}`)
+    return get<Array<MsgPushClient>>(`${ApiPath.Common}${ApiPath.PushClient}${ApiPath.Client_List}`)
   }
 }

@@ -31,11 +31,15 @@
       </template>
     </van-field>
 
-    <van-field center :label="$t(item.tooltip)" label-width="10rem" input-align="right" v-for="item in perferences"
-      v-model="commonStore.bizConfig[item.key]" :readonly="item.readonly ? true : item.readonly"
-      :error-message="!commonStore.bizConfig['portValid'] && item.tooltip == 'settings.sys.port' ? $t('settings.sys.porterror') : null">
+    <van-field center :label="$t(`settings.sys.${item.key}`)" label-width="10rem" input-align="right"
+      v-for="item in perferences" v-model="commonStore.bizConfig[item.key]"
+      :readonly="item.readonly ? true : item.readonly"
+      :error-message="!commonStore.bizConfig['portValid'] && item.key == 'port' ? $t('settings.sys.porterror') : null">
       <template #right-icon>
         <van-switch v-if="item.hasStatus" style="margin-top: 5px;"></van-switch>
+        <van-button v-if="item.openFolder" type="primary" plain size="small" @click="onOpenFolder">
+          <van-icon class-prefix="iconfont" name="open" />
+        </van-button>
       </template>
     </van-field>
 
@@ -57,7 +61,8 @@ import { CommonStore } from '../../store'
 
 type SettingPreference = {
   key: string
-  tooltip: string
+  label: string
+  openFolder?: boolean
   hasStatus?: boolean
   statusKey?: string
   readonly?: boolean
@@ -72,9 +77,10 @@ const protocol = ref(0)
 const isWeb = window.isWeb
 
 let perferences = [
-  { tooltip: 'settings.sys.serverDomain', key: 'domain' },
-  { tooltip: 'settings.sys.port', key: 'port', readonly: isWeb },
-  { tooltip: 'settings.sys.updateServer', key: 'updateServer', readonly: isWeb },
+  { key: 'domain' },
+  { key: 'port', readonly: isWeb },
+  { key: 'updateServer', readonly: isWeb },
+  { key: 'modelPath', readonly: isWeb, openFolder: true },
 ] as Array<SettingPreference>
 
 onMounted(() => {
@@ -96,8 +102,14 @@ function onSelectIP(ip: LocalIP) {
   showPopover.value = false
 }
 
+function onOpenFolder() {
+  window.mainApi?.openFolder((path: string) => {
+    commonStore.bizConfig.modelPath = path
+  })
+}
+
 function onSave() {
-  window.mainApi?.saveSysSettings(JSON.stringify(commonStore.bizConfig))
+  window.mainApi?.updateBizConfig(JSON.stringify(commonStore.bizConfig))
   showSettings.value = false
 }
 
