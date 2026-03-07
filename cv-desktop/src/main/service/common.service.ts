@@ -1,16 +1,20 @@
 import { app, nativeTheme } from 'electron'
-import { accessSync, readFileSync, writeFileSync } from 'fs'
 import { inject, injectable } from "inversify"
+import { accessSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import path from 'path'
 import { BizConfig, CommonApi } from '../../shared'
 import { IocTypes, Lynx_Mqtt_Broker, USER_DATA_DIR } from '../MainConst'
 import { getLocalIPs } from '../misc/utils'
+import { ModelRepo } from '../repository/model.repo'
 import { PushService } from './push.service'
 
 @injectable()
 export class CommonService {
 
   private _mixConfig: BizConfig
+
+  @inject(IocTypes.ModelRepo)
+  private _modelRepo: ModelRepo
 
   get allConfig() {
     return this._mixConfig
@@ -25,6 +29,7 @@ export class CommonService {
 
   constructor() {
     let filePath = path.join(USER_DATA_DIR, 'local.config.json')
+
     try {
       accessSync(filePath)
     } catch (err) {
@@ -46,15 +51,12 @@ export class CommonService {
         portValid: config.portValid,
         domain: config.domain,
         ips: getLocalIPs(),
+        modelPath: config.modelPath,
         mqttBroker: Lynx_Mqtt_Broker
       }
     }
   }
 
-  getAllConfig(): BizConfig {
-    console.log('get all config')
-    return this._mixConfig
-  }
 
   public register(uid: string) {
     if (uid != null) {
@@ -72,6 +74,11 @@ export class CommonService {
     }
   }
 
+  getAllConfig(): BizConfig {
+    console.log('get all config')
+    return this._mixConfig
+  }
+
   saveAllConfig(config: BizConfig) {
     let filePath = path.join(USER_DATA_DIR, 'local.config.json')
     try {
@@ -85,7 +92,37 @@ export class CommonService {
       this.allConfig.portValid = config.portValid as boolean
       this.allConfig.ip = config.ip
       this.allConfig.protocol = config.protocol
+      this.allConfig.modelPath = config.modelPath
       writeFileSync(filePath, JSON.stringify(this.allConfig), 'utf-8')
     }
+  }
+
+  async getLocalModels() {
+    if (this.allConfig.modelPath == null) return []
+    let files = readdirSync(this.allConfig.modelPath)
+    let names: string[] = []
+    files.forEach(file => {
+      const filePath = path.join(this.allConfig.modelPath, file)
+      const stat = statSync(filePath)
+      let name = null
+      if (stat.isFile()) {
+        name = path.parse(filePath).name
+      } else if (stat.isDirectory()) {
+        name = file
+      }
+
+      if (names.indexOf(name) == -1) names.push(name)
+    })
+
+    let modelInDb = await this._modelRepo.search()
+    if (modelInDb != null && modelInDb.length == names.length) return modelInDb
+
+    for (let model of modelInDb) {
+      if (names.indexOf(model.name) == -1) {
+        await this._modelRepo.delete(model._id)
+      }
+    }
+
+    return names
   }
 }

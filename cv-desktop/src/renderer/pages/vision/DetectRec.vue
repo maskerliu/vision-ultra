@@ -205,7 +205,7 @@ async function onConfirmName() {
 
 async function openFolder() {
 
-  window.mainApi?.openFile((file: string) => {
+  window.mainApi?.selectFile((file: string) => {
     videoPlayer.close()
     processorMgr.drawMode = DrawMode.image
     showControlBar.value = false

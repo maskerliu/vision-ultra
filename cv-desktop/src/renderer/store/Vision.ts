@@ -79,7 +79,7 @@ export const VisionStore = defineStore('VisionStore', {
       modelEngine: ModelEngine.onnx,
 
       enableObjDetect: false,
-      objDetectModel: { name: 'yolo26s-seg', type: ModelType.segment, engine: ModelEngine.tensorflow },
+      objDetectModel: { name: 'yolo26s-seg', type: ModelType.segment, engine: ModelEngine.tensorflow } as Partial<ModelInfo>,
       genContour: false,
 
       enableFaceDetect: false,
@@ -89,15 +89,15 @@ export const VisionStore = defineStore('VisionStore', {
       live2d: false,
 
       enableOCR: false,
-      ocrModel: { name: 'tesseract', external: 'easyOCR.onnx.data', lang: ['chi_sim'], type: ModelType.ocr } as ModelInfo,
+      ocrModel: { name: 'tesseract', external: 'easyOCR.onnx.data', lang: ['chi_sim'], type: ModelType.ocr } as Partial<ModelInfo>,
 
       enableAnime: false,
-      animeModel: { name: 'animeGANv3-Ghibli-c1', type: ModelType.genImage } as ModelInfo,
+      animeModel: { name: 'animeGANv3-Ghibli-c1', type: ModelType.genImage } as Partial<ModelInfo>,
 
       enableStyleTrans: false,
-      styleModel: { name: 'style-mobilenet', type: ModelType.style },
+      styleModel: { name: 'style-mobilenet', type: ModelType.style } as Partial<ModelInfo>,
       styleFile: null as ImageData,
-      transModel: { name: 'trans-separable-conv2d', type: ModelType.transform } as ModelInfo,
+      transModel: { name: 'trans-separable-conv2d', type: ModelType.transform } as Partial<ModelInfo>,
       styleTransParams: [0, 0, 0] as [number, number, number],
 
       enableCV: false,

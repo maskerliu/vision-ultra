@@ -114,10 +114,6 @@ export interface MockConfig {
 
 export type BizConfig = AppConfig & ServerConfig
 
-export interface ProxyConfig {
-
-}
-
 export interface Version {
   forceUpdate: boolean
   fullUpdate: boolean
@@ -127,4 +123,35 @@ export interface Version {
   version: string
   sha512: string
   releaseDate: string
+}
+
+export enum ModelEngine {
+  tensorflow,
+  onnx
+}
+
+export enum ModelType {
+  unknown = -1,
+  classify = 'classify',
+  detect = 'detect',
+  segment = 'segment',
+  obb = 'obb',
+  pose = 'pose',
+  genImage = 'gen-image',
+  face = 'face-detect',
+  ocr = 'ocr',
+  style = 'style',
+  transform = 'transform'
+}
+
+export type ModelInfo = {
+  _id: string
+  _rev: string
+  name: string,
+  type: ModelType
+  external?: string // for onnx model with external data
+  lang?: string | string[]
+  desc?: string
+  engine?: ModelEngine
+  files?: Array<string>
 }

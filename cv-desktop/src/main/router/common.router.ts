@@ -75,5 +75,10 @@ export class CommonRouter extends BaseRouter {
       path: `${ApiPath.BizConfig}${ApiPath.Config_Get}`,
       func: 'getAllConfig', target: 'commonService'
     })
+    this.addApiInfo({
+      method: BizNetwork.Method_Get,
+      path: `${ApiPath.Model}${ApiPath.Model_List}`,
+      func: 'getLocalModels', target: 'commonService'
+    })
   }
 }

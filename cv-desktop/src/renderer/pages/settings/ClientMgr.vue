@@ -28,7 +28,9 @@
 
         <van-field placeholder="请输入内容" v-model="imMsg">
           <template #right-icon>
-            <van-button plain icon="guide-o" @click="sendMsg" size="small" />
+            <van-button plain @click="sendMsg" size="small">
+              <van-icon class-prefix="iconfont" name="send" />
+            </van-button>
           </template>
         </van-field>
       </van-form>

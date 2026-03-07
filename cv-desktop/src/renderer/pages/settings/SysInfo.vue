@@ -33,23 +33,23 @@
 
     <van-field center :label="$t(`settings.sys.${item.key}`)" label-width="10rem" input-align="right"
       v-for="item in perferences" v-model="commonStore.bizConfig[item.key]"
-      :readonly="item.readonly ? true : item.readonly"
+      :readonly="item.readonly ? true : item.readonly" error-message-align="right"
       :error-message="!commonStore.bizConfig['portValid'] && item.key == 'port' ? $t('settings.sys.porterror') : null">
       <template #right-icon>
         <van-switch v-if="item.hasStatus" style="margin-top: 5px;"></van-switch>
-        <van-button v-if="item.openFolder" type="primary" plain size="small" @click="onOpenFolder">
+        <van-button v-if="item.openFolder" type="success" plain square size="mini" @click="onSelectFolder">
+          <van-icon class-prefix="iconfont" name="folder-path" />
+        </van-button>
+        <van-button v-if="item.openFolder" type="primary" plain square size="mini" @click="onOpenFolder">
           <van-icon class-prefix="iconfont" name="open" />
         </van-button>
       </template>
     </van-field>
 
-    <van-cell v-if="!isWeb">
-      <template #value>
-        <van-button plain type="primary" size="small" block @click="onSave">
-          {{ $t('common.save') }}
-        </van-button>
-      </template>
-    </van-cell>
+    <van-button v-if="!isWeb" plain type="primary" size="small" @click="onSave"
+      style="margin: 5px; width: calc(100% - 10px);">
+      {{ $t('common.save') }}
+    </van-button>
   </van-cell-group>
 </template>
 <script lang="ts" setup>
@@ -102,10 +102,14 @@ function onSelectIP(ip: LocalIP) {
   showPopover.value = false
 }
 
-function onOpenFolder() {
-  window.mainApi?.openFolder((path: string) => {
+function onSelectFolder() {
+  window.mainApi?.selectFolder((path: string) => {
     commonStore.bizConfig.modelPath = path
   })
+}
+
+function onOpenFolder() {
+  window.mainApi?.openFolder(commonStore.bizConfig.modelPath)
 }
 
 function onSave() {

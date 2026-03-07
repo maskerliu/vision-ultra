@@ -6,13 +6,16 @@ const mainApi: IMainAPI = {
   relaunch() {
     ipcRenderer.invoke(MainApiCmd.Relaunch)
   },
-  openFile(callback: Function): void {
-    ipcRenderer.invoke(MainApiCmd.OpenFile)
-    ipcRenderer.once(MainApiCmd.OpenFile, (event, result) => callback(result))
+  selectFile(callback: Function): void {
+    ipcRenderer.invoke(MainApiCmd.SelectFile)
+    ipcRenderer.once(MainApiCmd.SelectFile, (event, result) => callback(result))
   },
-  openFolder(callback: Function) {
-    ipcRenderer.invoke(MainApiCmd.OpenFolder)
-    ipcRenderer.once(MainApiCmd.OpenFolder, (event, result) => callback(result))
+  selectFolder(callback: Function): void {
+    ipcRenderer.invoke(MainApiCmd.SelectFolder)
+    ipcRenderer.once(MainApiCmd.SelectFolder, (event, result) => callback(result))
+  },
+  openFolder(path: string) {
+    ipcRenderer.invoke(MainApiCmd.OpenFolder, path)
   },
   saveFile(title: string, fileName: string, file: string | ArrayBuffer, slient: boolean = false): void {
     ipcRenderer.invoke(MainApiCmd.SaveFileAs, title, fileName, file, slient)

@@ -2,6 +2,7 @@ import { spawn } from 'child_process'
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron'
 import fse from 'fs-extra'
 import { Buffer } from 'node:buffer'
+import { exec } from 'node:child_process'
 import os from 'os'
 import path from "path"
 import { MainApiCmd, Version } from '../shared'
@@ -36,7 +37,7 @@ ipcMain.handle(MainApiCmd.Relaunch, (_) => {
   app.quit()
 })
 
-ipcMain.handle(MainApiCmd.OpenFile, async (_, target: string) => {
+ipcMain.handle(MainApiCmd.SelectFile, async (_, target: string) => {
   let result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
     properties: ['openFile',],
     filters: [
@@ -48,16 +49,20 @@ ipcMain.handle(MainApiCmd.OpenFile, async (_, target: string) => {
   })
 
   if (result.canceled) return
-  getAppWindow()?.webContents.send(MainApiCmd.OpenFile, os.platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0])
+  getAppWindow()?.webContents.send(MainApiCmd.SelectFile, os.platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0])
 })
 
-ipcMain.handle(MainApiCmd.OpenFolder, async (_, target: string) => {
+ipcMain.handle(MainApiCmd.SelectFolder, async (_, target: string) => {
   let result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
     properties: ['openDirectory',],
   })
 
   if (result.canceled) return
-  getAppWindow()?.webContents.send(MainApiCmd.OpenFolder, os.platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0])
+  getAppWindow()?.webContents.send(MainApiCmd.SelectFolder, os.platform() == 'darwin' ? `file://${result.filePaths[0]}` : result.filePaths[0])
+})
+
+ipcMain.handle(MainApiCmd.OpenFolder, (_, path: string) => {
+  exec(`explorer.exe ${path}`)
 })
 
 ipcMain.handle(MainApiCmd.SaveFileAs, async (_, title: string, fileName: string, data: string | ArrayBuffer, slient = false) => {

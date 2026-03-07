@@ -289,12 +289,12 @@ export default class MainApp {
 
   private initIPCService() {
     ipcMain.handle(MainApiCmd.UpdateBizConfig, (_, ...args: any) => {
-      let curSettings = this.mainServer.getBizConfig()
-      let newSettings = JSON.parse(args)
+      let curConfig = this.mainServer.getBizConfig()
+      let newConfig = JSON.parse(args)
 
       this.mainServer.updateBizConfig(JSON.parse(args))
 
-      if (newSettings.port !== curSettings.port || newSettings.protocol !== curSettings.protocol) {
+      if (newConfig.port !== curConfig.port || newConfig.protocol !== curConfig.protocol || newConfig.modelPath !== curConfig.modelPath) {
         this.mainServer.stop()
         this.mainServer.start()
       }
