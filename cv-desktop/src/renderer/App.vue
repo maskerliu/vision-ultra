@@ -1,7 +1,7 @@
 <template>
   <van-config-provider :theme="theme" :theme-vars="themeVars" theme-vars-scope="global">
     <router-view class="biz-content" v-slot="{ Component, route }">
-      <transition name="fade">
+      <transition name="fade" v-if="canRender">
         <component :is="Component" :key="route.path" />
       </transition>
     </router-view>
@@ -33,11 +33,12 @@ import { ConfigProviderTheme, ConfigProviderThemeVars } from 'vant'
 import { onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { baseDomain } from '../shared'
 import DebugPanel from './pages/components/DebugPanel.vue'
 import { CommonStore } from './store'
 
 const i18n = useI18n()
-const canRender = ref(true)
+const canRender = ref(false)
 const theme = ref<ConfigProviderTheme>('light')
 const themeVars = ref<ConfigProviderThemeVars>({
   fontSizeXs: '9px',
@@ -64,6 +65,7 @@ provide('showLoading', showLoading)
 
 onMounted(async () => {
 
+  canRender.value = false
   window.isWeb = window.mainApi == null
 
   useRouter().beforeEach((to: any, from: any) => {
@@ -95,6 +97,7 @@ onMounted(async () => {
   }
 
   canRender.value = true
+  console.log('canRender', canRender.value, baseDomain())
 })
 
 function onOpenDebugPanel() {

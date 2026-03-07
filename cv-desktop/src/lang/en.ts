@@ -75,11 +75,11 @@ export default {
       'yolo11s': 'YOLO11s(lastest)',
       'mobilenet': 'MobileNetv2',
 
-      'deeplab-ade': 'Deeplab-ADE20K',
+      'deeplab-ade20k': 'Deeplab-ADE20K',
       'deeplab-cityspace': 'Deeplab-Cityspace',
       'deeplabv3p-mobilenet': 'Deeplabv3+(MobileNet)',
       'bisenet': 'BiSeNet',
-      'yolo11s-seg': 'Yolo11s',
+      'yolo11s-seg': 'Yolo11s (Segment)',
       'yolo26s-seg': 'Yolo26s',
       'yoloe-26n-seg': 'Yoloe26n',
       'yoloe-26n-seg-pf': 'Yoloe26n(Prompt Free)',
@@ -108,6 +108,8 @@ export default {
 
       'trans-separable-conv2d': 'Separable Conv2d',
       'trans-origin': 'Original Transform',
+
+      'face_landmarker': 'Face Landmarker',
     },
 
 

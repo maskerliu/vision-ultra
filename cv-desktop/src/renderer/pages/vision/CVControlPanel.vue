@@ -37,13 +37,13 @@
               {{ visionStore.objDetectModel.name }}
             </template>
             <van-col class="model-container">
-              <van-cell-group inset v-for="key of ObjRecModelGrop.keys()">
+              <van-cell-group inset v-for="key in ObjRecGroup">
                 <template #title>
                   <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key.toLowerCase()" />
                   {{ $t(`cvControl.obj${key}`) }}
                 </template>
                 <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                  @click="onObjRecModelChanged(model)" v-for="model in ObjRecModelGrop.get(key)">
+                  @click="onObjRecModelChanged(model)" v-for="model in visionStore.getModels(key)">
                   <template #right-icon>
                     <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                   </template>
@@ -96,7 +96,8 @@
             </template>
             <van-col class="model-container" style="height: 140px;">
               <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                style="margin-left: 4px;" @click="onOcrModelChanged(model)" v-for="model in OcrModels">
+                style="margin-left: 4px;" @click="onOcrModelChanged(model)"
+                v-for="model in visionStore.getModels(ModelType.ocr)">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                 </template>
@@ -120,7 +121,8 @@
             </template>
             <van-col class="model-container" style="height: 180px;">
               <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                style="margin-left: 0px;" @click="onGanModelChanged(model)" v-for="model in GanModels">
+                style="margin-left: 0px;" @click="onGanModelChanged(model)"
+                v-for="model in visionStore.getModels(ModelType.genImage)">
                 <template #right-icon>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                 </template>
@@ -165,7 +167,8 @@
                   </template>
                   <van-col class="model-container" style="width: 260px; height: 100px;">
                     <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                      style="margin-left: 4px;" @click="onTransModelChanged(model)" v-for="model in TransferModels">
+                      style="margin-left: 4px;" @click="onTransModelChanged(model)"
+                      v-for="model in visionStore.getModels(ModelType.transform)">
                       <template #right-icon>
                         <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                       </template>
@@ -442,6 +445,7 @@ const ModelEngines = [
 ]
 
 const showObjRecModels = ref(false)
+const ObjRecGroup = [ModelType.detect, ModelType.segment]
 const ObjRecModelGrop = new Map<string, Array<Partial<ModelInfo>>>()
 const DetectModels = [
   { name: 'yolov8s', desc: '3.2M', type: ModelType.detect },
@@ -477,7 +481,7 @@ const GanModels = [
 ]
 
 const showOcrModels = ref(false)
-const OcrModels = [
+let OcrModels = [
   { name: 'tesseract', desc: '', lang: ['chi_sim'], type: ModelType.ocr },
   { name: 'kerasOcr', desc: '', type: ModelType.ocr },
   { name: 'easyOcr', external: 'easyOCR.onnx.data', desc: '', type: ModelType.ocr },
@@ -519,10 +523,12 @@ const isWeb = window.isWeb
 const colorMapAnchor = useTemplateRef('colorMapAnchor')
 const modelName = ref<string>()
 
-onMounted(() => {
+onMounted(async () => {
 
+  console.log('cvCtrlPanel', 'onMounted')
   ObjRecModelGrop.set('Detect', DetectModels)
   ObjRecModelGrop.set('Segment', SegmentModels)
+
 })
 
 function checkPosition() {

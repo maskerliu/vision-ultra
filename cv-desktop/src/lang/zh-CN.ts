@@ -74,7 +74,7 @@ export default {
       'yolov10s': 'YOLOv10s(清华大学)',
       'yolo11s': 'YOLO11s(lastest)',
       'mobilenet': 'MobileNetv2',
-      'deeplab-ade': 'Deeplab-ADE20K',
+      'deeplab-ade20k': 'Deeplab-ADE20K',
       'deeplab-cityspace': 'Deeplab-Cityspace',
       'deeplabv3p-mobilenet': 'Deeplabv3+(MobileNet)',
       'bisenet': '双边分割网络‌',
@@ -107,6 +107,8 @@ export default {
 
       'trans-separable-conv2d': '二维可分离卷积',
       'trans-origin': '原始变换',
+
+      'face_landmarker': '人脸关键点检测',
     },
 
     imgEnhance: '图像增强',

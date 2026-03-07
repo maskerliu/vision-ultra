@@ -59,7 +59,11 @@ export namespace CommonApi {
     return get<Array<ModelInfo>>(`${ApiPath.Common}${ApiPath.Model}${ApiPath.Model_List}`)
   }
 
-  export function saveModelInfo(modelInfo: ModelInfo) {
+  export function saveModelInfo(modelInfo: Partial<ModelInfo>) {
     return post(`${ApiPath.Common}${ApiPath.Model}${ApiPath.Model_Save}`, null, null, modelInfo)
+  }
+
+  export function deleteModel(modelId: string) {
+    return post(`${ApiPath.Common}${ApiPath.Model}${ApiPath.Model_Delete}`, null, { modelId })
   }
 }

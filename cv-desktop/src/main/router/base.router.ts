@@ -59,7 +59,7 @@ export abstract class BaseRouter {
     let params = [], contentType: string = null, _: any, jsonBody: JSON
     if (paramInfos != null) {
 
-      if (req.method.toLowerCase() == 'post') {
+      if (req.method.toLowerCase() == 'post' && req.headers['content-length'] !== '0') {
         [contentType, _] = req.headers['content-type']?.match(/[\da-zA-Z\:\/\-\=]+/g)
         if (contentType == BizNetwork.MIME_MULTIPART) {
           let [_, files] = await this._form.parse(req)

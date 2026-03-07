@@ -4,7 +4,7 @@ import { ApiPath } from '../../shared/api.const'
 import { IocTypes } from '../MainConst'
 import { BizNetwork } from '../misc/utils'
 import { CommonService } from '../service'
-import { BaseRouter } from './base.router'
+import { BaseRouter, ParamType } from './base.router'
 
 interface ReqResp {
   req: Request
@@ -79,6 +79,18 @@ export class CommonRouter extends BaseRouter {
       method: BizNetwork.Method_Get,
       path: `${ApiPath.Model}${ApiPath.Model_List}`,
       func: 'getLocalModels', target: 'commonService'
+    })
+    this.addApiInfo({
+      method: BizNetwork.Method_Post,
+      path: `${ApiPath.Model}${ApiPath.Model_Save}`,
+      func: 'updateModelInfo', target: 'commonService',
+      params: [{ key: 'model', type: ParamType.FormBody }]
+    })
+    this.addApiInfo({
+      method: BizNetwork.Method_Post,
+      path: `${ApiPath.Model}${ApiPath.Model_Delete}`,
+      func: 'deleteModel', target: 'commonService',
+      params: [{ key: 'modelId', type: ParamType.Query }]
     })
   }
 }

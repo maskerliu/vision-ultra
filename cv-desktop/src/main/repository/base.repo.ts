@@ -15,7 +15,7 @@ export default class BaseRepo<T extends PouchDB.Core.RemoveDocument> {
       selector: {
         _id: { $ne: /_design\/idx/ },
       },
-      limit: 15,
+      limit: 100,
       fields: returnFields
     }
 
@@ -69,7 +69,7 @@ export default class BaseRepo<T extends PouchDB.Core.RemoveDocument> {
   public async update(item: T) {
     let resultId: string = null
     try {
-      let getResult = await this.get('_id', item._id, ['_rev'])
+      let getResult = item._id ? await this.get('_id', item._id, ['_rev']) : null
       let result = null
       if (getResult) {
         item._rev = getResult._rev
@@ -82,6 +82,15 @@ export default class BaseRepo<T extends PouchDB.Core.RemoveDocument> {
       throw '更新失败' + err
     } finally {
       return resultId
+    }
+  }
+
+  public async bulkUpdate(items: Array<T>) {
+    try {
+      const result = await this.pouchdb.bulkDocs(items)
+      return result
+    } catch (err) {
+      throw '批量更新失败' + err
     }
   }
 

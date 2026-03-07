@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import {
+  CommonApi,
   cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
   cvFilterType, cvMorph, cvSharpen, IntergrateMode, ModelEngine, ModelInfo, ModelType,
 } from '../../shared'
@@ -104,6 +105,8 @@ export const VisionStore = defineStore('VisionStore', {
       cvOptions: new CVOptions(),
 
       streamHistories: [] as string[],
+
+      models: [] as Array<Partial<ModelInfo>>,
     }
   },
   getters: {
@@ -111,7 +114,7 @@ export const VisionStore = defineStore('VisionStore', {
       let data = window.localStorage.getItem('liveStreamHistories')
       state.streamHistories = data === null ? [] : window.localStorage.getItem('liveStreamHistories').split(',')
       return state.streamHistories
-    }
+    },
   },
   actions: {
     updateShowQrCode(show: boolean) {
@@ -124,6 +127,23 @@ export const VisionStore = defineStore('VisionStore', {
     deleteLiveStreamHistory(idx: number) {
       this.liveStreamHistories.splice(idx, 1)
       window.localStorage.setItem('liveStreamHistories', this.streamHistories)
+    },
+    async getAllModels() {
+      if (this.models == null || this.models.length == 0) {
+        let result = await CommonApi.getLocalModels()
+        this.models = result
+      }
+    },
+    getModels(type: ModelType) {
+      return this.models.filter(it => it.type == type)
+    },
+    async deleteModel(id: string) {
+      await CommonApi.deleteModel(id)
+      await this.getAllModels()
+    },
+    async saveModelInfo(model: Partial<ModelInfo>) {
+      await CommonApi.saveModelInfo(model)
+      await this.getAllModels()
     }
   }
 })

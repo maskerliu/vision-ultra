@@ -131,7 +131,7 @@ export enum ModelEngine {
 }
 
 export enum ModelType {
-  unknown = -1,
+  unknown = 'unknown',
   classify = 'classify',
   detect = 'detect',
   segment = 'segment',
@@ -147,11 +147,11 @@ export enum ModelType {
 export type ModelInfo = {
   _id: string
   _rev: string
+  _deleted?: boolean
   name: string,
   type: ModelType
   external?: string // for onnx model with external data
   lang?: string | string[]
   desc?: string
   engine?: ModelEngine
-  files?: Array<string>
 }
