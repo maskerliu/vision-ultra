@@ -442,7 +442,7 @@ const ModelEngines = [
 ]
 
 const showObjRecModels = ref(false)
-const ObjRecModelGrop = new Map<string, Array<ModelInfo>>()
+const ObjRecModelGrop = new Map<string, Array<Partial<ModelInfo>>>()
 const DetectModels = [
   { name: 'yolov8s', desc: '3.2M', type: ModelType.detect },
   { name: 'yolov10s', desc: '7.2M', type: ModelType.detect },
@@ -494,7 +494,7 @@ const StyleModels = [
 const styleFile = ref()
 
 const showTransformModels = ref(false)
-const TransferModels = [
+const TransferModels: Array<Partial<ModelInfo>> = [
   { name: 'trans-separable-conv2d', desc: '', type: ModelType.transform },
   { name: 'trans-origin', desc: '', type: ModelType.transform },
 ]
@@ -531,22 +531,22 @@ function checkPosition() {
   })
 }
 
-function onObjRecModelChanged(model: ModelInfo) {
+function onObjRecModelChanged(model: Partial<ModelInfo>) {
   visionStore.objDetectModel = Object.assign(model, { engine: visionStore.modelEngine },)
   showObjRecModels.value = false
 }
 
-function onGanModelChanged(model: ModelInfo) {
+function onGanModelChanged(model: Partial<ModelInfo>) {
   visionStore.animeModel = model
   showAnimeModels.value = false
 }
 
-function onOcrModelChanged(model: ModelInfo) {
+function onOcrModelChanged(model: Partial<ModelInfo>) {
   visionStore.ocrModel = model
   showOcrModels.value = false
 }
 
-function onStyleModelChanged(model: ModelInfo) {
+function onStyleModelChanged(model: Partial<ModelInfo>) {
   visionStore.styleModel = model
   showStyleModels.value = false
 }
@@ -567,7 +567,7 @@ function onStyleFileUpload(item: UploaderFileListItem) {
 
 }
 
-function onTransModelChanged(model: ModelInfo) {
+function onTransModelChanged(model: Partial<ModelInfo>) {
   visionStore.transModel = model
   showTransformModels.value = false
 }
@@ -575,16 +575,6 @@ function onTransModelChanged(model: ModelInfo) {
 function onColorMapChanged(idx: number) {
   visionStore.cvOptions.colorMap = idx
   showColorMaps.value = false
-}
-
-async function onModelUpload(data: any) {
-  // var reader = new FileReader()
-  // reader.readAsArrayBuffer(data.file)
-  // reader.onload = async function () {
-  //   let arrayBuffer = reader.result as ArrayBuffer
-  //   let model = await onnx.createModelCpu(arrayBuffer)
-  //   console.log(model)
-  // }
 }
 
 </script>

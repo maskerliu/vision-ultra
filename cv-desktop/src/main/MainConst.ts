@@ -16,5 +16,6 @@ export const IocTypes = {
   PushService: Symbol.for('PushService'),
   FaceRecRouter: Symbol.for('FaceRecRouter'),
   FaceRecService: Symbol.for('FaceRecService'),
-  FaceRecRepo: Symbol.for('FaceRecRepo')
+  FaceRecRepo: Symbol.for('FaceRecRepo'),
+  ModelRepo: Symbol.for('ModelRepo'),
 }

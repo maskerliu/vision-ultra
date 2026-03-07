@@ -1,7 +1,7 @@
 import { Connection } from 'sockjs'
 import { ApiPath } from "./api.const"
-import { get } from './base.api'
-import { BizConfig } from './base.models'
+import { get, post } from './base.api'
+import { BizConfig, ModelInfo } from './base.models'
 
 export namespace CommonApi {
   export interface MsgPushClient extends ClientInfo {
@@ -53,5 +53,13 @@ export namespace CommonApi {
 
   export function getAllPushClients() {
     return get<Array<MsgPushClient>>(`${ApiPath.Common}${ApiPath.PushClient}${ApiPath.Client_List}`)
+  }
+
+  export function getLocalModels() {
+    return get<Array<ModelInfo>>(`${ApiPath.Common}${ApiPath.Model}${ApiPath.Model_List}`)
+  }
+
+  export function saveModelInfo(modelInfo: ModelInfo) {
+    return post(`${ApiPath.Common}${ApiPath.Model}${ApiPath.Model_Save}`, null, null, modelInfo)
   }
 }

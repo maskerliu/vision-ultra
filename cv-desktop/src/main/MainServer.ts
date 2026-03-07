@@ -50,11 +50,14 @@ export class MainServer {
 
     this.initHttpServer()
 
-    if (this.httpServer != null) {
-      this.httpServer.close(() => { this.httpServer = null })
+    if (this.httpServer) {
+      this.httpServer.close(() => {
+        this.httpServer = null
+        this.startHttpServer()
+      })
+    } else {
+      this.startHttpServer()
     }
-
-    this.startHttpServer()
   }
 
   public getBizConfig() {
@@ -141,7 +144,7 @@ export class MainServer {
         let config = this.commonService.allConfig
         config.portValid = false
         this.commonService.saveAllConfig(config)
-        this.httpServer.close()
+        this.httpServer?.close()
       }
     })
 

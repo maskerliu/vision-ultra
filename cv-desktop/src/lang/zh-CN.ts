@@ -25,7 +25,7 @@ export default {
       version: '版本',
       restart: '重启',
       noNewVersion: '当前已是最新版本',
-      modelPath: '模型路径',
+      modelPath: '本地模型路径',
     },
     boardcast: {
       onlineClient: '在线Client',

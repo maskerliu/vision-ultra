@@ -2,7 +2,8 @@ import { BizConfig } from './base.models'
 
 export const MainApiCmd = {
   Relaunch: 'relaunch',
-  OpenFile: 'openFile',
+  SelectFile: 'selectFile',
+  SelectFolder: 'selectFolder',
   OpenFolder: 'openFolder',
   SaveFileAs: 'saveFile',
   OpenDevTools: 'openDevTools',
@@ -21,9 +22,11 @@ export interface IMainAPI {
 
   relaunch(): void
 
-  openFile(callback: Function): void
+  selectFile(callback: Function): void
 
-  openFolder(callback: Function): void
+  selectFolder(callback: Function): void
+
+  openFolder(path: string): void
 
   saveFile(title: string, fileName: string, file: string | ArrayBuffer, slient: boolean): void
 
@@ -188,7 +191,6 @@ export interface ICVAPI extends IProcessor {
   options(val: any): void
 
   findContours(data: Uint8Array, width: number, height: number): Array<[number, number]>
-  // faceRecognize(frame: ImageData, width: number, height: number): { face: any, eyes: Array<any>, landmarks: Array<any> } | null
 }
 
 export interface ITensorflowApi extends IProcessor {
@@ -230,33 +232,4 @@ export enum IntergrateMode {
   wasm,
   backend,
   native
-}
-
-export enum ModelEngine {
-  tensorflow,
-  onnx
-}
-
-export enum ModelType {
-  unknown = -1,
-  classify = 'classify',
-  detect = 'detect',
-  segment = 'segment',
-  obb = 'obb',
-  pose = 'pose',
-  genImage = 'gen-image',
-  face = 6,
-  ocr = 'ocr',
-  style = 'style',
-  transform = 'transform'
-}
-
-export type ModelInfo = {
-  name: string,
-  type: ModelType
-  external?: string // for onnx model with external data
-  lang?: string | string[]
-  desc?: string
-  engine?: ModelEngine
-  files?: Array<string>
 }
