@@ -33,7 +33,6 @@ import { ConfigProviderTheme, ConfigProviderThemeVars } from 'vant'
 import { onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { baseDomain } from '../shared'
 import DebugPanel from './pages/components/DebugPanel.vue'
 import { CommonStore } from './store'
 
@@ -77,9 +76,6 @@ onMounted(async () => {
     offset.value.y = window.innerHeight - 100
   })
 
-  useRouter().replace("/visionHome")
-  active.value = 1
-
   let wrapTheme = window.localStorage.getItem('theme')
   theme.value = wrapTheme != null ? wrapTheme as ConfigProviderTheme : 'light'
 
@@ -97,7 +93,10 @@ onMounted(async () => {
   }
 
   canRender.value = true
-  console.log('canRender', canRender.value, baseDomain())
+
+  useRouter().replace("/visionHome")
+  active.value = 1
+
 })
 
 function onOpenDebugPanel() {

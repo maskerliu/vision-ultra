@@ -100,11 +100,12 @@ import { BackendManager } from '../../common/ipc/BackendManager'
 import { DrawMode, ProcessorManager, ProcessorStatus, ProcessorType } from '../../common/ipc/ProcessorManager'
 import { WorkerManager } from '../../common/ipc/WorkerManager'
 import { VideoPlayer } from '../../common/VideoPlayer'
-import { VisionStore } from '../../store'
+import { CommonStore, VisionStore } from '../../store'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
 import Live2dPanel from './Live2dPanel.vue'
 
 const visionStore = VisionStore()
+const commonStore = CommonStore()
 
 const previewParent = useTemplateRef<typeof Col>('previewParent')
 const video = useTemplateRef<HTMLVideoElement>('video')
@@ -124,7 +125,6 @@ const liveStreamUrl = ref(`https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D2214
 const showControlBar = ref(false)
 const recFace = ref<string>()
 const isEigenNameValid = ref(true)
-const isWeb = window.isWeb
 
 const showLoading = inject<Ref<boolean>>('showLoading')
 

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import {
   CommonApi,
   cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
-  cvFilterType, cvMorph, cvSharpen, IntergrateMode, ModelEngine, ModelInfo, ModelType,
+  cvFilterType, cvMorph, cvSharpen, IntergrateMode, ModelEngine, ModelInfo, ModelType
 } from '../../shared'
 
 

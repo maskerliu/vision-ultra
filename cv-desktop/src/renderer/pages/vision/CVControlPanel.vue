@@ -28,7 +28,7 @@
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableObjDetect">
             <van-icon class-prefix="iconfont" name="obj-track" style="color: #2980b9;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.objTrack') }}</span>
+            <span style="margin-left: 5px;">{{ $t('cvControl.obj.track') }}</span>
           </van-checkbox>
         </template>
         <template #value>
@@ -39,8 +39,8 @@
             <van-col class="model-container">
               <van-cell-group inset v-for="key in ObjRecGroup">
                 <template #title>
-                  <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key.toLowerCase()" />
-                  {{ $t(`cvControl.obj${key}`) }}
+                  <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key" />
+                  {{ $t(`cvControl.obj.${key}`) }}
                 </template>
                 <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
                   @click="onObjRecModelChanged(model)" v-for="model in visionStore.getModels(key)">
@@ -150,7 +150,8 @@
                   </template>
                   <van-col class="model-container" style="width: 260px; height: 100px;">
                     <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                      style="margin-left: 4px;" @click="onStyleModelChanged(model)" v-for="model in StyleModels">
+                      style="margin-left: 4px;" @click="onStyleModelChanged(model)"
+                      v-for="model in visionStore.getModels(ModelType.style)">
                       <template #right-icon>
                         <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                       </template>
@@ -427,10 +428,10 @@
 <script lang="ts" setup>
 
 import { UploaderFileListItem } from 'vant'
-import { onMounted, ref, useTemplateRef } from 'vue'
+import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cvBlurType, cvFilterType, ModelEngine, ModelInfo, ModelType } from '../../../shared'
-import { VisionStore } from '../../store'
+import { CommonStore, VisionStore } from '../../store'
 import SliderField from '../components/SliderField.vue'
 
 const i18n = useI18n()
@@ -446,62 +447,12 @@ const ModelEngines = [
 
 const showObjRecModels = ref(false)
 const ObjRecGroup = [ModelType.detect, ModelType.segment]
-const ObjRecModelGrop = new Map<string, Array<Partial<ModelInfo>>>()
-const DetectModels = [
-  { name: 'yolov8s', desc: '3.2M', type: ModelType.detect },
-  { name: 'yolov10s', desc: '7.2M', type: ModelType.detect },
-  { name: 'yolo11s', desc: '9.4M', type: ModelType.detect },
-  { name: 'mobilenet', desc: '', type: ModelType.detect }
-]
-const SegmentModels = [
-  { name: 'deeplab-ade', desc: 'class: 150', type: ModelType.segment },
-  { name: 'deeplab-cityspace', desc: 'class: 20', type: ModelType.segment },
-  { name: 'deeplabv3p-mobilenet', external: 'model.data', desc: 'class: 21', type: ModelType.segment },
-  { name: 'bisenet', external: 'model.data', desc: '3.2M', type: ModelType.segment },
-  { name: 'yolo11s-seg', desc: '9.4M', type: ModelType.segment },
-  { name: 'yolo26s-seg', desc: '10.4', type: ModelType.segment },
-  { name: 'yoloe-26n-seg', desc: '20.1M', type: ModelType.segment },
-  { name: 'yoloe-26n-seg-pf', desc: '20.1M', type: ModelType.segment },
-  { name: 'unet', desc: '', type: ModelType.segment },
-  { name: 'sam', desc: '38.9M', type: ModelType.segment },
-  { name: 'fastSAMs', external: 'model.data', desc: '', type: ModelType.segment },
-]
-
 const showAnimeModels = ref(false)
-const GanModels = [
-  { name: 'animeGANv2', desc: '12.4M', type: ModelType.genImage },
-  { name: 'animeGANv3-Ghibli-o1', desc: '12.4M', type: ModelType.genImage },
-  { name: 'animeGANv3-Ghibli-c1', desc: '12.4M', type: ModelType.genImage },
-  { name: 'animeGANv3-Hayao', desc: '12.4M', type: ModelType.genImage },
-  { name: 'animeGANv3-JPface', desc: '12.4M', type: ModelType.genImage },
-  { name: 'animeGANv3-PortraitSketch', desc: '12.4M', type: ModelType.genImage },
-  { name: 'animeGANv3-Shinkai', desc: '12.4M', type: ModelType.genImage },
-  { name: 'animeGANv3-TinyCute', desc: '1.2M', type: ModelType.genImage },
-  { name: 'animeGANv3-FacePaint', desc: '1.2M', type: ModelType.genImage },
-]
-
 const showOcrModels = ref(false)
-let OcrModels = [
-  { name: 'tesseract', desc: '', lang: ['chi_sim'], type: ModelType.ocr },
-  { name: 'kerasOcr', desc: '', type: ModelType.ocr },
-  { name: 'easyOcr', external: 'easyOCR.onnx.data', desc: '', type: ModelType.ocr },
-  { name: 'paddleOcr', desc: '', type: ModelType.ocr },
-  { name: 'GOT-OCR', desc: '', type: ModelType.ocr },
-]
-
 const showStyleModels = ref(false)
-const StyleModels = [
-  { name: 'style-mobilenet', desc: '', type: ModelType.style },
-  { name: 'style-inception', desc: '', type: ModelType.style },
-]
+const showTransformModels = ref(false)
 
 const styleFile = ref()
-
-const showTransformModels = ref(false)
-const TransferModels: Array<Partial<ModelInfo>> = [
-  { name: 'trans-separable-conv2d', desc: '', type: ModelType.transform },
-  { name: 'trans-origin', desc: '', type: ModelType.transform },
-]
 
 const showMorphOpts = ref(false)
 const MorphOpts = ['erode', 'dilate', 'open', 'close', 'gradient', 'topHat', 'blackHat']
@@ -514,21 +465,22 @@ const ColorMaps = [
 ]
 
 const BlurTypes = ['gaussian', 'avg', 'median', 'bilateral']
-
 const FilterTypes = ['sobel', 'laplace', 'scharr']
 
 const visionStore = VisionStore()
+const commonStore = CommonStore()
 const isWeb = window.isWeb
 
 const colorMapAnchor = useTemplateRef('colorMapAnchor')
 const modelName = ref<string>()
 
+
+watch(() => commonStore.inited, async () => {
+  if (!commonStore.inited) return
+  await visionStore.getAllModels()
+})
+
 onMounted(async () => {
-
-  console.log('cvCtrlPanel', 'onMounted')
-  ObjRecModelGrop.set('Detect', DetectModels)
-  ObjRecModelGrop.set('Segment', SegmentModels)
-
 })
 
 function checkPosition() {

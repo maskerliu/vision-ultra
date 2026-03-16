@@ -151,7 +151,6 @@ export class CommonService {
 
   async updateModelInfo(model: ModelInfo) {
     try {
-      console.log('update model', model)
       await this._modelRepo.update(model)
       return '更新成功'
     } catch (err) {

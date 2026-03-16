@@ -61,9 +61,12 @@ export default {
     intergrateMode: 'Integrate Mode',
     modelEngine: 'Model Framework',
 
-    objTrack: 'Object Detect',
-    objDetect: 'Detect',
-    objSegment: 'Segment',
+    obj: {
+      track: 'Object Track',
+      classify: 'Object Classify',
+      detect: 'Object Detect',
+      segment: 'Object Segment',
+    },
     faceDetect: 'Face Recognize',
     animeGAN: 'AnimeGAN',
     ocr: 'OCR',

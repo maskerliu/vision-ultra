@@ -61,9 +61,12 @@ export default {
     intergrateMode: '集成模式',
     modelEngine: '模型框架',
 
-    objTrack: '目标识别',
-    objDetect: '检测',
-    objSegment: '分割',
+    obj: {
+      track: '目标跟踪',
+      classify: '分类',
+      detect: '检测',
+      segment: '分割',
+    },
     faceDetect: '人脸识别',
     animeGAN: '图生图',
     ocr: 'OCR',

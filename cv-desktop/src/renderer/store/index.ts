@@ -9,6 +9,7 @@ let pushClient: PushClient
 export const CommonStore = defineStore('Common', {
   state: () => {
     return {
+      inited: false,
       uid: '',
       showApm: false,
       registerUrl: '',
@@ -20,6 +21,7 @@ export const CommonStore = defineStore('Common', {
       this.showQrCode = show
     },
     async init(config?: BizConfig) {
+      this.inited = false
       pushClient = new PushClient()
       if (config) {
         updateBaseDomain(`${config.protocol}://${config.ip}:${config.port}`)
@@ -49,6 +51,8 @@ export const CommonStore = defineStore('Common', {
       } catch (err) {
         showNotify(err)
       }
+
+      this.inited = true
     },
     sendMessage(params: CommonApi.PushMsg<any>) {
       pushClient.send(params)
