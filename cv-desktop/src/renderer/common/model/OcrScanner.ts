@@ -20,7 +20,7 @@ export class OcrScanner extends ModelRunner {
       console.log(langs)
       let i = 0
       while (i < langs.length) {
-        let langResp = await fetch(`${__DEV__ ? '' : baseDomain()}/static/${langs[i]}.traineddata`)
+        let langResp = await fetch(`${baseDomain()}/static/${langs[i]}.traineddata`)
         let langData = await langResp.arrayBuffer()
         this.TessModule.FS.writeFile(`${langs[i]}.traineddata`, new Uint8Array(langData))
         i++
@@ -42,7 +42,7 @@ export class OcrScanner extends ModelRunner {
     this._model = null
   }
 
-  async scan(image: ImageData | Uint8Array, params?: [number, number, number]) {
+  async scan(image: Uint8Array, params?: [number, number, number]) {
 
     if (this.tesseract) {
       this.TessModule.FS.writeFile("/input", image)
@@ -50,8 +50,13 @@ export class OcrScanner extends ModelRunner {
       let blocks = this.tesseract.GetJSONText()
       return { blocks }
     } else {
-      const result = await this._model.run(image as ImageData) as tf.Tensor
+      let img = new ImageData(params[0], params[1])
+      img.data.set(image)
+      const result = await this._model.run(img) as tf.Tensor
       console.log(result)
+
+      result[0].print()
+      result[1].print()
       return result
     }
   }

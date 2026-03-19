@@ -1,6 +1,12 @@
 <template>
   <van-cell-group inset :title="$t('settings.resources.title')">
-    <van-cell :title="$t('settings.resources.manage')" :border="false"></van-cell>
+    <van-cell :title="$t('settings.resources.manage')" :border="false">
+      <template #right-icon>
+        <van-button type="primary" size="mini" plain hairline @click="onRefresh">
+          <van-icon class-prefix="iconfont" name="refresh" />
+        </van-button>
+      </template>
+    </van-cell>
 
 
     <van-grid style="max-height: 200px; overflow: hidden scroll;">
@@ -14,7 +20,8 @@
         <van-icon class-prefix="iconfont" :name="`${model.type}`"
           style="position: absolute; font-size: 3rem; color: var(--van-text-color-3); z-index: 0;" />
         <van-row style="width: 100%; margin-top: 15px;" justify="center">
-          <van-button type="primary" size="mini" plain hairline @click="showModelInfo = true; curModel = model;">
+          <van-button type="primary" size="mini" plain hairline
+            @click="showModelInfo = true; curModel = Object.assign(curModel, model); console.log(curModel)">
             <van-icon class-prefix="iconfont" name="warning" />
           </van-button>
 
@@ -27,7 +34,7 @@
     </van-grid>
 
     <van-popup v-model:show="showModelInfo" style="padding: 10px 5px; width: 60%;">
-      <van-field label="name" label-align="left" input-align="right" :model-value="curModel?.name" readonly />
+      <van-field label="name" label-align="left" input-align="right" :model-value="curModel.name" readonly />
       <van-field label="path" label-align="left" input-align="right"
         :model-value="commonStore.bizConfig.modelPath + '\\' + curModel.name" readonly />
       <van-field label="type" label-align="left" readonly>
@@ -49,11 +56,11 @@
           </van-popover>
         </template>
       </van-field>
-      <van-field label="desc" label-align="left" input-align="right" :model-value="curModel?.desc" />
-      <van-field label="lang" label-align="left" input-align="right" :model-value="lang"
+      <van-field label="desc" label-align="left" input-align="right" v-model="curModel.desc" />
+      <van-field label="lang" label-align="left" input-align="right" v-model="curModel.lang"
         v-if="curModel.type == ModelType.ocr" />
 
-      <van-field label="external" label-align="left" input-align="right" :model-value="lang" />
+      <van-field label="external" label-align="left" input-align="right" v-model="curModel.external" />
 
       <van-button block plain type="primary" size="small" @click="onSaveModelInfo">{{ $t('common.done') }}</van-button>
     </van-popup>
@@ -71,9 +78,11 @@ const visionStore = VisionStore()
 const showModelInfo = ref(false)
 const showModelType = ref(false)
 const curModel = ref<Partial<ModelInfo>>({
-  name: null,
+  name: '',
   type: ModelType.unknown,
-  desc: null,
+  desc: '',
+  lang: '',
+  external: '',
 })
 const lang = ref<string>()
 
@@ -93,8 +102,14 @@ onMounted(async () => {
   await visionStore.getAllModels()
 })
 
+async function onRefresh() {
+  visionStore.models = []
+  await visionStore.getAllModels()
+}
+
 async function onSaveModelInfo() {
-  await visionStore.saveModelInfo(curModel.value)
+  console.log(curModel.value)
+  await visionStore.saveModelInfo(Object.assign(curModel.value, lang.value))
   showModelInfo.value = false
 }
 

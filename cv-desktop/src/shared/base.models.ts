@@ -91,7 +91,7 @@ export interface ServerConfig {
   protocol: string
   ip?: string
   port?: number
-  portValid: boolean
+  portUsed: boolean
   domain?: string
   ips?: Array<LocalIP>
   mqttBroker: string // mqtt broker地址
@@ -151,7 +151,7 @@ export type ModelInfo = {
   name: string,
   type: ModelType
   external?: string // for onnx model with external data
-  lang?: string | string[]
+  lang?: string // chi_sim,eng
   desc?: string
   engine?: ModelEngine
 }

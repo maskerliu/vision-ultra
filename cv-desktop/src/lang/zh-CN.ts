@@ -102,6 +102,8 @@ export default {
       'tesseract': 'tesseract.js',
       'kerasOcr': 'kerasOcr',
       'easyOcr': 'easyOcr',
+      'easyocr-recognizer': 'easyOcr-识别器',
+      'easyocr-detector': 'easyOcr-检测器',
       'paddleOcr': '飞桨OCR',
       'GOT-OCR': 'GOT-OCR2.0',
 

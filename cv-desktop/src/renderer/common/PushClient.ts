@@ -21,6 +21,14 @@ export class PushClient {
     this.sockjs = new SockJS(`${host}/echo`, { transports: 'websocket' })
     this.sockjs.onopen = () => { this.register(uid) }
     this.sockjs.onmessage = (e: any) => { this.handleMsg(e.data) }
+    this.sockjs.onclose = (e: CloseEvent) => {
+      console.log(e)
+      showNotify({ message: '连接已断开', type: 'danger', duration: 1200 })
+    }
+    this.sockjs.onerror = (e: Event) => {
+      console.log(e)
+      showNotify({ message: '连接错误', type: 'danger', duration: 1200 })
+    }
   }
 
   public send(data: CommonApi.PushMsg<any>): void {
@@ -58,7 +66,7 @@ export class PushClient {
   private handleCMD(msg: CommonApi.PushMsgPayload<any>) {
     switch (msg.type) {
       case CommonApi.CMDType.REGISTER:
-        this.commonStore.updateShowQrCode(false)
+        this.commonStore.showQrCode = false
         showNotify({ message: '设备[' + msg.content + ']注册成功', type: 'success', duration: 500 })
         break
       case CommonApi.CMDType.KICKDOWN:

@@ -24,7 +24,7 @@ export class PushService {
     this.sockjsServer.installHandlers(httpServer)
   }
 
-  public closeWebSocketServer(callback: any) {
+  public closeWebSocketServer(callback?: any) {
     this.pushClients.forEach(it => {
       it.conn.close()
       it.conn.destroy()

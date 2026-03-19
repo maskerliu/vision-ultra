@@ -48,7 +48,7 @@ export class CommonService {
         protocol: config.protocol ? config.protocol : 'http',
         ip: getLocalIPs()[0]?.address,
         port: config.port ? config.port : 8884,
-        portValid: config.portValid,
+        portUsed: config.portValid,
         domain: config.domain,
         ips: getLocalIPs(),
         modelPath: config.modelPath,
@@ -75,7 +75,6 @@ export class CommonService {
   }
 
   getAllConfig(): BizConfig {
-    console.log('get all config')
     return this._mixConfig
   }
 
@@ -89,7 +88,7 @@ export class CommonService {
       this.allConfig.updateServer = config.updateServer
       this.allConfig.domain = config.domain
       this.allConfig.port = Number.parseInt(config.port as any)
-      this.allConfig.portValid = config.portValid as boolean
+      this.allConfig.portUsed = config.portUsed as boolean
       this.allConfig.ip = config.ip
       this.allConfig.protocol = config.protocol
       this.allConfig.modelPath = config.modelPath

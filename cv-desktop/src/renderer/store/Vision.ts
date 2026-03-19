@@ -90,7 +90,7 @@ export const VisionStore = defineStore('VisionStore', {
       live2d: false,
 
       enableOCR: false,
-      ocrModel: { name: 'tesseract', external: 'easyOCR.onnx.data', lang: ['chi_sim'], type: ModelType.ocr } as Partial<ModelInfo>,
+      ocrModel: { name: 'tesseract', external: 'easyOCR.onnx.data', lang: 'chi_sim', type: ModelType.ocr } as Partial<ModelInfo>,
 
       enableAnime: false,
       animeModel: { name: 'animeGANv3-Ghibli-c1', type: ModelType.genImage } as Partial<ModelInfo>,
@@ -117,9 +117,6 @@ export const VisionStore = defineStore('VisionStore', {
     },
   },
   actions: {
-    updateShowQrCode(show: boolean) {
-      this.showQrCode = show
-    },
     updateLiveStreamHistories(url: string) {
       this.streamHistories = [url, ...this.streamHistories]
       window.localStorage.setItem('liveStreamHistories', this.streamHistories)
@@ -130,8 +127,12 @@ export const VisionStore = defineStore('VisionStore', {
     },
     async getAllModels() {
       if (this.models == null || this.models.length == 0) {
-        let result = await CommonApi.getLocalModels()
-        this.models = result
+        try {
+          let result = await CommonApi.getLocalModels()
+          this.models = result
+        } catch (err) {
+          this.models = []
+        }
       }
     },
     getModels(type: ModelType) {

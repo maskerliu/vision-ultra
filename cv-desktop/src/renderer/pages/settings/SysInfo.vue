@@ -34,7 +34,7 @@
     <van-field center :label="$t(`settings.sys.${item.key}`)" label-width="10rem" input-align="right"
       v-for="item in perferences" v-model="commonStore.bizConfig[item.key]"
       :readonly="item.readonly ? true : item.readonly" error-message-align="right"
-      :error-message="!commonStore.bizConfig['portValid'] && item.key == 'port' ? $t('settings.sys.porterror') : null">
+      :error-message="commonStore.bizConfig.portUsed && item.key == 'port' ? $t('settings.sys.porterror') : null">
       <template #right-icon>
         <van-switch v-if="item.hasStatus" style="margin-top: 5px;"></van-switch>
         <van-button v-if="item.openFolder" type="success" plain square size="mini" @click="onSelectFolder">
@@ -54,7 +54,7 @@
 </template>
 <script lang="ts" setup>
 
-import { inject, onMounted, ref, Ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { LocalIP } from '../../../shared'
 import { CommonStore } from '../../store'
@@ -72,7 +72,6 @@ const { t } = useI18n()
 const commonStore = CommonStore()
 const curServerIp = ref<LocalIP>(null)
 const showPopover = ref<boolean>(false)
-const showSettings = inject<Ref<boolean>>('showSettings')
 const protocol = ref(0)
 const isWeb = window.isWeb
 
@@ -114,7 +113,8 @@ function onOpenFolder() {
 
 function onSave() {
   window.mainApi?.updateBizConfig(JSON.stringify(commonStore.bizConfig))
-  showSettings.value = false
+  commonStore.init()
+  commonStore.showSettings = false
 }
 
 </script>

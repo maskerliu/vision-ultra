@@ -1,32 +1,31 @@
 
 import { File } from 'formidable'
 import fse from 'fs-extra'
-import { inject, injectable } from "inversify"
+import { injectable } from "inversify"
 import path from 'path'
-import { IocTypes, USER_DATA_DIR } from "../MainConst"
-import { FaceRecRepo } from "../repository/facerec.repo"
+import { USER_DATA_DIR } from "../MainConst"
 
 @injectable()
 export class FaceRecService {
 
-  @inject(IocTypes.FaceRecRepo)
-  private faceRepo: FaceRecRepo
+  // @inject(IocTypes.FaceRecRepo)
+  // private faceRepo: FaceRecRepo
 
   async list(keyword: string) {
     if (keyword == null) {
       return []
     }
-    let results = await this.faceRepo.search(keyword, null)
-    let resp = []
-    results.forEach((item: any) => {
-      let result = {
-        id: item._rowid.toString(),
-        snap: `/_res/face/${item.snap}`,
-        tiemstamp: item.timestamp.toString()
-      }
-      resp.push(result)
-    })
-    return { name: keyword, eigens: resp }
+    // let results = await this.faceRepo.search(keyword, null)
+    // let resp = []
+    // results.forEach((item: any) => {
+    //   let result = {
+    //     id: item._rowid.toString(),
+    //     snap: `/_res/face/${item.snap}`,
+    //     tiemstamp: item.timestamp.toString()
+    //   }
+    //   resp.push(result)
+    // })
+    // return { name: keyword, eigens: resp }
   }
 
   async registe(name: string, eigen: Uint16Array, avatar: File) {
@@ -47,7 +46,7 @@ export class FaceRecService {
 
   async delete(eigenIds: Array<string>) {
     try {
-      await this.faceRepo.delete(eigenIds)
+      // await this.faceRepo.delete(eigenIds)
       return 'name deleted'
     } catch (err) {
       return 'fail to delete data'
@@ -59,16 +58,16 @@ export class FaceRecService {
     for (let i = 0; i < vector.length; i++) {
       arr[i] = vector[i] / 1000000000.0
     }
-    let result = await this.faceRepo.search(null, arr)
-    if (result.length > 0) {
-      return {
-        id: result[0]._rowid.toString(),
-        name: result[0].name,
-        snap: `/_res/face/${result[0].snap}`,
-        similarity: result[0]._distance,
-        timestamp: result[0].timestamp.toString()
-      }
-    }
+    // // let result = await this.faceRepo.search(null, arr)
+    // if (result.length > 0) {
+    //   return {
+    //     id: result[0]._rowid.toString(),
+    //     name: result[0].name,
+    //     snap: `/_res/face/${result[0].snap}`,
+    //     similarity: result[0]._distance,
+    //     timestamp: result[0].timestamp.toString()
+    //   }
+    // }
 
     throw 'no match'
   }

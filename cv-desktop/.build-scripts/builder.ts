@@ -63,10 +63,10 @@ function pack(config: BaseConfig) {
       stats.toString({ chunks: true, colors: true })
         .split(/\r?\n/)
         .forEach(line => { err += `    ${line}\n` })
-      spinnies.fail(config.name as string, { text: `  ${config.name} build fail, cost ${Date.now() - startTime}ms\n` })
-      console.error(err)
+      spinnies.fail(config.name as string, { text: `  ${config.name} build fail, cost ${(Date.now() - startTime) / 1000}s\n` })
+      // console.error(err)
     } else {
-      spinnies.succeed(config.name as string, { text: `  ${config.name} build success, cost ${Date.now() - startTime}ms` })
+      spinnies.succeed(config.name as string, { text: `  ${config.name} build success, cost ${(Date.now() - startTime) / 1000}s` })
     }
   })
 }

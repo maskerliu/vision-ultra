@@ -1,3 +1,4 @@
+import { exec } from 'child_process'
 import {
   app, BrowserWindow, BrowserWindowConstructorOptions, crashReporter,
   globalShortcut, ipcMain, Menu,
@@ -92,8 +93,7 @@ export default class MainApp {
         BrowserWindow.getFocusedWindow()?.reload()
       })
 
-      let lock = app.requestSingleInstanceLock()
-      if (!lock) app.quit()
+      if (!app.requestSingleInstanceLock()) app.quit()
 
       this.initSessionConfig()
       this.initIPCService()
@@ -101,6 +101,8 @@ export default class MainApp {
       if (this.mainWindow == null) {
         this.createMainWindow()
       }
+
+      this.addFirewallRule()
 
       this.createTrayMenu()
     })
@@ -289,21 +291,50 @@ export default class MainApp {
 
   private initIPCService() {
     ipcMain.handle(MainApiCmd.UpdateBizConfig, (_, ...args: any) => {
-      let curConfig = this.mainServer.getBizConfig()
-      let newConfig = JSON.parse(args)
-
       this.mainServer.updateBizConfig(JSON.parse(args))
-
-      if (newConfig.port !== curConfig.port || newConfig.protocol !== curConfig.protocol || newConfig.modelPath !== curConfig.modelPath) {
-        this.mainServer.stop()
-        this.mainServer.start()
-      }
-
       this.mainWindow.webContents.send(MainApiCmd.GetBizConfig, this.mainServer.getBizConfig())
     })
 
     ipcMain.handle(MainApiCmd.SendServerEvent, () => {
       // console.log('send sse')
+    })
+  }
+
+  private addFirewallRule() {
+    if (os.platform() !== 'win32' || IS_DEV) return // 仅在 Windows 上执行
+
+    const appPath = process.execPath
+    const ruleName = 'VisionUltra'
+
+    // 检查规则是否存在
+    const checkCommand = `netsh advfirewall firewall show rule name="${ruleName}"`
+
+    exec(checkCommand, (error, stdout, stderr) => {
+      if (stdout.includes('No rules match')) {
+        console.log('添加防火墙规则...')
+
+        // 添加入站规则
+        const inboundCommand = `netsh advfirewall firewall add rule name="${ruleName}" dir=in action=allow program="${appPath}" enable=yes`
+        exec(inboundCommand, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`添加入站规则失败: ${error.message}`)
+          } else {
+            console.log('入站规则添加成功')
+          }
+        })
+
+        // 添加出站规则
+        const outboundCommand = `netsh advfirewall firewall add rule name="${ruleName}" dir=out action=allow program="${appPath}" enable=yes`
+        exec(outboundCommand, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`添加出站规则失败: ${error.message}`)
+          } else {
+            console.log('出站规则添加成功')
+          }
+        })
+      } else {
+        console.log('防火墙规则已存在')
+      }
     })
   }
 }

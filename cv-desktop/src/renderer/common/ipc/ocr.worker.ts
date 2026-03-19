@@ -20,7 +20,7 @@ ctx.addEventListener('message', async (event: MessageEvent<OCRMsg>) => {
         await orcScanner.dispose()
         break
       case ProcessorCMD.process:
-        const result = await orcScanner.scan(event.data.image)
+        const result = await orcScanner.scan(event.data.image, [event.data.width, event.data.height, -1])
         if (result != null) {
           data = Object.assign(
             data, result,

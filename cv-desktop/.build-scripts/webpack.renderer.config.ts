@@ -138,10 +138,6 @@ class RendererConfig extends BaseConfig {
     this.plugins?.push(
       new CopyWebpackPlugin({
         patterns: [
-          // {
-          //   from: path.posix.join(dirname, '../../node_modules/@mediapipe/face_mesh/*.{js,wasm,binarypb,data}'),
-          //   to: path.join(dirname, '../dist/electron/static/face_mesh/'),
-          // },
           {
             from: path.posix.join(dirname, '../../node_modules/@mediapipe/tasks-vision/wasm/'),
             to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),

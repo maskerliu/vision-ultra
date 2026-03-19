@@ -43,21 +43,27 @@ export class MainServer {
 
   public async start() {
     let portUsed = await tcpPortUsed.check(this.commonService.allConfig.port, '127.0.0.1')
-
     let config = this.commonService.allConfig
-    config.portValid = portUsed
+    config.portUsed = portUsed
     this.commonService.saveAllConfig(config)
 
-    this.initHttpServer()
+    await this.stop()
+    await this.waitForPortRelease(this.commonService.allConfig.port)
+    this.initHttpApp()
+    await this.startHttpServer()
+  }
 
-    if (this.httpServer) {
-      this.httpServer.close(() => {
-        this.httpServer = null
-        this.startHttpServer()
-      })
-    } else {
-      this.startHttpServer()
+  private async waitForPortRelease(port: number, maxRetries: number = 10, delay: number = 500) {
+    for (let i = 0; i < maxRetries; i++) {
+      const isUsed = await tcpPortUsed.check(port, '127.0.0.1')
+      if (!isUsed) {
+        console.log(`port ${port} released`)
+        return
+      }
+      console.log(`wait port ${port} release... (${i + 1}/${maxRetries})`)
+      await new Promise(resolve => setTimeout(resolve, delay))
     }
+    console.warn(`port ${port} used, try start server`)
   }
 
   public getBizConfig() {
@@ -65,14 +71,46 @@ export class MainServer {
   }
 
   public updateBizConfig(config: BizConfig) {
+
+    if (this.commonService.allConfig.port !== config.port ||
+      this.commonService.allConfig.protocol !== config.protocol ||
+      this.commonService.allConfig.modelPath == config.modelPath) {
+
+      this.start()
+    }
+
     this.commonService.saveAllConfig(config)
   }
 
-  public async stop() {
-    this.httpServer.close()
+  public async stop(timeout: number = 5000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.httpServer == null) {
+        console.log(`http server not started`)
+        resolve()
+        return
+      }
+
+      this.pushService.closeWebSocketServer()
+
+      const timeoutId = setTimeout(() => {
+        reject(new Error('shutdown timeout'))
+      }, timeout)
+
+      this.httpServer.close((err) => {
+        clearTimeout(timeoutId)
+        if (err) {
+          reject(err)
+          console.log(`http server closed, ${err}`)
+        } else {
+          console.log(`http server closed`)
+          this.httpServer = null
+          resolve()
+        }
+      })
+    })
   }
 
-  private initHttpServer() {
+  private initHttpApp() {
     this.httpApp = http2express(express)
     this.corsOpt.origin = [
       `${this.commonService.allConfig.protocol}://localhost:${this.commonService.allConfig.port}`,
@@ -131,33 +169,34 @@ export class MainServer {
       HTTP = await import('http')
       this.httpServer = HTTP.createServer(this.httpApp)
     }
-    this.pushService.bindServer(this.httpServer)
 
-    this.httpServer.addListener('close', () => {
-      console.warn('close http server')
-    })
+    this.pushService.bindServer(this.httpServer)
 
     this.httpServer.addListener('error', (e: any) => {
       if (e.code === 'EADDRINUSE') {
         console.error(`port[${this.commonService.allConfig.port}] ${e.code}`)
 
         let config = this.commonService.allConfig
-        config.portValid = false
+        config.portUsed = true
         this.commonService.saveAllConfig(config)
         this.httpServer?.close()
       }
     })
 
-    this.httpServer.listen(
-      this.commonService.allConfig.port,
-      () => {
-        console.info(`http server bootstrap[${this.commonService.allConfig.port}]`)
-        let config = this.commonService.allConfig
-        config.portValid = true
-        this.commonService.saveAllConfig(config)
-      }
-    )
+    await new Promise<void>((resolve, reject) => {
+      this.httpServer.listen(
+        this.commonService.allConfig.port,
+        () => {
+          console.info(`http server start [${this.commonService.allConfig.port}]`)
+          let config = this.commonService.allConfig
+          config.portUsed = false
+          this.commonService.saveAllConfig(config)
+          resolve()
+        }
+      )
 
+      this.httpServer.on('error', reject)
+    })
   }
 
   private async proxyCorsMedia(req: Request, resp: Response) {

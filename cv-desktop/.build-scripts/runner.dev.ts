@@ -13,6 +13,7 @@ import { BaseConfig } from './webpack.base.config.js'
 import mainConfig from './webpack.main.config'
 import rendererConfig from './webpack.renderer.config'
 
+
 const Run_Mode_DEV = 'development'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -76,15 +77,6 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
           },
         },
         {
-          directory: path.join(dirname, '../../model-train/models/'),
-          publicPath: '/static/',
-          staticOptions: {
-            etag: true,
-            cacheControl: true,
-            maxAge: '30d',
-          },
-        },
-        {
           directory: path.join(dirname, '../icons/web'),
           publicPath: '/static/',
           staticOptions: {
@@ -137,12 +129,6 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
   })
 }
 
-async function startMain1() {
-  mainConfig.mode = Run_Mode_DEV
-  const compiler = webpack(mainConfig)
-
-}
-
 function startMain(): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     mainConfig.mode = Run_Mode_DEV
@@ -163,8 +149,6 @@ function startMain(): Promise<void> {
         reject()
         return
       }
-
-      // console.log("Main", stats)
 
       if (electronProc && electronProc.kill()) {
         manualRestart = true

@@ -13,10 +13,12 @@
           <van-icon class-prefix="iconfont" name="sjtu-name" style="font-size: 1.4rem; margin: 6px 0 0 0;" />
         </van-row>
         <div style="z-index: 100; -webkit-app-region: no-drag; margin: 2px 5px;">
-          <van-icon class-prefix="iconfont" name="apm" class="left-panel-icon"
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="apm"
             @click="commonStore.showApm = !commonStore.showApm" />
-          <van-icon class-prefix="iconfont" class="left-panel-icon" name="face-db" @click="openFaceDbMgr" />
-          <van-icon class-prefix="iconfont" class="left-panel-icon" name="setting" @click="openSettings">
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="face-db"
+            @click="commonStore.showFaceDbMgr = true" />
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="setting"
+            @click="commonStore.showSettings = true">
             <span class="badge-dot"></span>
           </van-icon>
         </div>
@@ -29,9 +31,9 @@
 
     <detect-rec class="right-panel border-bg" />
 
-    <van-popup v-model:show="showPopup" position="right" close-icon="close">
-      <settings v-if="showSettings" />
-      <face-db-mgr v-else-if="showFaceDbMgr" />
+    <van-popup v-model:show="showPopup" position="right" close-icon="close" @closed="onPanelClosed">
+      <settings v-if="commonStore.showSettings" />
+      <face-db-mgr v-else-if="commonStore.showFaceDbMgr" />
     </van-popup>
   </van-row>
 </template>
@@ -39,7 +41,7 @@
 
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 import { ConfigProviderTheme } from 'vant'
-import { inject, onMounted, provide, Ref, ref, watch } from 'vue'
+import { inject, onMounted, Ref, ref, watch } from 'vue'
 import { CommonStore } from '../../store'
 import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
@@ -58,32 +60,32 @@ import FaceDbMgr from './FaceDbMgr.vue'
 const isWeb = window.isWeb
 const theme = inject<Ref<ConfigProviderTheme>>('theme')
 
-const showSettings = ref<boolean>(false)
 const reverseTheme = ref<string>(theme.value == 'dark' ? 'light' : 'dark')
 const showPopup = ref(false)
-const showFaceDbMgr = ref(false)
 const commonStore = CommonStore()
 
-provide('showSettings', showSettings)
 
 onMounted(() => {
-  window.mainApi?.onOpenSettings(() => { openSettings() })
+  window.mainApi?.onOpenSettings(() => { commonStore.showSettings = true })
 })
 
 watch(() => theme.value, () => {
   reverseTheme.value = theme.value == 'dark' ? 'light' : 'dark'
 })
 
-function openFaceDbMgr() {
-  showPopup.value = true
-  showFaceDbMgr.value = true
-  showSettings.value = false
-}
+watch(
+  [
+    () => commonStore.showSettings,
+    () => commonStore.showFaceDbMgr
+  ],
+  () => {
+    showPopup.value = commonStore.showSettings || commonStore.showFaceDbMgr
+  }
+)
 
-function openSettings() {
-  showPopup.value = true
-  showSettings.value = true
-  showFaceDbMgr.value = false
+function onPanelClosed() {
+  commonStore.showSettings = false
+  commonStore.showFaceDbMgr = false
 }
 
 </script>

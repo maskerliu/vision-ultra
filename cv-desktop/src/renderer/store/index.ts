@@ -12,14 +12,13 @@ export const CommonStore = defineStore('Common', {
       inited: false,
       uid: '',
       showApm: false,
+      showFaceDbMgr: false,
+      showSettings: false,
       registerUrl: '',
       bizConfig: {} as BizConfig
     }
   },
   actions: {
-    updateShowQrCode(show: boolean) {
-      this.showQrCode = show
-    },
     async init(config?: BizConfig) {
       this.inited = false
       pushClient = new PushClient()

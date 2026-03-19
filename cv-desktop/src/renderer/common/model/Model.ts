@@ -115,17 +115,18 @@ export class Model {
         executionProviders: ["wasm"],
       }
 
-      if (this._info.external) {
+      if (this._info.external && this._info.external != '') {
+        console.log(this._info.external)
         opts["externalData"] = [
           {
             path: this._info.external,
-            data: `${__DEV__ ? "" : baseDomain()}/static/${this.name}.data`,
+            data: `${baseDomain()}/static/${this.name}.data`,
           },
         ]
       }
 
       this._session = await ort.InferenceSession.create(
-        `${__DEV__ ? "" : baseDomain()}/${modelPath}`,
+        `${baseDomain()}/${modelPath}`,
         opts,
       )
     } catch (e) {

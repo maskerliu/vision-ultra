@@ -167,7 +167,9 @@ export type ImgGenMsg = Partial<{
 export type OCRMsg = Partial<{
   cmd: ProcessorCMD,
   model?: string,
-  image?: ImageData,
+  image?: Uint8Array,
+  width?: number,
+  height?: number,
 }>
 
 export type StyleTransMsg = Partial<{

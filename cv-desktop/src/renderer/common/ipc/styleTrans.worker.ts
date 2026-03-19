@@ -1,20 +1,11 @@
 
-import { ProcessorCMD } from '../../../shared'
+import { ProcessorCMD, StyleTransMsg } from '../../../shared'
 import { StyleTransfer } from '../model/StyleTransfer'
 
 const ctx: Worker = self as any
 let styleTransfer: StyleTransfer = new StyleTransfer()
 
-ctx.addEventListener('message', async (event: MessageEvent<{
-  cmd: ProcessorCMD,
-  styleModel?: string,
-  transModel?: string,
-  image?: ImageData,
-  style?: ImageData,
-  params?: string,
-  width?: number,
-  height?: number
-}>) => {
+ctx.addEventListener('message', async (event: MessageEvent<StyleTransMsg>) => {
   if (event.data == null) {
     ctx.postMessage({ loading: false, error: 'data invalid' })
     return
@@ -46,7 +37,7 @@ ctx.addEventListener('message', async (event: MessageEvent<{
         break
       }
       case ProcessorCMD.process:
-        const result = await styleTransfer.transfer(event.data.image)
+        const result = await styleTransfer.transfer(event.data.image as ImageData)
         if (result != null) {
           const [image, width, height] = result
           data = Object.assign(

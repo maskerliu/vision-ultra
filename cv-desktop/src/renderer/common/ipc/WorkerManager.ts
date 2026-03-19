@@ -12,22 +12,22 @@ export class WorkerManager extends ProcessorManager {
     let processor: Worker
     switch (target) {
       case ProcessorType.cvProcess:
-        processor = new Worker(new URL('./cvProcess.worker', import.meta.url))
+        processor = new Worker(new URL('./CVProcess.worker', import.meta.url))
         break
       case ProcessorType.objTrack:
-        processor = new Worker(new URL('./objTrack.worker', import.meta.url))
+        processor = new Worker(new URL('./ObjTrack.worker', import.meta.url))
         break
       case ProcessorType.faceDetect:
-        processor = new Worker(new URL('./faceDetect.worker', import.meta.url))
+        processor = new Worker(new URL('./FaceDetect.worker', import.meta.url))
         break
       case ProcessorType.animeGen:
-        processor = new Worker(new URL('./animeGen.worker', import.meta.url))
+        processor = new Worker(new URL('./AnimeGen.worker', import.meta.url))
         break
       case ProcessorType.ocr:
-        processor = new Worker(new URL('./ocr.worker', import.meta.url))
+        processor = new Worker(new URL('./Ocr.worker', import.meta.url))
         break
       case ProcessorType.styleTrans:
-        processor = new Worker(new URL('./styleTrans.worker', import.meta.url))
+        processor = new Worker(new URL('./StyleTrans.worker', import.meta.url))
         break
     }
 
@@ -193,7 +193,7 @@ export class WorkerManager extends ProcessorManager {
       if (this[ProcessorType.ocr]) {
         let blob = await this.offscreenCtx.canvas.convertToBlob()
         let tmp = await readFromBlobOrFile(blob)
-        this.postMessage(ProcessorType.ocr, { cmd: ProcessorCMD.process, image: new Uint8Array(tmp as ArrayBuffer) })
+        this.postMessage(ProcessorType.ocr, { cmd: ProcessorCMD.process, image: new Uint8Array(tmp as ArrayBuffer), width: image.width, height: image.height })
       }
       this.postMessage(ProcessorType.animeGen, { cmd: ProcessorCMD.process, image })
       this.postMessage(ProcessorType.styleTrans, { cmd: ProcessorCMD.process, image })
