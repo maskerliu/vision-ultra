@@ -6,6 +6,7 @@
 *_saved_model
 *_web_model
 *.ts
+*.task
 
 models/**/*
 pt/**/*

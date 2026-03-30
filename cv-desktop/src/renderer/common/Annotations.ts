@@ -43,10 +43,10 @@ export class AnnotationManager {
   private _cursorPoint: fabric.Point = new fabric.Point(0, 0)
   private _isDragging = false
   private _drawType: DrawType = DrawType.select
-  private _label: Ref<CVLabel> = ref()
+  private _label: Ref<CVLabel | null> = ref(null)
   get label() { return this._label }
 
-  private _activeObj: Ref<string> = ref(null)
+  private _activeObj: Ref<string | null> = ref(null)
   get activeObject() { return this._activeObj }
 
   private _objNum: Ref<number> = ref(0)
@@ -191,7 +191,7 @@ export class AnnotationManager {
       this.drawingObj = null
       this.onDrawing = false
       this._canvas.remove(...this.polyTmpObjs)
-      this._canvas.remove(this.drawingObj)
+      this._canvas.remove(this.drawingObj!)
       this.polyTmpObjs = []
       this.polyTmpPts = []
       this.drawingObj = null
@@ -288,11 +288,11 @@ export class AnnotationManager {
       }
 
       this.drawingObj = this.genPoly(this.polyTmpPts, this._drawType)
-      this.drawingObj.set(AnnotationManager.genLabelOption(this._label.value))
-      this.drawingObj.set({ score: '100.0', uuid: uuidv4() })
-      this.drawingObj.set({ evented: false, selectable: false })
-      if (this._drawType == DrawType.multiLine) this.drawingObj.set({ fill: 'transparent' })
-      this._canvas.add(this.drawingObj)
+      this.drawingObj?.set(AnnotationManager.genLabelOption(this._label.value))
+      this.drawingObj?.set({ score: '100.0', uuid: uuidv4().replaceAll('-', '') || '' })
+      this.drawingObj?.set({ evented: false, selectable: false })
+      if (this._drawType == DrawType.multiLine) this.drawingObj?.set({ fill: 'transparent' })
+      this._canvas.add(this.drawingObj!)
       this._canvas.remove(...this.polyTmpObjs)
       this._objNum.value++
       // this._markerGroup.get(this._drawType).push(this.drawingObject)
@@ -362,7 +362,7 @@ export class AnnotationManager {
     }
 
     this.drawingObj.set(AnnotationManager.genLabelOption(this._label.value))
-    this.drawingObj.set({ score: '100.0', uuid: uuidv4() })
+    this.drawingObj.set({ score: '100.0', uuid: uuidv4().replaceAll('-', '') || '' })
     this.drawingObj.set({ evented: false, selectable: false })
     this._canvas.add(this.drawingObj)
     this._canvas.bringObjectToFront(this.drawingObj)
@@ -386,7 +386,7 @@ export class AnnotationManager {
       case DrawType.rect:
         const width = pointer.x - this.mouseFrom.x
         const height = pointer.y - this.mouseFrom.y
-        this.drawingObj.set({
+        this.drawingObj?.set({
           left: width > 0 ? this.mouseFrom.x : pointer.x,
           top: height > 0 ? this.mouseFrom.y : pointer.y,
           width: Math.abs(width),
@@ -395,22 +395,19 @@ export class AnnotationManager {
         this._canvas.requestRenderAll()
         break
       case DrawType.circle:
-        this.drawingObj.set({
+        this.drawingObj?.set({
           radius: Math.abs(Math.min(pointer.x - this.mouseFrom.x, pointer.y - this.mouseFrom.y)) / 2,
         })
         this._canvas.requestRenderAll()
         break
       case DrawType.line:
-        this.drawingObj.set({
-          x2: pointer.x,
-          y2: pointer.y,
-        })
+        this.drawingObj?.set({ x2: pointer.x, y2: pointer.y, })
         this._canvas.requestRenderAll()
         break
       case DrawType.polygon:
       case DrawType.multiLine:
         if (this.onPolyDrawing) {
-          this.drawingObj.set({ x2: pointer.x, y2: pointer.y })
+          this.drawingObj?.set({ x2: pointer.x, y2: pointer.y })
           this._canvas.requestRenderAll()
         }
         break
@@ -431,11 +428,11 @@ export class AnnotationManager {
       case DrawType.rect:
       case DrawType.circle:
       case DrawType.line:
-        if (this.drawingObj.width < 20 || this.drawingObj.height < 20) {
+        if (this.drawingObj && (this.drawingObj.width < 20 || this.drawingObj.height < 20)) {
           this._canvas.remove(this.drawingObj)
           showToast({ message: 'The object is too small', duration: 500 })
         } else {
-          this._canvas.setActiveObject(this.drawingObj)
+          this._canvas.setActiveObject(this.drawingObj!)
           this._canvas.discardActiveObject()
           this.drawingObj = null
           this.mouseFrom.x = 0
@@ -496,8 +493,9 @@ export class AnnotationManager {
     let poly: fabric.Polygon | fabric.Polyline
     if (type == DrawType.polygon)
       poly = new fabric.Polygon(points, AnnotationManager.genCommonOption())
-    if (type == DrawType.multiLine)
+    else if (type == DrawType.multiLine)
       poly = new fabric.Polyline(points, AnnotationManager.genCommonOption())
+    else return null
 
     poly.set({ editing: true })
     poly.on('mousedblclick', () => {
@@ -572,21 +570,21 @@ export class AnnotationManager {
       { x: 0, y: 20, },
     ]
     let poly = this.genPoly(points, DrawType.polygon)
-    poly.set(AnnotationManager.genLabelOption({ id: 0, name: 'person', color: '#e74c3c' }))
-    poly.set('score', '90.4')
-    poly.set('uuid', uuidv4())
-    this.add(poly)
+    poly?.set(AnnotationManager.genLabelOption({ id: 0, name: 'person', color: '#e74c3c' }))
+    poly?.set('score', '90.4')
+    poly?.set('uuid', uuidv4().replaceAll('-', '') || '')
+    this.add(poly!)
 
     let rect = this.genRect(120, 200, 100, 80)
     rect.set(AnnotationManager.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
     rect.set('score', '90.4')
-    rect.set('uuid', uuidv4())
+    rect.set('uuid', uuidv4().replaceAll('-', '') || '')
     this.add(rect)
 
     rect = this.genRect(240, 250, 80, 90)
     rect.set(AnnotationManager.genLabelOption({ id: 0, name: 'bus', color: '#EAB543' }))
     rect.set('score', '90.4')
-    rect.set('uuid', uuidv4())
+    rect.set('uuid', uuidv4().replaceAll('-', '') || '')
     this.add(rect)
 
     this._canvas.requestRenderAll()

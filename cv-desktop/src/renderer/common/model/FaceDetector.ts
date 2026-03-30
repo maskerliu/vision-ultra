@@ -5,7 +5,7 @@ import { FACE_DIMS, getFaceSlope, NUM_KEYPOINTS } from '../DrawUtils'
 
 
 export class FaceDetector {
-  private faceLandmarker: FaceLandmarker = null
+  private faceLandmarker: FaceLandmarker | null = null
   public _enable: boolean = false
   set enable(val: boolean) {
     this._enable = val
@@ -15,10 +15,10 @@ export class FaceDetector {
   private _faceRecMode: 'opencv' | 'tfjs' = 'tfjs' // opencv or tfjs
   set faceRecMode(val: 'opencv' | 'tfjs') { this._faceRecMode = val }
 
-  private _face: FaceDetectResult = null
+  private _face: FaceDetectResult | null = null
   get face() { return this._face }
 
-  private _tface: TFace = null
+  private _tface: TFace | undefined = undefined
   get tface() { return this._tface }
 
   private _enableFaceAngle: boolean = false

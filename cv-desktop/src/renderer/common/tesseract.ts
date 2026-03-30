@@ -7,12 +7,14 @@ declare namespace Tesseract {
     blocktype: string
     page: Page
   }
+
   interface Baseline {
     x0: number
     y0: number
     x1: number
     y1: number
   }
+
   interface RowAttributes {
     ascenders: number
     descenders: number
@@ -56,6 +58,7 @@ declare namespace Tesseract {
     text: string
     confidence: number
   }
+
   interface Word {
     symbols: Symbol[]
     choices: Choice[]
@@ -64,6 +67,7 @@ declare namespace Tesseract {
     bbox: Bbox
     font_name: string
   }
+
   interface Page {
     page_id: number
     blocks: Block[] | null
@@ -71,3 +75,4 @@ declare namespace Tesseract {
 }
 
 export { Tesseract }
+

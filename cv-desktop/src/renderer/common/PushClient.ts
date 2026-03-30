@@ -22,11 +22,9 @@ export class PushClient {
     this.sockjs.onopen = () => { this.register(uid) }
     this.sockjs.onmessage = (e: any) => { this.handleMsg(e.data) }
     this.sockjs.onclose = (e: CloseEvent) => {
-      console.log(e)
       showNotify({ message: '连接已断开', type: 'danger', duration: 1200 })
     }
     this.sockjs.onerror = (e: Event) => {
-      console.log(e)
       showNotify({ message: '连接错误', type: 'danger', duration: 1200 })
     }
   }

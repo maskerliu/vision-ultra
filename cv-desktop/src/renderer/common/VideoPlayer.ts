@@ -8,7 +8,7 @@ export class VideoPlayer {
   private animationId: number
   private flip: boolean = true
 
-  private _processorMgr: ProcessorManager = null
+  private _processorMgr: ProcessorManager | null = null
   set processorMgr(value: ProcessorManager) { this._processorMgr = value }
 
   private mediaRecorder: MediaRecorder

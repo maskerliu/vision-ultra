@@ -126,21 +126,21 @@ export class CommonService {
     let newModels = names.filter(item => dbModels.indexOf(item) == -1 && item != null)
 
     if (deleteModels.length == 0 && newModels.length == 0) {
-      console.log('no models to delete or add')
+      // console.log('no models to delete or add')
       return result
     }
 
     // 删除本地不存在的模型
     if (deleteModels.length > 0) {
       deleteModels.forEach(item => item._deleted = true)
-      console.log('delete models', deleteModels)
+      // console.log('delete models', item.name)
       await this._modelRepo.bulkUpdate(deleteModels)
     }
 
     // 添加新模型到数据库
     if (newModels.length > 0) {
       let models = newModels.map(name => ({ name, type: ModelType.unknown, } as ModelInfo))
-      console.log('add new models', models)
+      // console.log('add new models', newModels)
       await this._modelRepo.bulkUpdate(models)
     }
 

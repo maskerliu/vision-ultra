@@ -74,7 +74,7 @@ export class MainServer {
 
     if (this.commonService.allConfig.port !== config.port ||
       this.commonService.allConfig.protocol !== config.protocol ||
-      this.commonService.allConfig.modelPath == config.modelPath) {
+      this.commonService.allConfig.modelPath !== config.modelPath) {
 
       this.start()
     }

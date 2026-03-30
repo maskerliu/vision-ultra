@@ -32,8 +32,8 @@ export class Model {
 
   // default input shape NHWC
   protected _inShape: [number, number, number, number] = [1, -1, -1, 3] // height, width
-  protected _inName: string = null
-  protected _inType: string = null
+  protected _inName: string | null = null
+  protected _inType: string | null = null
   get inShape() {
     return this._inShape
   }
@@ -162,7 +162,7 @@ export class Model {
     let input = await this.preprocess(image)
     let result: tf.Tensor | tf.Tensor[] = null
     let params = {}
-    params[this._inName] = input
+    if (this._inName) params[this._inName] = input
 
     switch (this._info.engine) {
       case ModelEngine.onnx:

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
+import { v4 as uuidv4 } from 'uuid'
 import { showNotify } from 'vant'
 import { BizConfig, CommonApi, updateBaseDomain, updateClientUID } from '../../shared'
-import { generateUid, PushClient } from '../common'
-
+import { PushClient } from '../common'
 
 let pushClient: PushClient
 
@@ -34,7 +34,8 @@ export const CommonStore = defineStore('Common', {
         this.bizConfig = await CommonApi.getBizConfig()
         this.uid = window.localStorage.getItem('uid')
         if (this.uid == null) {
-          this.uid = generateUid()
+          this.uid = uuidv4().replaceAll('-', '')
+          console.log(this.uid)
           window.localStorage.setItem('uid', this.uid)
         }
 

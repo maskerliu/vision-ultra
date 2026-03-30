@@ -15,7 +15,6 @@ export class AnimeGenerator extends ModelRunner {
 
   async dispose() {
     await this._model?.dispose()
-    this._model = null
   }
 
   async generate(image: ImageData) {

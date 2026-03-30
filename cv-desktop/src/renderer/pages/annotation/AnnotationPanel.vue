@@ -187,7 +187,7 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
       let points = contours[i].map(it => { return { x: it[0] / dpr, y: it[1] / dpr } })
       let poly = annoMgr.genPoly(points, DrawType.polygon)
       poly.set(AnnotationManager.genLabelOption(label))
-      poly.set({ score, uuid: uuidv4() })
+      poly.set({ score, uuid: uuidv4().replaceAll('-', '') || '' })
       annoMgr.add(poly)
       continue
     }
@@ -198,7 +198,7 @@ function drawAnnotations(boxes: Float16Array, scores: Float16Array, classes: Uin
     x2 = boxes[i * 4 + 3] * scale[0] / dpr
     let rect = annoMgr.genRect(x1, y1, x2 - x1, y2 - y1)
     rect.set(AnnotationManager.genLabelOption(label))
-    rect.set({ score, uuid: uuidv4() })
+    rect.set({ score, uuid: uuidv4().replaceAll('-', '') || '' })
     annoMgr.add(rect)
   }
   annoMgr.requestRenderAll()

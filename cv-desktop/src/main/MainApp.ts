@@ -301,23 +301,22 @@ export default class MainApp {
   }
 
   private addFirewallRule() {
-    if (os.platform() !== 'win32' || IS_DEV) return // 仅在 Windows 上执行
+    if (os.platform() !== 'win32') return // 仅在 Windows 上执行
 
     const appPath = process.execPath
-    const ruleName = 'VisionUltra'
+    console.log(appPath)
+    const ruleName = IS_DEV ? 'Electron' : 'VisionUltra'
 
     // 检查规则是否存在
     const checkCommand = `netsh advfirewall firewall show rule name="${ruleName}"`
 
     exec(checkCommand, (error, stdout, stderr) => {
       if (stdout.includes('No rules match')) {
-        console.log('添加防火墙规则...')
-
         // 添加入站规则
         const inboundCommand = `netsh advfirewall firewall add rule name="${ruleName}" dir=in action=allow program="${appPath}" enable=yes`
         exec(inboundCommand, (error, stdout, stderr) => {
           if (error) {
-            console.error(`添加入站规则失败: ${error.message}`)
+            console.error(`入站规则添加失败: ${error.message}`)
           } else {
             console.log('入站规则添加成功')
           }
@@ -327,7 +326,7 @@ export default class MainApp {
         const outboundCommand = `netsh advfirewall firewall add rule name="${ruleName}" dir=out action=allow program="${appPath}" enable=yes`
         exec(outboundCommand, (error, stdout, stderr) => {
           if (error) {
-            console.error(`添加出站规则失败: ${error.message}`)
+            console.error(`出站规则添加失败: ${error.message}`)
           } else {
             console.log('出站规则添加成功')
           }

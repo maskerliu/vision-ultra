@@ -201,7 +201,7 @@ export interface ITensorflowApi extends IProcessor {
 }
 
 export type FaceDetectResult = {
-  landmarks: Float16Array,
+  landmarks: Float16Array | null,
   box: BoundingBox,
   valid: boolean,
   expire: number,
