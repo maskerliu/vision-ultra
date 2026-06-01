@@ -51,8 +51,8 @@ function startDevServer(config: BaseConfig, host: string, port: number): Promise
       static: [
         { directory: path.join(dirname, '../src/'), publicPath: '/' },
         {
-          directory: path.join(dirname, '../../node_modules/'),
-          publicPath: '/node_modules/',
+          directory: path.join(dirname, '../../node_modules/@mediapipe'),
+          publicPath: '/node_modules/@mediapipe',
           staticOptions: {
             etag: true,
             cacheControl: true,

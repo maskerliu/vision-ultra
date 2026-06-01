@@ -13,6 +13,8 @@
     "editor.formatOnSave": true
   },
   "js/ts.format.semicolons": "remove",
+  "javascript.format.semicolons": "remove",
+  "typescript.format.semicolons": "remove",
   "terminal.integrated.env.windows": {
     "ELECTRON_MIRROR": "https://npmmirror.com/mirrors/electron/",
     "ELECTRON_BUILDER_BINARIES_MIRROR": "https://npmmirror.com/mirrors/electron-builder-binaries/",

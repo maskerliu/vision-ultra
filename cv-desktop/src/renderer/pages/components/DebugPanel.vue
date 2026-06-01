@@ -13,12 +13,11 @@
 
 <script lang="ts" setup>
 
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { ProxyMock } from '../../../shared'
 import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()
-const showDebugPanel = inject<Ref<boolean>>('showDebugPanel')
 const sseData = ref<string>('hello world')
 
 onMounted(async () => {
@@ -63,7 +62,7 @@ function toNew() {
 
 function openDevTools() {
   window.mainApi?.openDevTools()
-  showDebugPanel.value = false
+  commonStore.showDebugPanel = false
 }
 
 async function onSSE() {

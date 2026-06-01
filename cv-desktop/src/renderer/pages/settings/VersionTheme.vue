@@ -6,14 +6,15 @@
         {{ $t('settings.sys.theme') }}
       </template>
       <template #right-icon>
-        <van-radio-group v-model="theme" direction="horizontal" style="height: 26px;" @change="onThemeChanged">
+        <van-radio-group v-model="commonStore.theme" direction="horizontal" style="height: 26px;"
+          @change="commonStore.updateTheme">
           <van-radio name="light" icon-size="1rem">
             <van-icon class-prefix="iconfont" name="theme-light"
-              :style="{ color: theme == 'light' ? '#3498db' : 'gray' }" />
+              :style="{ color: commonStore.theme == 'light' ? '#3498db' : 'gray' }" />
           </van-radio>
           <van-radio name="dark" icon-size="1rem">
             <van-icon class-prefix="iconfont" name="theme-dark"
-              :style="{ color: theme == 'dark' ? '#3498db' : 'gray' }" />
+              :style="{ color: commonStore.theme == 'dark' ? '#3498db' : 'gray' }" />
           </van-radio>
         </van-radio-group>
       </template>
@@ -25,7 +26,7 @@
         {{ $t('settings.sys.fontsize') }}
       </template>
       <template #input>
-        <van-slider v-model="fontSize" min="7" max="10" @change="updateFontsize"
+        <van-slider v-model="commonStore.fontSize" min="7" max="10" @change="commonStore.updateFontSize"
           style="width: 60%; margin-right: 10px;" />
       </template>
     </van-field>
@@ -59,7 +60,7 @@
           </van-cell>
           <template #reference>
             <div style="min-width: 120px; height: 1rem; padding: 2px; margin-top: -5px;">
-              {{ lang }}
+              {{ commonStore.lang }}
             </div>
           </template>
         </van-popover>
@@ -83,8 +84,8 @@
 </template>
 <script lang="ts" setup>
 
-import { ConfigProviderTheme, ConfigProviderThemeVars, showNotify, showToast } from 'vant'
-import { inject, onMounted, ref, Ref, watch } from 'vue'
+import { showNotify, showToast } from 'vant'
+import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Version, versionCheck } from '../../../shared'
 import { CommonStore } from '../../store'
@@ -99,9 +100,6 @@ const showDownload = ref<boolean>(false)
 const showRestart = ref<boolean>(false)
 const downloadProgress = ref<number>(0)
 
-const lang = inject<Ref<string>>('lang')
-const theme = inject<Ref<ConfigProviderTheme>>('theme')
-const themeVars = inject<Ref<ConfigProviderThemeVars>>('themeVars')
 
 const popupCloseable = window.isWeb
 let newVersion: Version = null
@@ -115,9 +113,6 @@ onMounted(() => {
   window.mainApi?.onDownloadUpdate((...args: any) => {
     downloadProgress.value = args[0].progress.toFixed(1)
   })
-
-  fontSize.value = parseInt(themeVars.value.fontSizeXs.split('px')[0])
-
 })
 
 watch(downloadProgress, () => {
@@ -128,22 +123,10 @@ watch(downloadProgress, () => {
 })
 
 function onSelectLang(_lang: string) {
-  lang.value = _lang
+  commonStore.lang = _lang
   showLangs.value = false
-  i18n.locale.value = lang.value
+  i18n.locale.value = _lang
   window.localStorage.setItem('lang', _lang)
-}
-
-function onThemeChanged() {
-  window.localStorage.setItem('theme', theme.value)
-  window.mainApi?.setAppTheme(theme.value)
-}
-
-function updateFontsize() {
-  themeVars.value.fontSizeXs = `${fontSize.value}px`
-  themeVars.value.fontSizeSm = `${fontSize.value + 2}px`
-  themeVars.value.fontSizeMd = `${fontSize.value + 4}px`
-  themeVars.value.fontSizeLg = `${fontSize.value + 6}px`
 }
 
 async function onVersionCheck() {

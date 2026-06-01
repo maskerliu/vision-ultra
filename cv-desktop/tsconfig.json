@@ -2,10 +2,11 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "composite": false,
     "sourceMap": false,
     "declaration": false,
+    // "ignoreDeprecations": "6.0",
     "declarationMap": false,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
@@ -36,6 +37,7 @@
   "include": [
     "src/**/*",
     "src/**/*.vue",
+    "src/types/**/*",
     "desktop/.build-scripts/**/*"
   ],
   "exclude": [

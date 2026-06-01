@@ -34,14 +34,14 @@
         </template>
       </van-button>
 
-      <van-image fit="cover" radius="10" width="26" height="26" :src="recFace" style="margin-left: 10px;" />
+      <van-image fit="cover" radius="6" width="26" height="26" :src="recFace" style="margin: 3px 10px;" />
 
     </van-row>
 
     <media-controller audio class="media-controller">
-      <Transition>
+      <transition name="fade">
         <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-size="previewSize" />
-      </Transition>
+      </transition>
       <!-- <van-empty v-show="hasPreview" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 2000;" /> -->
       <canvas ref="preview"></canvas>
       <canvas ref="mask" style="display: none; position: absolute; top: 50px; left: 50px;"></canvas>
@@ -58,11 +58,11 @@
 
     <live2d-panel ref="live2dPanel" v-show="visionStore.live2d" />
 
-    <Transition>
+    <transition name="fade">
       <div class="eigen-face" v-show="visionStore.enableFaceDetect">
         <canvas ref="eigen" width="220" height="280" style="width: 120px; height: 140px;"></canvas>
       </div>
-    </Transition>
+    </transition>
 
     <van-dialog v-model:show="showNameInputDialog" :title="$t('faceRec.nameInput')" show-cancel-button
       @confirm="onConfirmName">

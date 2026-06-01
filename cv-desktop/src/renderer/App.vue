@@ -1,5 +1,5 @@
 <template>
-  <van-config-provider :theme="theme" :theme-vars="themeVars" theme-vars-scope="global">
+  <van-config-provider :theme="commonStore.theme" :theme-vars="commonStore.themeVars" theme-vars-scope="global">
     <router-view class="biz-content" v-slot="{ Component, route }">
       <transition name="fade" v-if="canRender">
         <component :is="Component" :key="route.path" />
@@ -12,7 +12,7 @@
       </template>
     </van-floating-bubble>
 
-    <van-popup v-model:show="showDebugPanel" position="left" closeable close-icon="close">
+    <van-popup v-model:show="commonStore.showDebugPanel" position="left" closeable close-icon="close">
       <debug-panel />
     </van-popup>
 
@@ -29,26 +29,16 @@
 
 <script lang="ts" setup>
 
-import { ConfigProviderTheme, ConfigProviderThemeVars } from 'vant'
 import { onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import DebugPanel from './pages/components/DebugPanel.vue'
 import { CommonStore } from './store'
 
+const commonStore = CommonStore()
 const i18n = useI18n()
 const canRender = ref(false)
-const theme = ref<ConfigProviderTheme>('light')
-const themeVars = ref<ConfigProviderThemeVars>({
-  fontSizeXs: '9px',
-  fontSizeSm: '11px',
-  fontSizeMd: '13px',
-  fontSizeLg: '15px',
-})
-
-const lang = ref<string>('zh-CN')
 const active = ref<number>(0)
-const showDebugPanel = ref<boolean>(false)
 const enableDebug = true
 const showLoading = ref<boolean>(false)
 const offset = ref({
@@ -56,10 +46,6 @@ const offset = ref({
   y: window.innerHeight - 100
 })
 
-provide('theme', theme)
-provide('themeVars', themeVars)
-provide('lang', lang)
-provide('showDebugPanel', showDebugPanel)
 provide('showLoading', showLoading)
 
 onMounted(async () => {
@@ -76,21 +62,16 @@ onMounted(async () => {
     offset.value.y = window.innerHeight - 100
   })
 
-  let wrapTheme = window.localStorage.getItem('theme')
-  theme.value = wrapTheme != null ? wrapTheme as ConfigProviderTheme : 'light'
-
-  let wrapLang = window.localStorage.getItem('lang')
-  lang.value = wrapLang != null ? wrapLang : 'zh-CN'
-  i18n.locale.value = lang.value
-
-  window.mainApi?.setAppTheme(theme.value)
   if (window.mainApi) {
     window.mainApi?.getBizConfig(async (result) => {
-      await CommonStore().init(result)
+      await commonStore.init(result)
     })
   } else {
-    await CommonStore().init()
+    await commonStore.init()
   }
+
+  i18n.locale.value = commonStore.lang
+  window.mainApi?.setAppTheme(commonStore.theme)
 
   canRender.value = true
 
@@ -100,7 +81,7 @@ onMounted(async () => {
 })
 
 function onOpenDebugPanel() {
-  showDebugPanel.value = true
+  commonStore.showDebugPanel = true
 }
 
 </script>
@@ -108,49 +89,37 @@ function onOpenDebugPanel() {
 <style>
 .van-theme-light {
   --van-white: white;
-  --van-black: #333;
-  --van-gray-1: #ecedee;
+  --van-black: #653030;
+  --van-gray-1: #f7f8fa;
   --van-gray-8: #69696b;
+
+  --van-black: #000;
+  --van-white: #fff;
+  --van-gray-1: #f7f8fa;
+  --van-gray-2: #f2f3f5;
+  --van-gray-3: #ebedf0;
+  --van-gray-4: #dcdee0;
+  --van-gray-5: #c8c9cc;
+  --van-gray-6: #969799;
+  --van-gray-7: #646566;
+  --van-gray-8: #323233;
 }
 
 .van-theme-dark {
-  --van-white: rgb(24, 23, 23);
-  --van-black: #efecec;
-  --van-gray-1: #272728;
-  --van-gray-8: #ccccce;
-}
-
-:root {
-  --van-floating-bubble-size: 2.5rem;
-  --van-grid-item-content-padding: 8px;
-  --van-popover-radius: var(--van-radius-sm);
-  --van-switch-size: 1.2rem;
-  --van-radio-size: 1rem;
-  --van-checkbox-size: 1rem;
-  --van-font-size-xs: 9px;
-  --van-font-size-sm: 11px;
-  --van-font-size-md: 13px;
-  --van-font-size-lg: 15px;
-  --van-cell-group-inset-padding: 5px;
-  --van-cell-group-inset-title-padding: 5px 20px;
-  --van-icon-font-family: "iconfont";
-  --van-collapse-item-content-padding: 0px;
-  --van-dialog-border-radius: 6px;
-  --van-tag-font-size: 0.6rem;
-  --van-tag-padding: 2px 5px;
-  --van-tag-border-radius: 5px;
-  --van-cell-vertical-padding: 8px;
-  --van-cell-horizontal-padding: 15px;
-  --van-popup-round-radius: 8px;
-  --van-popup-close-icon-margin: 23px;
-  --van-border-width: 1px;
-  --van-radius-md: 5px;
-  --van-dialog-radius: 8px;
-  --van-floating-bubble-background: #f04b1e;
+  --van-black: #fff;
+  --van-white: #000;
+  --van-gray-1: #323233;
+  --van-gray-2: #646566;
+  --van-gray-3: #969799;
+  --van-gray-4: #c8c9cc;
+  --van-gray-5: #dcdee0;
+  --van-gray-6: #ebedf0;
+  --van-gray-7: #f2f3f5;
+  --van-gray-8: #f7f8fa;
 }
 
 #app {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Oxygen", "Ubuntu",
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: small;
   background: var(--van-gray-1);
@@ -166,6 +135,7 @@ function onOpenDebugPanel() {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--van-gray-1);
 }
 
 ::-webkit-scrollbar {
@@ -183,15 +153,11 @@ function onOpenDebugPanel() {
 .full-row {
   width: 100%;
   height: 100%;
-  /* background: var(--van-background); */
   overflow: hidden;
 }
 
 .border-bg {
-  /* margin: 5px; */
   padding: 0;
-  /* border-radius: 8px; */
-  /* border: 1px solid #e1e1e1; */
   box-shadow: 0px 12px 8px -12px #000;
 }
 
@@ -199,7 +165,7 @@ function onOpenDebugPanel() {
   width: 100%;
   min-width: 375px;
   height: 100vh;
-  background: var(--van-gray-1);
+  /* background: var(--van-gray-1); */
   overflow: hidden auto;
 }
 

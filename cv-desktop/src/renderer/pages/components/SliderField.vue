@@ -14,7 +14,15 @@
 import { FieldTextAlign } from 'vant'
 import { onMounted, ref } from 'vue'
 
-const { label = '', labelWidth = '80px', inputAlign = 'center', barHeight = '4px', min = 1, max = 100, step = 1 } = defineProps<{
+const {
+  label = '',
+  labelWidth = '80px',
+  inputAlign = 'center',
+  barHeight = '4px',
+  min = 1,
+  max = 100,
+  step = 1
+} = defineProps<{
   label?: string | number,
   labelWidth?: string,
   inputAlign?: FieldTextAlign,

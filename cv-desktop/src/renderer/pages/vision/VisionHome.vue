@@ -2,9 +2,9 @@
   <van-row>
     <div class="drag-bar" v-if="!isWeb"></div>
 
-    <Transition>
+    <transition name="fade">
       <apm-panel v-if="commonStore.showApm" />
-    </Transition>
+    </transition>
 
     <van-col class="left-panel">
       <van-row justify="space-between">
@@ -40,8 +40,7 @@
 <script lang="ts" setup>
 
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import { ConfigProviderTheme } from 'vant'
-import { inject, onMounted, Ref, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { CommonStore } from '../../store'
 import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
@@ -58,19 +57,19 @@ import FaceDbMgr from './FaceDbMgr.vue'
 // })
 
 const isWeb = window.isWeb
-const theme = inject<Ref<ConfigProviderTheme>>('theme')
 
-const reverseTheme = ref<string>(theme.value == 'dark' ? 'light' : 'dark')
+const reverseTheme = ref<string>('dark')
 const showPopup = ref(false)
 const commonStore = CommonStore()
 
 
 onMounted(() => {
+  reverseTheme.value = commonStore.theme == 'dark' ? 'light' : 'dark'
   window.mainApi?.onOpenSettings(() => { commonStore.showSettings = true })
 })
 
-watch(() => theme.value, () => {
-  reverseTheme.value = theme.value == 'dark' ? 'light' : 'dark'
+watch(() => commonStore.theme, () => {
+  reverseTheme.value = commonStore.theme == 'dark' ? 'light' : 'dark'
 })
 
 watch(
@@ -112,6 +111,7 @@ function onPanelClosed() {
 
 .right-panel {
   position: relative;
+  background-color: transparent;
   flex-grow: 19;
   flex-basis: 50%;
   min-width: 620px;
