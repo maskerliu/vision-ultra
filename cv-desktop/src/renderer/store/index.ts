@@ -6,6 +6,8 @@ import { PushClient } from '../common'
 
 let pushClient: PushClient
 
+let GRAYS = ['#333333', '#646566', '#969799', '#c8c9cc', '#dcdee0', '#ebedf0', '#f2f3f5', '#f7f8fa']
+
 export const CommonStore = defineStore('Common', {
   state: () => {
     return {
@@ -13,6 +15,7 @@ export const CommonStore = defineStore('Common', {
       uid: '',
       theme: 'light' as ConfigProviderTheme,
       themeVars: {
+        'dialogButtonHeight': '40px',
         'floatingBubbleSize': '2.5rem',
         'gridItemContentPadding': '8px',
         'popoverRadius': 'var(--van-radius-sm)',
@@ -52,18 +55,13 @@ export const CommonStore = defineStore('Common', {
 
       let wrapTheme = window.localStorage.getItem('theme')
       this.theme = wrapTheme != null ? wrapTheme as ConfigProviderTheme : 'light'
+      this.updateTheme()
 
       let wrapLang = window.localStorage.getItem('lang')
       this.lang = wrapLang != null ? wrapLang : 'zh-CN'
 
-
       this.fontSize = parseInt(window.localStorage.getItem('fontSize') || '9')
-      this.themeVars = Object.assign(this.themeVars, {
-        'fontSizeXs': `${this.fontSize}px`,
-        'fontSizeSm': `${this.fontSize + 2}px`,
-        'fontSizeMd': `${this.fontSize + 4}px`,
-        'fontSizeLg': `${this.fontSize + 6}px`,
-      })
+      this.updateFontSize()
 
       pushClient = new PushClient()
       if (config) {
@@ -106,13 +104,18 @@ export const CommonStore = defineStore('Common', {
 
     },
     updateLang() {
-
       window.localStorage.setItem('lang', this.lang)
     },
-    updateTheme(theme: ConfigProviderTheme) {
-      this.theme = theme
-      window.localStorage.setItem('theme', theme)
+    updateTheme() {
+      window.localStorage.setItem('theme', this.theme)
       window.mainApi?.setAppTheme(this.theme)
+
+      let isDark = this.theme == 'dark'
+      let grays = {}
+      for (let i = 0; i < GRAYS.length; i++) {
+        grays[`gray${i + 1}`] = isDark ? GRAYS[i] : GRAYS[8 - i]
+      }
+      this.themeVars = Object.assign(this.themeVars, grays)
     },
     updateFontSize() {
       window.localStorage.setItem('fontSize', `${this.fontSize}`)

@@ -4,14 +4,14 @@ import CopyWebpackPlugin from 'copy-webpack-plugin'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import webpack, { Configuration } from 'webpack'
-import pkg from '../package.json' assert { type: "json" }
+import pkg from '../package.json' with { type: "json" }
 import { BaseConfig } from './webpack.base.config'
 
 const { DefinePlugin, HotModuleReplacementPlugin, NoEmitOnErrorsPlugin } = webpack
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-let whiteListedModules = ['axios', '@modelcontextprotocol/sdk']
+let whiteListedModules = ['@modelcontextprotocol/sdk']
 
 class MainConfig extends BaseConfig {
 

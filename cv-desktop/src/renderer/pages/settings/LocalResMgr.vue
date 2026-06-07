@@ -21,12 +21,12 @@
           style="position: absolute; font-size: 3rem; color: var(--van-text-color-3); z-index: 0;" />
         <van-row style="width: 100%; margin-top: 15px;" justify="center">
           <van-button type="primary" size="mini" plain hairline
-            @click="showModelInfo = true; curModel = Object.assign(curModel, model); console.log(curModel)">
+            @click="showModelInfo = true; curModel = Object.assign(curModel, model);">
             <van-icon class-prefix="iconfont" name="warning" />
           </van-button>
 
           <van-button type="danger" size="mini" plain hairline style="margin-left: 15px;"
-            @click="visionStore.deleteModel(model._id)">
+            @click="showModelDelConfirm = true; curModel = Object.assign(curModel, model);">
             <van-icon class-prefix="iconfont" name="delete" />
           </van-button>
         </van-row>
@@ -42,7 +42,7 @@
           <van-popover v-model:show="showModelType" placement="left-start"
             style="width: 200px; height: 160px; overflow: hidden scroll;">
             <template #reference>
-              <van-icon class-prefix="iconfont" :name="`${curModel.type}`" />
+              <van-icon class-prefix="iconfont" :name="`${curModel.type}`" style="font-size: 1.5rem;" />
             </template>
             <van-cell clickable v-for="type in modelTypes" :title="type.text"
               @click="showModelType = false; curModel.type = type.value;">
@@ -65,6 +65,10 @@
       <van-button block plain type="primary" size="small" @click="onSaveModelInfo">{{ $t('common.done') }}</van-button>
     </van-popup>
 
+    <van-dialog v-model:show="showModelDelConfirm" title="警告" confirm-button-text="确定" show-cancel-button
+      cancel-button-text="取消" :message="`确定要删除模型 ${curModel.name}吗？`" @confirm="visionStore.deleteModel(curModel._id)">
+    </van-dialog>
+
   </van-cell-group>
 </template>
 <script lang="ts" setup>
@@ -76,6 +80,7 @@ const commonStore = CommonStore()
 const visionStore = VisionStore()
 
 const showModelInfo = ref(false)
+const showModelDelConfirm = ref(false)
 const showModelType = ref(false)
 const curModel = ref<Partial<ModelInfo>>({
   name: '',
@@ -108,7 +113,6 @@ async function onRefresh() {
 }
 
 async function onSaveModelInfo() {
-  console.log(curModel.value)
   await visionStore.saveModelInfo(Object.assign(curModel.value, lang.value))
   showModelInfo.value = false
 }

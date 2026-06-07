@@ -8,21 +8,14 @@ import { fileURLToPath } from 'url'
 import { VueLoaderPlugin } from 'vue-loader'
 // import   from 'babel-loader'
 import webpack, { Configuration } from 'webpack'
-import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
-import pkg from '../package.json' assert { type: "json" }
+import pkg from '../package.json' with { type: "json" }
 import { BaseConfig } from './webpack.base.config'
 
 const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-let whiteListedModules = ['axios',
-  '@mediapipe/face_mesh',
-  '@mediapipe/tasks-vision',
-  '@tensorflow/tfjs-converter',
-  '@tensorflow/tfjs-core',
-  // '@tensorflow-models/face-landmarks-detection',
-]
+let whiteListedModules = ['axios']
 
 class RendererConfig extends BaseConfig {
   devtool: string | false = process.env.NODE_ENV !== 'production' ? "cheap-module-source-map" : false
@@ -120,11 +113,14 @@ class RendererConfig extends BaseConfig {
     },
     extensions: ['.ts', '.js', '.vue', '.json', '.css', '.wasm'],
     fallback: {
-      'crypto': path.resolve(dirname, '../../node_modules/crypto-browserify'),
-      'path': path.resolve(dirname, '../../node_modules/path-browserify'),
-      'stream': path.resolve(dirname, '../../node_modules/stream-browserify'),
-      'vm': path.resolve(dirname, '../../node_modules/vm-browserify'),
-      'fs': false
+      'path': false,
+      'stream': false,
+      'vm': false,
+      'fs': false,
+      'crypto': false,
+      // 'path': path.resolve(dirname, '../../node_modules/path-browserify'),
+      // 'stream': path.resolve(dirname, '../../node_modules/stream-browserify'),
+      // 'vm': path.resolve(dirname, '../../node_modules/vm-browserify'),
     }
   }
 
@@ -142,10 +138,6 @@ class RendererConfig extends BaseConfig {
             from: path.posix.join(dirname, '../../node_modules/@mediapipe/tasks-vision/wasm/'),
             to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
           },
-          // {
-          //   from: path.posix.join(dirname, '../../node_modules/tesseract.js-core/'),
-          //   to: path.join(dirname, '../dist/electron/static/tesseract.js-core/'),
-          // },
         ]
       }),
       new HtmlWebpackPlugin({

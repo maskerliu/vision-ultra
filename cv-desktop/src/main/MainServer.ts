@@ -158,7 +158,7 @@ export class MainServer {
     // })
 
     let HTTP: any
-    let baseDir = process.env.NODE_ENV == 'development' ? '../' : './'
+    let baseDir = path.join(__dirname, IS_DEV ? '../../../' : './')
     if (this.commonService.allConfig.protocol == 'https') {
       HTTP = await import('http2')
       var key = fse.readFileSync(baseDir + 'cert/server.key')

@@ -55,7 +55,7 @@ export default class MainApp {
     //   console.log('GPU详细信息:', info)
     // })
 
-    if (process.env.NODE_ENV == 'development') {
+    if (IS_DEV) {
       app.commandLine.appendSwitch('trace-deprecation')
       app.commandLine.appendSwitch('trace-warnings')
       app.commandLine.appendSwitch('experimental-worker')

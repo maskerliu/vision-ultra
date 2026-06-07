@@ -1,7 +1,7 @@
 <template>
   <van-col ref="previewParent">
     <van-row style="height: 30px;">
-      <van-button plain round size="mini" class="top-btn" style="margin-left:5px;"
+      <van-button plain round size="mini" style="margin-left: 5px;" class="top-btn"
         :type="showAnnotationPanel ? 'primary' : 'default'" @click="showAnnotationPanel = !showAnnotationPanel">
         <van-icon class-prefix="iconfont" name="mark" />
       </van-button>
@@ -34,7 +34,7 @@
         </template>
       </van-button>
 
-      <van-image fit="cover" radius="6" width="26" height="26" :src="recFace" style="margin: 3px 10px;" />
+      <van-image fit="cover" radius="6" class="top-btn" :src="recFace" show-loading />
 
     </van-row>
 
@@ -411,7 +411,7 @@ watch(
 .top-btn {
   width: 30px;
   height: 26px;
-  margin: 3px 0 0 15px;
+  margin: 2px;
   -webkit-app-region: no-drag;
   z-index: 100;
 }
@@ -424,7 +424,7 @@ watch(
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  background-color: #2f3542;
+  background: #2f3542;
 }
 
 .eigen-face {

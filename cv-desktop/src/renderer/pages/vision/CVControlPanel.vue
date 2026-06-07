@@ -1,6 +1,5 @@
 <template>
   <van-col>
-
     <van-cell-group inset>
       <van-cell center :title="$t('cvControl.intergrateMode')">
         <template #right-icon>
@@ -45,6 +44,7 @@
                 <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
                   @click="onObjRecModelChanged(model)" v-for="model in visionStore.getModels(key)">
                   <template #right-icon>
+                    <van-tag plain v-if="visionStore.objDetectModel.name == model.name">使用中</van-tag>
                     <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                   </template>
                 </van-cell>
@@ -99,6 +99,7 @@
                 style="margin-left: 4px;" @click="onOcrModelChanged(model)"
                 v-for="model in visionStore.getModels(ModelType.ocr)">
                 <template #right-icon>
+                  <van-tag plain v-if="visionStore.ocrModel.name == model.name">使用中</van-tag>
                   <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
                 </template>
               </van-cell>
@@ -124,7 +125,7 @@
                 style="margin-left: 0px;" @click="onGanModelChanged(model)"
                 v-for="model in visionStore.getModels(ModelType.genImage)">
                 <template #right-icon>
-                  <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                  <van-tag plain v-if="visionStore.animeModel.name == model.name">使用中</van-tag>
                 </template>
               </van-cell>
             </van-col>
@@ -153,7 +154,7 @@
                       style="margin-left: 4px;" @click="onStyleModelChanged(model)"
                       v-for="model in visionStore.getModels(ModelType.style)">
                       <template #right-icon>
-                        <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                        <van-tag plain v-if="visionStore.styleModel.name == model.name">使用中</van-tag>
                       </template>
                     </van-cell>
                   </van-col>
@@ -171,7 +172,7 @@
                       style="margin-left: 4px;" @click="onTransModelChanged(model)"
                       v-for="model in visionStore.getModels(ModelType.transform)">
                       <template #right-icon>
-                        <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
+                        <van-tag plain v-if="visionStore.transModel.name == model.name">使用中</van-tag>
                       </template>
                     </van-cell>
                   </van-col>

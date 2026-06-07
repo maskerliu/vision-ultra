@@ -87,37 +87,6 @@ function onOpenDebugPanel() {
 </script>
 
 <style>
-.van-theme-light {
-  --van-white: white;
-  --van-black: #653030;
-  --van-gray-1: #f7f8fa;
-  --van-gray-8: #69696b;
-
-  --van-black: #000;
-  --van-white: #fff;
-  --van-gray-1: #f7f8fa;
-  --van-gray-2: #f2f3f5;
-  --van-gray-3: #ebedf0;
-  --van-gray-4: #dcdee0;
-  --van-gray-5: #c8c9cc;
-  --van-gray-6: #969799;
-  --van-gray-7: #646566;
-  --van-gray-8: #323233;
-}
-
-.van-theme-dark {
-  --van-black: #fff;
-  --van-white: #000;
-  --van-gray-1: #323233;
-  --van-gray-2: #646566;
-  --van-gray-3: #969799;
-  --van-gray-4: #c8c9cc;
-  --van-gray-5: #dcdee0;
-  --van-gray-6: #ebedf0;
-  --van-gray-7: #f2f3f5;
-  --van-gray-8: #f7f8fa;
-}
-
 #app {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;

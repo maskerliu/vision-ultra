@@ -3,12 +3,13 @@
 import path from 'path'
 import { install } from 'source-map-support'
 import MainApp from './MainApp'
+import { IS_DEV } from './MainConst'
 
 install()
 
 process.env.SILENT = 'true'
 
-if (process.env.NODE_ENV !== 'development') {
+if (IS_DEV) {
   (<any>global).__static = path.join(__dirname, '/static').replace(/\\/g, '\\\\')
 }
 

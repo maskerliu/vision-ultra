@@ -1,7 +1,6 @@
 'use strict'
 
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-// import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { VueLoaderPlugin } from 'vue-loader'
@@ -9,7 +8,7 @@ import webpack, { Configuration } from 'webpack'
 // import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 import TerserPlugin from 'terser-webpack-plugin'
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
-import pkg from '../package.json' assert { type: "json" }
+import pkg from '../package.json' with { type: "json" }
 import { BaseConfig } from './webpack.base.config'
 
 const { DefinePlugin, LoaderOptionsPlugin, NoEmitOnErrorsPlugin } = webpack
@@ -140,7 +139,7 @@ class WebConfig extends BaseConfig {
       "http": false,
       "https": false,
       "stream": false,
-      "crypto": false,
+      // "crypto": false,
       "buffer": false
     }
   }

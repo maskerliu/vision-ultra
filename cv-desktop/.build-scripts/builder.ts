@@ -5,7 +5,7 @@ import { deleteSync } from 'del'
 import minimist from 'minimist'
 import Spinnies from 'spinnies'
 import webpack from 'webpack'
-import pkg from '../package.json' assert { type: "json" }
+import pkg from '../package.json' with { type: "json" }
 import { BaseConfig } from './webpack.base.config'
 import mainConfig from './webpack.main.config'
 import rendererConfig from './webpack.renderer.config'
