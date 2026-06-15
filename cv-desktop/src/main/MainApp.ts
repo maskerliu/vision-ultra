@@ -262,7 +262,7 @@ export default class MainApp {
 
   private initSessionConfig() {
 
-    if (IS_DEV && os.platform() != 'linux') session.defaultSession.extensions.loadExtension(VUE_PLUGIN)
+    // if (IS_DEV && os.platform() != 'linux') session.defaultSession.extensions.loadExtension(VUE_PLUGIN)
 
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
       if (details.url.indexOf('.amap.com') !== -1
@@ -301,24 +301,20 @@ export default class MainApp {
   }
 
   private addFirewallRule() {
-    if (os.platform() !== 'win32') return // 仅在 Windows 上执行
+    if (os.platform() !== 'win32') return
 
     const appPath = process.execPath
-    console.log(appPath)
     const ruleName = IS_DEV ? 'Electron' : 'VisionUltra'
-
-    // 检查规则是否存在
     const checkCommand = `netsh advfirewall firewall show rule name="${ruleName}"`
 
     exec(checkCommand, (error, stdout, stderr) => {
       if (stdout.includes('No rules match')) {
-        // 添加入站规则
         const inboundCommand = `netsh advfirewall firewall add rule name="${ruleName}" dir=in action=allow program="${appPath}" enable=yes`
         exec(inboundCommand, (error, stdout, stderr) => {
           if (error) {
-            console.error(`入站规则添加失败: ${error.message}`)
+            console.error(`inbound rule add failed: ${error.message}`)
           } else {
-            console.log('入站规则添加成功')
+            console.log('inbound rule added')
           }
         })
 
@@ -326,13 +322,13 @@ export default class MainApp {
         const outboundCommand = `netsh advfirewall firewall add rule name="${ruleName}" dir=out action=allow program="${appPath}" enable=yes`
         exec(outboundCommand, (error, stdout, stderr) => {
           if (error) {
-            console.error(`出站规则添加失败: ${error.message}`)
+            console.error(`outbound rule add failed: ${error.message}`)
           } else {
-            console.log('出站规则添加成功')
+            console.log('outbound rule added')
           }
         })
       } else {
-        console.log('防火墙规则已存在')
+        console.log('firewall rule exists')
       }
     })
   }

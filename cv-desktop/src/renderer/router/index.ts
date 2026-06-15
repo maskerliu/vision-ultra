@@ -18,6 +18,11 @@ export default createRouter({
       component: require('../pages/audio/AudioHome.vue').default
     },
     {
+      path: '/ai',
+      name: 'AIHome',
+      component: require('../pages/ai/index.vue').default
+    },
+    {
       path: '/settings',
       name: 'Settings',
       component: require('../pages/settings/Settings.vue').default

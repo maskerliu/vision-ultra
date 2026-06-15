@@ -40,7 +40,7 @@ export class FaceDetector {
     }
 
     let filesetResolver = await FilesetResolver.forVisionTasks(
-      __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : baseDomain() + '/static/tasks-vision/wasm')
+      __DEV__ ? 'node_modules/@mediapipe/tasks-vision/wasm' : `${baseDomain()}/static/tasks-vision/wasm`)
     this.faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
       baseOptions: {
         modelAssetPath: `${__DEV__ ? '' : baseDomain()}/static/face_landmarker.task`,

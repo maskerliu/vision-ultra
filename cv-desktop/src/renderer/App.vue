@@ -43,7 +43,7 @@ const enableDebug = true
 const showLoading = ref<boolean>(false)
 const offset = ref({
   x: window.innerWidth - 42,
-  y: window.innerHeight - 100
+  y: window.innerHeight - 150
 })
 
 provide('showLoading', showLoading)
@@ -59,7 +59,7 @@ onMounted(async () => {
 
   window.addEventListener('resize', () => {
     offset.value.x = window.innerWidth - 42
-    offset.value.y = window.innerHeight - 100
+    offset.value.y = window.innerHeight - 150
   })
 
   if (window.mainApi) {
@@ -91,7 +91,6 @@ function onOpenDebugPanel() {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: small;
-  background: var(--van-gray-1);
   letter-spacing: 1px;
   -moz-user-select: none;
   -webkit-user-select: none;

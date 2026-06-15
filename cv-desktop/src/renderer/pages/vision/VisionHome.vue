@@ -12,7 +12,9 @@
           <van-icon class-prefix="iconfont" name="sjtu-logo" style="font-size: 1.4rem; margin: 7px 10px 0 15px;" />
           <van-icon class-prefix="iconfont" name="sjtu-name" style="font-size: 1.4rem; margin: 6px 0 0 0;" />
         </van-row>
-        <div style="z-index: 100; -webkit-app-region: no-drag; margin: 2px 5px;">
+        <van-row style="z-index: 100; -webkit-app-region: no-drag; margin: 2px 5px;">
+          <van-icon class-prefix="iconfont" class="left-panel-icon" name="ai-chat"
+            @click="router.push({ name: 'AIHome' })" />
           <van-icon class-prefix="iconfont" class="left-panel-icon" name="apm"
             @click="commonStore.showApm = !commonStore.showApm" />
           <van-icon class-prefix="iconfont" class="left-panel-icon" name="face-db"
@@ -21,7 +23,7 @@
             @click="commonStore.showSettings = true">
             <span class="badge-dot"></span>
           </van-icon>
-        </div>
+        </van-row>
       </van-row>
       <OverlayScrollbarsComponent class="border-bg snap-panel"
         :options="{ scrollbars: { theme: `os-theme-${reverseTheme}` } }" defer>
@@ -41,6 +43,7 @@
 
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 import { onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { CommonStore } from '../../store'
 import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
@@ -61,7 +64,7 @@ const isWeb = window.isWeb
 const reverseTheme = ref<string>('dark')
 const showPopup = ref(false)
 const commonStore = CommonStore()
-
+const router = useRouter()
 
 onMounted(() => {
   reverseTheme.value = commonStore.theme == 'dark' ? 'light' : 'dark'

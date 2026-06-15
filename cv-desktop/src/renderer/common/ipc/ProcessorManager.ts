@@ -8,7 +8,7 @@ import { drawTFFaceResult, FACE_DIMS, getFaceContour } from '../DrawUtils'
 export enum DrawMode { video, image }
 export enum ProcessorType {
   unknown = -1,
-  cvProcess = 'CVProcess',
+  cvProcess = 'CV',
   objTrack = 'ObjTrack',
   faceDetect = 'FaceDetect',
   animeGen = 'AnimeGen',

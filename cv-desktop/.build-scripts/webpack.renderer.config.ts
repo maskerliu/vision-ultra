@@ -35,7 +35,7 @@ class RendererConfig extends BaseConfig {
         options: {
           reactivityTransform: true,
           compilerOptions: {
-            isCustomElement: (tag: any) => tag.startsWith('media-')
+            isCustomElement: (tag: any) => tag.startsWith('media-') || tag === 'deep-chat'
           }
         }
       },
@@ -93,7 +93,6 @@ class RendererConfig extends BaseConfig {
     }),
     new VueLoaderPlugin(),
     new NoEmitOnErrorsPlugin(),
-    // new NodePolyfillPlugin(),
     new DefinePlugin({
       __VUE_OPTIONS_API__: false,
       __VUE_PROD_DEVTOOLS__: false,
@@ -113,12 +112,12 @@ class RendererConfig extends BaseConfig {
     },
     extensions: ['.ts', '.js', '.vue', '.json', '.css', '.wasm'],
     fallback: {
-      'path': false,
+      // 'path': false,
       'stream': false,
       'vm': false,
       'fs': false,
       'crypto': false,
-      // 'path': path.resolve(dirname, '../../node_modules/path-browserify'),
+      'path': path.resolve(dirname, '../../node_modules/path-browserify'),
       // 'stream': path.resolve(dirname, '../../node_modules/stream-browserify'),
       // 'vm': path.resolve(dirname, '../../node_modules/vm-browserify'),
     }
@@ -132,14 +131,14 @@ class RendererConfig extends BaseConfig {
     super.init()
 
     this.plugins?.push(
-      new CopyWebpackPlugin({
-        patterns: [
-          {
-            from: path.posix.join(dirname, '../../node_modules/@mediapipe/tasks-vision/wasm/'),
-            to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
-          },
-        ]
-      }),
+      // new CopyWebpackPlugin({
+      //   patterns: [
+      //     {
+      //       from: path.posix.join(dirname, '../../node_modules/@mediapipe/tasks-vision/wasm/'),
+      //       to: path.join(dirname, '../dist/electron/static/tasks-vision/wasm/'),
+      //     },
+      //   ]
+      // }),
       new HtmlWebpackPlugin({
         filename: 'index.html',
         template: path.resolve(dirname, '../src/index.ejs'),
@@ -206,6 +205,29 @@ class RendererConfig extends BaseConfig {
         chunks: 'all',
         minSize: 30000,
         cacheGroups: {
+          common: {
+            name: 'common',
+            minChunks: 2,
+            priority: 5,
+            reuseExistingChunk: true,
+            enforce: false,
+          },
+          onnxruntime: {
+            name: 'onnxruntime',
+            test: /[\\/]node_modules[\\/](onnxruntime-web|@microsoft[\\/]onnxruntime-web)/,
+            priority: 40,
+            minChunks: 1,
+            reuseExistingChunk: true,
+            chunks: 'all',
+            enforce: true,
+          },
+          tensorflow: {
+            name: 'tensorflow',
+            test: /[\\/]node_modules[\\/](tfjs|@tensorflow[\\/]|@tensorflow-models[\\/]|@tensorflow\/tfjs)/,
+            priority: 30,  // 低于 ONNX Runtime (40)，高于其他库 (20)
+            chunks: 'all',
+            enforce: true,
+          },
           vender: {
             name: 'vender',
             test: /[\\/]node_modules[\\/]/,
@@ -217,11 +239,6 @@ class RendererConfig extends BaseConfig {
             priority: 20,
             test: /[\\/]node_modules[\\/]vue|vue-router|vue-i18n|pinia|@vue[\\/]/
           },
-          buffer: {
-            name: 'buffer',
-            priority: 20,
-            test: /[\\/]node_modules[\\/]buffer|safe-buffer|ieee754|base64-js[\\/]/
-          },
           vant: {
             name: "vant",
             priority: 20,
@@ -232,34 +249,15 @@ class RendererConfig extends BaseConfig {
             priority: 20,
             test: /[\\/]node_modules[\\/]live2d-renderer|kalidokit|magic-bytes[\\/]/
           },
-          mediapipe: {
-            name: 'mediapipe',
-            priority: 20,
-            test: /[\\/]node_modules[\\/]@mediapipe[\\/]/,
-          },
           opencvjs: {
             name: 'opencv',
             test: /[\\/]node_modules[\\/]@opencvjs[\\/]/,
+            priority: 35,
+          },
+          ocr: {
+            name: 'ocr',
             priority: 20,
-          },
-          tensoflow: {
-            name: 'tensoflow',
-            test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
-            priority: 20,
-          },
-          onnxruntime: {
-            name: 'onnxruntime',
-            test: /[\\/]node_modules[\\/]onnxruntime-web[\\/]/,
-            priority: 30,
-            chunks: 'all',
-            enforce: true,
-          },
-          worker: {
-            name: 'worker',
-            test: /\.worker\.ts$/,
-            priority: 40,
-            chunks: 'all',
-            enforce: true,
+            test: /[\\/]node_modules[\\/](tesseract.js|tesseract-core)/,
           },
           tess: {
             name: 'tess',
@@ -276,7 +274,13 @@ class RendererConfig extends BaseConfig {
             test: /[\\/]node_modules[\\/]echarts|zrender[\\/]/,
             priority: 20,
           },
-
+          smallChunks: {
+            name: 'small-chunks',
+            test: /[\\/]node_modules[\\/]/,
+            minChunks: 1,
+            priority: 5,
+            maxSize: 244000, // 244KB
+          }
         }
       }
       this.plugins?.push(new LoaderOptionsPlugin({ minimize: true }))

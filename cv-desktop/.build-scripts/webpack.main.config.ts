@@ -11,7 +11,7 @@ const { DefinePlugin, HotModuleReplacementPlugin, NoEmitOnErrorsPlugin } = webpa
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-let whiteListedModules = ['@modelcontextprotocol/sdk']
+let whiteListedModules = ['axios', '@modelcontextprotocol/sdk']
 
 class MainConfig extends BaseConfig {
 

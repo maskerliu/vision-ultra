@@ -7,11 +7,6 @@ import App from './App.vue'
 import router from './router'
 require('vant/lib/index.css')
 
-// import TDesign from 'tdesign-vue-next'
-// import 'tdesign-vue-next/es/style/index.css'
-
-// import TDesignChat from '@tdesign-vue-next/chat'
-// import '@tdesign-vue-next/chat/es/style/index.css'
 
 import { ClickScrollPlugin, OverlayScrollbars } from 'overlayscrollbars'
 require('overlayscrollbars/overlayscrollbars.css')
@@ -20,11 +15,6 @@ OverlayScrollbars.plugin(ClickScrollPlugin)
 
 const pinia = createPinia()
 const app = createApp(App)
-
-// app.config.compilerOptions.isCustomElement = tag => {
-//   console.log(tag)
-//   return !tag.startsWith('media-')
-// }
 
 app.use(i18n)
 app.use(router)

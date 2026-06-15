@@ -8,11 +8,13 @@
     <van-cell-group inset title="Event Source">
       <van-cell title="trigger server notification" :label="sseData" is-link @click="onSSE"></van-cell>
     </van-cell-group>
+
   </van-form>
 </template>
 
 <script lang="ts" setup>
 
+import 'deep-chat'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { ProxyMock } from '../../../shared'
 import { CommonStore } from '../../store'
@@ -21,7 +23,6 @@ const commonStore = CommonStore()
 const sseData = ref<string>('hello world')
 
 onMounted(async () => {
-
   await registerSSE()
 })
 

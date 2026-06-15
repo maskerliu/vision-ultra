@@ -54,7 +54,7 @@
         </template>
       </van-cell>
 
-      <van-cell :disabled="!visionStore.enableFaceDetect">
+      <van-cell center :disabled="!visionStore.enableFaceDetect">
         <template #title>
           <van-checkbox shape="square" v-model="visionStore.enableFaceDetect">
             <van-icon class-prefix="iconfont" name="face-detect" style="color: #e67e22;" />
@@ -64,11 +64,11 @@
         <template #label>
           <van-row style="padding: 15px 0 5px 0;" v-show="visionStore.enableFaceDetect">
             <van-checkbox v-model="visionStore.drawEigen">
-              <van-icon class-prefix="iconfont" name="eigen" />
+              <van-icon class-prefix="iconfont" name="face-eigen" />
             </van-checkbox>
 
             <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;">
-              <van-icon class-prefix="iconfont" name="mesh" />
+              <van-icon class-prefix="iconfont" name="face-mesh" />
             </van-checkbox>
 
             <van-checkbox v-model="visionStore.live2d" style="margin-left: 15px;">

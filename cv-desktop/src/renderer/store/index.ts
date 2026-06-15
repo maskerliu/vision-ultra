@@ -6,7 +6,7 @@ import { PushClient } from '../common'
 
 let pushClient: PushClient
 
-let GRAYS = ['#333333', '#646566', '#969799', '#c8c9cc', '#dcdee0', '#ebedf0', '#f2f3f5', '#f7f8fa']
+let GRAYS = ['#333333', '#646566', '#969799', '#c8c9cc', '#dcdee0', '#ebedf0', '#f2f3f5', '#f5f6f8']
 
 export const CommonStore = defineStore('Common', {
   state: () => {
@@ -113,7 +113,7 @@ export const CommonStore = defineStore('Common', {
       let isDark = this.theme == 'dark'
       let grays = {}
       for (let i = 0; i < GRAYS.length; i++) {
-        grays[`gray${i + 1}`] = isDark ? GRAYS[i] : GRAYS[8 - i]
+        grays[`gray${i + 1}`] = isDark ? GRAYS[i] : GRAYS[7 - i]
       }
       this.themeVars = Object.assign(this.themeVars, grays)
     },
@@ -133,5 +133,6 @@ export const CommonStore = defineStore('Common', {
 })
 
 
+export * from './AI'
 export * from './Vision'
 
