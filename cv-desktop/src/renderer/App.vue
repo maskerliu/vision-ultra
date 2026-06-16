@@ -1,5 +1,6 @@
 <template>
   <van-config-provider :theme="commonStore.theme" :theme-vars="commonStore.themeVars" theme-vars-scope="global">
+    <div class="drag-bar" v-if="!isWeb"></div>
     <router-view class="biz-content" v-slot="{ Component, route }">
       <transition name="fade" v-if="canRender">
         <component :is="Component" :key="route.path" />
@@ -35,6 +36,7 @@ import { useRouter } from 'vue-router'
 import DebugPanel from './pages/components/DebugPanel.vue'
 import { CommonStore } from './store'
 
+const isWeb = window.isWeb
 const commonStore = CommonStore()
 const i18n = useI18n()
 const canRender = ref(false)
@@ -144,7 +146,7 @@ function onOpenDebugPanel() {
   right: 0;
   height: 32px;
   pointer-events: auto;
-  /* background: linear-gradient(to bottom, var(--van-gray-1), #000); */
+  background: #44444444;
   -webkit-app-region: drag;
   z-index: 1;
 }

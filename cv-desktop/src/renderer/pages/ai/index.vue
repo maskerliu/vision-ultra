@@ -1,23 +1,18 @@
 <template>
   <div class="ai-layout">
     <!-- 左侧会话栏 -->
-    <aside class="ai-sidebar" :class="{ collapsed: sidebarCollapsed }">
-      <!-- 顶部：标题 + 折叠按钮 -->
-      <div class="sidebar-top">
-        <div class="sidebar-brand">
-          <van-icon class-prefix="iconfont" v-show="!sidebarCollapsed" name="cross" size="16" class="back-btn"
-            @click="goBack" />
-          <van-icon class-prefix="iconfont" name="side-menu" size="18" class="collapse-btn"
-            @click="sidebarCollapsed = !sidebarCollapsed" />
-        </div>
-        <van-button plain v-show="!sidebarCollapsed" type="primary" size="small" block icon="plus" @click="newSession">
-          新会话
-        </van-button>
-        <van-button plain v-show="sidebarCollapsed" type="primary" size="small" block @click="newSession">
-          <van-icon class-prefix="iconfont" name="new-chat" />
-        </van-button>
+    <aside class="ai-sidebar" style="z-index: 2;" :class="{ collapsed: sidebarCollapsed }">
+      <van-row justify="space-between" style="z-index: 100; padding: 10px 12px; font-size: 16px;">
+        <van-icon class-prefix="iconfont" name="arrow-left" class="back-btn" v-show="!sidebarCollapsed"
+          @click="goBack" />
+        <van-icon class-prefix="iconfont" name="side-menu" class="collapse-btn"
+          @click="sidebarCollapsed = !sidebarCollapsed" />
+      </van-row>
 
-      </div>
+      <van-button plain type="primary" size="small" style="margin: 10px; width: calc(100% - 20px);" @click="newSession">
+        <van-icon v-if="sidebarCollapsed" class-prefix="iconfont" name="new-chat" />
+        <span v-else>新会话</span>
+      </van-button>
 
       <!-- 会话列表 -->
       <van-cell-group inset class="session-group" v-show="!sidebarCollapsed">
@@ -26,10 +21,13 @@
             :class="{ 'active-cell': session.id === aiStore.activeSessionId }" title-class="van-ellipsis" clickable
             @click="selectSession(session)">
             <template #right-icon>
-              <span class="cell-actions">
-                <van-icon class-prefix="iconfont" name="edit" size="15" @click.stop="startRename(session)" />
-                <van-icon class-prefix="iconfont" name="delete" size="15" @click.stop="confirmDelete(session)" />
-              </span>
+              <van-col class="cell-actions">
+                <van-row><van-icon class-prefix="iconfont" name="edit" size="15"
+                    @click.stop="startRename(session)" /></van-row>
+                <van-row> <van-icon class-prefix="iconfont" name="delete" size="15"
+                    @click.stop="confirmDelete(session)" />
+                </van-row>
+              </van-col>
             </template>
           </van-cell>
           <template #right>
@@ -75,7 +73,7 @@ import { showConfirmDialog } from 'vant'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AIStore } from '../../store'
-import ChatPanel from './chat.vue'
+import ChatPanel from './Chat.vue'
 
 const router = useRouter()
 const aiStore = AIStore()
@@ -158,29 +156,13 @@ function doRename() {
   width: 56px;
 }
 
-/* 侧栏顶部 */
-.sidebar-top {
-  padding: 14px 12px 10px;
-}
-
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.brand-text {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--van-text-color);
-}
 
 .collapse-btn {
   color: var(--van-gray-5);
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 4px;
+  font-size: 18px;
 }
 
 .collapse-btn:hover {
@@ -268,6 +250,7 @@ function doRename() {
   color: var(--van-gray-5);
   cursor: pointer;
   padding: 4px;
+  font-size: 18px;
 }
 
 .back-btn:hover {

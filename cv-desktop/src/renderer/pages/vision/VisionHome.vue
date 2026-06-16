@@ -1,7 +1,5 @@
 <template>
   <van-row>
-    <div class="drag-bar" v-if="!isWeb"></div>
-
     <transition name="fade">
       <apm-panel v-if="commonStore.showApm" />
     </transition>
@@ -123,6 +121,7 @@ function onPanelClosed() {
 }
 
 .left-panel-icon {
+  cursor: pointer;
   font-size: 1.2rem;
   margin: 5px;
   color: var(--van-gray-8)

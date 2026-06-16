@@ -1,9 +1,6 @@
 <template>
-  <div class="chat-panel">
+  <van-col class="chat-panel">
     <van-cell class="chat-header" :title="aiStore.activeSession?.title || '聊天'" center>
-      <template #right-icon>
-        <van-button size="small" icon="delete-o" round plain type="danger" @click="clearSession" />
-      </template>
     </van-cell>
 
     <div class="chat-body">
@@ -13,11 +10,10 @@
         :dropupStyles="dropupStyles" :attachmentContainerStyle="attachContainerStyle" :history="aiStore.activeHistory"
         :chatStyle="chatStyle" />
     </div>
-  </div>
+  </van-col>
 </template>
 
 <script setup lang="ts">
-import { showConfirmDialog } from 'vant'
 import { computed, ref, watch } from 'vue'
 import { AIStore } from '../../store'
 
@@ -31,7 +27,6 @@ watch(() => aiStore.activeSessionId, () => {
 /* ========== 样式配置 ========== */
 const chatStyle = {
   position: 'relative',
-  container: { padding: '5px' },
   backgroundColor: 'transparent',
   borderRadius: '0',
   border: '0 solid #e2e2e2',
@@ -42,11 +37,7 @@ const chatStyle = {
 const messageConfig = {
   default: {
     shared: {
-      outerContainer: {
-        backgroundColor: 'lightgray',
-        height: 'calc(100% - 110px)',
-      },
-
+      outerContainer: {},
       text: { color: 'var(--van-text-color)' }
     },
     user: {
@@ -62,26 +53,19 @@ const messageConfig = {
         color: 'var(--van-text-color)',
         backgroundColor: '#e2e2e255',
         borderRadius: '4px',
-        maxWidth: '100%',
-        width: '100%',
+        maxWidth: '90%',
+        width: '90%',
       },
     },
   },
-  height: 'calc(100% - 100px)',
 }
 
-// 输入区外层容器 — DeepSeek 风格圆角卡片
 const inputAreaStyle = {
-  position: 'absolute',
-  bottom: '0',
-  left: '0',
-  right: '0',
   backgroundColor: '#f4f6f8',
   borderRadius: '12px',
   border: '1px solid #e5e8eb',
-  margin: '5px',
-  alignSelf: 'center',
-  width: 'calc(100% - 10px)',
+  width: '80%',
+  marginBottom: '12px',
 }
 
 const textInputConfig = {
@@ -95,10 +79,9 @@ const textInputConfig = {
       boxShadow: 'none'
     },
     text: {
-      marginBottom: '20px',
-      padding: '0px 6px 12px 6px',
+      padding: '10px 6px 12px 8px',
       color: 'var(--van-text-color)',
-      fontSize: '15px',
+      fontSize: 'var(--van-font-size-lg)',
       border: 'none',
       borderRadius: '12px',
       backgroundColor: 'transparent',
@@ -109,42 +92,23 @@ const textInputConfig = {
   margin: '0'
 }
 
-// 附件按钮容器
 const attachContainerStyle = {
-  display: 'flex',
-  alignItems: 'center',
   top: '-3.8em',
 }
 
-// 提交按钮：圆形蓝色箭头
-const submitSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`
 const submitStyle = {
-  position: 'inside-end' as const,
+  position: 'inside-end',
   submit: {
     styles: {
       container: {
         default: {
-          width: '2rem',
-          height: '2rem',
-          borderRadius: '50%',
+          borderRadius: '20px',
           backgroundColor: '#4d6bfe',
-          border: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          border: '1px solid #4d6bfe',
+          marginRight: '10px',
         },
         hover: {
-          backgroundColor: '#3b5bdb',
-        },
-      },
-      svg: {
-        content: submitSvg,
-        styles: {
-          default: {
-            width: '2rem',
-            height: '2rem',
-            filter: 'brightness(0) invert(1)',
-          },
+          backgroundColor: 'var(--van-primary-color)',
         },
       },
     },
@@ -163,13 +127,12 @@ const customButtonConfig = computed(() => [
               border: '1px solid #e5e8eb',
               borderRadius: '20px',
               padding: '4px 12px',
-              margin: '0 0 -5px -0.6rem',
+              margin: '0 0 0 35px',
               fontSize: '13px',
             },
           },
           text: {
             content: aiStore.model,
-            // styles: { default: { color: '#333', fontWeight: '500' } },
           },
         },
       },
@@ -177,31 +140,24 @@ const customButtonConfig = computed(() => [
   },
 ])
 
-// 文件上传 + 号按钮 dropup
-const imageConfig = { files: { acceptedFormats: 'image/*' } }
-const mixedFileConfig = { files: { acceptedFormats: '.pdf,.doc,.docx,.txt,.md,.csv,.json,.xml,.zip' } }
+const imageConfig = {
+  files: { acceptedFormats: 'image/*' },
+}
+
+const mixedFileConfig = {
+  files: { acceptedFormats: '.pdf,.doc,.docx,.txt,.md,.csv,.json,.xml,.zip' },
+}
 
 const dropupStyles = {
   button: {
+    position: 'inside-start',
     styles: {
       default: {
         container: {
           default: {
-            width: '36px',
-            height: '36px',
+            padding: '10px',
             borderRadius: '50%',
             border: '1px solid #e5e8eb',
-            backgroundColor: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 10px',
-            padding: '0',
-          },
-        },
-        svg: {
-          styles: {
-            default: { width: '40px', height: '40px' },
           },
         },
       },
@@ -210,8 +166,8 @@ const dropupStyles = {
   menu: {
     container: {
       border: '1px solid #e5e8eb',
-      borderRadius: '12px',
-      padding: '6px',
+      borderRadius: '6px',
+      padding: '1px',
       backgroundColor: '#fff',
       boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
     },
@@ -238,14 +194,22 @@ async function chatHandler(body: any, signals: any) {
   const sessionId = aiStore.activeSessionId
 
   if (body instanceof FormData) {
-    const text = (body.get('message') || body.get('text') || '') as string
-    const files = body.getAll('files') as File[]
+    let text = ''
+    let files: File[] = []
+
+    body.forEach((value: any, key: string) => {
+      if (key === 'message1' || key === 'text' || key === 'content') {
+        try { text = JSON.parse(value).text || value } catch { text = value }
+      }
+      if (key === 'files') {
+        files = body.getAll('files') as File[]
+      }
+    })
 
     if (text || files.length) {
-      const msg: any = { role: 'user', content: text || '' }
+      const msg: any = { role: 'user', content: text }
       if (files.length) {
         const imageFiles = files.filter((f) => f.type?.startsWith('image/'))
-        const otherFiles = files.filter((f) => !f.type?.startsWith('image/'))
         if (imageFiles.length) {
           msg.images = await Promise.all(
             imageFiles.map(
@@ -259,16 +223,11 @@ async function chatHandler(body: any, signals: any) {
             )
           )
         }
-        if (otherFiles.length) {
-          const names = otherFiles.map((f) => `📎 ${f.name}`).join('\n')
-          msg.content = [msg.content, names].filter(Boolean).join('\n')
-        }
       }
       ollamaMessages.push(msg)
       aiStore.addMessage(sessionId, {
-        role: 'user',
-        text: text + (files.length ? ` [${files.length}个文件]` : ''),
-        files: files.map((f) => ({ name: f.name, type: f.type })),
+        role: 'user', text,
+        files: files.map((f) => ({ name: f.name, type: f.type, src: '' })),
       })
     }
   } else {
@@ -277,13 +236,6 @@ async function chatHandler(body: any, signals: any) {
       ollamaMessages.push({
         role: msg.role === 'ai' ? 'assistant' : msg.role || 'user',
         content: msg.text || msg.content || '',
-      })
-    }
-    const lastUserMsg = [...messages].reverse().find((m: any) => m.role === 'user' || !m.role)
-    if (lastUserMsg) {
-      aiStore.addMessage(sessionId, {
-        role: 'user',
-        text: lastUserMsg.text || lastUserMsg.content || '',
       })
     }
   }
@@ -320,17 +272,6 @@ async function chatHandler(body: any, signals: any) {
     return { error: `请求失败: ${err.message}` }
   }
 }
-
-/* ========== 事件处理 ========== */
-function clearSession() {
-  showConfirmDialog({
-    title: '清空会话',
-    message: '确定清空当前会话的所有消息？',
-  }).then(() => {
-    aiStore.clearSession(aiStore.activeSessionId)
-    chatKey.value++
-  }).catch(() => { })
-}
 </script>
 
 <style scoped>
@@ -355,7 +296,30 @@ function clearSession() {
 
 .chat-body :deep(deep-chat) {
   flex: 1;
-  display: block;
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  min-height: 0;
+}
+
+.chat-body :deep(deep-chat) .dc-chat-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.chat-body :deep(deep-chat) .dc-messages-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.chat-body :deep(deep-chat) .dc-input-container {
+  flex-shrink: 0;
+}
+
+.chat-body :deep(deep-chat) .dc-input-outer-container {
+  margin-top: auto;
 }
 </style>
