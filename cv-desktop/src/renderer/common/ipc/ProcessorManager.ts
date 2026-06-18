@@ -322,11 +322,10 @@ export abstract class ProcessorManager {
   }
 
   async faceCapture(name: string) {
-    if (this.face == null || this.face.landmarks.length == 0) {
-      showNotify({ type: 'warning', message: '未检测到人脸...', duration: 500 })
+    if (this.face == null || !this.face.valid || this.face.landmarks == null || this.face.landmarks.length == 0) {
+      showNotify({ type: 'warning', message: '未检测到有效人脸...', duration: 500 })
       return
     }
-
 
     this.eigenCtx.clearRect(0, 0, this.eigenCtx.canvas.width, this.eigenCtx.canvas.height)
     this.masklayerCtx.clearRect(0, 0, this.eigenCtx.canvas.width, this.eigenCtx.canvas.height)
@@ -340,7 +339,7 @@ export abstract class ProcessorManager {
     this.masklayerCtx.canvas.width = this.eigenCtx.canvas.width = finalW
     this.masklayerCtx.canvas.height = this.eigenCtx.canvas.height = finalH
     this.eigenCtx.drawImage(this.previewCtx.canvas,
-      this.face.box.xMin, this.face.box.yMin, this.face.box.width, this.face.box.height, 0, 0, finalW, finalH,)
+      this.face.box.xMin, this.face.box.yMin, this.face.box.width, this.face.box.height, 0, 0, finalW, finalH)
     let imageData = this.eigenCtx.getImageData(0, 0, finalW, finalH)
     let faceOval = getFaceContour(this.face, [finalW, finalH])
     let region = new Path2D()
@@ -362,28 +361,21 @@ export abstract class ProcessorManager {
 
     this.masklayerCtx.putImageData(maskImgData, 0, 0)
     this.eigenCtx.putImageData(imageData, 0, 0)
-    // this.calacleFaceAngle()
-    // this.imgProcessor.imgProcessParams['rotate'] = this._faceAngle
-    // this.imgProcessor?.process(imageData)
-    // this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
-    // this.captureCtx.putImageData(imageData, 0, 0)
-    return
 
-    this.eigenCtx.canvas.toBlob(async (blob) => {
-      try {
-        await FaceRec.registe(name, this.face.landmarks, new File([blob], 'avatar.png', { type: 'image/png' }))
-        showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })
-      } catch (err) {
-        console.error(err)
-        showNotify({ type: 'warning', message: '保存失败', duration: 500 })
-      }
+    // 将 canvas 转为 blob 并上传注册人脸
+    const blob = await new Promise<Blob>((resolve) => this.eigenCtx.canvas.toBlob(resolve, 'image/png'))
+    if (!blob) {
+      showNotify({ type: 'warning', message: '图片生成失败', duration: 500 })
+      return
+    }
 
-      // TODO: 保存图片 不通过请求直接native
-      // let buffer = await blob.arrayBuffer()
-      // window.mainApi?.saveFile('保存图片', `/static/face/face-${new Date().getTime()}.png`, buffer, true)
-
-      // this.captureCtx.clearRect(0, 0, this.capture.width, this.capture.height)
-    }, 'image/png')
+    try {
+      await FaceRec.registe(name, this.face.landmarks, new File([blob], 'avatar.png', { type: 'image/png' }))
+      showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })
+    } catch (err) {
+      console.error(err)
+      showNotify({ type: 'warning', message: '保存失败', duration: 500 })
+    }
   }
 
 }

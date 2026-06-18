@@ -33,7 +33,9 @@
     }
   },
   "dependencies": {
+    "@lancedb/lancedb": "^0.30.0",
     "@opencvjs/node": "4.13.0-release.1",
+    "apache-arrow": "^21.1.0",
     "axios": "^1.16.1",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
@@ -100,7 +102,7 @@
     "deep-chat": "^2.4.0",
     "del": "^8.0.1",
     "echarts": "^6.1.0",
-    "electron": "41.7.1",
+    "electron": "41.8.0",
     "electron-builder": "^26.15.0",
     "fabric": "6.9.0",
     "file-loader": "^6.2.0",

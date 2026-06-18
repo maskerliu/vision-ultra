@@ -41,6 +41,7 @@
 <script lang="ts" setup>
 
 import { ref } from 'vue'
+import { showNotify } from 'vant'
 import { FaceRec, baseDomain } from '../../../shared'
 
 const showDeleteEigenConfirm = ref(false)
@@ -56,13 +57,20 @@ function onDeletePerson() {
 
 async function onDeletePersonConfirm() {
   let ids = eigenfaces.value?.eigens.map(eigen => eigen.id) || []
-  await FaceRec.deleteFace(ids)
+  try {
+    await FaceRec.deleteFace(ids)
+    showNotify({ type: 'success', message: '删除成功', duration: 500 })
+  } catch (err) {
+    showNotify({ type: 'danger', message: '删除失败', duration: 500 })
+  }
   showDeletePersonConfirm.value = false
   eigenfaces.value = null
+  keyword.value = ''
 }
 
 function onDeleteEigen(id: string) {
   showDeleteEigenConfirm.value = true
+  selectedEigenId.value = id
   for (let eigen of eigenfaces.value?.eigens) {
     if (eigen.id == id) {
       selectedEigenSnap.value = eigen.snap
@@ -72,17 +80,34 @@ function onDeleteEigen(id: string) {
 }
 
 async function onDeleteEigenConfirm() {
-  await FaceRec.deleteFace([selectedEigenId.value])
+  let deletedId = selectedEigenId.value
+  try {
+    await FaceRec.deleteFace([deletedId])
+    showNotify({ type: 'success', message: '删除成功', duration: 500 })
+  } catch (err) {
+    showNotify({ type: 'danger', message: '删除失败', duration: 500 })
+  }
   showDeleteEigenConfirm.value = false
   selectedEigenId.value = null
   selectedEigenSnap.value = null
+  // 刷新列表：移除已删除的项，或清空列表
+  if (eigenfaces.value) {
+    eigenfaces.value.eigens = eigenfaces.value.eigens.filter(e => e.id !== deletedId)
+    if (eigenfaces.value.eigens.length === 0) {
+      eigenfaces.value = null
+      keyword.value = ''
+    }
+  }
 }
 
 async function onSearch() {
   if (keyword.value == '' || keyword.value == null) return
-
-  let result = await FaceRec.list(keyword.value)
-  eigenfaces.value = result
+  try {
+    let result = await FaceRec.list(keyword.value)
+    eigenfaces.value = result
+  } catch (err) {
+    eigenfaces.value = null
+  }
 }
 
 </script>

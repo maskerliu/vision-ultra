@@ -24,10 +24,14 @@ export namespace FaceRec {
     return formPost<string>(`${ApiPath.FaceRec}${ApiPath.F_Registe}`, null, null, formData)
   }
 
-  export function recognize(vector: any) {
+  export function recognize(vector: Float16Array) {
     let formData = new FormData()
-    formData.append('eigen', new File([vector], 'eigen', { type: 'text/plain' }))
-    return formPost<{ name: string, snap: string, timestamp: string }>(`${ApiPath.FaceRec}${ApiPath.F_Recognize}`, null, {}, formData)
+    let data = new Uint32Array(vector.length)
+    for (let i = 0; i < vector.length; i++) {
+      data[i] = vector[i] * 1000000000
+    }
+    formData.append('eigen', new File([data], 'eigen', { type: 'application/octet-stream' }))
+    return formPost<{ id: string, name: string, snap: string, similarity: number, timestamp: string }>(`${ApiPath.FaceRec}${ApiPath.F_Recognize}`, null, {}, formData)
   }
 
   export function deleteFace(eigenIds: Array<string>) {
