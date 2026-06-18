@@ -1,28 +1,24 @@
 <template>
-  <van-col class="chat-panel">
-    <van-cell class="chat-header" :title="aiStore.activeSession?.title || '聊天'" center>
-    </van-cell>
-
+  <div class="chat-panel">
+    <van-cell class="chat-header" :title="aiStore.activeSession?.title || '聊天'" center />
     <div class="chat-body">
-      <deep-chat :key="chatKey" :demo="false" :images="imageConfig" :mixedFiles="mixedFileConfig"
+      <deep-chat ref="deepChatRef" :demo="false" :images="imageConfig" :mixedFiles="mixedFileConfig"
         :connect="connectConfig" :messageStyles="messageConfig" :submitButtonStyles="submitStyle"
         :inputAreaStyle="inputAreaStyle" :textInput="textInputConfig" :customButtons="customButtonConfig"
-        :dropupStyles="dropupStyles" :attachmentContainerStyle="attachContainerStyle" :history="aiStore.activeHistory"
-        :chatStyle="chatStyle" />
+        :dropupStyles="dropupStyles" :attachmentContainerStyle="attachContainerStyle" :chatStyle="chatStyle"
+        :history="localHistory" :auxiliaryStyle="imageAuxiliaryStyle" />
     </div>
-  </van-col>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { AIStore } from '../../store'
 
 const aiStore = AIStore()
-const chatKey = ref(0)
+const deepChatRef = ref<any>(null)
+const localHistory = ref<any[]>([])
 
-watch(() => aiStore.activeSessionId, () => {
-  chatKey.value++
-})
 
 /* ========== 样式配置 ========== */
 const chatStyle = {
@@ -61,7 +57,6 @@ const messageConfig = {
 }
 
 const inputAreaStyle = {
-  backgroundColor: '#f4f6f8',
   borderRadius: '12px',
   border: '1px solid #e5e8eb',
   width: '80%',
@@ -148,6 +143,18 @@ const mixedFileConfig = {
   files: { acceptedFormats: '.pdf,.doc,.docx,.txt,.md,.csv,.json,.xml,.zip' },
 }
 
+// 注入 deep-chat shadow DOM 的辅助样式（用于控制图片显示大小等 shadow 内样式）
+const imageAuxiliaryStyle = `
+  .file-message img {
+    max-width: 100%;
+    max-height: 360px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    display: block;
+  }
+`
 const dropupStyles = {
   button: {
     position: 'inside-start',
@@ -167,16 +174,14 @@ const dropupStyles = {
     container: {
       border: '1px solid #e5e8eb',
       borderRadius: '6px',
-      padding: '1px',
-      backgroundColor: '#fff',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+      backgroundColor: 'var(--van-gray-1)',
     },
-    text: { color: '#333', fontSize: '14px' },
+    text: { color: 'var(--van-text-color)', fontSize: '14px' },
     item: {
       padding: '10px 16px',
       borderRadius: '8px',
       border: 'none',
-      hover: { backgroundColor: '#f0f2f5' },
+      hover: { backgroundColor: 'var(--van-gray-2)' },
     },
     iconContainer: { marginRight: '10px' },
   },
@@ -184,14 +189,40 @@ const dropupStyles = {
 
 /* ========== 连接配置 ========== */
 const connectConfig = {
-  stream: false,
   handler: chatHandler,
+}
+
+onMounted(() => {
+  localHistory.value = aiStore.activeSession?.history || []
+})
+
+watch(() => aiStore.activeSessionId, (id) => {
+  if (id) {
+    const session = aiStore.sessions.find((s) => s.id === id)
+    localHistory.value = session?.history || []
+  }
+})
+
+// 将 deep-chat 内部消息同步回 store（handler 返回后延迟执行）
+function syncToStore() {
+  setTimeout(() => {
+    const dc = deepChatRef.value
+    if (!dc?.getMessages) return
+    const msgs = dc.getMessages()
+    const id = aiStore.activeSessionId
+    if (!id || !msgs?.length) return
+    const session = aiStore.sessions.find((s) => s.id === id)
+    if (session) {
+      session.history = msgs
+      session.updatedAt = Date.now()
+      aiStore.saveToStorage()
+    }
+  }, 200)
 }
 
 /* ========== 核心 Handler ========== */
 async function chatHandler(body: any, signals: any) {
   let ollamaMessages: any[] = []
-  const sessionId = aiStore.activeSessionId
 
   if (body instanceof FormData) {
     let text = ''
@@ -225,10 +256,6 @@ async function chatHandler(body: any, signals: any) {
         }
       }
       ollamaMessages.push(msg)
-      aiStore.addMessage(sessionId, {
-        role: 'user', text,
-        files: files.map((f) => ({ name: f.name, type: f.type, src: '' })),
-      })
     }
   } else {
     const messages = Array.isArray(body) ? body : body.messages || (body.text ? [body] : [])
@@ -260,16 +287,11 @@ async function chatHandler(body: any, signals: any) {
     if (!res.ok) throw new Error(`Ollama error: ${res.status}`)
     const data = await res.json()
     const text = data.message?.content || ''
-
-    if (text) {
-      aiStore.addMessage(sessionId, { role: 'ai', text })
-    }
-
-    return new Response(JSON.stringify({ text, role: 'ai', overwrite: false }), {
-      headers: { 'Content-Type': 'application/json' },
-    })
+    signals.onResponse({ text, role: 'ai' })
+    syncToStore()
   } catch (err: any) {
-    return { error: `请求失败: ${err.message}` }
+    console.error('[chat] handler error:', err)
+    signals.onResponse({ error: `请求失败: ${err.message}` })
   }
 }
 </script>
@@ -279,7 +301,7 @@ async function chatHandler(body: any, signals: any) {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #fff;
+  /* background: var(--background-color); */
 }
 
 .chat-header {

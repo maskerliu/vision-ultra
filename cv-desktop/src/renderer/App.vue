@@ -146,7 +146,7 @@ function onOpenDebugPanel() {
   right: 0;
   height: 32px;
   pointer-events: auto;
-  background: #44444444;
+  /* background: #44444444; */
   -webkit-app-region: drag;
   z-index: 1;
 }

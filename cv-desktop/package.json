@@ -38,7 +38,6 @@
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "express-fileupload": "^1.5.2",
     "formidable": "^3.5.4",
     "http2-express": "^1.1.0",
     "inversify": "^8.1.0",

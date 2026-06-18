@@ -9,6 +9,6 @@ import BaseRepo from "./base.repo"
 export class ModelRepo extends BaseRepo<ModelInfo> {
   constructor() {
     super()
-    this.pouchdb = new PouchDB(path.join(USER_DATA_DIR + '/biz_storage', 'LocalModel.db'))
+    this.pouchdb = new PouchDB(path.join(USER_DATA_DIR, 'biz_storage', 'LocalModel.db'))
   }
 }

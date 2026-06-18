@@ -78,7 +78,7 @@ export default class MainApp {
       }
     })
 
-    app.on('ready', () => {
+    app.on('ready', async () => {
       // console.log(`screen info: ${screen.getPrimaryDisplay().scaleFactor}`)
       // let display = screen.getPrimaryDisplay()
       // console.log(`screen width: ${display.workAreaSize.width} \t height: ${display.workAreaSize.height}`)
@@ -96,7 +96,7 @@ export default class MainApp {
       if (!app.requestSingleInstanceLock()) app.quit()
 
       this.initSessionConfig()
-      this.initIPCService()
+      await this.initIPCService()
 
       if (this.mainWindow == null) {
         this.createMainWindow()
@@ -289,9 +289,9 @@ export default class MainApp {
     })
   }
 
-  private initIPCService() {
-    ipcMain.handle(MainApiCmd.UpdateBizConfig, (_, ...args: any) => {
-      this.mainServer.updateBizConfig(JSON.parse(args))
+  private async initIPCService() {
+    ipcMain.handle(MainApiCmd.UpdateBizConfig, async (_, ...args: any) => {
+      await this.mainServer.updateBizConfig(JSON.parse(args))
       this.mainWindow.webContents.send(MainApiCmd.GetBizConfig, this.mainServer.getBizConfig())
     })
 

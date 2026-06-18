@@ -1,8 +1,9 @@
 <template>
   <div class="ai-layout">
     <!-- 左侧会话栏 -->
-    <aside class="ai-sidebar" style="z-index: 2;" :class="{ collapsed: sidebarCollapsed }">
-      <van-row justify="space-between" style="z-index: 100; padding: 10px 12px; font-size: 16px;">
+    <aside class="ai-sidebar" :class="{ collapsed: sidebarCollapsed }">
+      <van-row justify="space-between"
+        style="position: relative; z-index: 100; padding: 10px 12px; font-size: 16px; -webkit-app-region: no-drag;">
         <van-icon class-prefix="iconfont" name="arrow-left" class="back-btn" v-show="!sidebarCollapsed"
           @click="goBack" />
         <van-icon class-prefix="iconfont" name="side-menu" class="collapse-btn"
@@ -250,7 +251,6 @@ function doRename() {
   color: var(--van-gray-5);
   cursor: pointer;
   padding: 4px;
-  font-size: 18px;
 }
 
 .back-btn:hover {

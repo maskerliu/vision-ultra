@@ -130,6 +130,7 @@ export function parseContext(req: Request): BizContext {
       break
     case 'ethernet':
       netType = UserNetwork.Ethernet
+      break
     default:
       netType = UserNetwork.UNKNOWN
   }

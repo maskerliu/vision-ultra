@@ -3,7 +3,7 @@ import { inject, injectable } from 'inversify'
 import { ApiPath } from '../../shared/api.const'
 import { IocTypes } from '../MainConst'
 import { BizNetwork } from '../misc/utils'
-import { CommonService } from '../service'
+import { CommonService, PushService } from '../service'
 import { BaseRouter, ParamType } from './base.router'
 
 interface ReqResp {
@@ -17,7 +17,7 @@ export class CommonRouter extends BaseRouter {
   @inject(IocTypes.CommonService)
   private commonService: CommonService
   @inject(IocTypes.PushService)
-  private pushService: CommonService
+  private pushService: PushService
 
   private _clients: Map<string, ReqResp> = new Map()
 

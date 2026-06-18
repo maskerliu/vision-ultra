@@ -70,15 +70,14 @@ export class MainServer {
     return this.commonService.allConfig
   }
 
-  public updateBizConfig(config: BizConfig) {
+  public async updateBizConfig(config: BizConfig) {
 
     if (this.commonService.allConfig.port !== config.port ||
       this.commonService.allConfig.protocol !== config.protocol ||
       this.commonService.allConfig.modelPath !== config.modelPath) {
 
-      this.start()
+      await this.start()
     }
-
     this.commonService.saveAllConfig(config)
   }
 
