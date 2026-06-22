@@ -1,5 +1,5 @@
+import { baseDomain, ModelInfo } from "@shared/index"
 import * as tf from '@tensorflow/tfjs'
-import { baseDomain, ModelInfo } from "../../../shared"
 import { Model, ModelRunner } from "./Model"
 
 export class OcrScanner extends ModelRunner {

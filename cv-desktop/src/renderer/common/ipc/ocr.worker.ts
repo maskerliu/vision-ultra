@@ -1,5 +1,5 @@
 
-import { OCRMsg, ProcessorCMD } from '../../../shared'
+import { OCRMsg, ProcessorCMD } from '@shared/index'
 import { OcrScanner } from '../model/OcrScanner'
 
 const ctx: Worker = self as any

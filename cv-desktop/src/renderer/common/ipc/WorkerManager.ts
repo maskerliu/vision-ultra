@@ -1,5 +1,5 @@
 
-import { CVMsg, FaceDetectMsg, ImgGenMsg, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
+import { CVMsg, FaceDetectMsg, ImgGenMsg, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '@shared/index'
 import { Tesseract } from '../tesseract'
 import { DrawMode, ProcessorManager, ProcessorType } from './ProcessorManager'
 

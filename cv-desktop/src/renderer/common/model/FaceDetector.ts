@@ -1,6 +1,6 @@
 import { FaceLandmarker, FilesetResolver, NormalizedLandmark } from '@mediapipe/tasks-vision'
+import { baseDomain, FaceDetectResult } from '@shared/index'
 import { Face, TFace } from 'kalidokit'
-import { baseDomain, FaceDetectResult } from '../../../shared'
 import { FACE_DIMS, getFaceSlope, NUM_KEYPOINTS } from '../DrawUtils'
 
 

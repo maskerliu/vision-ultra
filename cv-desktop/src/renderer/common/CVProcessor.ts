@@ -2,7 +2,7 @@ import { OpenCV } from '@opencvjs/web'
 import {
   cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
   cvFilterType, cvMorph, cvSharpen
-} from '../../shared'
+} from '@shared/index'
 
 export class CVProcessor {
   private _options: any = {}

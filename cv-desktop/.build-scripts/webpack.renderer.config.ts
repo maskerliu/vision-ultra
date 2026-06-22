@@ -109,6 +109,8 @@ class RendererConfig extends BaseConfig {
   resolve: Configuration['resolve'] = {
     alias: {
       '@': path.join(dirname, '../src/renderer'),
+      '@renderer': path.join(dirname, '../src/renderer'),
+      '@shared': path.join(dirname, '../src/shared'),
     },
     extensions: ['.ts', '.js', '.vue', '.json', '.css', '.wasm'],
     fallback: {

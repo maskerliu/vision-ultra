@@ -1,5 +1,5 @@
+import { ModelInfo, ModelType } from '@shared/index'
 import * as tf from '@tensorflow/tfjs'
-import { ModelInfo, ModelType } from '../../../shared'
 import { Model, ModelRunner } from './Model'
 
 const MAX_OBJECTS_NUM: number = 20

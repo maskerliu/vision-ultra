@@ -70,10 +70,11 @@
 </template>
 
 <script setup lang="ts">
+
+import { AIStore } from '@renderer/store'
 import { showConfirmDialog } from 'vant'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { AIStore } from '../../store'
 import ChatPanel from './Chat.vue'
 
 const router = useRouter()

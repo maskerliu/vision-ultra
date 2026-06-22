@@ -1,4 +1,4 @@
-import { CVMsg, ProcessorCMD } from '../../../shared'
+import { CVMsg, ProcessorCMD } from '@shared/index'
 import { CVProcessor } from '../CVProcessor'
 
 const ctx: Worker = self as any

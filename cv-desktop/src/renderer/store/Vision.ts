@@ -1,9 +1,8 @@
-import { defineStore } from 'pinia'
 import {
-  CommonApi,
-  cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
+  CommonApi, cvBlur, cvBlurType, cvDetector, cvEqualizeHist, cvFilter,
   cvFilterType, cvMorph, cvSharpen, IntergrateMode, ModelEngine, ModelInfo, ModelType
-} from '../../shared'
+} from '@shared/index'
+import { defineStore } from 'pinia'
 
 
 class CVOptions {

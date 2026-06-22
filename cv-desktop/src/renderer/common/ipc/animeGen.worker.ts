@@ -1,5 +1,5 @@
 
-import { ImgGenMsg, ProcessorCMD } from '../../../shared'
+import { ImgGenMsg, ProcessorCMD } from '@shared/index'
 import { AnimeGenerator } from '../model/AnimeGenerator'
 
 const ctx: Worker = self as any

@@ -92,20 +92,19 @@
 </template>
 <script lang="ts" setup>
 
+import {
+  BackendManager, DrawMode, ProcessorManager,
+  ProcessorStatus, ProcessorType, VideoPlayer, WorkerManager
+} from '@renderer/common'
+import { VisionStore } from '@renderer/store'
+import { IntergrateMode, ProcessorCMD } from '@shared/index'
 import 'media-chrome'
 import { Col } from 'vant'
-import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { IntergrateMode, ProcessorCMD } from '../../../shared'
-import { BackendManager } from '../../common/ipc/BackendManager'
-import { DrawMode, ProcessorManager, ProcessorStatus, ProcessorType } from '../../common/ipc/ProcessorManager'
-import { WorkerManager } from '../../common/ipc/WorkerManager'
-import { VideoPlayer } from '../../common/VideoPlayer'
-import { CommonStore, VisionStore } from '../../store'
+import { inject, onMounted, onUnmounted, Ref, ref, useTemplateRef, watch } from 'vue'
 import AnnotationPanel from '../annotation/AnnotationPanel.vue'
 import Live2dPanel from './Live2dPanel.vue'
 
 const visionStore = VisionStore()
-const commonStore = CommonStore()
 
 const previewParent = useTemplateRef<typeof Col>('previewParent')
 const video = useTemplateRef<HTMLVideoElement>('video')
@@ -146,12 +145,13 @@ const workerStatus = ref<ProcessorStatus>({
 
 let img: HTMLImageElement = null
 
+const onResize = () => {
+  console.log(previewParent.value?.$el?.clientWidth, previewParent.value?.$el?.clientHeight)
+}
+
 onMounted(async () => {
   window.addEventListener('beforeunload', () => { videoPlayer?.close() })
-
-  window.addEventListener('resize', () => {
-    console.log(previewParent.value.$el.clientWidth, previewParent.value.$el.clientHeight)
-  })
+  window.addEventListener('resize', onResize)
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   previewCtx.imageSmoothingEnabled = false
@@ -167,6 +167,10 @@ onMounted(async () => {
 
   videoPlayer = new VideoPlayer(video.value)
   videoPlayer.processorMgr = processorMgr
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', onResize)
 })
 
 async function onLiveStream() {
@@ -251,10 +255,6 @@ async function initProcessorMgr(force: boolean = true, anyway = true) {
     processorMgr.updateSize(previewSize.value[0], previewSize.value[1])
   }
 
-  await processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, {
-    options: JSON.stringify(visionStore.cvOptions.value)
-  })
-
   let options = JSON.stringify(visionStore.cvOptions.value)
   await processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, { options }, anyway)
 
@@ -312,21 +312,21 @@ watch(
 )
 
 watch(() => visionStore.objDetectModel, async () => {
-  processorMgr.postMessage(ProcessorType.objTrack, {
+  processorMgr?.postMessage(ProcessorType.objTrack, {
     cmd: ProcessorCMD.init,
     model: JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
   })
 })
 
 watch(() => visionStore.animeModel, async () => {
-  processorMgr.postMessage(ProcessorType.animeGen, {
+  processorMgr?.postMessage(ProcessorType.animeGen, {
     cmd: ProcessorCMD.init,
     model: JSON.stringify(Object.assign(visionStore.animeModel, { engine: visionStore.modelEngine }))
   })
 })
 
 watch(() => visionStore.ocrModel, async () => {
-  processorMgr.postMessage(ProcessorType.ocr, {
+  processorMgr?.postMessage(ProcessorType.ocr, {
     cmd: ProcessorCMD.init,
     model: JSON.stringify(Object.assign(visionStore.ocrModel, { engine: visionStore.modelEngine }))
   })
@@ -338,8 +338,7 @@ watch(
     () => visionStore.transModel
   ],
   () => {
-    console.log(visionStore.styleModel)
-    processorMgr.postMessage(ProcessorType.styleTrans, {
+    processorMgr?.postMessage(ProcessorType.styleTrans, {
       cmd: ProcessorCMD.init,
       styleModel: JSON.stringify(Object.assign(visionStore.styleModel, { engine: visionStore.modelEngine })),
       transModel: JSON.stringify(Object.assign(visionStore.transModel, { engine: visionStore.modelEngine })),
@@ -355,7 +354,7 @@ watch(
     () => visionStore.styleTransParams
   ],
   () => {
-    processorMgr.postMessage(ProcessorType.styleTrans, {
+    processorMgr?.postMessage(ProcessorType.styleTrans, {
       cmd: ProcessorCMD.updateOptions,
       style: visionStore.styleFile,
       params: JSON.stringify(visionStore.styleTransParams)

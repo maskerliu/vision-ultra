@@ -72,9 +72,9 @@
   </van-cell-group>
 </template>
 <script lang="ts" setup>
+import { CommonStore, VisionStore } from '@renderer/store'
+import { ModelInfo, ModelType } from '@shared/index'
 import { onMounted, ref } from 'vue'
-import { ModelInfo, ModelType } from '../../../shared'
-import { CommonStore, VisionStore } from '../../store'
 
 const commonStore = CommonStore()
 const visionStore = VisionStore()

@@ -25,9 +25,9 @@
 </template>
 <script lang="ts" setup>
 
+import { CommonStore } from '@renderer/store'
 import Hls from 'hls.js'
 import { inject, onMounted, Ref, ref, useTemplateRef, watch } from 'vue'
-import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()
 const showDebugPanel = inject<Ref<boolean>>('showDebugPanel')

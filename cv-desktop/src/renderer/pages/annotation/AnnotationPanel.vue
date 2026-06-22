@@ -72,12 +72,12 @@
 </template>
 <script lang="ts" setup>
 
+import { AnnotationManager, CVLabel, DrawType } from '@renderer/common'
+import SliderField from '@renderer/pages/components/SliderField.vue'
+import { VisionStore } from '@renderer/store'
 import * as fabric from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
 import { onMounted, provide, ref, useTemplateRef, watch } from 'vue'
-import { AnnotationManager, CVLabel, DrawType } from '../../common'
-import { VisionStore } from '../../store'
-import SliderField from '../components/SliderField.vue'
 import LabelGroupTab from './LabelGroupTab.vue'
 import MarkerGroupTab from './MarkerGroupTab.vue'
 

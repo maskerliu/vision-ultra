@@ -1,5 +1,5 @@
 
-import { FaceDetectMsg, ProcessorCMD } from '../../../shared'
+import { FaceDetectMsg, ProcessorCMD } from '@shared/index'
 import { FaceDetector } from '../model/FaceDetector'
 
 const ctx: Worker = self as any

@@ -14,10 +14,9 @@
 
 <script lang="ts" setup>
 
-import 'deep-chat'
+import { CommonStore } from '@renderer/store'
+import { ProxyMock } from '@shared/index'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { ProxyMock } from '../../../shared'
-import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()
 const sseData = ref<string>('hello world')

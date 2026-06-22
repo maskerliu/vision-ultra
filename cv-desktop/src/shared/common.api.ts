@@ -1,5 +1,5 @@
 import { Connection } from 'sockjs'
-import { ApiPath } from "./api.const"
+import { Api } from "./api.const"
 import { get, post } from './base.api'
 import { BizConfig, ModelInfo } from './base.models'
 
@@ -48,22 +48,22 @@ export namespace CommonApi {
   }
 
   export function getBizConfig() {
-    return get<BizConfig>(`${ApiPath.Common}${ApiPath.BizConfig}${ApiPath.Config_Get}`)
+    return get<BizConfig>(`${Api.Common}${Api.BizConfig}${Api.Config_Get}`)
   }
 
   export function getAllPushClients() {
-    return get<Array<MsgPushClient>>(`${ApiPath.Common}${ApiPath.PushClient}${ApiPath.Client_List}`)
+    return get<Array<MsgPushClient>>(`${Api.Common}${Api.PushClient}${Api.Client_List}`)
   }
 
   export function getLocalModels() {
-    return get<Array<ModelInfo>>(`${ApiPath.Common}${ApiPath.Model}${ApiPath.Model_List}`)
+    return get<Array<ModelInfo>>(`${Api.Common}${Api.Model}${Api.Model_List}`)
   }
 
   export function saveModelInfo(modelInfo: Partial<ModelInfo>) {
-    return post(`${ApiPath.Common}${ApiPath.Model}${ApiPath.Model_Save}`, null, null, modelInfo)
+    return post(`${Api.Common}${Api.Model}${Api.Model_Save}`, null, null, modelInfo)
   }
 
   export function deleteModel(modelId: string) {
-    return post(`${ApiPath.Common}${ApiPath.Model}${ApiPath.Model_Delete}`, null, { modelId })
+    return post(`${Api.Common}${Api.Model}${Api.Model_Delete}`, null, { modelId })
   }
 }

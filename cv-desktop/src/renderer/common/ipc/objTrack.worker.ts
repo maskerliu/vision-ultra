@@ -1,5 +1,5 @@
 
-import { ModelInfo, ObjTrackMsg, ProcessorCMD } from '../../../shared'
+import { ModelInfo, ObjTrackMsg, ProcessorCMD } from '@shared/index'
 import { ObjectTracker } from '../model/ObjectTracker'
 
 const ctx: Worker = self as any

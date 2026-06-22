@@ -39,10 +39,10 @@
 </template>
 <script lang="ts" setup>
 
+import { CommonStore } from '@renderer/store'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { CommonStore } from '../../store'
 import ApmPanel from '../components/ApmPanel.vue'
 import Settings from '../settings/Settings.vue'
 import CvControlPanel from './CVControlPanel.vue'

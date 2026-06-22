@@ -84,11 +84,11 @@
 </template>
 <script lang="ts" setup>
 
+import { CommonStore } from '@renderer/store'
+import { Version, versionCheck } from '@shared/index'
 import { showNotify, showToast } from 'vant'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Version, versionCheck } from '../../../shared'
-import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()
 const i18n = useI18n()

@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "composite": false,
     "sourceMap": false,
     "declaration": false,
-    // "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "6.0",
     "declarationMap": false,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
@@ -32,7 +33,18 @@
     "lib": [
       "ESNext",
       "DOM"
-    ]
+    ],
+    "paths": {
+      "@shared/*": [
+        "src/shared/*"
+      ],
+      "@renderer/*": [
+        "src/renderer/*"
+      ],
+      "@main/*": [
+        "src/main/*"
+      ]
+    }
   },
   "include": [
     "src/**/*",

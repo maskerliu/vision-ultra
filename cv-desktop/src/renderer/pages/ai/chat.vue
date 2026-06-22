@@ -12,8 +12,8 @@
 </template>
 
 <script setup lang="ts">
+import { AIStore } from '@renderer/store'
 import { computed, onMounted, ref, watch } from 'vue'
-import { AIStore } from '../../store'
 
 const aiStore = AIStore()
 const deepChatRef = ref<any>(null)

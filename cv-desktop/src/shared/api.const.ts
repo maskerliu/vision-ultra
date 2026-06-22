@@ -1,5 +1,5 @@
 
-export const ApiPath = {
+export const Api = {
 
   Common: '/common',
   BizConfig: '/bizConfig',

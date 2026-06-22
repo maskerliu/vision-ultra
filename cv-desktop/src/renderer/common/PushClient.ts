@@ -1,7 +1,7 @@
+import { CommonStore } from '@renderer/store'
+import { CommonApi } from '@shared/index'
 import SockJS from 'sockjs-client'
 import { showNotify } from 'vant'
-import { CommonApi } from '../../shared'
-import { CommonStore } from '../store'
 
 export class PushClient {
   private uid: string

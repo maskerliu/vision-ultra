@@ -39,10 +39,10 @@
 </template>
 <script lang="ts" setup>
 
+import { CommonStore } from '@renderer/store'
+import { CommonApi } from '@shared/index'
 import { showNotify } from 'vant'
 import { onMounted, ref } from 'vue'
-import { CommonApi } from '../../../shared'
-import { CommonStore } from '../../store'
 
 const commonStore = CommonStore()
 const dialogVisible = ref(false)

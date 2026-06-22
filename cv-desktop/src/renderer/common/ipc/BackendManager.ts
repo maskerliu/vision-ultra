@@ -1,4 +1,4 @@
-import { ModelType, ProcessorCMD } from '../../../shared'
+import { ModelType, ProcessorCMD } from '@shared/index'
 import { DrawMode, ProcessorType } from './ProcessorManager'
 import { WorkerManager } from './WorkerManager'
 

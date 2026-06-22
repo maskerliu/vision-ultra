@@ -1,7 +1,11 @@
 
+import {
+  CVMsg, FaceDetectMsg, FaceDetectResult, FaceRec,
+  ImgGenMsg, IProcessor, ObjectDetectResult, ObjTrackMsg,
+  OCRMsg, ProcessorCMD, StyleTransMsg
+} from '@shared/index'
 import { showNotify } from 'vant'
 import { CVLabel, MarkColors, } from '..'
-import { CVMsg, FaceDetectMsg, FaceDetectResult, FaceRec, ImgGenMsg, IProcessor, ObjectDetectResult, ObjTrackMsg, OCRMsg, ProcessorCMD, StyleTransMsg } from '../../../shared'
 import { drawTFFaceResult, FACE_DIMS, getFaceContour } from '../DrawUtils'
 
 

@@ -8,7 +8,7 @@ import { Server } from 'http'
 import http2express from 'http2-express'
 import path from 'path'
 import tcpPortUsed from 'tcp-port-used'
-import { ApiPath } from '../shared/api.const'
+import { Api } from '../shared/api.const'
 import { BizConfig } from '../shared/base.models'
 import { bizContainer } from './IocContainer'
 import { IocTypes, IS_DEV, USER_DATA_DIR } from './MainConst'
@@ -140,10 +140,10 @@ export class MainServer {
     this.httpApp.use(express.text({ type: 'application/json', limit: '50mb' }))
     this.httpApp.use(express.json())
 
-    this.httpApp.use(ApiPath.Common, this.commonRouter.router)
-    this.httpApp.use(ApiPath.MApi, this.mapiRouter.router)
-    this.httpApp.use(ApiPath.FaceRec, this.faceRecRouter.router)
-    this.httpApp.use(ApiPath.CorsMediaProxy, this.proxyCorsMedia)
+    this.httpApp.use(Api.Common, this.commonRouter.router)
+    this.httpApp.use(Api.MApi, this.mapiRouter.router)
+    this.httpApp.use(Api.FaceRec, this.faceRecRouter.router)
+    this.httpApp.use(Api.CorsMediaProxy, this.proxyCorsMedia)
   }
 
   private async startHttpServer() {

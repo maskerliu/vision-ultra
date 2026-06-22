@@ -1,4 +1,4 @@
-import { ApiPath } from './api.const'
+import { Api } from './api.const'
 import { formPost, get, post } from './base.api'
 
 export namespace FaceRec {
@@ -9,7 +9,7 @@ export namespace FaceRec {
   }
 
   export function getFaces() {
-    return get<Array<string>>(`${ApiPath.FaceRec}${ApiPath.F_List}`)
+    return get<Array<string>>(`${Api.FaceRec}${Api.F_List}`)
   }
 
   export function registe(name: string, vector: Float16Array, avatar: File) {
@@ -21,7 +21,7 @@ export namespace FaceRec {
     formData.append('name', new File([name], 'name', { type: 'text/plain' }))
     formData.append('eigen', new File([data], 'eigen', { type: 'application/octet-stream' }))
     formData.append('avatar', avatar)
-    return formPost<string>(`${ApiPath.FaceRec}${ApiPath.F_Registe}`, null, null, formData)
+    return formPost<string>(`${Api.FaceRec}${Api.F_Registe}`, null, null, formData)
   }
 
   export function recognize(vector: Float16Array) {
@@ -31,14 +31,14 @@ export namespace FaceRec {
       data[i] = vector[i] * 1000000000
     }
     formData.append('eigen', new File([data], 'eigen', { type: 'application/octet-stream' }))
-    return formPost<{ id: string, name: string, snap: string, similarity: number, timestamp: string }>(`${ApiPath.FaceRec}${ApiPath.F_Recognize}`, null, {}, formData)
+    return formPost<{ id: string, name: string, snap: string, similarity: number, timestamp: string }>(`${Api.FaceRec}${Api.F_Recognize}`, null, {}, formData)
   }
 
   export function deleteFace(eigenIds: Array<string>) {
-    return post<string>(`${ApiPath.FaceRec}${ApiPath.F_Delete}`, null, null, eigenIds)
+    return post<string>(`${Api.FaceRec}${Api.F_Delete}`, null, null, eigenIds)
   }
 
   export function list(name: string) {
-    return get<EigenFace>(`${ApiPath.FaceRec}${ApiPath.F_List}/${name}`)
+    return get<EigenFace>(`${Api.FaceRec}${Api.F_List}/${name}`)
   }
 }

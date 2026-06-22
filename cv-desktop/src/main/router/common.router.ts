@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { inject, injectable } from 'inversify'
-import { ApiPath } from '../../shared/api.const'
+import { Api } from '../../shared/api.const'
 import { IocTypes } from '../MainConst'
 import { BizNetwork } from '../misc/utils'
 import { CommonService, PushService } from '../service'
@@ -67,28 +67,28 @@ export class CommonRouter extends BaseRouter {
   override initApiInfos(): void {
     this.addApiInfo({
       method: BizNetwork.Method_Get,
-      path: `${ApiPath.PushClient}${ApiPath.Client_List}`,
+      path: `${Api.PushClient}${Api.Client_List}`,
       func: 'getAllPushClients', target: 'pushService'
     })
     this.addApiInfo({
       method: BizNetwork.Method_Get,
-      path: `${ApiPath.BizConfig}${ApiPath.Config_Get}`,
+      path: `${Api.BizConfig}${Api.Config_Get}`,
       func: 'getAllConfig', target: 'commonService'
     })
     this.addApiInfo({
       method: BizNetwork.Method_Get,
-      path: `${ApiPath.Model}${ApiPath.Model_List}`,
+      path: `${Api.Model}${Api.Model_List}`,
       func: 'getLocalModels', target: 'commonService'
     })
     this.addApiInfo({
       method: BizNetwork.Method_Post,
-      path: `${ApiPath.Model}${ApiPath.Model_Save}`,
+      path: `${Api.Model}${Api.Model_Save}`,
       func: 'updateModelInfo', target: 'commonService',
       params: [{ key: 'model', type: ParamType.FormBody }]
     })
     this.addApiInfo({
       method: BizNetwork.Method_Post,
-      path: `${ApiPath.Model}${ApiPath.Model_Delete}`,
+      path: `${Api.Model}${Api.Model_Delete}`,
       func: 'deleteModel', target: 'commonService',
       params: [{ key: 'modelId', type: ParamType.Query }]
     })

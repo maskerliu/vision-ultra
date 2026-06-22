@@ -30,11 +30,11 @@
 
 <script lang="ts" setup>
 
+import DebugPanel from '@renderer/pages/components/DebugPanel.vue'
+import { CommonStore } from '@renderer/store'
 import { onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import DebugPanel from './pages/components/DebugPanel.vue'
-import { CommonStore } from './store'
 
 const isWeb = window.isWeb
 const commonStore = CommonStore()

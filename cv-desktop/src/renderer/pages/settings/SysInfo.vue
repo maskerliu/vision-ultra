@@ -54,10 +54,10 @@
 </template>
 <script lang="ts" setup>
 
+import { CommonStore } from '@renderer/store'
+import { LocalIP } from '@shared/index'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { LocalIP } from '../../../shared'
-import { CommonStore } from '../../store'
 
 type SettingPreference = {
   key: string

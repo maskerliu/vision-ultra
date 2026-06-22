@@ -44,10 +44,10 @@
 </template>
 <script setup lang="ts">
 
+import { AnnotationManager, CVLabel, DrawType } from '@renderer/common'
 import * as fabric from 'fabric'
 import { Cell, Popup } from 'vant'
 import { inject, onMounted, ref, useTemplateRef, watch } from 'vue'
-import { AnnotationManager, CVLabel, DrawType } from '../../common'
 
 const annoMgr = inject<AnnotationManager>('annoMgr')
 const activeMarkerGroup = ref(DrawType.rect)

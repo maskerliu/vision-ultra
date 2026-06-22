@@ -428,11 +428,11 @@
 </template>
 <script lang="ts" setup>
 
+import { CommonStore, VisionStore } from '@renderer/store'
+import { cvBlurType, cvFilterType, ModelEngine, ModelInfo, ModelType } from '@shared/index'
 import { UploaderFileListItem } from 'vant'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { cvBlurType, cvFilterType, ModelEngine, ModelInfo, ModelType } from '../../../shared'
-import { CommonStore, VisionStore } from '../../store'
 import SliderField from '../components/SliderField.vue'
 
 const i18n = useI18n()

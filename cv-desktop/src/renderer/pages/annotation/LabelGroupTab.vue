@@ -55,12 +55,10 @@
 </template>
 <script setup lang="ts">
 
+import { AnnotationManager, CVLabel, Def_Object_Labels, MARK_COLORS } from '@renderer/common'
 import { UploaderFileListItem } from 'vant'
 import { inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AnnotationManager, CVLabel, Def_Object_Labels } from '../../common/Annotations'
-import { MARK_COLORS } from '../../common/CVColors'
-
 
 const { t } = useI18n()
 const annoMgr = inject<AnnotationManager>('annoMgr')

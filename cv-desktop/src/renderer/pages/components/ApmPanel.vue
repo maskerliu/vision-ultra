@@ -3,9 +3,9 @@
 </template>
 <script lang="ts" setup>
 
+import { CommonStore } from '@renderer/store'
 import * as echarts from 'echarts'
 import { onMounted, useTemplateRef } from 'vue'
-import { CommonStore } from '../../store'
 
 const apmPanel = useTemplateRef<HTMLElement>('apmPanel')
 let fps = 0

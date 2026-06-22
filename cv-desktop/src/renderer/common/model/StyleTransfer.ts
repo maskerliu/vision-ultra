@@ -1,5 +1,5 @@
+import { ModelInfo } from "@shared/index"
 import * as tf from '@tensorflow/tfjs'
-import { ModelInfo } from "../../../shared"
 import { Model, ModelRunner } from "./Model"
 
 

@@ -1,6 +1,6 @@
+import { baseDomain, ModelEngine, ModelInfo, ModelType } from "@shared/index"
 import * as tf from "@tensorflow/tfjs"
 import ort from "onnxruntime-web"
-import { baseDomain, ModelEngine, ModelInfo, ModelType } from "../../../shared"
 
 export class Model {
   protected _model: tf.GraphModel

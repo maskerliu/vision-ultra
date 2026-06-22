@@ -1,5 +1,5 @@
 
-import { ProcessorCMD, StyleTransMsg } from '../../../shared'
+import { ProcessorCMD, StyleTransMsg } from '@shared/index'
 import { StyleTransfer } from '../model/StyleTransfer'
 
 const ctx: Worker = self as any

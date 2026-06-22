@@ -40,9 +40,9 @@
 </template>
 <script lang="ts" setup>
 
-import { ref } from 'vue'
+import { FaceRec, baseDomain } from '@shared/index'
 import { showNotify } from 'vant'
-import { FaceRec, baseDomain } from '../../../shared'
+import { ref } from 'vue'
 
 const showDeleteEigenConfirm = ref(false)
 const showDeletePersonConfirm = ref(false)
