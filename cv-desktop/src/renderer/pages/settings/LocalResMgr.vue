@@ -20,8 +20,7 @@
         <van-icon class-prefix="iconfont" :name="`${model.type}`"
           style="position: absolute; font-size: 3rem; color: var(--van-text-color-3); z-index: 0;" />
         <van-row style="width: 100%; margin-top: 15px;" justify="center">
-          <van-button type="primary" size="mini" plain hairline
-            @click="showModelInfo = true; curModel = Object.assign(curModel, model);">
+          <van-button type="primary" size="mini" plain hairline @click="onShowModelInfo(model)">
             <van-icon class-prefix="iconfont" name="warning" />
           </van-button>
 
@@ -64,9 +63,9 @@
 
       <van-button block plain type="primary" size="small" @click="onSaveModelInfo">{{ $t('common.done') }}</van-button>
     </van-popup>
-
-    <van-dialog v-model:show="showModelDelConfirm" title="警告" confirm-button-text="确定" show-cancel-button
-      cancel-button-text="取消" :message="`确定要删除模型 ${curModel.name}吗？`" @confirm="visionStore.deleteModel(curModel._id)">
+    <van-dialog v-model:show="showModelDelConfirm" :title="$t('common.warning')" show-cancel-button
+      :confirm-button-text="$t('common.confirm')" :cancel-button-text="$t('common.cancel')"
+      :message="`确定要删除模型 ${curModel.name}吗？`" @confirm="visionStore.deleteModel(curModel._id)">
     </van-dialog>
 
   </van-cell-group>
@@ -89,7 +88,6 @@ const curModel = ref<Partial<ModelInfo>>({
   lang: '',
   external: '',
 })
-const lang = ref<string>()
 
 const modelTypes = [
   { text: '分类', value: ModelType.classify },
@@ -112,8 +110,18 @@ async function onRefresh() {
   await visionStore.getAllModels()
 }
 
+async function onShowModelInfo(model: Partial<ModelInfo>) {
+  curModel.value.name = ''
+  curModel.value.type = ModelType.unknown
+  curModel.value.desc = ''
+  curModel.value.lang = ''
+  curModel.value.external = ''
+
+  curModel.value = Object.assign(curModel.value, model)
+  showModelInfo.value = true
+}
 async function onSaveModelInfo() {
-  await visionStore.saveModelInfo(Object.assign(curModel.value, lang.value))
+  await visionStore.saveModelInfo(curModel.value)
   showModelInfo.value = false
 }
 

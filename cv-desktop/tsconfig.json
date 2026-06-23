@@ -1,15 +1,14 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "composite": false,
     "sourceMap": false,
     "declaration": false,
-    "ignoreDeprecations": "6.0",
     "declarationMap": false,
     "allowJs": true,
+    "ignoreDeprecations": "6.0",
     "allowSyntheticDefaultImports": true,
     "incremental": true,
     "noEmitOnError": true,
@@ -36,13 +35,13 @@
     ],
     "paths": {
       "@shared/*": [
-        "src/shared/*"
+        "./src/shared/*"
       ],
       "@renderer/*": [
-        "src/renderer/*"
+        "./src/renderer/*"
       ],
       "@main/*": [
-        "src/main/*"
+        "./src/main/*"
       ]
     }
   },

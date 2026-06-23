@@ -1,6 +1,8 @@
 
 export default {
   common: {
+    warning: 'Warning',
+    confirm: 'Confirm',
     done: 'Done',
     cancel: 'Cancel',
     delete: 'Delete',

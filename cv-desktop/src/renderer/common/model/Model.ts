@@ -105,7 +105,7 @@ export class Model {
     this._inName = input.name
     this._inType = input.dtype
     this._inShape = input.shape as [number, number, number, number]
-    console.log(this._model)
+    // console.log(this._model)
   }
 
   private async loadOrtModel() {
@@ -143,7 +143,7 @@ export class Model {
     let outputs = this._session
       .outputMetadata[0] as ort.InferenceSession.TensorValueMetadata
     // this._output = outputs
-    console.log(this._session)
+    // console.log(this._session)
   }
 
   async dispose() {

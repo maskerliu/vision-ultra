@@ -101,7 +101,7 @@ export const VisionStore = defineStore('VisionStore', {
       styleTransParams: [0, 0, 0] as [number, number, number],
 
       enableCV: false,
-      cvOptions: new CVOptions(),
+      cvOpts: new CVOptions(),
 
       streamHistories: [] as string[],
 
@@ -135,7 +135,7 @@ export const VisionStore = defineStore('VisionStore', {
       }
     },
     getModels(type: ModelType) {
-      return this.models.filter(it => it.type == type)
+      return this.models.filter((it: any) => it.type == type)
     },
     async deleteModel(id: string) {
       await CommonApi.deleteModel(id)

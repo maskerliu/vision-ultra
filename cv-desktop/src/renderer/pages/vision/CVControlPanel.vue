@@ -23,34 +23,24 @@
 
     <!-- object detect & segment, face recognize, style transfer, animeGAN-->
     <van-cell-group inset title="Model Zoo">
-      <van-cell center :disabled="!visionStore.enableObjDetect">
+      <van-cell center>
         <template #title>
-          <van-checkbox shape="square" v-model="visionStore.enableObjDetect">
-            <van-icon class-prefix="iconfont" name="obj-track" style="color: #2980b9;" />
-            <span style="margin-left: 5px;">{{ $t('cvControl.obj.track') }}</span>
-          </van-checkbox>
+          <van-row>
+            <van-checkbox shape="square" v-model="visionStore.enableObjDetect" style="margin-right: 7px;">
+            </van-checkbox>
+
+            <van-radio-group :disabled="!visionStore.enableObjDetect" v-model="visionStore.objDetectModel.type"
+              direction="horizontal" @change="onObjRecTypeChanged">
+              <van-radio :name="key" v-for="key in ObjRecGroup">
+                <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key" />
+                <!-- {{ $t(`cvControl.obj.${key}`) }} -->
+              </van-radio>
+            </van-radio-group>
+          </van-row>
         </template>
         <template #value>
-          <van-popover v-model:show="showObjRecModels" :show-arrow="false" placement="bottom-end" overlay>
-            <template #reference>
-              {{ visionStore.objDetectModel.name }}
-            </template>
-            <van-col class="model-container">
-              <van-cell-group inset v-for="key in ObjRecGroup">
-                <template #title>
-                  <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key" />
-                  {{ $t(`cvControl.obj.${key}`) }}
-                </template>
-                <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                  @click="onObjRecModelChanged(model)" v-for="model in visionStore.getModels(key)">
-                  <template #right-icon>
-                    <van-tag plain v-if="visionStore.objDetectModel.name == model.name">使用中</van-tag>
-                    <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
-                  </template>
-                </van-cell>
-              </van-cell-group>
-            </van-col>
-          </van-popover>
+          <pop-selector :models="visionStore.getModels(visionStore.objDetectModel.type)"
+            :label="visionStore.objDetectModel.name" @on-selected="changeModel" />
         </template>
       </van-cell>
 
@@ -90,21 +80,8 @@
           </van-checkbox>
         </template>
         <template #value>
-          <van-popover v-model:show="showOcrModels" :show-arrow="false" placement="bottom-end" overlay>
-            <template #reference>
-              {{ visionStore.ocrModel.name }}
-            </template>
-            <van-col class="model-container" style="height: 140px;">
-              <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                style="margin-left: 4px;" @click="onOcrModelChanged(model)"
-                v-for="model in visionStore.getModels(ModelType.ocr)">
-                <template #right-icon>
-                  <van-tag plain v-if="visionStore.ocrModel.name == model.name">使用中</van-tag>
-                  <span style="color: var(--van-cell-value-color)">{{ model.desc }}</span>
-                </template>
-              </van-cell>
-            </van-col>
-          </van-popover>
+          <pop-selector :models="visionStore.getModels(ModelType.ocr)" :label="visionStore.ocrModel.name" height="140px"
+            @on-selected="changeModel" />
         </template>
       </van-cell>
 
@@ -116,20 +93,8 @@
           </van-checkbox>
         </template>
         <template #value>
-          <van-popover v-model:show="showAnimeModels" :show-arrow="false" placement="bottom-end" overlay>
-            <template #reference>
-              {{ $t(`cvControl.model.${visionStore.animeModel.name}`) }}
-            </template>
-            <van-col class="model-container" style="height: 180px;">
-              <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                style="margin-left: 0px;" @click="onGanModelChanged(model)"
-                v-for="model in visionStore.getModels(ModelType.genImage)">
-                <template #right-icon>
-                  <van-tag plain v-if="visionStore.animeModel.name == model.name">使用中</van-tag>
-                </template>
-              </van-cell>
-            </van-col>
-          </van-popover>
+          <pop-selector :models="visionStore.getModels(ModelType.genImage)" :label="visionStore.animeModel.name"
+            @on-selected="changeModel" />
         </template>
       </van-cell>
 
@@ -145,38 +110,13 @@
           <van-col v-if="visionStore.enableStyleTrans">
             <van-cell title="style">
               <template #value>
-                <van-popover v-model:show="showStyleModels" :show-arrow="false" placement="bottom-end" overlay>
-                  <template #reference>
-                    {{ $t(`cvControl.model.${visionStore.styleModel.name}`) }}
-                  </template>
-                  <van-col class="model-container" style="width: 260px; height: 100px;">
-                    <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                      style="margin-left: 4px;" @click="onStyleModelChanged(model)"
-                      v-for="model in visionStore.getModels(ModelType.style)">
-                      <template #right-icon>
-                        <van-tag plain v-if="visionStore.styleModel.name == model.name">使用中</van-tag>
-                      </template>
-                    </van-cell>
-                  </van-col>
-                </van-popover>
+                <pop-selector :models="visionStore.getModels(ModelType.style)" :label="visionStore.styleModel.name" />
               </template>
             </van-cell>
             <van-cell title="transfer">
               <template #value>
-                <van-popover v-model:show="showTransformModels" :show-arrow="false" placement="bottom-end" overlay>
-                  <template #reference>
-                    {{ $t(`cvControl.model.${visionStore.transModel.name}`) }}
-                  </template>
-                  <van-col class="model-container" style="width: 260px; height: 100px;">
-                    <van-cell center clickable :title="$t(`cvControl.model.${model.name}`)" title-class="van-ellipsis"
-                      style="margin-left: 4px;" @click="onTransModelChanged(model)"
-                      v-for="model in visionStore.getModels(ModelType.transform)">
-                      <template #right-icon>
-                        <van-tag plain v-if="visionStore.transModel.name == model.name">使用中</van-tag>
-                      </template>
-                    </van-cell>
-                  </van-col>
-                </van-popover>
+                <pop-selector :models="visionStore.getModels(ModelType.transform)"
+                  :label="visionStore.transModel.name" />
               </template>
             </van-cell>
 
@@ -192,11 +132,11 @@
         </template>
       </van-cell>
 
-      <van-checkbox shape="square" v-model="visionStore.cvOptions.enableDetect" style="margin: 15px;">
+      <van-checkbox shape="square" v-model="visionStore.cvOpts.enableDetect" style="margin: 15px;">
         Opencv
       </van-checkbox>
-      <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableDetect"
-        style="padding: 0 15px 15px 15px;" v-model="visionStore.cvOptions.detector[0]">
+      <van-radio-group direction="horizontal" :disabled="!visionStore.cvOpts.enableDetect"
+        style="padding: 0 15px 15px 15px;" v-model="visionStore.cvOpts.detector[0]">
         <van-radio name="color">
           {{ $t('cvControl.colorTrack') }}
         </van-radio>
@@ -208,9 +148,9 @@
         </van-radio>
       </van-radio-group>
 
-      <van-col v-if="visionStore.cvOptions.enableDetect">
-        <slider-field label="threshold" v-model:sliderValue="visionStore.cvOptions.detector[1]" />
-        <slider-field label="minArea" :max="31" :step="5" v-model:sliderValue="visionStore.cvOptions.detector[2]" />
+      <van-col v-if="visionStore.cvOpts.enableDetect">
+        <slider-field label="threshold" v-model:sliderValue="visionStore.cvOpts.detector[1]" />
+        <slider-field label="minArea" :max="31" :step="5" v-model:sliderValue="visionStore.cvOpts.detector[2]" />
       </van-col>
 
     </van-cell-group>
@@ -231,7 +171,7 @@
             style="width: 285px;">
             <template #reference>
               <div style="width: 180px;">
-                {{ ColorMaps[visionStore.cvOptions.colorMap] }}
+                {{ ColorMaps[visionStore.cvOpts.colorMap] }}
               </div>
             </template>
             <van-list style="height: 200px; overflow: hidden scroll;">
@@ -248,43 +188,42 @@
       </van-field>
       <van-field :label="$t('cvControl.gray')" type="number" input-align="right">
         <template #input>
-          <van-switch v-model="visionStore.cvOptions.isGray"></van-switch>
+          <van-switch v-model="visionStore.cvOpts.isGray"></van-switch>
         </template>
       </van-field>
       <slider-field :label="$t('cvControl.brightness')" :min="-1" :max="2" :step="0.1"
-        v-model:sliderValue="visionStore.cvOptions.gamma" />
+        v-model:sliderValue="visionStore.cvOpts.gamma" />
 
       <slider-field :label="$t('cvControl.rotate')" :min="-180" :max="180" :step="15"
-        v-model:sliderValue="visionStore.cvOptions.rotate" />
+        v-model:sliderValue="visionStore.cvOpts.rotate" />
     </van-cell-group>
 
     <!-- blur -->
     <van-cell-group inset>
       <template #title>
-        <van-checkbox shape="square" v-model="visionStore.cvOptions.enableBlur">
+        <van-checkbox shape="square" v-model="visionStore.cvOpts.enableBlur">
           {{ $t('cvControl.blur') }}
         </van-checkbox>
       </template>
 
-      <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableBlur"
-        v-model="visionStore.cvOptions.blur[0]" style="padding: 10px 15px;">
+      <van-radio-group direction="horizontal" :disabled="!visionStore.cvOpts.enableBlur"
+        v-model="visionStore.cvOpts.blur[0]" style="padding: 10px 15px;">
         <van-radio :name="idx" v-for="(type, idx) in BlurTypes">
           <van-icon class-prefix="iconfont" :name="`${type}-filter`" />
         </van-radio>
       </van-radio-group>
 
-      <van-col v-if="visionStore.cvOptions.enableBlur">
-        <slider-field label="sizeX" :max="31" v-model:sliderValue="visionStore.cvOptions.blur[1]"
-          v-if="visionStore.cvOptions.blur[0] in [cvBlurType.gaussian, cvBlurType.avg]" />
-        <slider-field label="sizeY" :max="31" v-model:sliderValue="visionStore.cvOptions.blur[2]"
-          v-if="visionStore.cvOptions.blur[0] == cvBlurType.median" />
-        <slider-field label="aperture" :max="31" v-model:sliderValue="visionStore.cvOptions.blur[3]"
-          v-if="visionStore.cvOptions.blur[0] in [cvBlurType.gaussian, cvBlurType.avg]" />
+      <van-col v-if="visionStore.cvOpts.enableBlur">
+        <slider-field label="sizeX" :max="31" v-model:sliderValue="visionStore.cvOpts.blur[1]" v-if="isGaussianOrAvg" />
+        <slider-field label="sizeY" :max="31" v-model:sliderValue="visionStore.cvOpts.blur[2]"
+          v-if="visionStore.cvOpts.blur[0] == cvBlurType.median" />
+        <slider-field label="aperture" :max="31" v-model:sliderValue="visionStore.cvOpts.blur[3]"
+          v-if="isGaussianOrAvg" />
 
-        <van-col v-if="visionStore.cvOptions.blur[0] == cvBlurType.bilateral">
-          <slider-field label="diameter" :max="5" v-model:sliderValue="visionStore.cvOptions.blur[4]" />
-          <slider-field label="color" :min="10" :max="245" v-model:sliderValue="visionStore.cvOptions.blur[5]" />
-          <slider-field label="space" :min="10" :max="255" v-model:sliderValue="visionStore.cvOptions.blur[6]" />
+        <van-col v-if="visionStore.cvOpts.blur[0] == cvBlurType.bilateral">
+          <slider-field label="diameter" :max="5" v-model:sliderValue="visionStore.cvOpts.blur[4]" />
+          <slider-field label="color" :min="10" :max="245" v-model:sliderValue="visionStore.cvOpts.blur[5]" />
+          <slider-field label="space" :min="10" :max="255" v-model:sliderValue="visionStore.cvOpts.blur[6]" />
         </van-col>
       </van-col>
 
@@ -293,28 +232,28 @@
     <!-- sharpness -->
     <van-cell-group inset>
       <template #title>
-        <van-checkbox shape="square" v-model="visionStore.cvOptions.enableSharpen">
+        <van-checkbox shape="square" v-model="visionStore.cvOpts.enableSharpen">
           {{ $t('cvControl.sharpness') }}
         </van-checkbox>
       </template>
-      <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableSharpen"
-        style="padding: 10px 15px;" v-model="visionStore.cvOptions.sharpen[0]">
+      <van-radio-group direction="horizontal" :disabled="!visionStore.cvOpts.enableSharpen" style="padding: 10px 15px;"
+        v-model="visionStore.cvOpts.sharpen[0]">
         <van-radio name="laplace"> laplacian </van-radio>
         <van-radio name="usm"> usm </van-radio>
       </van-radio-group>
-      <van-col v-if="visionStore.cvOptions.sharpen[0] !== 'laplace' && visionStore.cvOptions.enableSharpen">
-        <slider-field label="origin" :max="2" :step="0.1" v-model:sliderValue="visionStore.cvOptions.sharpen[1]" />
+      <van-col v-if="visionStore.cvOpts.sharpen[0] !== 'laplace' && visionStore.cvOpts.enableSharpen">
+        <slider-field label="origin" :max="2" :step="0.1" v-model:sliderValue="visionStore.cvOpts.sharpen[1]" />
         <slider-field label="addon" :min="-2" :max="2" :step="0.1"
-          v-model:sliderValue="visionStore.cvOptions.sharpen[2]" />
+          v-model:sliderValue="visionStore.cvOpts.sharpen[2]" />
       </van-col>
     </van-cell-group>
 
-    <van-col v-show="visionStore.cvOptions.isGray">
+    <van-col v-show="visionStore.cvOpts.isGray">
       <!-- morphological operation -->
       <van-cell-group inset>
         <van-cell center input-align="right" style="scroll-margin-top: 50px;">
           <template #title>
-            <van-checkbox shape="square" v-model="visionStore.cvOptions.enableMorph">
+            <van-checkbox shape="square" v-model="visionStore.cvOpts.enableMorph">
               {{ $t(`cvControl.morph`) }}
             </van-checkbox>
           </template>
@@ -323,12 +262,12 @@
               v-model:show="showMorphOpts" @open="checkPosition">
               <template #reference>
                 <span style="font-size: var(--van-font-size-md)">
-                  {{ $t(`cvControl.morphOpt.${MorphOpts[visionStore.cvOptions.morph[0]]}`) }}
+                  {{ $t(`cvControl.morphOpt.${MorphOpts[visionStore.cvOpts.morph[0]]}`) }}
                 </span>
               </template>
               <van-radio-group direction="vertical"
                 style="height: 110px; padding: 10px 10px 0 10px; overflow: hidden scroll;"
-                v-model="visionStore.cvOptions.morph[0]">
+                v-model="visionStore.cvOpts.morph[0]">
                 <van-radio :name="idx" label-position="right" style="height: 1rem; margin-bottom: 15px;"
                   v-for="(morph, idx) in MorphOpts">
                   <span style="font-size: var(--van-font-size-md)">
@@ -340,21 +279,20 @@
           </template>
         </van-cell>
 
-        <van-field center label="kernelX" input-align="right" type="number" v-model="visionStore.cvOptions.morph[1]" />
-        <van-field center label="kernelY" input-align="right" type="number" v-model="visionStore.cvOptions.morph[2]" />
-        <van-field center label="iterations" input-align="right" type="number"
-          v-model="visionStore.cvOptions.morph[3]" />
+        <van-field center label="kernelX" input-align="right" type="number" v-model="visionStore.cvOpts.morph[1]" />
+        <van-field center label="kernelY" input-align="right" type="number" v-model="visionStore.cvOpts.morph[2]" />
+        <van-field center label="iterations" input-align="right" type="number" v-model="visionStore.cvOpts.morph[3]" />
       </van-cell-group>
 
       <!-- contrast -->
       <van-cell-group inset>
         <template #title>
-          <van-checkbox shape="square" v-model="visionStore.cvOptions.enableContrast">
+          <van-checkbox shape="square" v-model="visionStore.cvOpts.enableContrast">
             {{ $t('cvControl.contrast') }}
           </van-checkbox>
         </template>
-        <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableContrast"
-          style="padding: 10px 15px;" v-model="visionStore.cvOptions.equalization[0]">
+        <van-radio-group direction="horizontal" :disabled="!visionStore.cvOpts.enableContrast"
+          style="padding: 10px 15px;" v-model="visionStore.cvOpts.equalization[0]">
           <van-radio name="equalizeHist" style="font-size: 0.8rem;">
             {{ $t('cvControl.equalizeHist') }}
           </van-radio>
@@ -362,10 +300,10 @@
             {{ $t('cvControl.clahe') }}
           </van-radio>
         </van-radio-group>
-        <van-col v-if="visionStore.cvOptions.equalization[0] == 'clahe' && visionStore.cvOptions.enableContrast">
-          <slider-field label="clip" :max="31" v-model:sliderValue="visionStore.cvOptions.equalization[1]" />
-          <slider-field label="sizeX" :max="31" v-model:sliderValue="visionStore.cvOptions.equalization[2]" />
-          <slider-field label="sizeY" :max="31" v-model:sliderValue="visionStore.cvOptions.equalization[3]" />
+        <van-col v-if="visionStore.cvOpts.equalization[0] == 'clahe' && visionStore.cvOpts.enableContrast">
+          <slider-field label="clip" :max="31" v-model:sliderValue="visionStore.cvOpts.equalization[1]" />
+          <slider-field label="sizeX" :max="31" v-model:sliderValue="visionStore.cvOpts.equalization[2]" />
+          <slider-field label="sizeY" :max="31" v-model:sliderValue="visionStore.cvOpts.equalization[3]" />
         </van-col>
 
       </van-cell-group>
@@ -373,40 +311,38 @@
       <!-- filter -->
       <van-cell-group inset>
         <template #title>
-          <van-checkbox shape="square" v-model="visionStore.cvOptions.enableFilter">
+          <van-checkbox shape="square" v-model="visionStore.cvOpts.enableFilter">
             {{ $t('cvControl.filter') }}
           </van-checkbox>
         </template>
-        <van-radio-group direction="horizontal" :disabled="!visionStore.cvOptions.enableFilter"
-          style="padding: 10px 15px;" v-model="visionStore.cvOptions.filter[0]">
+        <van-radio-group direction="horizontal" :disabled="!visionStore.cvOpts.enableFilter" style="padding: 10px 15px;"
+          v-model="visionStore.cvOpts.filter[0]">
           <van-radio :name="idx" v-for="(item, idx) in FilterTypes">
             {{ $t(`cvControl.filterType.${item}`) }}
           </van-radio>
         </van-radio-group>
 
-        <van-col v-if="visionStore.cvOptions.enableFilter">
-          <slider-field label="dX" :min="0" :max="3" :step="0.1"
-            v-model:sliderValue="visionStore.cvOptions.filter[1]" />
-          <slider-field label="dY" :min="0" :max="3" :step="0.1"
-            v-model:sliderValue="visionStore.cvOptions.filter[2]" />
-          <slider-field label="scale" :max="31" v-model:sliderValue="visionStore.cvOptions.filter[3]" />
-          <slider-field label="size" :max="30" v-model:sliderValue="visionStore.cvOptions.filter[4]"
-            v-if="visionStore.cvOptions.filter[0] !== cvFilterType.scharr" />
+        <van-col v-if="visionStore.cvOpts.enableFilter">
+          <slider-field label="dX" :min="0" :max="3" :step="0.1" v-model:sliderValue="visionStore.cvOpts.filter[1]" />
+          <slider-field label="dY" :min="0" :max="3" :step="0.1" v-model:sliderValue="visionStore.cvOpts.filter[2]" />
+          <slider-field label="scale" :max="31" v-model:sliderValue="visionStore.cvOpts.filter[3]" />
+          <slider-field label="size" :max="30" v-model:sliderValue="visionStore.cvOpts.filter[4]"
+            v-if="visionStore.cvOpts.filter[0] !== cvFilterType.scharr" />
         </van-col>
 
       </van-cell-group>
 
       <van-cell-group inset :title="$t('cvControl.featExtract')">
-        <van-cell center :title="$t('cvControl.canny')" :label="'[ ' + visionStore.cvOptions.canny.toString() + ' ]'">
+        <van-cell center :title="$t('cvControl.canny')" :label="'[ ' + visionStore.cvOpts.canny.toString() + ' ]'">
           <template #title>
-            <van-checkbox shape="square" v-model="visionStore.cvOptions.enableCanny">
+            <van-checkbox shape="square" v-model="visionStore.cvOpts.enableCanny">
               <span>canny</span>
               <span class="param-desc">{{ $t('cvControl.cannyDesc') }}</span>
             </van-checkbox>
           </template>
           <template #right-icon>
             <van-slider range :max="160" :min="60" bar-height="4px" button-size="1.2rem" style="width: 60%;"
-              :disabled="!visionStore.cvOptions.enableCanny" v-model="visionStore.cvOptions.canny">
+              :disabled="!visionStore.cvOpts.enableCanny" v-model="visionStore.cvOpts.canny">
             </van-slider>
           </template>
         </van-cell>
@@ -428,30 +364,27 @@
 </template>
 <script lang="ts" setup>
 
-import { CommonStore, VisionStore } from '@renderer/store'
+import { VisionStore } from '@renderer/store'
 import { cvBlurType, cvFilterType, ModelEngine, ModelInfo, ModelType } from '@shared/index'
 import { UploaderFileListItem } from 'vant'
-import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
+import PopSelector from '../components/PopSelector.vue'
 import SliderField from '../components/SliderField.vue'
 
 const i18n = useI18n()
+const visionStore = VisionStore()
 
 const IntergrateModes = [
   { name: 'wasm', color: '#8e44ad' },
   { name: 'nodejs', color: '#2ecc71' },
 ]
 const ModelEngines = [
-  { name: 'onnx', color: '##95a5a6', value: ModelEngine.onnx },
+  { name: 'onnx', color: '#95a5a6', value: ModelEngine.onnx },
   { name: 'tensorflow', color: '#e67e22', value: ModelEngine.tensorflow }
 ]
 
-const showObjRecModels = ref(false)
 const ObjRecGroup = [ModelType.detect, ModelType.segment]
-const showAnimeModels = ref(false)
-const showOcrModels = ref(false)
-const showStyleModels = ref(false)
-const showTransformModels = ref(false)
 
 const styleFile = ref()
 
@@ -464,55 +397,41 @@ const ColorMaps = [
   'SPRING', 'COOL', 'HSV', 'PINK', 'HOT', 'PARULA', 'MAGMA',
   'INFERNO', 'PLASMA', 'VIRIDIS', 'CIVIDIS', 'TWILIGHT', 'TWILIGHT_SHIFTED', 'TURBO', 'DEEPGREEN'
 ]
-
 const BlurTypes = ['gaussian', 'avg', 'median', 'bilateral']
 const FilterTypes = ['sobel', 'laplace', 'scharr']
 
-const visionStore = VisionStore()
-const commonStore = CommonStore()
-const isWeb = window.isWeb
-
 const colorMapAnchor = useTemplateRef('colorMapAnchor')
-const modelName = ref<string>()
+
+const isGaussianOrAvg = computed(() => [cvBlurType.gaussian, cvBlurType.avg].includes(visionStore.cvOpts.blur[0]))
 
 
-watch(() => commonStore.inited, async () => {
-  if (!commonStore.inited) return
+onMounted(async () => {
   await visionStore.getAllModels()
 })
 
-onMounted(async () => {
-})
-
 function checkPosition() {
-  colorMapAnchor.value.$el.scrollIntoView({
-    behavior: 'smooth',
-  })
+  colorMapAnchor.value.$el.scrollIntoView({ behavior: 'smooth', })
+}
+function onObjRecTypeChanged(type: ModelType) {
+  changeModel(visionStore.getModels(type)[0])
 }
 
-function onObjRecModelChanged(model: Partial<ModelInfo>) {
-  visionStore.objDetectModel = Object.assign(model, { engine: visionStore.modelEngine },)
-  showObjRecModels.value = false
-}
-
-function onGanModelChanged(model: Partial<ModelInfo>) {
-  visionStore.animeModel = model
-  showAnimeModels.value = false
-}
-
-function onOcrModelChanged(model: Partial<ModelInfo>) {
-  visionStore.ocrModel = model
-  showOcrModels.value = false
-}
-
-function onStyleModelChanged(model: Partial<ModelInfo>) {
-  visionStore.styleModel = model
-  showStyleModels.value = false
+function changeModel(model: Partial<ModelInfo>) {
+  switch (model.type) {
+    case ModelType.detect:
+    case ModelType.segment:
+      visionStore.objDetectModel = Object.assign({}, model, { engine: visionStore.modelEngine })
+      break
+    case ModelType.genImage:
+      visionStore.animeModel = Object.assign({}, model, { engine: visionStore.modelEngine })
+      break
+    case ModelType.ocr:
+      visionStore.ocrModel = Object.assign({}, model, { engine: visionStore.modelEngine })
+      break
+  }
 }
 
 function onStyleFileUpload(item: UploaderFileListItem) {
-  console.log(item)
-
   let img = new Image()
   img.onload = (e) => {
     if (img == null) return
@@ -528,11 +447,10 @@ function onStyleFileUpload(item: UploaderFileListItem) {
 
 function onTransModelChanged(model: Partial<ModelInfo>) {
   visionStore.transModel = model
-  showTransformModels.value = false
 }
 
 function onColorMapChanged(idx: number) {
-  visionStore.cvOptions.colorMap = idx
+  visionStore.cvOpts.colorMap = idx
   showColorMaps.value = false
 }
 

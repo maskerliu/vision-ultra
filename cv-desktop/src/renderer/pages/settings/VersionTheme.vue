@@ -123,10 +123,9 @@ watch(downloadProgress, () => {
 })
 
 function onSelectLang(_lang: string) {
-  commonStore.lang = _lang
+  commonStore.updateLang(_lang)
   showLangs.value = false
   i18n.locale.value = _lang
-  window.localStorage.setItem('lang', _lang)
 }
 
 async function onVersionCheck() {

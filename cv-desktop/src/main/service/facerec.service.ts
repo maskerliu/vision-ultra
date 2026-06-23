@@ -41,10 +41,11 @@ export class FaceRecService {
     let dstPath = path.join(USER_DATA_DIR, 'static/face', fileName)
     await fse.ensureDir(path.dirname(dstPath))
     await fse.move(avatar.filepath, dstPath)
+
     let result = await this.faceRepo.insert(name, arr, fileName)
     if (result !== 'insert success') {
       // 如果数据库插入失败，清理已保存的图片文件
-      await fse.remove(dstPath).catch(() => {})
+      await fse.remove(dstPath).catch(() => { })
       throw result
     }
     return result

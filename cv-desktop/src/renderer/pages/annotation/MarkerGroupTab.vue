@@ -42,7 +42,7 @@
     </van-collapse>
   </van-tab>
 </template>
-<script setup lang="ts">
+<script lang="ts" setup>
 
 import { AnnotationManager, CVLabel, DrawType } from '@renderer/common'
 import * as fabric from 'fabric'

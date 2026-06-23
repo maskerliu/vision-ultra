@@ -69,7 +69,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 
 import { AIStore } from '@renderer/store'
 import { showConfirmDialog } from 'vant'

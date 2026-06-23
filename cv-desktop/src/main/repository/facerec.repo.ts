@@ -1,5 +1,5 @@
 import * as lancedb from '@lancedb/lancedb'
-import { Field, FixedSizeList, Float16, Int64, Schema, Utf8 } from 'apache-arrow'
+import { Field, FixedSizeList, Float32, Int64, Schema, Utf8 } from 'apache-arrow'
 import { injectable } from "inversify"
 import path from 'path'
 import "reflect-metadata"
@@ -15,12 +15,12 @@ export class FaceRecRepo {
 
   constructor() {
     // 478个关键点，每个点2维坐标（x, y）→ 956维向量
-    // 使用 FixedSizeList(956, Float16) 存储展平后的向量
+    // 使用 FixedSizeList(956, Float32) 存储展平后的向量
     this._schema = new Schema([
       new Field('name', new Utf8(), false),
       new Field('snap', new Utf8(), false),
       new Field('timestamp', new Int64(), false),
-      new Field('vector', new FixedSizeList(956, new Field('item', new Float16(), true)), false)
+      new Field('vector', new FixedSizeList(956, new Field('item', new Float32(), true)), false)
     ])
   }
 

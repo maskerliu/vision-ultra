@@ -133,7 +133,7 @@
     "tone": "^15.1.22",
     "ts-loader": "^9.5.4",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "uglify-js": "^3.19.3",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-vue-components": "^32.1.0",

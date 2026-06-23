@@ -103,8 +103,9 @@ export const CommonStore = defineStore('Common', {
       // here just mock a device to send a fake monitor data for test
 
     },
-    updateLang() {
-      window.localStorage.setItem('lang', this.lang)
+    updateLang(lang: string) {
+      this.lang = lang
+      window.localStorage.setItem('lang', lang)
     },
     updateTheme() {
       window.localStorage.setItem('theme', this.theme)

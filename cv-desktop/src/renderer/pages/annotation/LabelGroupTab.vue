@@ -53,7 +53,7 @@
     </van-collapse>
   </van-tab>
 </template>
-<script setup lang="ts">
+<script lang="ts" setup>
 
 import { AnnotationManager, CVLabel, Def_Object_Labels, MARK_COLORS } from '@renderer/common'
 import { UploaderFileListItem } from 'vant'

@@ -11,8 +11,10 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
+
 import { AIStore } from '@renderer/store'
+import 'deep-chat'
 import { computed, onMounted, ref, watch } from 'vue'
 
 const aiStore = AIStore()
@@ -120,7 +122,7 @@ const customButtonConfig = computed(() => [
           container: {
             default: {
               border: '1px solid #e5e8eb',
-              borderRadius: '20px',
+              borderRadius: '15px',
               padding: '4px 12px',
               margin: '0 0 0 35px',
               fontSize: '13px',
@@ -128,6 +130,27 @@ const customButtonConfig = computed(() => [
           },
           text: {
             content: aiStore.model,
+          },
+        },
+      },
+    },
+  },
+  {
+    position: 'inside-start' as const,
+    styles: {
+      button: {
+        default: {
+          container: {
+            default: {
+              border: '1px solid #e5e8eb',
+              borderRadius: '15px',
+              padding: '4px 12px',
+              margin: '0 0 0 155px',
+              fontSize: '13px',
+            },
+          },
+          text: {
+            content: '智能搜索',
           },
         },
       },
@@ -197,10 +220,7 @@ onMounted(() => {
 })
 
 watch(() => aiStore.activeSessionId, (id) => {
-  if (id) {
-    const session = aiStore.sessions.find((s) => s.id === id)
-    localHistory.value = session?.history || []
-  }
+  localHistory.value = aiStore.activeSession?.history || []
 })
 
 // 将 deep-chat 内部消息同步回 store（handler 返回后延迟执行）

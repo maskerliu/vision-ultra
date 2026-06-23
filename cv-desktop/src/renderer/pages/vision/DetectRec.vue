@@ -255,7 +255,7 @@ async function initProcessorMgr(force: boolean = true, anyway = true) {
     processorMgr.updateSize(previewSize.value[0], previewSize.value[1])
   }
 
-  let options = JSON.stringify(visionStore.cvOptions.value)
+  let options = JSON.stringify(visionStore.cvOpts.value)
   await processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, { options }, anyway)
 
   let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
@@ -379,11 +379,11 @@ watch(() => visionStore.enableCV, async () => {
 })
 
 watch(
-  () => visionStore.cvOptions,
+  () => visionStore.cvOpts,
   () => {
     processorMgr?.postMessage(ProcessorType.cvProcess, {
       cmd: ProcessorCMD.updateOptions,
-      options: JSON.stringify(visionStore.cvOptions.value)
+      options: JSON.stringify(visionStore.cvOpts.value)
     })
 
     if (processorMgr?.origin) {

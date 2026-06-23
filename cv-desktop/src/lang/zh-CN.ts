@@ -1,6 +1,8 @@
 
 export default {
   common: {
+    warning: '警告',
+    confirm: '确认',
     done: '确定',
     cancel: '取消',
     delete: '删除',

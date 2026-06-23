@@ -39,6 +39,7 @@ import { useRouter } from 'vue-router'
 const isWeb = window.isWeb
 const commonStore = CommonStore()
 const i18n = useI18n()
+const router = useRouter()
 const canRender = ref(false)
 const active = ref<number>(0)
 const enableDebug = true
@@ -67,20 +68,25 @@ onMounted(async () => {
   if (window.mainApi) {
     window.mainApi?.getBizConfig(async (result) => {
       await commonStore.init(result)
+      i18n.locale.value = commonStore.lang
+      window.mainApi?.setAppTheme(commonStore.theme)
+      canRender.value = true
+      router.replace("/visionHome")
+      active.value = 1
     })
   } else {
     await commonStore.init()
+    i18n.locale.value = commonStore.lang
+    window.mainApi?.setAppTheme(commonStore.theme)
+    canRender.value = true
+    router.replace("/visionHome")
+    active.value = 1
   }
-
-  i18n.locale.value = commonStore.lang
-  window.mainApi?.setAppTheme(commonStore.theme)
-
-  canRender.value = true
-
-  useRouter().replace("/visionHome")
-  active.value = 1
-
 })
+
+// watch(() => canRender.value, () => {
+//   router.replace("/visionHome")
+// })
 
 function onOpenDebugPanel() {
   commonStore.showDebugPanel = true
