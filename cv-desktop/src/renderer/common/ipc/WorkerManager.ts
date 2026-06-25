@@ -15,7 +15,7 @@ export class WorkerManager extends ProcessorManager {
         processor = new Worker(new URL('./CVProcess.worker', import.meta.url))
         break
       case ProcessorType.objTrack:
-        processor = new Worker(new URL('./ObjTrack.worker', import.meta.url))
+        processor = new Worker(new URL('./ObjRecognize.worker', import.meta.url))
         break
       case ProcessorType.faceDetect:
         processor = new Worker(new URL('./FaceDetect.worker', import.meta.url))
@@ -121,6 +121,14 @@ export class WorkerManager extends ProcessorManager {
         }
 
         if (event.data.tface) this._live2dPanel?.animateLive2DModel(event.data.tface)
+
+        // 人脸有效时触发比对识别（节流控制在 faceRecognize 内部）
+        if (this._face?.valid && this._face?.landmarks?.length > 0) {
+          this.faceRecognize()
+        } else if (!this._face?.valid) {
+          // 人脸无效/消失时清空识别结果
+          this.clearRecognizeResult()
+        }
         break
     }
   }

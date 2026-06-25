@@ -34,8 +34,8 @@ export class FaceRecService {
     for (let i = 0; i < eigen.length; i++) {
       arr[i] = eigen[i] / 1000000000.0
     }
-    if (eigen.length != 478 * 2) {
-      throw 'vector length error'
+    if (eigen.length != 100) {
+      throw 'vector length error: expected 100, got ' + eigen.length
     }
     let fileName = `${avatar.newFilename}${path.extname(avatar.originalFilename)}`
     let dstPath = path.join(USER_DATA_DIR, 'static/face', fileName)
@@ -65,15 +65,16 @@ export class FaceRecService {
     for (let i = 0; i < vector.length; i++) {
       arr[i] = vector[i] / 1000000000.0
     }
+    console.log('[recognize] vector length:', arr.length, 'sample:', arr.slice(0, 5))
     let result = await this.faceRepo.search(null, arr)
+    console.log('[recognize] lancedb result count:', result.length)
     if (result.length > 0) {
-      // cosine distance -> similarity percentage (0~2 -> 0%~100%)
       let distance = result[0]._distance ?? 0
       let similarity = Math.max(0, Math.min(1, 1 - distance / 2))
+      console.log('[recognize] best match:', result[0].name, 'distance:', distance, 'similarity:', Math.round(similarity * 100) + '%')
       return {
         id: result[0]._rowid.toString(),
         name: result[0].name,
-        snap: `/_res/face/${result[0].snap}`,
         similarity: Math.round(similarity * 100),
         timestamp: result[0].timestamp.toString()
       }

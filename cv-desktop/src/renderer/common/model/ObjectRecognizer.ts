@@ -9,7 +9,7 @@ const ModelClassSize = {
   'deeplab': 151
 }
 
-export class ObjectTracker extends ModelRunner {
+export class ObjectRecognizer extends ModelRunner {
   private _model: Model = new Model()
 
   public objNum: number = 0

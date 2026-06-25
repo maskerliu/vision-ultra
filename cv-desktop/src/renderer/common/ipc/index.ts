@@ -1,4 +1,4 @@
 export { BackendManager } from './BackendManager'
-export { DrawMode, ProcessorManager, ProcessorStatus, ProcessorType } from './ProcessorManager'
+export { DrawMode, ProcessorManager, ProcessorStatus, ProcessorType, RecognizeResult } from './ProcessorManager'
 export { WorkerManager } from './WorkerManager'
 

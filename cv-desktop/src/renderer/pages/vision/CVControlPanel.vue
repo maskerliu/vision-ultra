@@ -26,21 +26,19 @@
       <van-cell center>
         <template #title>
           <van-row>
-            <van-checkbox shape="square" v-model="visionStore.enableObjDetect" style="margin-right: 7px;">
-            </van-checkbox>
+            <van-checkbox shape="square" v-model="visionStore.enableObjRec" style="margin-right: 7px;" />
 
-            <van-radio-group :disabled="!visionStore.enableObjDetect" v-model="visionStore.objDetectModel.type"
+            <van-radio-group :disabled="!visionStore.enableObjRec" v-model="visionStore.objRecModel.type"
               direction="horizontal" @change="onObjRecTypeChanged">
               <van-radio :name="key" v-for="key in ObjRecGroup">
                 <van-icon class-prefix="iconfont" style="color: #2980b9;" :name="key" />
-                <!-- {{ $t(`cvControl.obj.${key}`) }} -->
               </van-radio>
             </van-radio-group>
           </van-row>
         </template>
         <template #value>
-          <pop-selector :models="visionStore.getModels(visionStore.objDetectModel.type)"
-            :label="visionStore.objDetectModel.name" @on-selected="changeModel" />
+          <pop-selector :models="visionStore.getModels(visionStore.objRecModel.type)"
+            :label="visionStore.objRecModel.name" @on-selected="changeModel" />
         </template>
       </van-cell>
 
@@ -59,6 +57,9 @@
 
             <van-checkbox v-model="visionStore.drawFaceMesh" style="margin-left: 15px;">
               <van-icon class-prefix="iconfont" name="face-mesh" />
+            </van-checkbox>
+            <van-checkbox v-model="visionStore.faceRec" style="margin-left: 15px;">
+              <van-icon class-prefix="iconfont" name="shenfen" />
             </van-checkbox>
 
             <van-checkbox v-model="visionStore.live2d" style="margin-left: 15px;">
@@ -420,7 +421,7 @@ function changeModel(model: Partial<ModelInfo>) {
   switch (model.type) {
     case ModelType.detect:
     case ModelType.segment:
-      visionStore.objDetectModel = Object.assign({}, model, { engine: visionStore.modelEngine })
+      visionStore.objRecModel = Object.assign({}, model, { engine: visionStore.modelEngine })
       break
     case ModelType.genImage:
       visionStore.animeModel = Object.assign({}, model, { engine: visionStore.modelEngine })

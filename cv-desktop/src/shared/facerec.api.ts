@@ -31,7 +31,7 @@ export namespace FaceRec {
       data[i] = vector[i] * 1000000000
     }
     formData.append('eigen', new File([data], 'eigen', { type: 'application/octet-stream' }))
-    return formPost<{ id: string, name: string, snap: string, similarity: number, timestamp: string }>(`${Api.FaceRec}${Api.F_Recognize}`, null, {}, formData)
+    return formPost<{ id: string, name: string, similarity: number, timestamp: string }>(`${Api.FaceRec}${Api.F_Recognize}`, null, {}, formData)
   }
 
   export function deleteFace(eigenIds: Array<string>) {

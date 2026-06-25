@@ -34,7 +34,18 @@
         </template>
       </van-button>
 
-      <van-image fit="cover" radius="6" class="top-btn" :src="recFace" show-loading />
+      <!-- 识别结果展示（顶部栏） -->
+      <div class="rec-top-bar" v-if="visionStore.enableFaceDetect && visionStore.faceRec">
+        <template v-if="recognizeResult">
+          <span class="rec-top-name">{{ recognizeResult.name }}</span>
+          <span class="rec-top-sim" :style="{ color: similarityColor(recognizeResult.similarity) }">
+            {{ recognizeResult.similarity }}%
+          </span>
+        </template>
+        <template v-else>
+          <span class="rec-top-pending">未识别</span>
+        </template>
+      </div>
 
     </van-row>
 
@@ -42,7 +53,6 @@
       <transition name="fade">
         <annotation-panel ref="annotationPanel" v-show="showAnnotationPanel" :canvas-size="previewSize" />
       </transition>
-      <!-- <van-empty v-show="hasPreview" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 2000;" /> -->
       <canvas ref="preview"></canvas>
       <canvas ref="mask" style="display: none; position: absolute; top: 50px; left: 50px;"></canvas>
       <video ref="video" slot="media" autoplay style="display: none;"></video>
@@ -82,7 +92,7 @@
       <van-row style="padding: 10px 5px 5px 15px;">
         <van-tag plain closeable size="large" v-for="(value, idx) in visionStore.liveStreamHistories"
           style="margin: 0 10px 10px 0; max-width: calc(50% - 30px);" @close="onDeleteHistory(idx)">
-          <div style="max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <div class="van-ellipsis">
             {{ value }}
           </div>
         </van-tag>
@@ -94,7 +104,7 @@
 
 import {
   BackendManager, DrawMode, ProcessorManager,
-  ProcessorStatus, ProcessorType, VideoPlayer, WorkerManager
+  ProcessorStatus, ProcessorType, RecognizeResult, VideoPlayer, WorkerManager
 } from '@renderer/common'
 import { VisionStore } from '@renderer/store'
 import { IntergrateMode, ProcessorCMD } from '@shared/index'
@@ -121,11 +131,11 @@ const showNameInputDialog = ref(false)
 const showLiveStreamInput = ref(false)
 const eigenName = ref('')
 const liveStreamUrl = ref(`https://scpull05.scjtonline.cn/scgro5/68A0ED86C9D221420010BAA2B1F7EC64.m3u8`)
-const showControlBar = ref(false)
-const recFace = ref<string>()
-const isEigenNameValid = ref(true)
+  const showControlBar = ref(false)
+  const isEigenNameValid = ref(true)
+  const recognizeResult = ref<RecognizeResult | null>(null)
 
-const showLoading = inject<Ref<boolean>>('showLoading')
+  const showLoading = inject<Ref<boolean>>('showLoading')
 
 let previewCtx: CanvasRenderingContext2D
 let offscreen: OffscreenCanvas
@@ -145,13 +155,26 @@ const workerStatus = ref<ProcessorStatus>({
 
 let img: HTMLImageElement = null
 
-const onResize = () => {
-  console.log(previewParent.value?.$el?.clientWidth, previewParent.value?.$el?.clientHeight)
+/** 根据相似度返回颜色 */
+function similarityColor(similarity: number) {
+  if (similarity >= 80) return '#27ae60'
+  if (similarity >= 60) return '#f39c12'
+  return '#e74c3c'
+}
+
+/** 识别开关变化回调 */
+function onRecognizeChange(checked: boolean) {
+  if (processorMgr) {
+    processorMgr.enableRecognize = checked
+  }
+  if (!checked) {
+    processorMgr?.clearRecognizeResult()
+    recognizeResult.value = null
+  }
 }
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => { videoPlayer?.close() })
-  window.addEventListener('resize', onResize)
 
   previewCtx = preview.value.getContext('2d', { willReadFrequently: true })
   previewCtx.imageSmoothingEnabled = false
@@ -170,7 +193,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', onResize)
+  console.log('DetectRec unmounted')
 })
 
 async function onLiveStream() {
@@ -253,13 +276,21 @@ async function initProcessorMgr(force: boolean = true, anyway = true) {
     processorMgr.annotationPanel = annotationPanel.value
     processorMgr.live2dPanel = live2dPanel.value
     processorMgr.updateSize(previewSize.value[0], previewSize.value[1])
+
+    // 绑定识别结果回调
+    processorMgr.onRecognizeResult = (result) => {
+      if (visionStore.faceRec) {
+        recognizeResult.value = result
+      }
+    }
+    processorMgr.enableRecognize = visionStore.faceRec
   }
 
   let options = JSON.stringify(visionStore.cvOpts.value)
   await processorMgr.setParam(ProcessorType.cvProcess, visionStore.enableCV, { options }, anyway)
 
-  let model = JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
-  await processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjDetect, { model }, anyway)
+  let model = JSON.stringify(Object.assign(visionStore.objRecModel, { engine: visionStore.modelEngine }))
+  await processorMgr.setParam(ProcessorType.objTrack, visionStore.enableObjRec, { model }, anyway)
 
   await processorMgr.setParam(ProcessorType.faceDetect, visionStore.enableFaceDetect)
 
@@ -297,8 +328,13 @@ watch(
 )
 
 watch(
+  () => visionStore.faceRec,
+  (checked) => { onRecognizeChange(checked) }
+)
+
+watch(
   [
-    () => visionStore.enableObjDetect,
+    () => visionStore.enableObjRec,
     () => visionStore.enableFaceDetect,
     () => visionStore.enableAnime,
     () => visionStore.enableOCR,
@@ -307,14 +343,20 @@ watch(
   ],
   async () => {
     initProcessorMgr(false, false)
-    if (!visionStore.enableFaceDetect) visionStore.live2d = false
+    if (!visionStore.enableFaceDetect) {
+      visionStore.live2d = false
+      // 关闭人脸检测时清空识别结果
+      visionStore.faceRec = false
+      recognizeResult.value = null
+      if (processorMgr) processorMgr.enableRecognize = false
+    }
   }
 )
 
-watch(() => visionStore.objDetectModel, async () => {
+watch(() => visionStore.objRecModel, async () => {
   processorMgr?.postMessage(ProcessorType.objTrack, {
     cmd: ProcessorCMD.init,
-    model: JSON.stringify(Object.assign(visionStore.objDetectModel, { engine: visionStore.modelEngine }))
+    model: JSON.stringify(Object.assign(visionStore.objRecModel, { engine: visionStore.modelEngine }))
   })
 })
 
@@ -437,5 +479,53 @@ watch(
   border: 1px solid #f1f2f6d8;
   background-color: #2f3542;
   z-index: 2000;
+}
+
+/* 顶部栏识别结果 */
+.rec-checkbox {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  margin: 2px;
+  -webkit-app-region: no-drag;
+  z-index: 100;
+}
+
+.rec-top-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 4px;
+  padding: 0 8px 2px 8px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  -webkit-app-region: no-drag;
+  z-index: 100;
+  max-width: 160px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.rec-top-name {
+  color: var(--van-text-color);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+
+.rec-top-sim {
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.rec-top-pending {
+  color: var(--van-text-color);
+  font-size: 11px;
+  margin-left: 4px;
 }
 </style>

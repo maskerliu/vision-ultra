@@ -78,13 +78,14 @@ export const VisionStore = defineStore('VisionStore', {
       intergrateMode: IntergrateMode.wasm,
       modelEngine: ModelEngine.onnx,
 
-      enableObjDetect: false,
-      objDetectModel: { name: 'yolo26s-seg', type: ModelType.segment, engine: ModelEngine.tensorflow } as Partial<ModelInfo>,
+      enableObjRec: false,
+      objRecModel: { name: 'yolo26s-seg', type: ModelType.segment, engine: ModelEngine.tensorflow } as Partial<ModelInfo>,
       genContour: false,
 
       enableFaceDetect: false,
       drawFaceMesh: true,
       drawEigen: true,
+      faceRec: true,
       landmark: false,
       live2d: false,
 

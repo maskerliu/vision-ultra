@@ -14,13 +14,12 @@ export class FaceRecRepo {
   private _inited: boolean = false
 
   constructor() {
-    // 478个关键点，每个点2维坐标（x, y）→ 956维向量
-    // 使用 FixedSizeList(956, Float32) 存储展平后的向量
+    // 几何距离特征向量：100 维（18 个比例 + 36 轮廓点×2 + 5 对称对×2）
     this._schema = new Schema([
       new Field('name', new Utf8(), false),
       new Field('snap', new Utf8(), false),
       new Field('timestamp', new Int64(), false),
-      new Field('vector', new FixedSizeList(956, new Field('item', new Float32(), true)), false)
+      new Field('vector', new FixedSizeList(100, new Field('item', new Float32(), true)), false)
     ])
   }
 
@@ -31,11 +30,36 @@ export class FaceRecRepo {
     let tables = await this._faceDB.tableNames()
     if (tables.indexOf('face') > -1) {
       this._faceTable = await this._faceDB.openTable('face')
+      // 检查向量维度是否匹配当前 schema（100 维），不匹配则删除重建
+      try {
+        let schema = await this._faceTable.schema()
+        let vectorField = schema.fields.find(f => f.name === 'vector')
+        let listSize = (vectorField?.type as any)?.listSize
+        if (listSize != null && listSize !== 100) {
+          console.log(`face table vector dimension mismatch: ${listSize} != 100, dropping old table`)
+          await this._faceDB.dropTable('face')
+          this._faceTable = await this._faceDB.createEmptyTable('face', this._schema)
+        }
+      } catch (err) {
+        console.log('schema check error', err)
+      }
+      // 小数据量下 IVF PQ 索引会导致近似搜索不准确，删除已有的向量索引
+      try {
+        let indices = await this._faceTable.listIndices()
+        for (let idx of indices) {
+          if (idx.columns.includes('vector') && idx.indexType.toLowerCase().includes('ivf')) {
+            console.log('dropping vector index:', idx.name)
+            await this._faceTable.dropIndex(idx.name)
+          }
+        }
+      } catch (err) {
+        console.log('check/drop vector index error', err)
+      }
     } else {
       this._faceTable = await this._faceDB.createEmptyTable('face', this._schema)
     }
 
-    // 确保标量索引存在（name 字段）用于按名过滤
+    // 标量索引用于按名过滤，向量索引暂不创建（数据量小，暴力搜索更精确）
     try {
       let nameIdxStats = await this._faceTable.indexStats('name_idx')
       if (nameIdxStats == null) {
@@ -45,17 +69,8 @@ export class FaceRecRepo {
       console.log('name index check/create', err)
     }
 
-    // 确保向量索引存在（vector 字段）用于相似度搜索
-    try {
-      let vecIdxStats = await this._faceTable.indexStats('vector_idx')
-      if (vecIdxStats == null) {
-        await this._faceTable.createIndex('vector', {
-          config: lancedb.Index.ivfPq({ numPartitions: 2, distanceType: "cosine" })
-        })
-      }
-    } catch (err) {
-      console.log('vector index check/create', err)
-    }
+    // 对于小数据量（< 1000条），不创建 IVF PQ 索引，LanceDB 会自动使用暴力搜索（KNN）
+    // 如需创建索引，请确保 numPartitions >= 数据量 / 10
 
     console.log('face repo init')
     this._inited = true
@@ -116,10 +131,12 @@ export class FaceRecRepo {
     }
 
     // 向量相似度搜索（使用 query().nearestTo() 替代旧版 search API）
+    // refineFactor(1) 确保获取精确距离，避免量化误差
     let results = await this._faceTable.query()
       .nearestTo(Array.from(vector))
       .column('vector')
       .distanceType('cosine')
+      .refineFactor(1)
       .limit(5)
       .select(['_rowid', 'name', 'snap', 'timestamp', '_distance'])
       .toArray()

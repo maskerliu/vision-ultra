@@ -7,6 +7,16 @@ import {
 import { showNotify } from 'vant'
 import { CVLabel, MarkColors, } from '..'
 import { drawTFFaceResult, FACE_DIMS, getFaceContour } from '../DrawUtils'
+import { extractEigenFeatures } from '..'
+
+/** 识别结果缓存类型 */
+export type RecognizeResult = {
+  id: string
+  name: string
+  similarity: number // 相似度 0~100
+  timestamp: string
+  recognizedAt: number // 本次识别时刻（Date.now()）
+}
 
 
 export enum DrawMode { video, image }
@@ -24,6 +34,11 @@ export type ProcessorStatus = {
   showProcess: boolean,
   error?: string
 }
+
+/** 识别节流间隔（ms）：视频模式下每隔此时间执行一次识别 */
+const RECOGNIZE_INTERVAL_MS = 1500
+/** 最低相似度阈值：低于此值不显示识别结果（人脸特征点比对，适当放宽） */
+const RECOGNIZE_THRESHOLD = 35
 
 const dpr = window.devicePixelRatio || 1
 
@@ -82,6 +97,25 @@ export abstract class ProcessorManager {
   set live2dPanel(val: any) { this._live2dPanel = val }
 
   protected _frames = 1
+
+  /** 上一次识别请求的时间戳（节流控制）*/
+  protected _lastRecognizeAt = 0
+  /** 是否正在识别中（防止重复并发请求）*/
+  protected _isRecognizing = false
+  /** 上一次成功识别的结果 */
+  protected _recognizeResult: RecognizeResult | null = null
+  /** 识别结果回调（供 Vue 组件监听）*/
+  onRecognizeResult: ((result: RecognizeResult | null) => void) | null = null
+  /** 是否启用实时识别（由 UI 控制）*/
+  protected _enableRecognize = false
+  set enableRecognize(val: boolean) {
+    this._enableRecognize = val
+    if (!val) {
+      this._recognizeResult = null
+      this.onRecognizeResult?.(null)
+    }
+  }
+  get enableRecognize() { return this._enableRecognize }
 
   constructor(previewCtx: CanvasRenderingContext2D,
     offscreenCtx: OffscreenCanvasRenderingContext2D,
@@ -325,6 +359,7 @@ export abstract class ProcessorManager {
     this.previewCtx.restore()
   }
 
+  /** 人脸采集：提取当前帧几何特征向量，截取头像后注册到 LanceDB */
   async faceCapture(name: string) {
     if (this.face == null || !this.face.valid || this.face.landmarks == null || this.face.landmarks.length == 0) {
       showNotify({ type: 'warning', message: '未检测到有效人脸...', duration: 500 })
@@ -374,12 +409,74 @@ export abstract class ProcessorManager {
     }
 
     try {
-      await FaceRec.registe(name, this.face.landmarks, new File([blob], 'avatar.png', { type: 'image/png' }))
+      // 提取几何距离特征向量（100维），替代原始1404+维原始坐标
+      const eigenVector = extractEigenFeatures(this.face.landmarks)
+      console.log('[faceCapture] eigen features length:', eigenVector.length, 'sample:', eigenVector.slice(0, 8))
+      await FaceRec.registe(name, eigenVector, new File([blob], 'avatar.png', { type: 'image/png' }))
       showNotify({ type: 'success', message: '人脸采集成功', duration: 500 })
     } catch (err) {
       console.error(err)
       showNotify({ type: 'warning', message: '保存失败', duration: 500 })
     }
+  }
+
+  /**
+   * 人脸识别：提取当前帧人脸特征向量，与 LanceDB 数据库进行相似度搜索
+   * 支持节流控制，视频流下每 RECOGNIZE_INTERVAL_MS 毫秒最多触发一次
+   */
+  async faceRecognize() {
+    if (!this._enableRecognize || this.face == null || !this.face.valid || this.face.landmarks == null || this.face.landmarks.length == 0) {
+      return
+    }
+
+    const now = Date.now()
+    if (this._isRecognizing || now - this._lastRecognizeAt < RECOGNIZE_INTERVAL_MS) {
+      return
+    }
+
+    this._isRecognizing = true
+    this._lastRecognizeAt = now
+
+    try {
+      // 提取几何距离特征向量（100维），替代原始1404+维原始坐标
+      const eigenVector = extractEigenFeatures(this.face.landmarks)
+      console.log('[faceRecognize] eigen features length:', eigenVector.length, 'sample:', eigenVector.slice(0, 8))
+      const result = await FaceRec.recognize(eigenVector)
+      // 如果识别过程中被关闭了，丢弃结果
+      if (!this._enableRecognize) {
+        this._isRecognizing = false
+        return
+      }
+      console.log('[faceRecognize] result:', result)
+      if (result && result.similarity >= RECOGNIZE_THRESHOLD) {
+        this._recognizeResult = { ...result, recognizedAt: now }
+        this.onRecognizeResult?.(this._recognizeResult)
+      } else {
+        // 相似度过低，视为未识别到
+        console.log('[faceRecognize] similarity too low or null:', result)
+        this._recognizeResult = null
+        this.onRecognizeResult?.(null)
+      }
+    } catch (err) {
+      // 如果识别过程中被关闭了，忽略错误
+      if (!this._enableRecognize) {
+        this._isRecognizing = false
+        return
+      }
+      console.log('[faceRecognize] error:', err)
+      // 'no match' 或其他错误：清空识别结果
+      this._recognizeResult = null
+      this.onRecognizeResult?.(null)
+    } finally {
+      this._isRecognizing = false
+    }
+  }
+
+  /** 清空识别结果缓存（切换模式/无人脸时调用） */
+  clearRecognizeResult() {
+    this._recognizeResult = null
+    this._lastRecognizeAt = 0
+    this.onRecognizeResult?.(null)
   }
 
 }
